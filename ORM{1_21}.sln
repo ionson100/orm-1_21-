@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestMysql", "TestMysql\Test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSqlite", "TestSqlite\TestSqlite.csproj", "{5ADD091E-120E-44C6-9912-17330FCA1EE1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestMsSql", "..\TestMsSql\TestMsSql.csproj", "{ED6DED5A-A6CD-429B-AF96-8C26EB9EA761}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSqlExress", "TestSqlExress\TestSqlExress.csproj", "{15D26D80-D1E7-43F3-94B7-769FDCF6CEE0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{5ADD091E-120E-44C6-9912-17330FCA1EE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5ADD091E-120E-44C6-9912-17330FCA1EE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5ADD091E-120E-44C6-9912-17330FCA1EE1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ED6DED5A-A6CD-429B-AF96-8C26EB9EA761}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ED6DED5A-A6CD-429B-AF96-8C26EB9EA761}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ED6DED5A-A6CD-429B-AF96-8C26EB9EA761}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ED6DED5A-A6CD-429B-AF96-8C26EB9EA761}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15D26D80-D1E7-43F3-94B7-769FDCF6CEE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15D26D80-D1E7-43F3-94B7-769FDCF6CEE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15D26D80-D1E7-43F3-94B7-769FDCF6CEE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15D26D80-D1E7-43F3-94B7-769FDCF6CEE0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
