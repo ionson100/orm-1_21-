@@ -24,7 +24,7 @@ namespace ORM_1_21_
                 {
                     builder.AppendLine(
 
-                        $" \"{Utils.ClearTrim(map.ColumnNameForReader)}\" {GetTypePg(map.TypeColumn)} {FactoryGreaterTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
+                        $" \"{Utils.ClearTrim(map.ColumnNameForReader)}\" {GetTypePg(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
                 }
                 else
                 {

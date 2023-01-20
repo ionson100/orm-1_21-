@@ -30,7 +30,7 @@ namespace ORM_1_21_
             
             foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
-                builder.AppendLine($" {map.ColumnNameForReader} {GetTypeColumn(map.TypeColumn)} {FactoryGreaterTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
+                builder.AppendLine($" {map.ColumnNameForReader} {GetTypeColumn(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
             }
 
 

@@ -106,7 +106,7 @@
     <Compile Include="DbTypeConverter.cs" />
     <Compile Include="Configure.cs" />
     <Compile Include="Configure2.cs" />
-    <Compile Include="FactoryGreaterTable.cs" />
+    <Compile Include="FactoryCreatorTable.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="ISerializableOrm.cs" />
     <Compile Include="Linq\MsSql\MsSqlConstructorSql.cs" />
@@ -151,14 +151,14 @@
     <Compile Include="IValidateDAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Transactionale.cs" />
-    <Compile Include="Utils.cs" />
-    <Compile Include="UtilsBulkMsSql.cs" />
-    <Compile Include="UtilsBulkMySql.cs" />
-    <Compile Include="UtilsBulkPostgres.cs" />
-    <Compile Include="UtilsCreateTableMsSql.cs" />
-    <Compile Include="UtilsCreateTableMysql.cs" />
-    <Compile Include="UtilsCreateTablePostgres.cs" />
-    <Compile Include="UtilsCreateTableSqlite.cs" />
+    <Compile Include="Utils\Utils.cs" />
+    <Compile Include="Utils\UtilsBulkMsSql.cs" />
+    <Compile Include="Utils\UtilsBulkMySql.cs" />
+    <Compile Include="Utils\UtilsBulkPostgres.cs" />
+    <Compile Include="Utils\UtilsCreateTableMsSql.cs" />
+    <Compile Include="Utils\UtilsCreateTableMysql.cs" />
+    <Compile Include="Utils\UtilsCreateTablePostgres.cs" />
+    <Compile Include="Utils\UtilsCreateTableSqlite.cs" />
     <Compile Include="V.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -188,7 +188,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="README.md" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

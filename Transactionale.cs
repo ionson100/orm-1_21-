@@ -5,13 +5,12 @@ using System.Data;
 namespace ORM_1_21_.Transaction
 {
     /// <summary>
-    /// Тип контейнер,содержит данные для трансакции,
-    /// занятость трансакции, фабрику для транакций
+    /// Тип контейнер,содержит данные для транзакции,
+    /// занятость трансакции, фабрику для транзакций
     /// </summary>
     internal class Transactionale : ITransaction
     {
         bool _occupied;
-        // List<Transactionale> _ltr = new List<Transactionale>();
         IDbConnection _connection;
         List<IDisposable> _listDispose = new List<IDisposable>();
 
@@ -23,7 +22,6 @@ namespace ORM_1_21_.Transaction
 
         public IDbConnection Connection
         {
-            //get { return _connection; }
             set { _connection = value; }
         }
 

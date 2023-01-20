@@ -27,7 +27,7 @@ namespace ORM_1_21_
                         typeColumn=GetTypeMySql(map.TypeColumn);
                     }
                    
-                    builder.AppendLine($" `{map.ColumnNameForReader}` {typeColumn} {FactoryGreaterTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
+                    builder.AppendLine($" `{map.ColumnNameForReader}` {typeColumn} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
                    
                    
                 }

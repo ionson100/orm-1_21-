@@ -140,7 +140,7 @@ namespace ORM_1_21_
         /// <typeparam name="T"></typeparam>
         public void TableCreate<T>() where T : class
         {
-            var ss = new FactoryGreaterTable().SqlCreate<T>();
+            var ss = new FactoryCreatorTable().SqlCreate<T>();
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
 

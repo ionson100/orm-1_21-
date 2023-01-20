@@ -33,11 +33,11 @@ namespace ORM_1_21_
                 var typeUser = map.TypeString;
                 if (typeUser == null)
                 {
-                    builder.AppendLine($" [{map.ColumnNameForReader}] {GetTypeMsSQl(map.TypeColumn)} {FactoryGreaterTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
+                    builder.AppendLine($" [{map.ColumnNameForReader}] {GetTypeMsSQl(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
                 }
                 else
                 {
-                    builder.AppendLine($" [{map.ColumnNameForReader}] {typeUser} {FactoryGreaterTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
+                    builder.AppendLine($" [{map.ColumnNameForReader}] {typeUser} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
                 }
                 
             }

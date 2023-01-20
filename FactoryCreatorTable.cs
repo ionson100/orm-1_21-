@@ -8,7 +8,7 @@ namespace ORM_1_21_
     /// <summary>
     /// 
     /// </summary>
-    internal class FactoryGreaterTable
+    internal class FactoryCreatorTable
     {
         public string SqlCreate<T>()
         {
