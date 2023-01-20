@@ -95,12 +95,12 @@ namespace ORM_1_21_
 
             if (generator == Generator.Native)
             {
-                if (type == typeof(long) || type == typeof(long?)) return "BIGSERIAL";
-                if (type == typeof(int) || type.BaseType == typeof(Enum) || type == typeof(int?)) return "SERIAL";
+                if (type == typeof(long)|| type == typeof(ulong) || type == typeof(long?)) return "BIGSERIAL";
+                if (type == typeof(int)|| type == typeof(uint) || type.BaseType == typeof(Enum) || type == typeof(int?)) return "SERIAL";
                 if (type == typeof(Guid)) return "UUID";
             }
 
-            return "NVARCHAR] (256)";
+            return "SERIAL";
         }
     }
 }
