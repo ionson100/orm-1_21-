@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-
+using Newtonsoft.Json;
 using ORM_1_21_.Transaction;
 
 namespace ORM_1_21_
@@ -236,6 +236,7 @@ namespace ORM_1_21_
 
         private static void ClonableItems<T>(T item, object o)
         {
+            
             var rr = o.GetType().GetProperties();
             foreach (var propertyInfo in item.GetType().GetProperties())
             {

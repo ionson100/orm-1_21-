@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Newtonsoft.Json;
 using ORM_1_21_.Linq;
 
 namespace ORM_1_21_
@@ -101,12 +101,13 @@ namespace ORM_1_21_
         /// <summary>
         ///     запрос на выборку с параметрами
         /// </summary>
-        /// <param name="sqlWhere">запрос на выборку, начиная с where  с праметрами</param>
+        /// <param name="sqlWhere">запрос на выборку, начиная с после where  с праметрами, можно поставить: 1=1</param>
         /// <param name="obj">список параметров в той последовательности в которой они идут в запросе.</param>
         /// <typeparam name="T">Тип сущности</typeparam>
         /// <returns></returns>
         public IEnumerable<T> GetList<T>(string sqlWhere, params object[] obj) where T : class
         {
+            if (sqlWhere == null) sqlWhere = "";
             var sqlAll = AttributesOfClass<T>.SimpleSqlSelect + AttributesOfClass<T>.AddSqlWhere(sqlWhere);
             var com = ProviderFactories.GetCommand();
             com.CommandText = sqlAll;
@@ -306,7 +307,7 @@ namespace ORM_1_21_
             {
                 com.CommandTimeout = timeout;
             }
-
+            
             com.CommandText = sql;
             try
             {
@@ -793,11 +794,8 @@ namespace ORM_1_21_
             com.CommandText = AttributesOfClass<T>.SimpleSqlSelect + AttributesOfClass<T>.AddSqlWhere(sqlWhere);
             try
             {
-                // var res1 = GetCache<T>(isCache, com);
-                // if (res1 != null) return (IEnumerable<T>) res1;
                 OpenConnectAndTransaction(com);
                 lResult = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader());
-                //SetCache<T>(isCache, com, lResult);
             }
             catch (Exception ex)
             {
@@ -831,11 +829,10 @@ namespace ORM_1_21_
             com.CommandText = sqlAll;
             try
             {
-                // var res1 = GetCache<T>(isCache, com);
-                // if (res1 != null) return (IEnumerable<T>) res1;
+             
                 OpenConnectAndTransaction(com);
                 lResul = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader());
-                //SetCache<T>(isCache, com, lResul);
+              
             }
             catch (Exception ex)
             {
@@ -1016,10 +1013,10 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// 
+        /// Получает SQL строку Insert (бойся инъекций)
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <returns>string sql from insert</returns>
         public string InsertCommand<T>( T t)
         {
             switch (Configure.Provider)
@@ -1039,13 +1036,11 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// 
+        /// Строка запроса на удаление
         /// </summary>
         /// <param name="t"></param>
         /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <returns>string sql for detete</returns>
         public string DeleteCommand<T>(T t)
         {
             switch (Configure.Provider)
@@ -1062,6 +1057,72 @@ namespace ORM_1_21_
                     throw new ArgumentOutOfRangeException();
             }
             // 
+        }
+        /// <summary>
+        /// Get DataTable
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="timeout"></param>
+        /// <param name="obj"></param>
+        /// <returns>DataTable</returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public DataTable GetDataTable(string sql, int timeout = -1, params object[] obj)
+        {
+            var table = new DataTable();
+
+            var com = ProviderFactories.GetCommand();
+            com.Connection = _connect;
+            if (timeout != -1)
+            {
+                com.CommandTimeout = timeout;
+            }
+
+            com.CommandText = sql;
+            
+            
+            try
+            {
+                AddParam(com, obj);
+                OpenConnectAndTransaction(com);
+                var reader = com.ExecuteReader();
+                table.BeginLoadData();
+                table.Load(reader);
+                table.EndLoadData();
+                WriteLogFile(com.CommandText);
+                return table;
+            }
+            catch (Exception ex)
+            {
+                Configure.SendError(com.CommandText, ex);
+                return null;
+            }
+            finally
+            {
+                ComDisposable(com);
+            }
+        }
+
+        /// <summary>
+        /// Клонирование объекта
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="ob"></param>
+        /// <returns>T</returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public T ClonableItems<T>(T ob)
+        {
+            try
+            {
+               var str= JsonConvert.SerializeObject(ob);
+                return JsonConvert.DeserializeObject<T>(str);
+
+            }
+            catch(Exception ex)
+            {
+                Configure.SendError("Clone", ex);
+                throw;
+
+            }
         }
     }
 }

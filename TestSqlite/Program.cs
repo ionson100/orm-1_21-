@@ -51,8 +51,14 @@ namespace TestSqlite
                var list1 = Configure.GetSession()
                    .FreeSql<MyClass>($"select * from {Configure.GetSession().TableName<MyClass>()}");
                var list2 = Configure.GetSession().Querion<MyClass>().Select(a => new { ageCore = a.Age }).ToList();
-        
-           }
+            var list3 = Configure.GetSession().Querion<MyClass>().
+               Where(a => (a.Age > 5 || a.Name.StartsWith("ion100")) && a.Name.Contains("100")).
+               OrderBy(d => d.Age).
+               Select(f => new { age = f.Age }).
+               Limit(0, 2).
+               ToList();
+
+        }
         }
 
         static class Starter

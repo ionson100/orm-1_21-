@@ -85,7 +85,7 @@ namespace ORM_1_21_
         /// <param name="exp"></param>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="TKey"></typeparam>
-        /// <returns></returns>
+        /// <returns>IEnumerabl</returns>
         [Obsolete]
         public static IEnumerable<object> GroupByCore<T, TKey>(this IQueryable<T> coll,
             Expression<Func<T, TKey>> key, Expression<Func<T, object>> exp) where TKey : class

@@ -30,9 +30,9 @@ namespace ORM_1_21_
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="reader"></param>
+        /// <param name="reader">IDataReader</param>
         /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <returns>IEnumerable</returns>
         IEnumerable<T> GetListMonster<T>( IDataReader reader) where T : class;
 
 
@@ -63,7 +63,7 @@ namespace ORM_1_21_
         ///     Получение объекта ITransaction с одновременно началом трансакции, с параметрами
         /// </summary>
         /// <param name="value">Параметр изоляции транакции</param>
-        /// <returns></returns>
+        /// <returns>ITransaction</returns>
         ITransaction BeginTransaction(IsolationLevel value);
 
         /// <summary>
@@ -116,11 +116,20 @@ namespace ORM_1_21_
         IDataReader ExecuteReaderT(string sql,int timeOut=-1, params object[] obj);
 
         /// <summary>
+        /// Get DataTable
         /// </summary>
-        /// <param name="sql"></param>
+        /// <param name="sql">sql text</param>
         /// <param name="timeout">таймаут</param>
-        /// <returns></returns>
+        /// <returns>DataTable</returns>
         DataTable GetDataTable(string sql,int timeout= -1);
+        /// <summary>
+        /// Get DataTable
+        /// </summary>
+        /// <param name="sql">sql text</param>
+        /// <param name="timeout">таймаут</param>
+        /// <param name="obj"></param>
+        /// <returns>DataTable</returns>
+        DataTable GetDataTable(string sql, int timeout = -1, params object[] obj);
 
         /// <summary>
         ///     возвращает список названия таблиц из базы
@@ -201,7 +210,7 @@ namespace ORM_1_21_
         bool IsPersistent(object obj);
 
         /// <summary>
-        ///     Делаем объект персистентным
+        ///     Делаем объект персистентным ( как бы объект получен из базы)
         /// </summary>
         /// <param name="obj"></param>
         void ToPersistent(object obj);
@@ -214,7 +223,7 @@ namespace ORM_1_21_
         void WriteLogFile(string message);
 
         /// <summary>
-        ///     Получение автономного IDbCommand, закрывать и диспозить на вашей совести
+        ///     Получение автономного IDbCommand, закрывать и диспозить вручную
         /// </summary>
         /// <returns>IDbCommand</returns>
         IDbCommand GetCommand();
@@ -274,7 +283,7 @@ namespace ORM_1_21_
         string ColumnName<T>(Expression<Func<T,object>> property);
 
         /// <summary>
-        /// Получает SQL строку Insert (бойся иньекций)
+        /// Получает SQL строку Insert (бойся инъекций)
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
@@ -285,8 +294,17 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="t"></param>
         /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <returns>string sql for detete</returns>
         string DeleteCommand<T>(T t);
+
+        /// <summary>
+        /// Клонирование объекта
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="ob"></param>
+        /// <returns>T</returns>
+        T ClonableItems<T>(T ob);
+      
 
     }
 }

@@ -16,7 +16,7 @@ namespace TestPostgres
           
             MyClass myClass = new MyClass()
             {
-                Age = 12,
+                Age = 11,
                 Description = "simple",
                 Name = "ion100"
             };
@@ -30,7 +30,7 @@ namespace TestPostgres
                 },
                 new MyClass()
                 {
-                    Age = 12,
+                    Age = 13,
                     Description = "simple",
                     Name = "ion100"
                 }
@@ -40,7 +40,18 @@ namespace TestPostgres
                 var tr = ses.BeginTransaction();
                 try
                 {
+                    
                     ses.Save(myClass);
+                    var s = ses.ClonableItems(myClass);
+                    ses.Save(s);
+                    var res = ses.Get<MyClass>(myClass.Id);
+                    if(res != null)
+                    {
+                        res.Age = 100;
+                        ses.Save(res);
+                        ses.Delete(res);
+                    }
+                    
                     ses.InsertBulk(list1);
                     tr.Commit();
                 }
@@ -51,10 +62,27 @@ namespace TestPostgres
                     throw;
                 }
             }
+            var ses1=Configure.GetSession();
+            string t = ses1.TableName<MyClass>();
+            var @calss = ses1.GetList<MyClass>("age =100 order by age ").FirstOrDefault();
             
-            var list = Configure.GetSession().Querion<MyClass>().Where(a => a.Age > 5).ToList();
+            var list = ses1.Querion<MyClass>().
+                Where(a => (a.Age > 5||a.Name.StartsWith("ion100"))&&a.Name.Contains("100")).
+                OrderBy(d=>d.Age).
+                Select(f=>new {age=f.Age}).
+                Limit(0,2).
+                ToList();
+            
+            var myClassCore = ses1.Querion<MyClass>().Where(a => a.Name != null).First();
+            var val1 = ses1.FreeSql<MyClass>($"select * from {ses1.TableName<MyClass>()} where \"name\" LIKE CONCAT(@p1,'%')",
+                    new Parameter("@p1", "ion100")).ToList();
+            var isP = ses1.IsPersistent(val1[0]);
+            
+            var dataTable = ses1.GetDataTable($"select * from {ses1.TableName<MyClass>()} ");
+            var coutn = dataTable.Rows.Count;
         }
     }
+   
 
     static class Starter
     {
@@ -77,15 +105,12 @@ namespace TestPostgres
                 {
                     ses.TableCreate<MyClass>();
                 }
-            }
-
-         
-
+            }     
        }
     }
 
     [MapTableName("my_class")]
-    class MyClass
+    class MyClass:IValidateDal<MyClass>, IActionDal<MyClass>
     {
         [MapPrimaryKey("id", Generator.Native)]
         public int Id { get; set; }
@@ -111,9 +136,41 @@ namespace TestPostgres
         public List<MyTest> Test23 { get; set; } = new List<MyTest>() { new MyTest() { Name = "simple" }
     };
 
+        public void AfterDelete(MyClass item)
+        {
+            //throw new NotImplementedException();
+        }
 
+        public void AfterInsert(MyClass item)
+        {
+            //throw new NotImplementedException();
+        }
 
-}
+        public void AfterUpdate(MyClass item)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void BeforeDelete(MyClass item)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void BeforeInsert(MyClass item)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void BeforeUpdate(MyClass item)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void Validate(MyClass item)
+        {
+            //throw new NotImplementedException();
+        }
+    }
 
     class MyTest
     {
