@@ -960,19 +960,7 @@ namespace ORM_1_21_
             return GetList<T>("");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public async Task<Query<T>> QuerionAsync<T>()
-        {
-            return await Task.Run(() =>
-            {
-                QueryProvider p = new DbQueryProvider<T>(this);
-                return new Query<T>(p);
-            });
-        }
+      
 
         /// <summary>
         ///возвращает название поля для таблицы

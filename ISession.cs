@@ -194,12 +194,7 @@ namespace ORM_1_21_
         /// <returns></returns>
         Query<T> Querion<T>();
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        Task<Query<T>> QuerionAsync<T>();
+        
 
 
         /// <summary>

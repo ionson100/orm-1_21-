@@ -93,7 +93,7 @@ namespace TestPostgres
 #if DEBUG
            path = "SqlLog.txt";
 #endif
-            _ = new Configure("Server=localhost;Port=5432;Database=testorm;User Id=postgres;Password=ion100312873;",
+            _ = new Configure("Server=localhost;Port=5432;Database=testorm;User Id=assa;Password=postgres;",
                 ProviderName.Postgresql, path);
             using (var ses=Configure.GetSession())
             {

@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using ORM_1_21_.Linq;
 
 namespace ORM_1_21_
@@ -40,7 +41,7 @@ namespace ORM_1_21_
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="TRes"></typeparam>
         /// <returns></returns>
-        public static TRes FreeExpression<T, TRes>(this IQueryable<T> coll, Expression expression)
+        public static TRes FreeExpression<T, TRes>(this IQueryable<T> coll)
         {
             return (TRes) coll.Provider.Execute<object>(coll.Expression);
         }
@@ -58,8 +59,20 @@ namespace ORM_1_21_
             return (IEnumerable<object>) coll.Provider.Execute<object>(coll.Expression);
         }
 
-      
-     
+        /// <summary>
+        /// Асинхронное выполнение запроса
+        /// </summary>
+        /// <param name="coll"></param>
+        /// <returns>Task&lt;TResult&gt;</returns>
+
+        public static async Task<TResult> AsyncExecute<TResult>(this IQueryable coll)
+        {
+            return await Task.Run(() => coll.Provider.Execute<TResult>(coll.Expression));
+
+        }
+
+
+
 
 
         /// <summary>
@@ -103,10 +116,10 @@ namespace ORM_1_21_
         /// <param name="coll"></param>
         /// <param name="obj">Удаляемы объект, он должен быть получен из базы</param>
         /// <typeparam name="T">Тип проекции таблицы</typeparam>
-        public static void Delete<T>(this IQueryable<T> coll, T obj) where T : class
+        public static int Delete<T>(this IQueryable<T> coll, T obj) where T : class
         {
             var ses = ((ISqlComposite) coll.Provider).Sessione;
-            ses.Delete(obj);
+            return ses.Delete(obj);
         }
 
 
