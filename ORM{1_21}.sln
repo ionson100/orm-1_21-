@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSqlite", "TestSqlite\Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSqlExress", "TestSqlExress\TestSqlExress.csproj", "{15D26D80-D1E7-43F3-94B7-769FDCF6CEE0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagerSql", "ManagerSql\ManagerSql.csproj", "{3D41D744-B35A-4EBD-BDBC-9D1C97AC4BB9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{15D26D80-D1E7-43F3-94B7-769FDCF6CEE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15D26D80-D1E7-43F3-94B7-769FDCF6CEE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15D26D80-D1E7-43F3-94B7-769FDCF6CEE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D41D744-B35A-4EBD-BDBC-9D1C97AC4BB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D41D744-B35A-4EBD-BDBC-9D1C97AC4BB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D41D744-B35A-4EBD-BDBC-9D1C97AC4BB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D41D744-B35A-4EBD-BDBC-9D1C97AC4BB9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

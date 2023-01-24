@@ -47,6 +47,7 @@ namespace TestSqlite
                }
            };
                Configure.GetSession().InsertBulk(classes);
+               var eee = Configure.GetSession().ExecuteScalar("SELECT name FROM sqlite_temp_master WHERE type='table';");
                var list = Configure.GetSession().Querion<MyClass>().Where(a => a.Age > 5).ToList();
                var list1 = Configure.GetSession()
                    .FreeSql<MyClass>($"select * from {Configure.GetSession().TableName<MyClass>()}");

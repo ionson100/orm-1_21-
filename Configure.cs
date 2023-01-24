@@ -45,7 +45,8 @@ namespace ORM_1_21_
         /// <param name="logFileName">Путь и название файла, куда будем писать логи, его отсутствие (null) отменяет запиь в файл.</param>
         public Configure(string connectionString, ProviderName provider, string logFileName)
         {
-           
+
+            ProviderFactories.AsNullDbProviderFactory();
             ConnectionString = connectionString;
             Provider = provider;
             LogFileName = logFileName;

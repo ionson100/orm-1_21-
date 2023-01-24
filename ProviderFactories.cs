@@ -10,6 +10,11 @@ namespace ORM_1_21_
     {
         private static DbProviderFactory _curFactory;
 
+        public static void AsNullDbProviderFactory()
+        {
+            _curFactory = null;
+        }
+
 
 
         internal static IDbDataParameter GetParameter()

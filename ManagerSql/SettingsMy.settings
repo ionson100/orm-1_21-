@@ -1,0 +1,21 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="ManagerSql" GeneratedClassName="SettingsMy">
+  <Profiles />
+  <Settings>
+    <Setting Name="ConnctionString" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LastSql" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="Sp1" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">200</Value>
+    </Setting>
+    <Setting Name="Sp2" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">400</Value>
+    </Setting>
+    <Setting Name="TypeBase" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

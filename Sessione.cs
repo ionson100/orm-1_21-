@@ -344,12 +344,19 @@ namespace ORM_1_21_
 
             switch (Configure.Provider)
             {
+                case ProviderName.Sqlite:
+                {
+                    index = 0;
+                    com.CommandText = "SELECT name FROM sqlite_master WHERE type='table';";
+                        break;
+                }
                 case ProviderName.MsSql:
                 {
                     com.CommandText = "SELECT * FROM information_schema.tables";
                     index = 2;
-                }
                     break;
+                }
+                   
                 case ProviderName.MySql:
                 {
                     index = 0;
@@ -361,14 +368,16 @@ namespace ORM_1_21_
                             com.CommandText =
                                 $"SELECT table_name FROM information_schema.tables WHERE table_schema = '{nameBase}';";
                         }
-                }
                     break;
+                }
+                    
                 case ProviderName.Postgresql:
                 {
                     index = 0;
                     com.CommandText = "SELECT table_name FROM information_schema.tables where table_schema='public'";
-                }
                     break;
+                }
+                    
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -380,6 +389,7 @@ namespace ORM_1_21_
             try
             {
                 OpenConnectAndTransaction(com);
+
                 var reader = com.ExecuteReader();
                 while (reader.Read()) result.Add(reader.GetString(index));
                 reader.Close();

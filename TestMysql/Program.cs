@@ -47,6 +47,9 @@ namespace TestMysql
                 }
             };
             Configure.GetSession().InsertBulk(classes);
+            var sss = Configure.GetSession()
+                                 
+                .ExecuteScalar("SELECT table_name FROM information_schema.tables WHERE table_schema = 'test';");
             var list = Configure.GetSession().Querion<MyClass>().Where(a => a.Age > 5).ToList();
             var list1 = Configure.GetSession()
                 .FreeSql<MyClass>($"select * from {Configure.GetSession().TableName<MyClass>()}");
