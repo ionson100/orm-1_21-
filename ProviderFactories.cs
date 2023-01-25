@@ -30,7 +30,10 @@ namespace ORM_1_21_
                 switch (Configure.Provider)
                 {
                     case ProviderName.MsSql:
-                        _curFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
+
+                        var assa1 = Utils.Assembler.GetType("System.Data.SqlClient.SqlClientFactory");
+                        _curFactory = (DbProviderFactory)assa1.GetField("Instance").GetValue(null);
+                        //_curFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
                         break;
                     case ProviderName.MySql:
                     {

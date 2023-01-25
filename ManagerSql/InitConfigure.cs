@@ -42,6 +42,9 @@ namespace ManagerSql
             }
             try
             {
+               // name = ProviderName.MsSql;
+               // conString =
+               //     @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=audi124;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
                 _ = new Configure(conString, name, null);
                 return Configure.GetSession().GetTableNames().OrderBy(a => a).ToList();
             }
@@ -54,5 +57,8 @@ namespace ManagerSql
             return null;
 
         }
+
+      
+       
     }
 }

@@ -31,6 +31,23 @@ namespace ManagerSql
             ColumnTree.Width = new GridLength(SettingsMy.Default.Sp1);
             RowTextSql.Height = new GridLength(SettingsMy.Default.Sp2);
             ComboBoxTypeBase.SelectedIndex = SettingsMy.Default.TypeBase;
+            SettingsMy.Default.Connects.Remove("start");
+            Utils.InitMenu(MenuLastConnects, (sender, args) =>
+            {
+                var s =((MenuItem)args.Source).Header;
+                var par = Utils.GetParamConnect(s.ToString());
+                if(par==null) return;
+                if(par.Value.Item1>3)return;
+                ComboBoxTypeBase.SelectedIndex = par.Value.Item1;
+                TextBoxConnectionString.Text = par.Value.Item2;
+                
+                DataGridSql.DataContext = null;
+                ButtonBase_OnClickRefreshBase(null, null);
+
+
+            });
+
+
         }
 
         void InitBase(int typeBase,string conStr,bool isStart=false)
@@ -41,7 +58,17 @@ namespace ManagerSql
             TreeViewTables.Items.Clear();
             foreach (var tableName in listTable)
             {
-                TreeViewTables.Items.Add(new TreeViewItem() { Header = tableName });
+                StackPanel stack = new StackPanel { Orientation = Orientation.Horizontal };
+                stack.Children.Add(new Image
+                {
+                    Source = new BitmapImage
+                        (new Uri("pack://application:,,/Resources/table.png")),
+                    Width = 25,
+                    Height = 25
+                });
+                stack.Children.Add(new Label { Content = tableName });
+                var s = new TreeViewItem() { Header = stack,Tag = tableName};
+                TreeViewTables.Items.Add(s);
             }
 
             if (isStart)
@@ -52,10 +79,15 @@ namespace ManagerSql
             {
                 SettingsMy.Default.ConnctionString = conStr;
                 SettingsMy.Default.TypeBase = ComboBoxTypeBase.SelectedIndex;
-                SettingsMy.Default.Save();
+                 SettingsMy.Default.Save();
+                
+               
             }
+           
+            Utils.UpdateLastConnects(typeBase, TextBoxConnectionString.Text);
 
-            
+
+
         }
 
         private void ButtonBase_OnClickRefreshBase(object sender, RoutedEventArgs e)
@@ -139,7 +171,7 @@ namespace ManagerSql
         {
             if (TreeViewTables.SelectedItem == null) return;
             TreeViewItem item = (TreeViewItem)TreeViewTables.SelectedItem;
-            string table = (string)item.Header;
+            string table = (string)item.Tag;
             string sql;
             
             switch (ComboBoxTypeBase.SelectedIndex)
@@ -157,12 +189,18 @@ namespace ManagerSql
                     sql = $"SELECT * FROM \"{table}\" LIMIT 10";
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
-                
+                {
+                    sql = $"SELECT  * FROM {table} LIMIT 10";
+                    break;
+                }
+                    
+
             }
 
             TextBoxSql.Text = sql;
             await Execute();
         }
+
+       
     }
 }

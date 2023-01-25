@@ -13,9 +13,11 @@
             <RowDefinition Height="15*" />
             <RowDefinition Height="20" />
         </Grid.RowDefinitions>
-        <Menu Grid.Row="0" Height="20" VerticalAlignment="Top">
+        <Menu Grid.Row="0" Height="20" VerticalAlignment="Top" >
+           
             <MenuItem Header="File">
-                
+                <MenuItem Name="MenuLastConnects" Header="Last Connects"  />
+                <Separator />
                 <MenuItem Header="Exit" Click="MenuItem_OnClick" ></MenuItem>
             </MenuItem>
            
@@ -45,19 +47,19 @@
                     <Grid Grid.Row="0" Margin="2" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="4*"/>
+                            <ColumnDefinition Width="8*"/>
                             <ColumnDefinition  Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <ComboBox Name="ComboBoxTypeBase" Grid.Column="0" FontSize="20" Margin="2">
                             <TextBlock>PostgreSql</TextBlock>
-                            <TextBlock>MySql</TextBlock>
-                            <TextBlock>MSSql</TextBlock>
+                            <TextBlock>MySQL</TextBlock>
+                            <TextBlock>MSSQL</TextBlock>
                             <TextBlock>Sqlite</TextBlock>
                         </ComboBox>
                         <TextBox Name="TextBoxConnectionString" FontWeight="Bold"   Grid.Column="1" Margin="2" FontSize="20"/>
-                        <Button Name="ButtonInit" Grid.Column="2" Width="150" Margin="2" Click="ButtonBase_OnClickRefreshBase">Refresh Base</Button>
-                        <Button Name="ButtonExecute" Grid.Column="3" Width="150" Margin="2" Click="ButtonBase_OnClickExecuteSql">Execute Sql</Button>
+                        <Button FontSize="20" Name="ButtonInit" Grid.Column="2" Width="150" Margin="2" Click="ButtonBase_OnClickRefreshBase">Refresh Base</Button>
+                        <Button FontSize="20" Name="ButtonExecute" Grid.Column="3" Width="150" Margin="2" Click="ButtonBase_OnClickExecuteSql">Execute Sql</Button>
                     </Grid>
                    <TextBox Background="Azure" FontSize="20" KeyDown="TextBoxSql_OnKeyDown" Name="TextBoxSql" Grid.Row="1"/>
                 </Grid>

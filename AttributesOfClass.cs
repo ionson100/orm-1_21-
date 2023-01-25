@@ -870,23 +870,54 @@ namespace ORM_1_21_
                
             }
 
-            
-
-            if (Configure.Provider == ProviderName.MsSql)
-                allSb.Insert(0, declare);
+            switch (Configure.Provider)
             {
-                if (Configure.Provider == ProviderName.Postgresql|| Configure.Provider == ProviderName.Sqlite)
+                case ProviderName.MsSql:
                 {
-                    var s = allSb.ToString().Trim(new[] {' ', ';'});
+                    allSb.Insert(0, declare);
+                        break;
+                }
+                case ProviderName.Postgresql:
+                {
+                    var s = allSb.ToString().Trim(new[] { ' ', ';' });
                     allSb.Length = 0;
                     allSb.Append(s).Append(" ").Append(Utils.Pref.Replace("{1}", TableNameAllLazy.Value[typeof(T)])
                         .Replace("{2}", PkAttribute.ColumnName));
+                        break;
                 }
-                else
+                case ProviderName.Sqlite:
+                {
+                    var s = allSb.ToString().Trim(new[] { ' ', ';' });
+                    allSb.Length = 0;
+                    allSb.Append(s).Append(" ").Append(Utils.Pref.Replace("{1}", TableNameAllLazy.Value[typeof(T)])
+                        .Replace("{2}", PkAttribute.ColumnName));
+                        break;
+                }
+                case ProviderName.MySql:
                 {
                     allSb.Append(Utils.Pref.Replace("{1}", TableNameAllLazy.Value[typeof(T)]).Replace("{2}", PkAttribute.ColumnName));
+                        break;
                 }
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
+            
+
+           // if (Configure.Provider == ProviderName.MsSql)
+           //     allSb.Insert(0, declare);
+           // {
+           //     if (Configure.Provider == ProviderName.Postgresql|| Configure.Provider == ProviderName.Sqlite)
+           //     {
+           //         var s = allSb.ToString().Trim(new[] {' ', ';'});
+           //         allSb.Length = 0;
+           //         allSb.Append(s).Append(" ").Append(Utils.Pref.Replace("{1}", TableNameAllLazy.Value[typeof(T)])
+           //             .Replace("{2}", PkAttribute.ColumnName));
+           //     }
+           //     else
+           //     {
+           //         allSb.Append(Utils.Pref.Replace("{1}", TableNameAllLazy.Value[typeof(T)]).Replace("{2}", PkAttribute.ColumnName));
+           //     }
+           // }
             command.CommandText = allSb.ToString();
         }
 

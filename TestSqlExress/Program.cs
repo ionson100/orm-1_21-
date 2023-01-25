@@ -50,6 +50,8 @@ namespace TestSqlExress
             var list1 = Configure.GetSession()
                 .FreeSql<MyClass>($"select * from {Configure.GetSession().TableName<MyClass>()}");
             var list2 = Configure.GetSession().Querion<MyClass>().Select(a => new { ageCore = a.Age }).ToList();
+            var ee = Configure.GetSession().ExecuteScalar("SELECT * FROM information_schema.tables");
+
         }
     }
 
