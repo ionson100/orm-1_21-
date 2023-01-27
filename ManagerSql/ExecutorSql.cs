@@ -13,6 +13,7 @@ namespace ManagerSql
     {
         public async Task Execute(string sql, DataGrid dataGrid)
         {
+
             _ = dataGrid.Dispatcher.BeginInvoke(new Action(() =>
             {
                 dataGrid.DataContext = null;
@@ -27,6 +28,7 @@ namespace ManagerSql
 
         private async Task<DataTable> GetDataTableTask(string sql)
         {
+          
            //await Task.Delay(3000);
             return await Task.Run(() => Configure.GetSession().GetDataTable(sql, 0));
         }

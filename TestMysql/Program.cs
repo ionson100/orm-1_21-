@@ -50,6 +50,9 @@ namespace TestMysql
             var sss = Configure.GetSession()
                                  
                 .ExecuteScalar("SELECT table_name FROM information_schema.tables WHERE table_schema = 'test';");
+            var i = Configure.GetSession().Querion<MyClass>().Where(a => a.Age == 12).
+                Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "simple" } });
+            var @calss = Configure.GetSession().GetList<MyClass>("age =100 order by age ").FirstOrDefault();
             var list = Configure.GetSession().Querion<MyClass>().Where(a => a.Age > 5).ToList();
             var list1 = Configure.GetSession()
                 .FreeSql<MyClass>($"select * from {Configure.GetSession().TableName<MyClass>()}");

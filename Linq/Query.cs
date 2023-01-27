@@ -7,13 +7,22 @@ using System.Linq.Expressions;
 namespace ORM_1_21_.Linq
 {
 
- 
+
+    interface IInnerList
+    {
+        object GetInnerList();
+    }
     /// <summary>
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public sealed class Query<T> : IOrderedQueryable<T>, IGetTypeQuery
+    public sealed class Query<T> : IOrderedQueryable<T>, IGetTypeQuery,IInnerList
     {
+
+        public object GetInnerList()
+        {
+            return  _provider.Execute<T>(_expression);
+        }
         /// <summary>
         /// Провайдер
         /// </summary>
@@ -27,11 +36,7 @@ namespace ORM_1_21_.Linq
         /// <exception cref="ArgumentNullException"></exception>
         internal Query(QueryProvider provider)
         {
-            if (provider == null)
-            {
-                throw new ArgumentNullException("provider");
-            }
-            _provider = provider;
+            _provider = provider ?? throw new ArgumentNullException("provider");
             _expression = Expression.Constant(this);
         }
 
@@ -44,12 +49,6 @@ namespace ORM_1_21_.Linq
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public Query(QueryProvider provider, Expression expression)
         {
-
-
-            if (provider == null)
-            {
-                throw new ArgumentNullException("provider");
-            }
             if (expression == null)
             {
                 throw new ArgumentNullException("expression");
@@ -59,27 +58,19 @@ namespace ORM_1_21_.Linq
                 throw new ArgumentOutOfRangeException("expression");
             }
 
-            _provider = provider;
+            _provider = provider ?? throw new ArgumentNullException("provider");
 
             _expression = expression;
         }
 
         internal Query(QueryProvider provider, Expression expression,int i)
         {
-            if (provider == null)
-            {
-                throw new ArgumentNullException("provider");
-            }
-            if (expression == null)
-            {
-                throw new ArgumentNullException("expression");
-            }
             //if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
             //{
             //    throw new ArgumentOutOfRangeException("expression");
             //}
-            _provider = provider;
-            _expression = expression;
+            _provider = provider ?? throw new ArgumentNullException("provider");
+            _expression = expression ?? throw new ArgumentNullException("expression");
         }
 
         Expression IQueryable.Expression
@@ -87,15 +78,10 @@ namespace ORM_1_21_.Linq
             get { return _expression; }
         }
 
-        Type IQueryable.ElementType
-        {
-            get { return typeof(T); }
-        }
+        Type IQueryable.ElementType => typeof(T);
 
-        IQueryProvider IQueryable.Provider
-        {
-            get { return _provider; }
-        }
+        IQueryProvider IQueryable.Provider => _provider;
+
         /// <summary>
         /// 
         /// </summary>
@@ -105,7 +91,8 @@ namespace ORM_1_21_.Linq
             return ( (IEnumerable<T>)_provider.Execute<T>(_expression)).GetEnumerator();
                       
         }
-
+       
+        
         IEnumerator IEnumerable.GetEnumerator()
         {
             return ( (IEnumerable)_provider.Execute(_expression)).GetEnumerator();

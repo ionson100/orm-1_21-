@@ -13,7 +13,7 @@ using ORM_1_21_.Transaction;
 
 namespace ORM_1_21_.Linq
 {
-    internal class DbQueryProvider<T> : QueryProvider, ISqlComposite
+    internal class DbQueryProvider<T> : QueryProvider, ISqlComposite, IGetTypeGetTypeGeneric
     {
         private readonly Dictionary<string, object> _paramFree = new Dictionary<string, object>();
         private readonly List<ParameterStoredPr> _paramFreeStoredPr = new List<ParameterStoredPr>();
@@ -24,6 +24,8 @@ namespace ORM_1_21_.Linq
         private IDbCommand _com;
 
         private Evolution _ev;
+
+       
 
         private bool _isStoredPr;
         private List<OneComprosite> _listOne;
@@ -248,8 +250,15 @@ namespace ORM_1_21_.Linq
         }
 
 
+        public object ExecuteAsync<TS>(Expression expression)
+        {
+            return Execute<TS>(expression);
+        }
+
         public override object Execute<TS>(Expression expression)
         {
+            var tt1 = typeof(T);
+            var tt2 = typeof(TS);
             var servis = (IServiceSessions) Sessione;
             _com = servis.CommandForLinq;
             if (_isStoredPr)
@@ -650,6 +659,11 @@ namespace ORM_1_21_.Linq
             }
 
             return res;
+        }
+
+        public Type GetTypeGetTypeGeneric()
+        {
+            return typeof(T);
         }
     }
 }

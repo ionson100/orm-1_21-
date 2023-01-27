@@ -42,7 +42,7 @@ namespace TestPostgres
                 {
                     
                     ses.Save(myClass);
-                    var s = ses.ClonableItems(myClass);
+                    var s = ses.Clone(myClass);
                     ses.Save(s);
                     var res = ses.Get<MyClass>(myClass.Id);
                     if(res != null)
@@ -64,6 +64,8 @@ namespace TestPostgres
             }
             var ses1=Configure.GetSession();
             string t = ses1.TableName<MyClass>();
+            var i=  Configure.GetSession().Querion<MyClass>().Where(a => a.Age == 12).
+            Update(s => new Dictionary<object, object> { { s.Age, 100 },{s.Name,"simple"} });
             var @calss = ses1.GetList<MyClass>("age =100 order by age ").FirstOrDefault();
             
             var list = ses1.Querion<MyClass>().

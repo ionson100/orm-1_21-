@@ -201,6 +201,12 @@ namespace ManagerSql
             await Execute();
         }
 
-       
+
+      
+
+        private void DataGridSql_OnCellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            DataTable d = (DataTable)DataGridSql.DataContext;
+        }
     }
 }

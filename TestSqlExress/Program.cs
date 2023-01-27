@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using ORM_1_21_;
@@ -11,7 +12,7 @@ namespace TestSqlExress
     class Program
     {
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Starter.Run();
             MyClass myClass = new MyClass()
@@ -25,34 +26,46 @@ namespace TestSqlExress
             {
                 new MyClass()
                 {
-                    Age = 12,
+                    Age = 121,
                     Description = "simple",
                     Name = "ion100FROMfromFrom ass",
                     DateTime = DateTime.Now
                 },
                 new MyClass()
                 {
-                    Age = 12,
+                    Age = 122,
                     Description = "simple",
                     Name = "ion100FROMfromFrom ass",
                     DateTime = DateTime.Now
                 },
                 new MyClass()
                 {
-                    Age = 12,
+                    Age = 123,
                     Description = "simple",
                     Name = "ion100FROMfromFrom ass",
                     DateTime = DateTime.Now
                 }
             };
             Configure.GetSession().InsertBulk(classes);
-            var list = Configure.GetSession().Querion<MyClass>().Where(a => a.Age > 5).ToList();
-            var list1 = Configure.GetSession()
-                .FreeSql<MyClass>($"select * from {Configure.GetSession().TableName<MyClass>()}");
+            //var iResUpdate = Configure.GetSession().Querion<MyClass>().Where(a => a.Age == 12).
+            //    Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "oldBoy" } });
+            //var @calss = Configure.GetSession().GetList<MyClass>("age =100 order by age ").FirstOrDefault();
+            //var list22 = Configure.GetSession().Querion<MyClass>().Select(a => new { ageCore = a.Age, name = a.Name }).ToList();
+            var list = Configure.GetSession().Querion<MyClass>();
+            var resList =await list.ToListAsync();
+           
+            var countDelete=Configure.GetSession().Querion<MyClass>().Where(s=>s.Age==100).Delete();
+            
+           
             var list2 = Configure.GetSession().Querion<MyClass>().Select(a => new { ageCore = a.Age }).ToList();
-            var ee = Configure.GetSession().ExecuteScalar("SELECT * FROM information_schema.tables");
+            
 
         }
+    }
+
+    class Assa
+    {
+        public int AgeMy { get; set; }
     }
 
     static class Starter

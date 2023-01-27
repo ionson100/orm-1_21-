@@ -67,7 +67,9 @@
 
                 <GridSplitter Name="Splitter2" DragCompleted="Thumb_OnDragCompleted" Grid.Row="1" Height="3" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalAlignment="Center" />
 
-                <DataGrid Grid.Row="2" Name="DataGridSql" CanUserAddRows="False" FontSize="14" ItemsSource="{Binding}"/>
+                <DataGrid Grid.Row="2" Name="DataGridSql" CanUserAddRows="False" FontSize="14" ItemsSource="{Binding}"
+                          AlternatingRowBackground="GhostWhite" AlternationCount="1"
+                          CellEditEnding="DataGridSql_OnCellEditEnding"/>
                     <TextBox Visibility="Hidden" MaxLines="100" Foreground="Red" FontSize="16" Grid.Row="2" Name="TextBoxError" />
                 
 

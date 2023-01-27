@@ -33,25 +33,28 @@ namespace TestSqlite
                },
                new MyClass()
                {
-                   Age = 12,
+                   Age = 121,
                    Description = "simple",
                    Name = "ion100FROMfromFrom ass",
                    DateTime = DateTime.Now
                },
                new MyClass()
                {
-                   Age = 12,
+                   Age = 121,
                    Description = "simple",
                    Name = "ion100FROMfromFrom ass",
                    DateTime = DateTime.Now
                }
            };
                Configure.GetSession().InsertBulk(classes);
-               var eee = Configure.GetSession().ExecuteScalar("SELECT name FROM sqlite_temp_master WHERE type='table';");
+               var i = Configure.GetSession().Querion<MyClass>().Where(a => a.Age == 12).
+                   Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "simple" } });
+               var @calss = Configure.GetSession().GetList<MyClass>("age =100 order by age ").FirstOrDefault();
+            var eee = Configure.GetSession().ExecuteScalar("SELECT name FROM sqlite_temp_master WHERE type='table';");
                var list = Configure.GetSession().Querion<MyClass>().Where(a => a.Age > 5).ToList();
                var list1 = Configure.GetSession()
                    .FreeSql<MyClass>($"select * from {Configure.GetSession().TableName<MyClass>()}");
-               var list2 = Configure.GetSession().Querion<MyClass>().Select(a => new { ageCore = a.Age }).ToList();
+               var list2 = Configure.GetSession().Querion<MyClass>().Select(a => new { ageCore = a.Age,name=a.Name }).ToList();
             var list3 = Configure.GetSession().Querion<MyClass>().
                Where(a => (a.Age > 5 || a.Name.StartsWith("ion100")) && a.Name.Contains("100")).
                OrderBy(d => d.Age).

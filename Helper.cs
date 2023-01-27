@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Management.Instrumentation;
 using System.Threading.Tasks;
 using ORM_1_21_.Linq;
 
@@ -130,7 +131,7 @@ namespace ORM_1_21_
         /// <param name="exp">передикат на удаление</param>
         /// <typeparam name="T">Тип проекции таблицы</typeparam>
         /// <returns></returns>
-        public static int Delete<T>(this IQueryable<T> coll, Expression<Func<T, bool>> exp) where T : class
+        public static int Delete<T>(this IQueryable<T> coll, Expression<Func<T, bool>> exp=null) where T : class
         {
             ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
                 {CastomExpression = exp, TypeRevalytion = Evolution.Delete});
@@ -406,5 +407,19 @@ namespace ORM_1_21_
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
             return new DbQueryProvider<TResult>((Sessione) ses).ExecuteCallParam<TResult>(callExpr, par);
         }
+
+        /// <summary>
+        /// Асинхронное выполнение запроса
+        /// </summary>
+        /// <param name="coll"></param>
+        /// <returns>Task&lt;TResult&gt;</returns>
+
+        public static Task<List<TResult>> ToListAsync<TResult>(this IQueryable<TResult> coll)
+        {
+            IInnerList d = (IInnerList)coll;
+            var list = d.GetInnerList();
+            return Task.FromResult((List<TResult>)list);
+        }
+       
     }
 }
