@@ -4,7 +4,7 @@
 При старте инициализируем Configure, проверяем создание таблиц (CodeFirst)\
 Потом из любого места обращаемся к базе.\
 Статическая инициализация:
-```
+```C#
 string path = null;
 #if DEBUG
     path = "SqlLog.txt";
@@ -26,7 +26,7 @@ _ = new Configure("ConnectionString",
 В режиме отладки создается файл лога:SqlLog.txt\
 Внимание: Файл не лимитирован по длине!\
 Куда пишутся запросы к базе, и информация о ошибках.
-```
+```sql
 INSERT INTO "my_class" ("name", "age", "desc", "enum", "date", "test")VALUES (@p1,@p2,@p3,@p4,@p5,@p6) RETURNING "id"; params:  @p1 - ion100  @p2 - 11  @p3 - simple  @p4 - 1  @p5 - 21.01.2023 11:39:42  @p6 - [{"Name":"simple"}] 
 INSERT INTO "my_class" ( "name","age","desc","enum","date","test") VALUES('ion100',12,'simple',1,'2023-01-21 11:39:42.703','[{"Name":"simple"}]'),
 ('ion100',13,'simple',1,'2023-01-21 11:39:42.703','[{"Name":"simple"}]')
@@ -39,7 +39,7 @@ SELECT "my_class"."id", "my_class"."name", "my_class"."age", "my_class"."desc", 
 выбранной базы данных, через NuGet (Npgsql,Mysql.Data,System.Data.SQLite,System.Data.SqlClient)\
 Внимание: Для PostgreSQL, хранение даты осуществляется в старом режиме.
 ###### Мапинг таблиц.
-```
+```C#
  [MapTableName("my_class")]
  class MyClass
     {
@@ -77,7 +77,7 @@ SELECT "my_class"."id", "my_class"."name", "my_class"."age", "my_class"."desc", 
 Минимальная длина (int)\
 Для типа базы SQLite, генеатор должен быть - Generator.Native.\
 Данный тип мапится в PosgreSql  в виде:
-```
+```sql
 CREATE TABLE IF NOT EXISTS "my_class" (
  "id" UUID  PRIMARY KEY,
  "name" VARCHAR(256) NULL ,
@@ -91,22 +91,23 @@ CREATE INDEX IF NOT EXISTS INDEX_my_class_age ON "my_class" ("age");
 ###### Ling To SQL.
 Внимание! Не все конструкции реализованы в Визиторе, особенно для SQlite
 Пример запроса:\
-```
+```C#
  var list = Configure.Session.Querion<MyClass>().
  Where(a => (a.Age > 5||a.Name.StartsWith("ion100"))&&a.Name.Contains("100")).
  OrderBy(d=>d.Age).
  Select(f=>new {age=f.Age}).
  Limit(0,2).
- ToList();
- nativ sql:
- SELECT "my_class"."age"  FROM  "my_class" 
- WHERE ((("my_class"."age" > @p1) or ("my_class"."name" LIKE CONCAT(@p2,'%'))) and ("my_class"."name" LIKE CONCAT('%',@p3,'%'))) 
- ORDER BY "my_class"."age" Limit 2 OFFSET 0 
- params:  @p1 - 5  @p2 - ion100  @p3 - 100 
- 
+ ToList(); 
+```
+real sql:
+```sql
+SELECT "my_class"."age"  FROM  "my_class" 
+WHERE ((("my_class"."age" > @p1) or ("my_class"."name" LIKE CONCAT(@p2,'%'))) and ("my_class"."name" LIKE CONCAT('%',@p3,'%'))) 
+ORDER BY "my_class"."age" Limit 2 OFFSET 0 
+params:  @p1 - 5  @p2 - ion100  @p3 - 100 
 ```
 ###### native sql.
-```
+```C#
 var ses1 = Configure.Session;
 var list = ses1.FreeSql<MyClass>($"select * from {ses1.TableName<MyClass>()} where \"name\" LIKE CONCAT(@p1,'%')",
            new Parameter("@p1", "ion100")).ToList();
@@ -119,7 +120,7 @@ var coutn = dataTable.Rows.Count;
 [Тынц](https://github.com/ionson100/AccessGetSet)\
 Что дает хороший прирост производительности.
 ###### Интерфейсы.
-```
+```C#
  class T : IActionDal<T>,IValidateDal<T>
     {
         void IActionDal<T>.AfterDelete(T item){}
