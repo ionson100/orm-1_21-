@@ -11,7 +11,7 @@ string path = null;
 #endif
 _ = new Configure("ConnectionString",
     ProviderName.Postgresql, path);
-    using (var ses=Configure.GetSession())
+    using (var ses=Configure.Session)
        {
          if (ses.TableExists<MyClass>())
             {
@@ -92,7 +92,7 @@ CREATE INDEX IF NOT EXISTS INDEX_my_class_age ON "my_class" ("age");
 Внимание! Не все конструкции реализованы в Визиторе, особенно для SQlite
 Пример запроса:\
 ```
- var list = Configure.GetSession().Querion<MyClass>().
+ var list = Configure.Session.Querion<MyClass>().
  Where(a => (a.Age > 5||a.Name.StartsWith("ion100"))&&a.Name.Contains("100")).
  OrderBy(d=>d.Age).
  Select(f=>new {age=f.Age}).
@@ -107,7 +107,7 @@ CREATE INDEX IF NOT EXISTS INDEX_my_class_age ON "my_class" ("age");
 ```
 ###### native sql.
 ```
-var ses1 = Configure.GetSession();
+var ses1 = Configure.Session;
 var list = ses1.FreeSql<MyClass>($"select * from {ses1.TableName<MyClass>()} where \"name\" LIKE CONCAT(@p1,'%')",
            new Parameter("@p1", "ion100")).ToList();
 
@@ -120,27 +120,53 @@ var coutn = dataTable.Rows.Count;
 Что дает хороший прирост производительности.
 ###### Интерфейсы.
 ```
- class Th : IActionDal<Th>
+ class T : IActionDal<T>,IValidateDal<T>
     {
-        public void AfterDelete(Th item){}
+        void IActionDal<T>.AfterDelete(T item){}
 
-        public void AfterInsert(Th item){}
+        void IActionDal<T>.AfterInsert(T item){}
 
-        public void AfterUpdate(Th item){}
+        void IActionDal<T>.AfterUpdate(T item){}
 
-        public void BeforeDelete(Th item){}
+        void IActionDal<T>.BeforeDelete(T item){}
 
-        public void BeforeInsert(Th item){}
+        void IActionDal<T>.BeforeInsert(T item){}
 
-        public void BeforeUpdate(Th item){}
+        void IActionDal<T>.BeforeUpdate(T item){}
+
+        void IValidateDal<T>.Validate(T item){}// действуе перед вставкой и обновлением
     }
 ```
-Читсый объект ( на основе маппинга) полученный из базы, имеет признак персистентности:
-```
+Объект ( на основе маппинга) полученный из базы,\
+или сохраненный удачно в базе, имеет признак персистентности:
+```C#
 var isP = ses.IsPersistent(list[0]);
 ```
 сделать объект персистентным ( как бы получен из базы):
+```C#
+var o=new MyClass();
+ses.ToPersistent(o);
 ```
-ses.ToPersistent(new MyClass());
+если потом этот объект попытаться сохранить: ses.Save(o), то ОРМ попытается сделать запрос UPDATE.\
+При выполнении аснихронных запросов,иногда приведение типов не очень удачно работает,\
+например:
+```C#
+await Configure.Session.Querion<MyClass>().Where(s=>s.Name!=null).GroupBy(f=>f.Age).ToListAsync().ContinueWith(f =>
+       {
+         Console.WriteLine(f.Result.Count());
+       });
+```
+Error...\
+Всегда можно заменить:
+```C#
+ await Configure.Session.Querion<MyClass>().Where(s=>s.Name!=null).ToListAsync().ContinueWith(f =>
+      {
+        var res=f.Result.GroupBy(s => s.Age);
+        Console.WriteLine(res.Count());
+      });
+```
+Зпрос к базе не изменится.
+```sql
+SELECT "my_class"."id", "my_class"."name", "my_class"."age", "my_class"."desc", "my_class"."enum", "my_class"."date", "my_class"."test" FROM "my_class" WHERE ("my_class"."name" is not null)
 ```
 

@@ -1,20 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using ORM_1_21_;
 
 namespace ManagerSql
 {
@@ -26,7 +17,7 @@ namespace ManagerSql
         public MainWindow()
         {
             InitializeComponent();
-            InitBase(SettingsMy.Default.TypeBase,SettingsMy.Default.ConnctionString,true);
+            InitBase(SettingsMy.Default.TypeBase, SettingsMy.Default.ConnctionString, true);
             TextBoxSql.Text = SettingsMy.Default.LastSql;
             ColumnTree.Width = new GridLength(SettingsMy.Default.Sp1);
             RowTextSql.Height = new GridLength(SettingsMy.Default.Sp2);
@@ -34,13 +25,13 @@ namespace ManagerSql
             SettingsMy.Default.Connects.Remove("start");
             Utils.InitMenu(MenuLastConnects, (sender, args) =>
             {
-                var s =((MenuItem)args.Source).Header;
+                var s = ((MenuItem)args.Source).Header;
                 var par = Utils.GetParamConnect(s.ToString());
-                if(par==null) return;
-                if(par.Value.Item1>3)return;
+                if (par == null) return;
+                if (par.Value.Item1 > 3) return;
                 ComboBoxTypeBase.SelectedIndex = par.Value.Item1;
                 TextBoxConnectionString.Text = par.Value.Item2;
-                
+
                 DataGridSql.DataContext = null;
                 ButtonBase_OnClickRefreshBase(null, null);
 
@@ -50,10 +41,10 @@ namespace ManagerSql
 
         }
 
-        void InitBase(int typeBase,string conStr,bool isStart=false)
+        void InitBase(int typeBase, string conStr, bool isStart = false)
         {
-            if(string.IsNullOrWhiteSpace(conStr)) return;
-            var listTable = InitConfigure.InitConfigureCore(typeBase,conStr);
+            if (string.IsNullOrWhiteSpace(conStr)) return;
+            var listTable = InitConfigure.InitConfigureCore(typeBase, conStr);
             if (listTable == null) return;
             TreeViewTables.Items.Clear();
             foreach (var tableName in listTable)
@@ -67,7 +58,7 @@ namespace ManagerSql
                     Height = 25
                 });
                 stack.Children.Add(new Label { Content = tableName });
-                var s = new TreeViewItem() { Header = stack,Tag = tableName};
+                var s = new TreeViewItem() { Header = stack, Tag = tableName };
                 TreeViewTables.Items.Add(s);
             }
 
@@ -79,11 +70,11 @@ namespace ManagerSql
             {
                 SettingsMy.Default.ConnctionString = conStr;
                 SettingsMy.Default.TypeBase = ComboBoxTypeBase.SelectedIndex;
-                 SettingsMy.Default.Save();
-                
-               
+                SettingsMy.Default.Save();
+
+
             }
-           
+
             Utils.UpdateLastConnects(typeBase, TextBoxConnectionString.Text);
 
 
@@ -97,7 +88,7 @@ namespace ManagerSql
                 MessageBox.Show("Строка соединения с базой отсутствует!");
                 return;
             }
-            InitBase(ComboBoxTypeBase.SelectedIndex,TextBoxConnectionString.Text.Trim());
+            InitBase(ComboBoxTypeBase.SelectedIndex, TextBoxConnectionString.Text.Trim());
         }
 
         private async void ButtonBase_OnClickExecuteSql(object sender, RoutedEventArgs e)
@@ -144,19 +135,19 @@ namespace ManagerSql
             switch (gridSplitter.Name)
             {
                 case "Splitter1":
-                {
-                    SettingsMy.Default.Sp1 =ColumnTree.Width.Value;
-                    SettingsMy.Default.Save();
-                    break;
-                }
-                case "Splitter2":
-                {
-                    SettingsMy.Default.Sp2 = RowTextSql.Height.Value;
-                    SettingsMy.Default.Save();
+                    {
+                        SettingsMy.Default.Sp1 = ColumnTree.Width.Value;
+                        SettingsMy.Default.Save();
                         break;
-                }
+                    }
+                case "Splitter2":
+                    {
+                        SettingsMy.Default.Sp2 = RowTextSql.Height.Value;
+                        SettingsMy.Default.Save();
+                        break;
+                    }
             }
-            
+
         }
 
         private async void TextBoxSql_OnKeyDown(object sender, KeyEventArgs e)
@@ -173,7 +164,7 @@ namespace ManagerSql
             TreeViewItem item = (TreeViewItem)TreeViewTables.SelectedItem;
             string table = (string)item.Tag;
             string sql;
-            
+
             switch (ComboBoxTypeBase.SelectedIndex)
             {
                 case 3://Sqlite
@@ -189,11 +180,11 @@ namespace ManagerSql
                     sql = $"SELECT * FROM \"{table}\" LIMIT 10";
                     break;
                 default:
-                {
-                    sql = $"SELECT  * FROM {table} LIMIT 10";
-                    break;
-                }
-                    
+                    {
+                        sql = $"SELECT  * FROM {table} LIMIT 10";
+                        break;
+                    }
+
 
             }
 
@@ -202,7 +193,7 @@ namespace ManagerSql
         }
 
 
-      
+
 
         private void DataGridSql_OnCellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {

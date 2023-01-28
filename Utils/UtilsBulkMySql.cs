@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ORM_1_21_
 {
-  internal  class UtilsBulkMySql
+    internal class UtilsBulkMySql
     {
         public static string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
@@ -17,9 +17,15 @@ namespace ORM_1_21_
             return SqlSimple(list);
         }
 
+
+        public static string GetSql<T>(IEnumerable<T> list)
+        {
+            return SqlSimple(list);
+        }
+
         private static string SqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
-            StringBuilder sql=new StringBuilder($"LOAD DATA INFILE '{fileCsv}'");
+            StringBuilder sql = new StringBuilder($"LOAD DATA INFILE '{fileCsv}'");
             sql.AppendLine($"INTO TABLE {AttributesOfClass<T>.TableName}");
             sql.AppendLine($"FIELDS TERMINATED BY '{fieldterminator}'");
             sql.AppendLine("ENCLOSED BY '\"'");
@@ -69,14 +75,14 @@ namespace ORM_1_21_
                 builder.Append(s);
             }
             File.WriteAllText(fileCsv, builder.ToString());
-           
+
 
             return sql.ToString();
         }
 
         private static string SqlSimple<T>(IEnumerable<T> list)
         {
-            StringBuilder builder=new StringBuilder($"INSERT INTO {AttributesOfClass<T>.TableName}");
+            StringBuilder builder = new StringBuilder($"INSERT INTO {AttributesOfClass<T>.TableName}");
             builder.Append(" ( ");
 
             bool isAddPk = AttributesOfClass<T>.PkAttribute.Generator != Generator.Native;
@@ -89,7 +95,7 @@ namespace ORM_1_21_
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
-               
+
                 if (map.TypeColumn == typeof(Image) || map.TypeColumn == typeof(byte[]))
                 {
                     continue;
@@ -132,14 +138,14 @@ namespace ORM_1_21_
                 return "null";
             }
 
-          
+
             if (type == typeof(int)
                 || type == typeof(decimal)
                 || type == typeof(decimal)
                 || type == typeof(long)
                 || type == typeof(double)
                 || type == typeof(float)
-                || type == typeof(uint) 
+                || type == typeof(uint)
                 || type == typeof(sbyte)
                 || type == typeof(short)
                 || type == typeof(int?)
@@ -150,15 +156,15 @@ namespace ORM_1_21_
                 || type == typeof(sbyte?)
                 || type == typeof(short?))
             {
-                return o.ToString().Replace(",",".");
+                return o.ToString().Replace(",", ".");
             }
 
-            if (type == typeof(DateTime)|| type == typeof(DateTime?))
+            if (type == typeof(DateTime) || type == typeof(DateTime?))
             {
-                return $"'{((DateTime)o).ToString("yyyy-MM-dd HH:mm:ss.fff")}'";
+                return $"'{(DateTime)o:yyyy-MM-dd HH:mm:ss.fff}'";
             }
 
-            if (type == typeof(System.Drawing.Image))
+            if (type == typeof(Image))
             {
                 return "null";
             }
@@ -185,7 +191,7 @@ namespace ORM_1_21_
                     case ProviderName.MsSql:
                         return $"'{Utils.ObjectToJson(o).Replace("'", "''")}'";
                     case ProviderName.MySql:
-                        return $"'{Utils.ObjectToJson(o).Replace("\\","\\\\").Replace("'","''")}'";     
+                        return $"'{Utils.ObjectToJson(o).Replace("\\", "\\\\").Replace("'", "''")}'";
                     case ProviderName.Postgresql:
                         return $"'{Utils.ObjectToJson(o).Replace("'", "''")}'";
                     case ProviderName.Sqlite:
@@ -193,7 +199,7 @@ namespace ORM_1_21_
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-               
+
             }
 
             switch (Configure.Provider)
@@ -209,7 +215,7 @@ namespace ORM_1_21_
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
         }
 
         public static string InsertFile<T>(string fileCsv, string fieldterminator)

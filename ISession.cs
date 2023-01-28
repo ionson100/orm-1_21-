@@ -151,7 +151,7 @@ namespace ORM_1_21_
         /// <param name="FIELDTERMINATOR">разделитель полей</param>
         /// <param name="timeOut"></param>
         /// <typeparam name="T"></typeparam>
-        void InsertBulk<T>(IEnumerable<T> list, string fileCsv = null, string FIELDTERMINATOR = ";", int timeOut = -1);
+        void InsertBulk<T>(IEnumerable<T> list,int timeOut = -1);
 
 
         /// <summary>
@@ -193,6 +193,7 @@ namespace ORM_1_21_
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         Query<T> Querion<T>();
+
 
         
 
@@ -298,7 +299,7 @@ namespace ORM_1_21_
         /// <typeparam name="T"></typeparam>
         /// <param name="ob"></param>
         /// <returns>T</returns>
-        T ClonableItems<T>(T ob);
+        T Clone<T>(T ob);
       
 
     }

@@ -21,7 +21,7 @@ namespace TestMysql
                 Name = "ion100FROMfromFrom ass",
                 DateTime = DateTime.Now
             };
-            Configure.GetSession().Save(myClass);
+            Configure.Session.Save(myClass);
             List<MyClass> classes = new List<MyClass>()
             {
                 new MyClass()
@@ -46,17 +46,17 @@ namespace TestMysql
                     DateTime = DateTime.Now
                 }
             };
-            Configure.GetSession().InsertBulk(classes);
-            var sss = Configure.GetSession()
+            Configure.Session.InsertBulk(classes);
+            var sss = Configure.Session
                                  
                 .ExecuteScalar("SELECT table_name FROM information_schema.tables WHERE table_schema = 'test';");
-            var i = Configure.GetSession().Querion<MyClass>().Where(a => a.Age == 12).
+            var i = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).
                 Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "simple" } });
-            var @calss = Configure.GetSession().GetList<MyClass>("age =100 order by age ").FirstOrDefault();
-            var list = Configure.GetSession().Querion<MyClass>().Where(a => a.Age > 5).ToList();
-            var list1 = Configure.GetSession()
-                .FreeSql<MyClass>($"select * from {Configure.GetSession().TableName<MyClass>()}");
-            var list2 = Configure.GetSession().Querion<MyClass>().Select(a => new { ageCore = a.Age }).ToList();
+            var @calss = Configure.Session.GetList<MyClass>("age =100 order by age ").FirstOrDefault();
+            var list = Configure.Session.Querion<MyClass>().Where(a => a.Age > 5).ToList();
+            var list1 = Configure.Session
+                .FreeSql<MyClass>($"select * from {Configure.Session.TableName<MyClass>()}");
+            var list2 = Configure.Session.Querion<MyClass>().Select(a => new { ageCore = a.Age }).ToList();
 
         }
     }
@@ -72,7 +72,7 @@ namespace TestMysql
 #endif
             _ = new Configure("Server=localhost;Database=test;Uid=root;Pwd=12345;",
                 ProviderName.MySql, path);
-            using (var ses = Configure.GetSession())
+            using (var ses = Configure.Session)
             {
                 if(ses.TableExists<MyClass>()==true)
                   ses.DropTable<MyClass>();

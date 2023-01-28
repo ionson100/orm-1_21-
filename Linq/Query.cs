@@ -16,12 +16,15 @@ namespace ORM_1_21_.Linq
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public sealed class Query<T> : IOrderedQueryable<T>, IGetTypeQuery,IInnerList
+    public sealed class Query<T> : IOrderedQueryable<T>, IGetTypeQuery, IInnerList
     {
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public object GetInnerList()
         {
-            return  _provider.Execute<T>(_expression);
+            return _provider.Execute<T>(_expression);
         }
         /// <summary>
         /// Провайдер
@@ -63,7 +66,7 @@ namespace ORM_1_21_.Linq
             _expression = expression;
         }
 
-        internal Query(QueryProvider provider, Expression expression,int i)
+        internal Query(QueryProvider provider, Expression expression, int i)
         {
             //if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
             //{
@@ -88,15 +91,15 @@ namespace ORM_1_21_.Linq
         /// <returns></returns>
         public IEnumerator<T> GetEnumerator()
         {
-            return ( (IEnumerable<T>)_provider.Execute<T>(_expression)).GetEnumerator();
-                      
+            return ((IEnumerable<T>)_provider.Execute<T>(_expression)).GetEnumerator();
+
         }
-       
-        
+
+
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ( (IEnumerable)_provider.Execute(_expression)).GetEnumerator();
-                      
+            return ((IEnumerable)_provider.Execute(_expression)).GetEnumerator();
+
         }
         /// <summary>
         /// 
@@ -107,21 +110,18 @@ namespace ORM_1_21_.Linq
             return _provider.GetQueryText(_expression);
         }
 
-        internal string GetJoinParam(List<OneComprosite> comprosites, Dictionary<string, object> dictionary,string parSimvol)
-        {
-            return _provider.GetQueryTextForJoin(_expression, comprosites, dictionary,parSimvol);
-        }
 
-    
+
+
         /// <summary>
         /// Тип 
         /// </summary>
         /// <returns></returns>
         public Type GetTypeQuery()
         {
-            return typeof (T);
+            return typeof(T);
         }
 
-      
+
     }
 }

@@ -14,6 +14,10 @@ namespace ORM_1_21_
                 return SqlFile(list, fileCsv, fieldterminator);
             return SqlSimple(list);
         }
+        public static string GetSql<T>(IEnumerable<T> list)
+        {
+            return SqlSimple(list);
+        }
 
         private static string SqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
@@ -124,7 +128,7 @@ namespace ORM_1_21_
                 return o.ToString().Replace(",", ".");
 
             if (type == typeof(DateTime) || type == typeof(DateTime?))
-                return $"'{((DateTime) o).ToString("yyyy-MM-dd HH:mm:ss.fff")}'";
+                return $"'{(DateTime)o:yyyy-MM-dd HH:mm:ss.fff}'";
 
             if (type == typeof(Image)) return "null";
 

@@ -1,4 +1,7 @@
-﻿using System;
+﻿using ORM_1_21_.Linq.MsSql;
+using ORM_1_21_.Linq.MySql;
+using ORM_1_21_.Transaction;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Dynamic;
@@ -7,13 +10,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
-using ORM_1_21_.Linq.MsSql;
-using ORM_1_21_.Linq.MySql;
-using ORM_1_21_.Transaction;
 
 namespace ORM_1_21_.Linq
 {
-    internal class DbQueryProvider<T> : QueryProvider, ISqlComposite, IGetTypeGetTypeGeneric
+    internal class DbQueryProvider<T> : QueryProvider, ISqlComposite
     {
         private readonly Dictionary<string, object> _paramFree = new Dictionary<string, object>();
         private readonly List<ParameterStoredPr> _paramFreeStoredPr = new List<ParameterStoredPr>();
@@ -25,7 +25,7 @@ namespace ORM_1_21_.Linq
 
         private Evolution _ev;
 
-       
+
 
         private bool _isStoredPr;
         private List<OneComprosite> _listOne;
@@ -88,7 +88,7 @@ namespace ORM_1_21_.Linq
         {
             var sb = new StringBuilder();
             IDataReader dataReader = null;
-            var servis = (IServiceSessions) Sessione;
+            var servis = (IServiceSessions)Sessione;
             _com = servis.CommandForLinq;
 
             _com.CommandType = CommandType.StoredProcedure;
@@ -126,10 +126,10 @@ namespace ORM_1_21_.Linq
                 {
                     var lResul = AttributesOfClass<TS>.GetEnumerableObjects(dataReader);
                     foreach (var par in _com.Parameters)
-                        if (((IDataParameter) par).Direction == ParameterDirection.InputOutput ||
-                            ((IDataParameter) par).Direction == ParameterDirection.Output ||
-                            ((IDataParameter) par).Direction == ParameterDirection.ReturnValue)
-                            _parOut.Add(((IDataParameter) par).ParameterName, ((IDataParameter) par).Value);
+                        if (((IDataParameter)par).Direction == ParameterDirection.InputOutput ||
+                            ((IDataParameter)par).Direction == ParameterDirection.Output ||
+                            ((IDataParameter)par).Direction == ParameterDirection.ReturnValue)
+                            _parOut.Add(((IDataParameter)par).ParameterName, ((IDataParameter)par).Value);
                     return lResul;
                 }
                 else
@@ -148,30 +148,30 @@ namespace ORM_1_21_.Linq
                             for (var i = 0; i < countcol; i++)
                                 par.Add(dataReader[i] == DBNull.Value ? null : dataReader[i]);
                             var e = ci.Invoke(par.ToArray());
-                            resDis.Add((TS) e);
+                            resDis.Add((TS)e);
                         }
                         else
                         {
                             if (countcol == 1)
                             {
-                                resDis.Add((TS) Utils.Convertor<TS>(dataReader[0]));
+                                resDis.Add((TS)Utils.Convertor<TS>(dataReader[0]));
                             }
                             else
                             {
                                 dynamic employee = new ExpandoObject();
                                 for (var i = 0; i < countcol; i++)
-                                    ((IDictionary<string, object>) employee).Add(dataReader.GetName(i),
+                                    ((IDictionary<string, object>)employee).Add(dataReader.GetName(i),
                                         dataReader[i] == DBNull.Value ? null : dataReader[i]);
-                                resDis.Add((TS) employee);
+                                resDis.Add((TS)employee);
                             }
                         }
 
                     dataReader.NextResult();
                     foreach (var par in _com.Parameters)
-                        if (((IDataParameter) par).Direction == ParameterDirection.InputOutput ||
-                            ((IDataParameter) par).Direction == ParameterDirection.Output ||
-                            ((IDataParameter) par).Direction == ParameterDirection.ReturnValue)
-                            _parOut.Add(((IDataParameter) par).ParameterName, ((IDataParameter) par).Value);
+                        if (((IDataParameter)par).Direction == ParameterDirection.InputOutput ||
+                            ((IDataParameter)par).Direction == ParameterDirection.Output ||
+                            ((IDataParameter)par).Direction == ParameterDirection.ReturnValue)
+                            _parOut.Add(((IDataParameter)par).ParameterName, ((IDataParameter)par).Value);
 
                     return resDis;
 
@@ -180,7 +180,7 @@ namespace ORM_1_21_.Linq
             }
             catch (Exception ex)
             {
-                Configure.SendError(_com.CommandText,ex);
+                Configure.SendError(_com.CommandText, ex);
                 return null;
 
             }
@@ -259,7 +259,7 @@ namespace ORM_1_21_.Linq
         {
             var tt1 = typeof(T);
             var tt2 = typeof(TS);
-            var servis = (IServiceSessions) Sessione;
+            var servis = (IServiceSessions)Sessione;
             _com = servis.CommandForLinq;
             if (_isStoredPr)
                 _com.CommandType = CommandType.StoredProcedure;
@@ -377,14 +377,14 @@ namespace ORM_1_21_.Linq
                             for (var i = 0; i < count; i++)
                                 par.Add(dataReader[i] == DBNull.Value ? null : dataReader[i]);
                             var e = ci.Invoke(par.ToArray());
-                            resDis.Add((TS) e);
+                            resDis.Add((TS)e);
                         }
                     }
                     else if (count == 1 && typeof(TS).IsValueType || typeof(TS) == typeof(string) ||
                              typeof(TS).GetInterface("IEnumerable") != null || typeof(TS).IsGenericTypeDefinition)
                     {
                         while (dataReader.Read())
-                            resDis.Add((TS) (dataReader[0] == DBNull.Value ? null : dataReader[0]));
+                            resDis.Add((TS)(dataReader[0] == DBNull.Value ? null : dataReader[0]));
                     }
                     else
                     {
@@ -394,9 +394,9 @@ namespace ORM_1_21_.Linq
                             while (dataReader.Read())
                             {
                                 for (var i = 0; i < dataReader.FieldCount; i++)
-                                    AttributesOfClass<TS>.SetValueFreeSql.Value[dataReader.GetName(i)]((TS) employee,
+                                    AttributesOfClass<TS>.SetValueFreeSql.Value[dataReader.GetName(i)]((TS)employee,
                                         dataReader[i] == DBNull.Value ? null : dataReader[i]);
-                                resDis.Add((TS) employee);
+                                resDis.Add((TS)employee);
                             }
                         }
                         else
@@ -405,19 +405,19 @@ namespace ORM_1_21_.Linq
                             {
                                 dynamic employee = new ExpandoObject();
                                 for (var i = 0; i < count; i++)
-                                    ((IDictionary<string, object>) employee).Add(dataReader.GetName(i),
+                                    ((IDictionary<string, object>)employee).Add(dataReader.GetName(i),
                                         dataReader[i] == DBNull.Value ? null : dataReader[i]);
-                                resDis.Add((TS) employee);
+                                resDis.Add((TS)employee);
                             }
                         }
                     }
 
                     dataReader.Dispose();
                     foreach (var par in _com.Parameters)
-                        if (((IDataParameter) par).Direction == ParameterDirection.InputOutput ||
-                            ((IDataParameter) par).Direction == ParameterDirection.Output ||
-                            ((IDataParameter) par).Direction == ParameterDirection.ReturnValue)
-                            _parOut.Add(((IDataParameter) par).ParameterName, ((IDataParameter) par).Value);
+                        if (((IDataParameter)par).Direction == ParameterDirection.InputOutput ||
+                            ((IDataParameter)par).Direction == ParameterDirection.Output ||
+                            ((IDataParameter)par).Direction == ParameterDirection.ReturnValue)
+                            _parOut.Add(((IDataParameter)par).ParameterName, ((IDataParameter)par).Value);
                     return resDis;
                 }
 
@@ -443,7 +443,7 @@ namespace ORM_1_21_.Linq
                     var ss = _listOne.Single(a => a.Operand == Evolution.Join).NewConctructor;
                     if (ss == null)
                         while (dataReader.Read())
-                            lres.Add((TS) dataReader[0]);
+                            lres.Add((TS)dataReader[0]);
                     else
                         lres = Pizdaticus.GetListAnonymusObj<TS>(dataReader, ss);
                     return lres;
@@ -455,11 +455,11 @@ namespace ORM_1_21_.Linq
                 {
                     var lres = new List<TS>();
                     dataReader = _com.ExecuteReader();
-                    while (dataReader.Read()) lres.Add((TS) Utils.Convertor<TS>(dataReader[0]));
+                    while (dataReader.Read()) lres.Add((TS)Utils.Convertor<TS>(dataReader[0]));
                     dataReader.Dispose();
                     bool isactive1;
                     var datasingl1 = Pizdaticus.SingleData(_listOne, lres, out isactive1);
-                    return !isactive1 ? (object) lres : datasingl1;
+                    return !isactive1 ? (object)lres : datasingl1;
                 }
 
                 if (PingComposite(Evolution.DistinctCastom))
@@ -482,7 +482,7 @@ namespace ORM_1_21_.Linq
                         var lRes = Pizdaticus.GetListAnonymusObj<TS>(dataReader, ss);
                         bool isaActive1;
                         var dataSingl1 = Pizdaticus.SingleData(_listOne, lRes, out isaActive1);
-                        var res = !isaActive1 ? (object) lRes : dataSingl1;
+                        var res = !isaActive1 ? (object)lRes : dataSingl1;
                         return res;
                     }
                     else
@@ -515,7 +515,7 @@ namespace ORM_1_21_.Linq
                 var resd = AttributesOfClass<T>.GetEnumerableObjects(dataReader);
                 bool isActive;
                 var dataSingl = Pizdaticus.SingleData(_listOne, resd, out isActive);
-                var ress2 = !isActive ? (object) resd : dataSingl;
+                var ress2 = !isActive ? (object)resd : dataSingl;
                 return ress2;
             }
 
@@ -642,14 +642,14 @@ namespace ORM_1_21_.Linq
         public IEnumerable<TS> ExecuteCall<TS>(Expression callExpr)
         {
             _isStoredPr = true;
-            return (IEnumerable<TS>) Execute<TS>(callExpr);
+            return (IEnumerable<TS>)Execute<TS>(callExpr);
         }
 
         public IEnumerable<TS> ExecuteCallParam<TS>(Expression callExpr, params ParameterStoredPr[] par)
         {
             _isStoredPr = true;
             if (par != null) _paramFreeStoredPr.AddRange(par);
-            var res = (IEnumerable<TS>) ExecuteSPP<TS>(callExpr);
+            var res = (IEnumerable<TS>)ExecuteSPP<TS>(callExpr);
 
             foreach (var re in _parOut)
             {

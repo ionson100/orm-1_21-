@@ -30,7 +30,7 @@ namespace ManagerSql
         {
           
            //await Task.Delay(3000);
-            return await Task.Run(() => Configure.GetSession().GetDataTable(sql, 0));
+            return await Task.Run(() => Configure.Session.GetDataTable(sql, 0));
         }
     }
 }

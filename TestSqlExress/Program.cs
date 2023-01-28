@@ -21,7 +21,7 @@ namespace TestSqlExress
                 Description = "simple",
                 Name = "ion100FROMfromFrom ass"
             };
-            Configure.GetSession().Save(myClass);
+            Configure.Session.Save(myClass);
             List<MyClass> classes = new List<MyClass>()
             {
                 new MyClass()
@@ -46,18 +46,18 @@ namespace TestSqlExress
                     DateTime = DateTime.Now
                 }
             };
-            Configure.GetSession().InsertBulk(classes);
+            Configure.Session.InsertBulk(classes);
             //var iResUpdate = Configure.GetSession().Querion<MyClass>().Where(a => a.Age == 12).
             //    Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "oldBoy" } });
             //var @calss = Configure.GetSession().GetList<MyClass>("age =100 order by age ").FirstOrDefault();
             //var list22 = Configure.GetSession().Querion<MyClass>().Select(a => new { ageCore = a.Age, name = a.Name }).ToList();
-            var list = Configure.GetSession().Querion<MyClass>();
+            var list = Configure.Session.Querion<MyClass>();
             var resList =await list.ToListAsync();
            
-            var countDelete=Configure.GetSession().Querion<MyClass>().Where(s=>s.Age==100).Delete();
+            var countDelete=Configure.Session.Querion<MyClass>().Where(s=>s.Age==100).Delete();
             
            
-            var list2 = Configure.GetSession().Querion<MyClass>().Select(a => new { ageCore = a.Age }).ToList();
+            var list2 = Configure.Session.Querion<MyClass>().Select(a => new { ageCore = a.Age }).ToList();
             
 
         }
@@ -79,7 +79,7 @@ namespace TestSqlExress
 #endif
             _ = new Configure("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=audi124;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False",
                 ProviderName.MsSql, path);
-            using (var ses = Configure.GetSession())
+            using (var ses = Configure.Session)
             {
                 if (ses.TableExists<MyClass>())
                 {

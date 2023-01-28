@@ -51,7 +51,7 @@ namespace ORM_1_21_
         private static void NotificBefore<T>(T item, ActionMode mode) where T : class
         {
             
-            if (item is IValidateDal<T>)
+            if (item is IValidateDal<T>&&mode==ActionMode.Insert)
             {
                 ((IValidateDal<T>)item).Validate(item);
             }
@@ -65,19 +65,7 @@ namespace ORM_1_21_
                 ((IActionDal<T>)item).BeforeDelete(item);
         }
 
-      // void ActionError<T>(Exception ex) where T : class
-      // {
-      //     WriteLogFile(ex.Message);
-      //     if (typeof(T).GetInterfaces().Count(a => a == typeof(IErrorDal<T>)) != 0)
-      //     {
-      //         var d = Activator.CreateInstance<T>();
-      //         ((IErrorDal<T>)d).ErrorDal(null, ex);
-      //     }
-      //     else
-      //     {
-      //         throw new Exception(ex.Message);
-      //     }
-      // }
+      
 
         /// <summary>
         /// Получение объекта ITransaction с одновременно началом трансакции

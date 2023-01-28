@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
 using System.IO;
 
 
@@ -16,12 +14,12 @@ namespace ORM_1_21_
         internal static string ConnectionString;
 
         /// <summary>
-        /// 
+        /// GetConnectionString
         /// </summary>
         /// <returns></returns>
         public static string GetConnectionString()
         {
-            lock (_locker)  
+            lock (_locker)
             {
                 return ConnectionString;
             }
@@ -55,30 +53,30 @@ namespace ORM_1_21_
             switch (provider)
             {
                 case ProviderName.Postgresql:
-                {
-                    Utils.Assembler = AppDomain.CurrentDomain.Load("Npgsql");
-                    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-                    AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+                    {
+                        Utils.Assembler = AppDomain.CurrentDomain.Load("Npgsql");
+                        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+                        AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
                         break;
-                }
+                    }
                 case ProviderName.MySql:
-                { 
-                    Utils.Assembler = AppDomain.CurrentDomain.Load("Mysql.Data");
-                    break;
-                }
+                    {
+                        Utils.Assembler = AppDomain.CurrentDomain.Load("Mysql.Data");
+                        break;
+                    }
                 case ProviderName.Sqlite:
-                {
-                    Utils.Assembler = AppDomain.CurrentDomain.Load("System.Data.SQLite");
-                    break;
-                }
+                    {
+                        Utils.Assembler = AppDomain.CurrentDomain.Load("System.Data.SQLite");
+                        break;
+                    }
                 case ProviderName.MsSql:
-                {
-                    Utils.Assembler = AppDomain.CurrentDomain.Load("System.Data.SqlClient");
-                    break;
-                        
-                }
+                    {
+                        Utils.Assembler = AppDomain.CurrentDomain.Load("System.Data.SqlClient");
+                        break;
+
+                    }
             }
-           
+
             _configure = this;
         }
 
@@ -92,39 +90,23 @@ namespace ORM_1_21_
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static ISession GetSession()
+        public static ISession Session
         {
-            if (_configure == null)
+            get
             {
-                SendError(null, new Exception("ISession GetInnerSession error _configure==null"));
-                return null;
+                if (_configure == null)
+                {
+                    SendError(null, new Exception("ISession GetInnerSession error _configure==null"));
+                    return null;
+                }
+
+                return _configure.GetInnerSession();
             }
-               
-            return _configure.GetInnerSession();
         }
-
-      // public static IEnumerable<IEnumerable<T>> Batch<T>(
-      //     IEnumerable<T> source, int batchSize)
-      // {
-      //     using (var enumerator = source.GetEnumerator())
-      //     {
-      //         while (enumerator.MoveNext())
-      //             yield return YieldBatchElements(enumerator, batchSize - 1);
-      //     }
-      // }
-      //
-      // private static IEnumerable<T> YieldBatchElements<T>(
-      //     IEnumerator<T> source, int batchSize)
-      // {
-      //     yield return source.Current;
-      //     for (var i = 0; i < batchSize && source.MoveNext(); i++)
-      //         yield return source.Current;
-      // }
-
 
         private static void ActivateLogger(string fileNameLogFile)
         {
-            if (Configure.LogFileName==null) return;
+            if (Configure.LogFileName == null) return;
             if (!File.Exists(fileNameLogFile))
                 using (File.Create(fileNameLogFile))
                 {
@@ -149,13 +131,13 @@ namespace ORM_1_21_
                 string errorMessage = args.ErrorMessage + Environment.NewLine + args.Sql;
                 MySqlLogger.Info(errorMessage);
                 throw new Exception(errorMessage);
-               
+
             }
 
             onErrorOrm.Invoke(this, args);
 
         }
 
-      
+
     }
 }

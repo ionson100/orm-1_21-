@@ -1,12 +1,11 @@
-﻿using System;
+﻿using ORM_1_21_.Linq;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Management.Instrumentation;
 using System.Threading.Tasks;
-using ORM_1_21_.Linq;
 
 namespace ORM_1_21_
 {
@@ -15,37 +14,7 @@ namespace ORM_1_21_
     /// </summary>
     public static class Helper
     {
-        /// <summary>
-        ///     Сохранение или добавление объекта в базу
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="obj"></param>
-        /// <typeparam name="T">сохраняемый или добавляемый обект в базу</typeparam>
-        public static void SaveOrUpdate<T>(this IQueryable<T> coll, T obj) where T : class
-        {
-            var ses = ((ISqlComposite) coll.Provider).Sessione;
-            ses.Save(obj);
-        }
 
-        public static bool LikeSql(this string s,string value)
-        {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
-            return s.StartsWith(value, StringComparison.CurrentCulture);
-        }
-
-
-        /// <summary>
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="expression"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TRes"></typeparam>
-        /// <returns></returns>
-        public static TRes FreeExpression<T, TRes>(this IQueryable<T> coll)
-        {
-            return (TRes) coll.Provider.Execute<object>(coll.Expression);
-        }
 
         /// <summary>
         /// </summary>
@@ -55,86 +24,22 @@ namespace ORM_1_21_
         /// <returns></returns>
         public static IEnumerable<object> DistinctCore<T>(this IQueryable<T> coll, Expression<Func<T, object>> exp)
         {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {CastomExpression = exp, TypeRevalytion = Evolution.DistinctCastom});
-            return (IEnumerable<object>) coll.Provider.Execute<object>(coll.Expression);
+            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+            { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCastom });
+            return (IEnumerable<object>)coll.Provider.Execute<object>(coll.Expression);
         }
 
         /// <summary>
-        /// Асинхронное выполнение запроса
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <returns>Task&lt;TResult&gt;</returns>
-
-        public static async Task<TResult> AsyncExecute<TResult>(this IQueryable coll)
-        {
-            return await Task.Run(() => coll.Provider.Execute<TResult>(coll.Expression));
-
-        }
-
-
-
-
-
-        /// <summary>
-        /// Группировка по полю с  условием ключа.
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="exp"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        [Obsolete]
-        public static IEnumerable<T> GroupByCore<T>(this IQueryable<T> coll, Expression<Func<T, bool>> exp)
-        {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {CastomExpression = exp, TypeRevalytion = Evolution.GroupBy});
-            return coll;
-        }
-
-        /// <summary>
-        ///Группировка по полю с  анoнимным выбором
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="key"></param>
-        /// <param name="exp"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TKey"></typeparam>
-        /// <returns>IEnumerabl</returns>
-        [Obsolete]
-        public static IEnumerable<object> GroupByCore<T, TKey>(this IQueryable<T> coll,
-            Expression<Func<T, TKey>> key, Expression<Func<T, object>> exp) where TKey : class
-        {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {CastomExpression = exp, TypeRevalytion = Evolution.SelectNew});
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {CastomExpression = key, TypeRevalytion = Evolution.GroupBy});
-            return (IEnumerable<object>) coll.Provider.Execute<object>(coll.Expression);
-        }
-
-        /// <summary>
-        /// Удаление объекта полученого ранее из базы
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="obj">Удаляемы объект, он должен быть получен из базы</param>
-        /// <typeparam name="T">Тип проекции таблицы</typeparam>
-        public static int Delete<T>(this IQueryable<T> coll, T obj) where T : class
-        {
-            var ses = ((ISqlComposite) coll.Provider).Sessione;
-            return ses.Delete(obj);
-        }
-
-
-        /// <summary>
-        /// Удаление обьекта по параметрам
+        /// Удаление обьекта без вытаскивания данных на клиента
         /// </summary>
         /// <param name="coll"></param>
         /// <param name="exp">передикат на удаление</param>
         /// <typeparam name="T">Тип проекции таблицы</typeparam>
         /// <returns></returns>
-        public static int Delete<T>(this IQueryable<T> coll, Expression<Func<T, bool>> exp=null) where T : class
+        public static int Delete<T>(this IQueryable<T> coll, Expression<Func<T, bool>> exp = null) where T : class
         {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {CastomExpression = exp, TypeRevalytion = Evolution.Delete});
+            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+            { CastomExpression = exp, TypeRevalytion = Evolution.Delete });
             return coll.Provider.Execute<int>(coll.Expression);
         }
 
@@ -147,124 +52,13 @@ namespace ORM_1_21_
         /// <param name="length">Количество записей</param>
         /// <typeparam name="T">Тип проекции таблицы</typeparam>
         /// <returns></returns>
-        public static IEnumerable<T> Limit<T>(this IQueryable<T> coll, int start, int length) where T : class
+        public static IQueryable<T> Limit<T>(this IQueryable<T> coll, int start, int length)
         {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {TypeRevalytion = Evolution.Limit, ParamList = new List<object> {start, length}});
+            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+            { TypeRevalytion = Evolution.Limit, ParamList = new List<object> { start, length } });
             return coll;
         }
 
-        /// <summary>
-        ///     LIMIT всегда ставится в конце предложения LIMIT ( начало позиции с учетом нуля, количество в выборке)
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="start">Начало позиции</param>
-        /// <param name="length">Количество записей</param>
-        /// <returns></returns>
-        public static IEnumerable<decimal> Limit(this IQueryable<decimal> coll, int start, int length)
-        {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {TypeRevalytion = Evolution.Limit, ParamList = new List<object> {start, length}});
-            return coll;
-        }
-
-        /// <summary>
-        ///     LIMIT всегда ставится в конце предложения LIMIT ( начало позиции с учетом нуля, количество в выборке)
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="start">Начало позиции</param>
-        /// <param name="length">Количество записей</param>
-        /// <returns></returns>
-        public static IEnumerable<float> Limit(this IQueryable<float> coll, int start, int length)
-        {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {TypeRevalytion = Evolution.Limit, ParamList = new List<object> {start, length}});
-            return coll;
-        }
-
-        /// <summary>
-        ///     LIMIT всегда ставится в конце предложения LIMIT ( начало позиции, количество в выборке)
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="start">Начало позиции</param>
-        /// <param name="length">Количество записей</param>
-        /// <returns></returns>
-        public static IEnumerable<int> Limit(this IQueryable<int> coll, int start, int length)
-        {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {TypeRevalytion = Evolution.Limit, ParamList = new List<object> {start, length}});
-            return coll;
-        }
-
-        /// <summary>
-        ///     LIMIT всегда ставится в конце предложения LIMIT ( начало позиции, количество в выборке)
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="start">Начало позиции</param>
-        /// <param name="length">Количество записей</param>
-        /// <returns></returns>
-        public static IEnumerable<short> Limit(this IQueryable<short> coll, int start, int length)
-        {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {TypeRevalytion = Evolution.Limit, ParamList = new List<object> {start, length}});
-            return coll;
-        }
-
-        /// <summary>
-        ///     LIMIT всегда ставится в конце предложения LIMIT ( начало позиции, количество в выборке)
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="start">Начало позиции</param>
-        /// <param name="length">Количество записей</param>
-        /// <returns></returns>
-        public static IEnumerable<long> Limit(this IQueryable<long> coll, int start, int length)
-        {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {TypeRevalytion = Evolution.Limit, ParamList = new List<object> {start, length}});
-            return coll;
-        }
-
-        /// <summary>
-        ///     LIMIT всегда ставится в конце предложения LIMIT ( начало позиции, количество в выборке)
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="start">Начало позиции</param>
-        /// <param name="length">Количество записей</param>
-        /// <returns></returns>
-        public static IEnumerable<object> Limit(this IQueryable<object> coll, int start, int length)
-        {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {TypeRevalytion = Evolution.Limit, ParamList = new List<object> {start, length}});
-            return coll;
-        }
-
-        /// <summary>
-        ///LIMIT всегда ставится в конце предложения LIMIT ( от какой позиции выбираем, сколько выбираем)
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="start">Начало позиции</param>
-        /// <param name="length">Количество записей</param>
-        /// <returns></returns>
-        public static IEnumerable<double> Limit(this IQueryable<double> coll, int start, int length)
-        {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {TypeRevalytion = Evolution.Limit, ParamList = new List<object> {start, length}});
-            return coll;
-        }
-
-
-        /// <summary>
-        ///Вытаскивание обьекта по ключу
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="keyValue">Значение первичного ключа</param>
-        /// <typeparam name="T">Тип проекции таблицы</typeparam>
-        /// <returns></returns>
-        public static T Get<T>(this IQueryable<T> coll, object keyValue) where T : class
-        {
-            var ses = ((ISqlComposite) coll.Provider).Sessione;
-            return ses.Get<T>(keyValue);
-        }
 
         /// <summary>
         ///     Преобразование массива байт в картинку
@@ -332,16 +126,16 @@ namespace ORM_1_21_
         public static int Update<T, TKey, TValue>(this IQueryable<T> coll,
             Expression<Func<T, Dictionary<TKey, TValue>>> parametr) where T : class
         {
-            ((ISqlComposite) coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-                {CastomExpression = parametr, TypeRevalytion = Evolution.Update});
+            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+            { CastomExpression = parametr, TypeRevalytion = Evolution.Update });
             return coll.Provider.Execute<int>(coll.Expression);
         }
 
 
-      
 
 
-      
+
+
 
         /// <summary>
         ///     Выполенение произвольного запроса с параметрами
@@ -358,9 +152,29 @@ namespace ORM_1_21_
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
             if (par != null)
             {
-                return (IEnumerable<TResult>) new DbQueryProvider<TResult>((Sessione) ses).ExecuteParam<TResult>(callExpr, par);
+                return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteParam<TResult>(callExpr, par);
             }
             return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).Execute<TResult>(callExpr);
+        }
+
+
+        /// <summary>
+        ///     Выполенение произвольного запроса с параметрами асинхронно
+        /// </summary>
+        /// <param name="ses">ISession</param>
+        /// <param name="sql">Запрос</param>
+        /// <param name="par">Параметры запроса</param>
+        /// <typeparam name="TResult">Тип единицы Результата</typeparam>
+        /// <returns>IEnumerableTResult</returns>
+        public static Task<IEnumerable<TResult>> FreeSqlAsunc<TResult>(this ISession ses, string sql, params Parameter[] par)
+        {
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
+            if (par != null)
+            {
+                return Task.FromResult((IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteParam<TResult>(callExpr, par));
+            }
+            return Task.FromResult((IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).Execute<TResult>(callExpr));
         }
 
         /// <summary>
@@ -372,7 +186,7 @@ namespace ORM_1_21_
         /// <returns></returns>
         public static IEnumerable<TResult> FreeSqlMonster<TResult>(this ISession ses, IDataReader dataReader)
         {
-          
+
             return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteMonster<TResult>(dataReader);
         }
 
@@ -385,10 +199,11 @@ namespace ORM_1_21_
         /// <returns>IEnumerable(TResult)</returns>
         public static IEnumerable<TResult> ProcedureCall<TResult>(this ISession ses, string sql)
         {
+
             var p = new V(sql);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            return new DbQueryProvider<TResult>((Sessione) ses).ExecuteCall<TResult>(callExpr);
+            return new DbQueryProvider<TResult>((Sessione)ses).ExecuteCall<TResult>(callExpr);
         }
 
         /// <summary>
@@ -405,7 +220,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            return new DbQueryProvider<TResult>((Sessione) ses).ExecuteCallParam<TResult>(callExpr, par);
+            return new DbQueryProvider<TResult>((Sessione)ses).ExecuteCallParam<TResult>(callExpr, par);
         }
 
         /// <summary>
@@ -416,10 +231,19 @@ namespace ORM_1_21_
 
         public static Task<List<TResult>> ToListAsync<TResult>(this IQueryable<TResult> coll)
         {
-            IInnerList d = (IInnerList)coll;
-            var list = d.GetInnerList();
-            return Task.FromResult((List<TResult>)list);
+            try
+            {
+                IInnerList d = (IInnerList)coll;
+                var list = d.GetInnerList();
+                return Task.FromResult((List<TResult>)list);
+            }
+            catch(Exception ex)
+            {
+                Configure.WriteLogFile($"{ex}{Environment.NewLine}sql error: {coll}");
+                throw;
+            }
+            
         }
-       
+
     }
 }

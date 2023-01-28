@@ -465,28 +465,26 @@ namespace ORM_1_21_
         /// <summary>
         /// </summary>
         /// <param name="list"></param>
-        /// <param name="fileCsv"></param>
-        /// <param name="fieldterminator"></param>
-        /// <param name="timeOut"></param>
+        /// <param name="timeOut">default 30000</param>
         /// <typeparam name="T"></typeparam>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public void InsertBulk<T>(IEnumerable<T> list, string fileCsv = null, string fieldterminator = ";", int timeOut = -1)
+        public void InsertBulk<T>(IEnumerable<T> list,  int timeOut = -1)
         {
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
             switch (Configure.Provider)
             {
                 case ProviderName.MsSql:
-                    com.CommandText = UtilsBulkMsSql.GetSql(list, fileCsv, fieldterminator);
+                    com.CommandText = UtilsBulkMsSql.GetSql(list);
                     break;
                 case ProviderName.MySql:
-                    com.CommandText = UtilsBulkMySql.GetSql(list, fileCsv, fieldterminator);
+                    com.CommandText = UtilsBulkMySql.GetSql(list);
                     break;
                 case ProviderName.Postgresql:
-                    com.CommandText = UtilsBulkPostgres.GetSql(list, fileCsv, fieldterminator);
+                    com.CommandText = UtilsBulkPostgres.GetSql(list);
                     break;
                 case ProviderName.Sqlite:
-                    com.CommandText = UtilsBulkMySql.GetSql(list, fileCsv, fieldterminator);
+                    com.CommandText = UtilsBulkMySql.GetSql(list);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -496,6 +494,10 @@ namespace ORM_1_21_
             {
                 OpenConnectAndTransaction(com);
                 com.CommandTimeout = 30000;
+                if (timeOut != -1)
+                {
+                    com.CommandTimeout = timeOut;
+                }
                 com.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -1107,7 +1109,7 @@ namespace ORM_1_21_
         /// <param name="ob"></param>
         /// <returns>T</returns>
         /// <exception cref="NotImplementedException"></exception>
-        public T ClonableItems<T>(T ob)
+        public T Clone<T>(T ob)
         {
             try
             {

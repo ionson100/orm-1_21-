@@ -1,19 +1,18 @@
-﻿using System;
+﻿using ORM_1_21_;
+using ORM_1_21_.Attribute;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using ORM_1_21_.Attribute;
-using ORM_1_21_;
 
 namespace TestPostgres
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Starter.Run();
-          
+
             MyClass myClass = new MyClass()
             {
                 Age = 11,
@@ -35,23 +34,26 @@ namespace TestPostgres
                     Name = "ion100"
                 }
             };
-            using (var ses = Configure.GetSession())
+            using (var ses = Configure.Session)
             {
                 var tr = ses.BeginTransaction();
                 try
                 {
-                    
+                    bool d=ses.IsPersistent(myClass);
+                    ses.Save(myClass);
+                    bool d2 = ses.IsPersistent(myClass);
+                    myClass.Description = "ss";
                     ses.Save(myClass);
                     var s = ses.Clone(myClass);
                     ses.Save(s);
                     var res = ses.Get<MyClass>(myClass.Id);
-                    if(res != null)
+                    if (res != null)
                     {
                         res.Age = 100;
                         ses.Save(res);
                         ses.Delete(res);
                     }
-                    
+
                     ses.InsertBulk(list1);
                     tr.Commit();
                 }
@@ -62,42 +64,60 @@ namespace TestPostgres
                     throw;
                 }
             }
-            var ses1=Configure.GetSession();
-            string t = ses1.TableName<MyClass>();
-            var i=  Configure.GetSession().Querion<MyClass>().Where(a => a.Age == 12).
-            Update(s => new Dictionary<object, object> { { s.Age, 100 },{s.Name,"simple"} });
-            var @calss = ses1.GetList<MyClass>("age =100 order by age ").FirstOrDefault();
-            
-            var list = ses1.Querion<MyClass>().
-                Where(a => (a.Age > 5||a.Name.StartsWith("ion100"))&&a.Name.Contains("100")).
-                OrderBy(d=>d.Age).
-                Select(f=>new {age=f.Age}).
-                Limit(0,2).
-                ToList();
-            
+            var ses1 = Configure.Session;
+            //string t = ses1.TableName<MyClass>();
+            //var i0 = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).ToList();
+            //var i = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).
+            //Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "simple" } });
+            //var @calss = ses1.GetList<MyClass>("age =100 order by age ").FirstOrDefault();
+            //
+            //var eri = Configure.Session.Querion<MyClass>().ToList();
+            //var list = ses1.Querion<MyClass>().
+            //    Where(a => (a.Age > 5 || a.Name.StartsWith("ion100")) && a.Name.Contains("100")).
+            //    OrderBy(d => d.Age).
+            //    Select(f => f.Age).
+            //    Limit(0, 2);
+            //await list.ToListAsync().ContinueWith(r =>
+            //{
+            //    Console.WriteLine(r.Result.Count);
+            //});
+            try
+            {
+                await Configure.Session.Querion<MyClass>().Where(s=>s.Name!=null).GroupBy(f=>f.Age).ToListAsync().ContinueWith(f =>
+                {
+                    Console.WriteLine(f.Result.Count());
+                });
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+
             var myClassCore = ses1.Querion<MyClass>().Where(a => a.Name != null).First();
             var val1 = ses1.FreeSql<MyClass>($"select * from {ses1.TableName<MyClass>()} where \"name\" LIKE CONCAT(@p1,'%')",
                     new Parameter("@p1", "ion100")).ToList();
             var isP = ses1.IsPersistent(val1[0]);
-            
+
             var dataTable = ses1.GetDataTable($"select * from {ses1.TableName<MyClass>()} ");
             var coutn = dataTable.Rows.Count;
         }
     }
-   
+
 
     static class Starter
     {
-       public static void Run()
-       {
-           
+        public static void Run()
+        {
+
             string path = null;
 #if DEBUG
-           path = "SqlLog.txt";
+            path = "SqlLog.txt";
 #endif
-            _ = new Configure("Server=localhost;Port=5432;Database=testorm;User Id=assa;Password=posgres;",
+            _ = new Configure("Server=localhost;Port=5432;Database=testorm;User Id=postgres;Password=ion100312873;",
                 ProviderName.Postgresql, path);
-            using (var ses=Configure.GetSession())
+            using (var ses = Configure.Session)
             {
                 if (ses.TableExists<MyClass>())
                 {
@@ -107,70 +127,71 @@ namespace TestPostgres
                 {
                     ses.TableCreate<MyClass>();
                 }
-            }     
-       }
+            }
+        }
     }
 
     [MapTableName("my_class")]
-    class MyClass:IValidateDal<MyClass>, IActionDal<MyClass>
+    class MyClass : IValidateDal<MyClass>, IActionDal<MyClass>
     {
         [MapPrimaryKey("id", Generator.Native)]
         public int Id { get; set; }
 
-        [MapColumnName("name")] 
+        [MapColumnName("name")]
         public string Name { get; set; }
 
-        
-        [MapColumnName("age")] [MapIndex] 
+
+        [MapColumnName("age")]
+        [MapIndex]
         public int Age { get; set; }
 
         [MapColumnName("desc")]
         [MapColumnType("TEXT NULL")]
         public string Description { get; set; }
 
-        [MapColumnName("enum")] 
+        [MapColumnName("enum")]
         public MyEnum MyEnum { get; set; } = MyEnum.First;
 
-        [MapColumnName("date")] 
+        [MapColumnName("date")]
         public DateTime DateTime { get; set; } = DateTime.Now;
 
-        [MapColumnName("test")] 
+        [MapColumnName("test")]
         public List<MyTest> Test23 { get; set; } = new List<MyTest>() { new MyTest() { Name = "simple" }
     };
 
-        public void AfterDelete(MyClass item)
+        void IActionDal<MyClass>.AfterDelete(MyClass item)
         {
-            //throw new NotImplementedException();
+           
         }
 
-        public void AfterInsert(MyClass item)
+        void IActionDal<MyClass>.AfterInsert(MyClass item)
         {
-            //throw new NotImplementedException();
+           
         }
 
-        public void AfterUpdate(MyClass item)
+        void IActionDal<MyClass>.AfterUpdate(MyClass item)
         {
-            //throw new NotImplementedException();
+           
         }
 
-        public void BeforeDelete(MyClass item)
+        void IActionDal<MyClass>.BeforeDelete(MyClass item)
         {
-            //throw new NotImplementedException();
+            
         }
 
-        public void BeforeInsert(MyClass item)
+        void IActionDal<MyClass>.BeforeInsert(MyClass item)
         {
-            //throw new NotImplementedException();
+           
         }
 
-        public void BeforeUpdate(MyClass item)
+        void IActionDal<MyClass>.BeforeUpdate(MyClass item)
         {
-            //throw new NotImplementedException();
+            
         }
 
-        public void Validate(MyClass item)
+        void IValidateDal<MyClass>.Validate(MyClass item)
         {
-            //throw new NotImplementedException();
+            
         }
     }
 
@@ -181,6 +202,6 @@ namespace TestPostgres
 
     enum MyEnum
     {
-        Def=0,First=1
+        Def = 0, First = 1
     }
 }

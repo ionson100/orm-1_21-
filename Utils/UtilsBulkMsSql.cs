@@ -19,6 +19,10 @@ namespace ORM_1_21_
 
             return GetSimpleSql2(list);
         }
+        public static string GetSql<T>(IEnumerable<T> list)
+        {
+            return GetSimpleSql2(list);
+        }
 
         private static string GetSqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
