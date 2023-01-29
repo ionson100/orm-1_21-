@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -337,9 +338,7 @@ namespace ORM_1_21_
             }
 
             if (t == typeof(uint)) return Convert.ToUInt32(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(ulong))
-                return
-                    Convert.ToUInt64(ob, CultureInfo.InvariantCulture);
+            if (t == typeof(ulong))return Convert.ToUInt64(ob, CultureInfo.InvariantCulture);
             if (t == typeof(ushort)) return Convert.ToUInt16(ob, CultureInfo.InvariantCulture);
             if (t == typeof(bool)) return Convert.ToBoolean(ob, CultureInfo.InvariantCulture);
             if (t == typeof(byte)) return Convert.ToByte(ob, CultureInfo.InvariantCulture);
@@ -419,7 +418,7 @@ namespace ORM_1_21_
                 return decimal.ToSByte((sbyte) val);
             if (typeColumn == typeof(float))
                 return decimal.ToSingle((sbyte) val);
-            throw new Exception("Не могу найти тип для преобразования первичного ключа");
+            throw new Exception($"Не могу найти тип для преобразования первичного ключа {typeColumn} {val}");
         }
 
         internal static bool ColumnExists(IDataReader reader, string columnName)
@@ -479,5 +478,9 @@ namespace ORM_1_21_
 
             return stringBuilder.ToString();
         }
+
+       
+        
     }
 }
+

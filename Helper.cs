@@ -21,12 +21,13 @@ namespace ORM_1_21_
         /// <param name="coll"></param>
         /// <param name="exp"></param>
         /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TR"></typeparam>
         /// <returns></returns>
-        public static IEnumerable<object> DistinctCore<T>(this IQueryable<T> coll, Expression<Func<T, object>> exp)
+        public static IEnumerable<TR> DistinctCore<T, TR>(this IQueryable<T> coll, Expression<Func<T, TR>> exp)
         {
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCastom });
-            return (IEnumerable<object>)coll.Provider.Execute<object>(coll.Expression);
+            { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCastom ,TypeRetyrn=typeof(TR),ListDistict=new List<TR>()});
+            return coll.Provider.Execute<IEnumerable<TR>>(coll.Expression);
         }
 
         /// <summary>
@@ -159,7 +160,7 @@ namespace ORM_1_21_
 
 
         /// <summary>
-        ///     Выполенение произвольного запроса с параметрами асинхронно
+        ///     Выполенение асинхронно произвольного запроса с параметрами 
         /// </summary>
         /// <param name="ses">ISession</param>
         /// <param name="sql">Запрос</param>
@@ -199,7 +200,6 @@ namespace ORM_1_21_
         /// <returns>IEnumerable(TResult)</returns>
         public static IEnumerable<TResult> ProcedureCall<TResult>(this ISession ses, string sql)
         {
-
             var p = new V(sql);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
@@ -239,10 +239,24 @@ namespace ORM_1_21_
             }
             catch(Exception ex)
             {
-                Configure.WriteLogFile($"{ex}{Environment.NewLine}sql error: {coll}");
+                Configure.SendError(coll.ToString(), ex);
                 throw;
             }
             
+        }
+      
+        /// <summary>
+        /// Set CommandTimeout new value
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="coll"></param>
+        /// <param name="value">>=0</param>
+        /// <returns></returns>
+        public static IQueryable<T> SetTimeOut<T>(this IQueryable<T> coll,int value)
+        {
+            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+            { Timeout = value, TypeRevalytion = Evolution.Timeout });
+            return coll;
         }
 
     }

@@ -71,10 +71,22 @@ namespace ORM_1_21_.Linq.MsSql
                         sbb.Append(" IF  EXISTS( " + StringConst.Select);
                     }
 
+
                     if (PingComposite(Evolution.DistinctCastom))
                     {
-                        sbb.Append(" DISTINCT " + listOne.First(a => a.Operand == Evolution.DistinctCastom).Body);
+                        string s = listOne.First(a => a.Operand == Evolution.DistinctCastom).Body;
+                        if (PingComposite(Evolution.SelectNew))
+                        {
+                            
+                            sbb.Append(" DISTINCT " + s.TrimStart(new char[] { ' ', ',' }));
+                        }
+                        else
+                        {
+                            sbb.Append(" DISTINCT " + s);
+                        }
+
                     }
+
 
                     else if (_listOne.All(a => a.Operand != Evolution.Count))
                     {

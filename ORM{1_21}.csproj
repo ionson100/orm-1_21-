@@ -102,6 +102,7 @@
     <Compile Include="Attribute\MapIndexAttribute.cs" />
     <Compile Include="Attribute\MapTableNameAttribute.cs" />
     <Compile Include="Attribute\MapTypeMysqlTableAttribite.cs" />
+    <Compile Include="CallExp.cs" />
     <Compile Include="CommandNativePostgres.cs" />
     <Compile Include="DbTypeConverter.cs" />
     <Compile Include="Configure.cs" />

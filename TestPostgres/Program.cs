@@ -3,12 +3,15 @@ using ORM_1_21_.Attribute;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace TestPostgres
 {
     internal class Program
     {
+       
+
         static async Task Main(string[] args)
         {
             Starter.Run();
@@ -28,6 +31,11 @@ namespace TestPostgres
                 Name = "ion100"
                 },
                 new MyClass()
+                {
+                    Age = 13,
+                    Description = "simple",
+                    Name = "ion100"
+                }, new MyClass()
                 {
                     Age = 13,
                     Description = "simple",
@@ -65,44 +73,51 @@ namespace TestPostgres
                 }
             }
             var ses1 = Configure.Session;
-            //string t = ses1.TableName<MyClass>();
-            //var i0 = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).ToList();
-            //var i = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).
-            //Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "simple" } });
-            //var @calss = ses1.GetList<MyClass>("age =100 order by age ").FirstOrDefault();
-            //
-            //var eri = Configure.Session.Querion<MyClass>().ToList();
-            //var list = ses1.Querion<MyClass>().
-            //    Where(a => (a.Age > 5 || a.Name.StartsWith("ion100")) && a.Name.Contains("100")).
-            //    OrderBy(d => d.Age).
-            //    Select(f => f.Age).
-            //    Limit(0, 2);
-            //await list.ToListAsync().ContinueWith(r =>
-            //{
-            //    Console.WriteLine(r.Result.Count);
-            //});
+            string t = ses1.TableName<MyClass>();
+            var i0 = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).ToList();
+            var i = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).
+            Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "simple" } });
+            var @calss = ses1.GetList<MyClass>("age =100 order by age ").FirstOrDefault();
+            
+            var eri = Configure.Session.Querion<MyClass>().ToList();
+            var list = ses1.Querion<MyClass>().
+                Where(a => (a.Age > 5 || a.Name.StartsWith("ion100")) && a.Name.Contains("100")).
+                OrderBy(d => d.Age).
+                Select(f => f.Age).
+                Limit(0, 2);
+            await list.ToListAsync().ContinueWith(r =>
+            {
+                Console.WriteLine(r.Result.Count);
+            });
+            var ee = Configure.Session.Querion<MyClass>().DistinctCore(s=>new {ass=s.Age,name=s.Name}).ToList();
+            foreach (var s in ee)
+            {
+                
+            }
             try
             {
-                await Configure.Session.Querion<MyClass>().Where(s=>s.Name!=null).GroupBy(f=>f.Age).ToListAsync().ContinueWith(f =>
+                await Configure.Session.Querion<MyClass>().Where(s=>!s.Name.Contains(" sdFROMUU")).SetTimeOut(20).GroupBy(f=>f.Age).ToListAsync().ContinueWith(f =>
                 {
                     Console.WriteLine(f.Result.Count());
                 });
-
+            
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
-
-
+            
+            
             var myClassCore = ses1.Querion<MyClass>().Where(a => a.Name != null).First();
             var val1 = ses1.FreeSql<MyClass>($"select * from {ses1.TableName<MyClass>()} where \"name\" LIKE CONCAT(@p1,'%')",
                     new Parameter("@p1", "ion100")).ToList();
             var isP = ses1.IsPersistent(val1[0]);
-
+            
             var dataTable = ses1.GetDataTable($"select * from {ses1.TableName<MyClass>()} ");
             var coutn = dataTable.Rows.Count;
         }
+
+        
     }
 
 

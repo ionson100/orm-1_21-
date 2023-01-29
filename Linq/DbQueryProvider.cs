@@ -2,6 +2,7 @@
 using ORM_1_21_.Linq.MySql;
 using ORM_1_21_.Transaction;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Dynamic;
@@ -254,6 +255,14 @@ namespace ORM_1_21_.Linq
         {
             return Execute<TS>(expression);
         }
+        private int? GetTimeout()
+        {
+            foreach (var t in ListCastExpression)
+            {
+                if (t.TypeRevalytion == Evolution.Timeout && t.Timeout >= 0) { return t.Timeout; }
+            }
+            return null;
+        }
 
         public override object Execute<TS>(Expression expression)
         {
@@ -261,6 +270,12 @@ namespace ORM_1_21_.Linq
             var tt2 = typeof(TS);
             var servis = (IServiceSessions)Sessione;
             _com = servis.CommandForLinq;
+            if (GetTimeout() >= 0)
+            {
+                _com.CommandTimeout = GetTimeout().Value;
+            }
+
+
             if (_isStoredPr)
                 _com.CommandType = CommandType.StoredProcedure;
 
@@ -464,11 +479,30 @@ namespace ORM_1_21_.Linq
 
                 if (PingComposite(Evolution.DistinctCastom))
                 {
+                    var tt = typeof(TS);
+                    var tt3 = typeof(T);
+                    Type retType = this.ListCastExpression.Single(a => a.TypeRevalytion == Evolution.DistinctCastom).TypeRetyrn;
+                    IList resT = this.ListCastExpression.Single(a => a.TypeRevalytion == Evolution.DistinctCastom).ListDistict;
                     dataReader = _com.ExecuteReader();
-                    var resDis = new List<object>();
-                    while (dataReader.Read()) resDis.Add(dataReader[0]);
-                    dataReader.Dispose();
-                    return resDis;
+                    if (PingComposite(Evolution.SelectNew))
+                    {
+                        var ss = _listOne.Single(a => a.Operand == Evolution.SelectNew).NewConctructor;
+                        Pizdaticus.GetListAnonymusObjDistinct(dataReader, ss, resT);
+                        return resT;
+
+                    }
+                    else
+                    {
+                        var resDis = resT;
+                        while (dataReader.Read())
+                        {
+                            resDis.Add(dataReader[0]);
+                        }
+
+                        dataReader.Dispose();
+                        return resDis;
+                    }
+
                 }
 
                 if (PingComposite(Evolution.SelectNew))

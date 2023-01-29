@@ -69,7 +69,17 @@ namespace ORM_1_21_.Linq.MySql
 
                     if (PingComposite(Evolution.DistinctCastom))
                     {
-                        sbb.Append(" Distinct " + listOne.First(a => a.Operand == Evolution.DistinctCastom).Body);
+                        string s = listOne.First(a => a.Operand == Evolution.DistinctCastom).Body;
+                        if (PingComposite(Evolution.SelectNew))
+                        {
+                            
+                            sbb.Append(" DISTINCT " + s.TrimStart(new char[] {' ',','}) );
+                        }
+                        else
+                        {
+                            sbb.Append(" DISTINCT " + s);
+                        }
+                        
                     }
 
                     else

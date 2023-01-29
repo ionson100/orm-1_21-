@@ -32,7 +32,7 @@ namespace ORM_1_21_.Linq
 
         TS IQueryProvider.Execute<TS>(Expression expression) 
         {
-            return (TS) Execute<TS>(expression);
+            return (TS)Execute<TS>(expression);
         }
 
         object IQueryProvider.Execute(Expression expression)

@@ -97,6 +97,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="TextFile1.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ORM{1_21}.csproj">
