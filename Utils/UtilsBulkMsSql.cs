@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 
 namespace ORM_1_21_
 {
-   internal class UtilsBulkMsSql
+    internal class UtilsBulkMsSql
     {
-        public  static string GetSql<T>(IEnumerable<T> list,string fileCsv,string fieldterminator)
+        public static string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
             if (fileCsv != null)
             {
@@ -27,25 +26,25 @@ namespace ORM_1_21_
         private static string GetSqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
             var tableName = AttributesOfClass<T>.TableName;
-            StringBuilder sql=new StringBuilder("bulk insert " + tableName);
+            StringBuilder sql = new StringBuilder("bulk insert " + tableName);
             sql.AppendLine($"from '{fileCsv}'");
             sql.AppendLine(" with(");
             sql.AppendLine("FIRSTROW = 2,");
             sql.AppendLine($"FIELDTERMINATOR = '{fieldterminator}',");
             sql.AppendLine("ROWTERMINATOR = '\n'");
             sql.AppendLine(")");
-            StringBuilder builder=new StringBuilder();
-            bool isAddPk=AttributesOfClass<T>.PkAttribute.Generator != Generator.Native;
+            StringBuilder builder = new StringBuilder();
+            bool isAddPk = AttributesOfClass<T>.PkAttribute.Generator != Generator.Native;
 
             StringBuilder rowHead = new StringBuilder();
             if (isAddPk == true)
             {
-                rowHead.Append(AttributesOfClass<T>.PkAttribute.ColumnName.Trim(new []{'[',']','`'}))
+                rowHead.Append(AttributesOfClass<T>.PkAttribute.ColumnName.Trim(new[] { '[', ']', '`' }))
                     .Append(";");
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
-                rowHead.Append(map.ColumnName.Trim(new[] {'[', ']', '`'})).Append(";");
+                rowHead.Append(map.ColumnName.Trim(new[] { '[', ']', '`' })).Append(";");
             }
 
             builder.Append(rowHead.ToString().Substring(0, rowHead.ToString().LastIndexOf(';')))
@@ -55,7 +54,7 @@ namespace ORM_1_21_
 
             foreach (var ob in list)
             {
-                StringBuilder row=new StringBuilder();
+                StringBuilder row = new StringBuilder();
                 if (isAddPk == true)
                 {
                     row.Append(AttributesOfClass<T>.GetValue.Value[AttributesOfClass<T>.PkAttribute.PropertyName](ob))
@@ -63,17 +62,17 @@ namespace ORM_1_21_
                 }
                 foreach (var keyValuePair in AttributesOfClass<T>.PropertyInfoList.Value)
                 {
-                   row.Append(AttributesOfClass<T>.GetValue.Value[keyValuePair.Value.Name](ob)).Append(";");
+                    row.Append(AttributesOfClass<T>.GetValue.Value[keyValuePair.Value.Name](ob)).Append(";");
                 }
 
-                string s = row.ToString().Substring(0, row.ToString().LastIndexOf(",", StringComparison.Ordinal)) +"\n";
+                string s = row.ToString().Substring(0, row.ToString().LastIndexOf(",", StringComparison.Ordinal)) + "\n";
                 builder.Append(s);
             }
-            File.WriteAllText(fileCsv,builder.ToString());
+            File.WriteAllText(fileCsv, builder.ToString());
             return sql.ToString();
         }
 
-       
+
 
         private static string GetSimpleSql2<T>(IEnumerable<T> list)
         {
@@ -97,7 +96,7 @@ namespace ORM_1_21_
 
             builder.Append(headBuilder.ToString().Substring(0, headBuilder.ToString().LastIndexOf(',')));
             builder.Append(") ");
-         
+
             int i = 0;
             foreach (var ob in list)
             {
@@ -124,7 +123,7 @@ namespace ORM_1_21_
                 builder.AppendLine("UNION ALL");
             }
             var res = builder.ToString().Substring(0, builder.ToString().LastIndexOf("UNION ALL", StringComparison.Ordinal));
-            return "SET DATEFORMAT YMD;"+res;
+            return "SET DATEFORMAT YMD;" + res;
         }
 
         public static string InsertFile<T>(string fileCsv, string fieldterminator)

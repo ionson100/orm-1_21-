@@ -1,17 +1,17 @@
 ﻿namespace ORM_1_21_.Transaction
 {
     /// <summary>
-    /// Транзакциая
+    /// Транзакция
     /// </summary>
-   public interface ITransaction
+    public interface ITransaction
     {
-       /// <summary>
-       /// Завершить транзакцию
-       /// </summary>
+        /// <summary>
+        /// Завершить транзакцию
+        /// </summary>
         void Commit();
-       /// <summary>
-       /// Откатить транзакцию
-       /// </summary>
+        /// <summary>
+        /// Откатить транзакцию
+        /// </summary>
         void Rollback();
     }
 }

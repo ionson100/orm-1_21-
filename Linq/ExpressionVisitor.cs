@@ -82,7 +82,7 @@ namespace ORM_1_21_.Linq
                     return VisitListInit((ListInitExpression)exp);
                 default:
                     throw new Exception(
-                      string.Format(CultureInfo.CurrentCulture,"Unhandled expression type: '{0}'", exp.NodeType));
+                      string.Format(CultureInfo.CurrentCulture, "Unhandled expression type: '{0}'", exp.NodeType));
             }
         }
 
@@ -98,7 +98,7 @@ namespace ORM_1_21_.Linq
                     return VisitMemberListBinding((MemberListBinding)binding);
                 default:
                     throw new Exception(
-                      string.Format(CultureInfo.CurrentCulture,"Unhandled binding type '{0}'", binding.BindingType));
+                      string.Format(CultureInfo.CurrentCulture, "Unhandled binding type '{0}'", binding.BindingType));
             }
         }
 
@@ -126,9 +126,9 @@ namespace ORM_1_21_.Linq
         /// <returns></returns>
         protected virtual Expression VisitBinary(BinaryExpression binaryExpression)
         {
-           var left = Visit(binaryExpression.Left);
-           var right = Visit(binaryExpression.Right);
-           var conversion = Visit(binaryExpression.Conversion);
+            var left = Visit(binaryExpression.Left);
+            var right = Visit(binaryExpression.Right);
+            var conversion = Visit(binaryExpression.Conversion);
             if (left != binaryExpression.Left || right != binaryExpression.Right || conversion != binaryExpression.Conversion)
             {
                 if (binaryExpression.NodeType == ExpressionType.Coalesce)
@@ -157,9 +157,9 @@ namespace ORM_1_21_.Linq
 
         private Expression VisitConditional(ConditionalExpression conditionalExpression)
         {
-           var test = Visit(conditionalExpression.Test);
-           var ifTrue = Visit(conditionalExpression.IfTrue);
-           var ifFalse = Visit(conditionalExpression.IfFalse);
+            var test = Visit(conditionalExpression.Test);
+            var ifTrue = Visit(conditionalExpression.IfTrue);
+            var ifFalse = Visit(conditionalExpression.IfFalse);
             if (test != conditionalExpression.Test || ifTrue != conditionalExpression.IfTrue || ifFalse != conditionalExpression.IfFalse)
             {
                 return Expression.Condition(test, ifTrue, ifFalse);
@@ -202,12 +202,12 @@ namespace ORM_1_21_.Linq
         /// <param name="original"></param>
         /// <returns></returns>
         protected virtual ReadOnlyCollection<Expression> VisitExpressionList(ReadOnlyCollection<Expression> original)
-         
+
         {
             List<Expression> list = null;
             for (int i = 0, n = original.Count; i < n; i++)
             {
-                
+
                 var p = Visit(original[i]);
                 if (list != null)
                 {
@@ -304,7 +304,7 @@ namespace ORM_1_21_.Linq
         private Expression VisitLambda(LambdaExpression lambda)
         {
             var body = Visit(lambda.Body);
-           
+
             return body != lambda.Body ? Expression.Lambda(lambda.Type, body, lambda.Parameters) : lambda;
         }
         /// <summary>

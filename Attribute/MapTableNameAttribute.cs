@@ -10,24 +10,24 @@ namespace ORM_1_21_.Attribute
     {
         private readonly string _tableName;
         private readonly string _sqlWhere;
-        
+
         /// <summary>
         /// Конструктор
         /// </summary>
         /// <param name="tableName">Название таблицы в базе данных</param>
         public MapTableNameAttribute(string tableName)
         {
-            _tableName = tableName.Trim(new []{' ','[',']','`','"'});
+            _tableName = tableName.Trim(new[] { ' ', '[', ']', '`', '"' });
         }
 
         ///<summary>
         /// Конструктор Определяет название таблицы, условие для всех выборок
         ///</summary>
         ///<param name="tableName">Название таблицы в базе данных</param>
-        ///<param name="sqlWhere">добавление критериея запроса по where пример: "id='1'"</param>
+        ///<param name="sqlWhere">добавление критерия запроса по where пример: "id='1'"</param>
         public MapTableNameAttribute(string tableName, string sqlWhere)
         {
-            _tableName = tableName.Trim(new[] { ' ', '[', ']', '`','"' });
+            _tableName = tableName.Trim(new[] { ' ', '[', ']', '`', '"' });
             _sqlWhere = sqlWhere;
         }
 

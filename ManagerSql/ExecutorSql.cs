@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ORM_1_21_;
+using System;
 using System.Data;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using ORM_1_21_;
 
 namespace ManagerSql
 {
@@ -28,8 +25,8 @@ namespace ManagerSql
 
         private async Task<DataTable> GetDataTableTask(string sql)
         {
-          
-           //await Task.Delay(3000);
+
+            //await Task.Delay(3000);
             return await Task.Run(() => Configure.Session.GetDataTable(sql, 0));
         }
     }

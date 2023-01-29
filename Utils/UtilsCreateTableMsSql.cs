@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ORM_1_21_.Attribute;
+using System;
 using System.Drawing;
-using System.Linq;
 using System.Text;
-using ORM_1_21_.Attribute;
 
 namespace ORM_1_21_
 {
-  internal  class UtilsCreateTableMsSql
+    internal class UtilsCreateTableMsSql
     {
         public static string Create<T>()
         {
@@ -39,7 +37,7 @@ namespace ORM_1_21_
                 {
                     builder.AppendLine($" [{map.ColumnNameForReader}] {typeUser} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
                 }
-                
+
             }
             StringBuilder indexBuilder = new StringBuilder($"CREATE INDEX [INDEX_{tableName}] ON [{tableName}] (");
 

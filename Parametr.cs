@@ -3,33 +3,33 @@
 namespace ORM_1_21_
 {
     /// <summary>
-    /// Еденица параметра, для запроса с параметрами
+    /// Единица параметра, для запроса с параметрами
     /// </summary>
     public sealed class Parameter
     {
         /// <summary>
-        /// Имя парметра
+        /// Имя параметра
         /// </summary>
-        public string Name { get; private  set; }
+        public string Name { get; private set; }
         /// <summary>
-        /// Значение пераметра
+        /// Значение параметра
         /// </summary>
         public object Value { get; private set; }
 
         /// <summary>
-        /// Ctor
+        /// Конструктор
         /// </summary>
-        /// <param name="name">Имя парметра</param>
-        /// <param name="value">Имя парметра</param>
+        /// <param name="name">Имя параметра</param>
+        /// <param name="value">Имя параметра</param>
         public Parameter(string name, object value)
         {
-            Name = name.Replace("?",string.Empty).Replace("@",string.Empty);
+            Name = name.Replace("?", string.Empty).Replace("@", string.Empty);
             Value = value;
         }
     }
 
     /// <summary>
-    /// Еденица параметра, для запроса с параметрами
+    /// Единица параметра, для запроса с параметрами
     /// </summary>
     public sealed class ParameterStoredPr
     {
@@ -41,13 +41,13 @@ namespace ORM_1_21_
        // public string SourceColumn { get; private set; }
 
         /// <summary>
-        /// Имя парметра
+        /// Имя параметра
         /// </summary>
         public string Name { get; private set; }
         /// <summary>
-        /// Значение пераметра
+        /// Значение параметра
         /// </summary>
-        public object Value { get;  set; }
+        public object Value { get; set; }
 
         /// <summary>
         /// Перечисление типа параметра
@@ -55,15 +55,15 @@ namespace ORM_1_21_
         public ParameterDirection Direction { get; set; }
 
         /// <summary>
-        /// Ctor
+        /// Параметры хранимой процедуры
         /// </summary>
-        /// <param name="name">Имя парметра</param>
-        /// <param name="value">Имя парметра</param>
+        /// <param name="name">Имя параметра</param>
+        /// <param name="value">Имя параметра</param>
         /// <param name="direction">ParameterDirection </param>
-       
-        public ParameterStoredPr(string name, object value,ParameterDirection direction)//,string sourceColumn
+
+        public ParameterStoredPr(string name, object value, ParameterDirection direction)
         {
-           // SourceColumn = sourceColumn;
+
             Name = name.Replace("?", string.Empty).Replace("@", string.Empty);
             Value = value;
             Direction = direction;

@@ -11,26 +11,26 @@ namespace ORM_1_21_.Linq
     /// </summary>
     public abstract class QueryProvider : IQueryProvider
     {
-        IQueryable<TS> IQueryProvider.CreateQuery<TS>(Expression expression) 
+        IQueryable<TS> IQueryProvider.CreateQuery<TS>(Expression expression)
         {
             return new Query<TS>(this, expression);
         }
         IQueryable IQueryProvider.CreateQuery(Expression expression)
         {
-                var elementType = TypeSystem.GetElementType(expression.Type);
-                try
-                {
-                    return (
-                        IQueryable) Activator.CreateInstance(typeof (Query<>).MakeGenericType(
-                            elementType), new object[] {this, expression});
-                }
-                catch (TargetInvocationException tie)
-                {
-                    throw tie.InnerException;
-                }
+            var elementType = TypeSystem.GetElementType(expression.Type);
+            try
+            {
+                return (
+                    IQueryable)Activator.CreateInstance(typeof(Query<>).MakeGenericType(
+                        elementType), new object[] { this, expression });
+            }
+            catch (TargetInvocationException tie)
+            {
+                throw tie.InnerException;
+            }
         }
 
-        TS IQueryProvider.Execute<TS>(Expression expression) 
+        TS IQueryProvider.Execute<TS>(Expression expression)
         {
             return (TS)Execute<TS>(expression);
         }
@@ -53,7 +53,7 @@ namespace ORM_1_21_.Linq
         /// <param name="expression"></param>
         /// <typeparam name="TS"></typeparam>
         /// <returns></returns>
-        public abstract object Execute<TS>(Expression expression) ;
+        public abstract object Execute<TS>(Expression expression);
 
         /// <summary>
         /// 
@@ -61,7 +61,7 @@ namespace ORM_1_21_.Linq
         /// <param name="expression"></param>
         /// <typeparam name="TS"></typeparam>
         /// <returns></returns>
-        public  abstract object ExecuteSPP<TS>(Expression expression);
+        public abstract object ExecuteSPP<TS>(Expression expression);
 
         /// <summary>
         /// 
@@ -70,17 +70,10 @@ namespace ORM_1_21_.Linq
         /// <returns></returns>
         public abstract object Execute(Expression expression);
 
-        internal abstract string GetQueryTextForJoin(Expression expression,List<OneComprosite> comprosite,Dictionary<string,object> dictionary ,string parStr );
+        internal abstract string GetQueryTextForJoin(Expression expression, List<OneComprosite> comprosite, Dictionary<string, object> dictionary, string parStr);
 
     }
 
-   
-
-   
-
-
-
-   
 
 
 
@@ -90,7 +83,14 @@ namespace ORM_1_21_.Linq
 
 
 
-   
+
+
+
+
+
+
+
+
 }
 
 

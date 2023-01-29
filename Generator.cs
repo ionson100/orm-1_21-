@@ -6,7 +6,7 @@
     public enum Generator
     {
         /// <summary>
-        /// автоинкримент
+        /// автоинкрементный генератор в таблице
         /// </summary>
         Native = 0,
         /// <summary>

@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,15 +7,12 @@ using System.Data.Common;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
-
-using Newtonsoft.Json;
 
 
 
@@ -34,9 +31,9 @@ namespace ORM_1_21_
         /// <returns></returns>
         public static Delegate Delegate(LambdaExpression lexp)
         {
-            return Action(lexp,lexp.ReturnType);
+            return Action(lexp, lexp.ReturnType);
         }
-        private static Delegate Action(LambdaExpression lexp,Type type)
+        private static Delegate Action(LambdaExpression lexp, Type type)
         {
 
             if (type == typeof(Guid)) { return (Func<T, Guid>)(lexp).Compile(); }
@@ -89,7 +86,7 @@ namespace ORM_1_21_
 
         private static HashSet<Type> NumericTypes = new HashSet<Type>
         {
-         
+
            typeof(Byte),
            typeof(SByte),
            typeof(UInt16),
@@ -139,7 +136,7 @@ namespace ORM_1_21_
                 switch (Configure.Provider)
                 {
                     case ProviderName.MsSql:
-                        return "@" ;
+                        return "@";
                     case ProviderName.MySql:
                         return "?";
                     case ProviderName.Postgresql:
@@ -228,7 +225,7 @@ namespace ORM_1_21_
         {
             if (img == null) return null;
             var converter = new ImageConverter();
-            return (byte[]) converter.ConvertTo(img, typeof(byte[]));
+            return (byte[])converter.ConvertTo(img, typeof(byte[]));
         }
 
         /// <summary>
@@ -240,7 +237,7 @@ namespace ORM_1_21_
         {
             if (img == null) return null;
             var converter = new ImageConverter();
-            return (Image) converter.ConvertFrom(img);
+            return (Image)converter.ConvertFrom(img);
         }
 
 
@@ -261,53 +258,53 @@ namespace ORM_1_21_
             {
                 if (typeof(TR).IsGenericType) return null;
 
-                if (!typeof(TR).IsValueType) return (TR) (object) null;
+                if (!typeof(TR).IsValueType) return (TR)(object)null;
                 if (typeof(TR) == typeof(DateTime))
                 {
                     object o = DateTime.MinValue;
-                    return (TR) o;
+                    return (TR)o;
                 }
 
                 return Activator.CreateInstance<TR>();
             }
 
-            if (typeof(TR) == typeof(uint)) return (TR) (object) Convert.ToUInt32(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(ulong)) return (TR) (object) Convert.ToUInt64(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(ushort)) return (TR) (object) Convert.ToUInt16(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(bool)) return (TR) (object) Convert.ToBoolean(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(byte)) return (TR) (object) Convert.ToByte(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(uint)) return (TR)(object)Convert.ToUInt32(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(ulong)) return (TR)(object)Convert.ToUInt64(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(ushort)) return (TR)(object)Convert.ToUInt16(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(bool)) return (TR)(object)Convert.ToBoolean(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(byte)) return (TR)(object)Convert.ToByte(ob, CultureInfo.InvariantCulture);
 
-            if (typeof(TR) == typeof(char)) return (TR) (object) Convert.ToChar(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(char)) return (TR)(object)Convert.ToChar(ob, CultureInfo.InvariantCulture);
             if (typeof(TR) == typeof(DateTime))
-                return (TR) (object) Convert.ToDateTime(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(decimal)) return (TR) (object) Convert.ToDecimal(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(double)) return (TR) (object) Convert.ToDouble(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(short)) return (TR) (object) Convert.ToInt16(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(int)) return (TR) (object) Convert.ToInt32(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(long)) return (TR) (object) Convert.ToInt64(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(sbyte)) return (TR) (object) Convert.ToSByte(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(float)) return (TR) (object) Convert.ToSingle(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(string)) return (TR) (object) Convert.ToString(ob, CultureInfo.InvariantCulture);
+                return (TR)(object)Convert.ToDateTime(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(decimal)) return (TR)(object)Convert.ToDecimal(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(double)) return (TR)(object)Convert.ToDouble(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(short)) return (TR)(object)Convert.ToInt16(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(int)) return (TR)(object)Convert.ToInt32(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(long)) return (TR)(object)Convert.ToInt64(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(sbyte)) return (TR)(object)Convert.ToSByte(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(float)) return (TR)(object)Convert.ToSingle(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(string)) return (TR)(object)Convert.ToString(ob, CultureInfo.InvariantCulture);
             ////
-            if (typeof(TR) == typeof(uint?)) return (TR) (object) Convert.ToUInt32(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(ulong?)) return (TR) (object) Convert.ToUInt64(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(uint?)) return (TR)(object)Convert.ToUInt32(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(ulong?)) return (TR)(object)Convert.ToUInt64(ob, CultureInfo.InvariantCulture);
 
-            if (typeof(TR) == typeof(ushort?)) return (TR) (object) Convert.ToUInt16(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(bool?)) return (TR) (object) Convert.ToBoolean(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(byte?)) return (TR) (object) Convert.ToByte(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(char?)) return (TR) (object) Convert.ToChar(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(ushort?)) return (TR)(object)Convert.ToUInt16(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(bool?)) return (TR)(object)Convert.ToBoolean(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(byte?)) return (TR)(object)Convert.ToByte(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(char?)) return (TR)(object)Convert.ToChar(ob, CultureInfo.InvariantCulture);
             if (typeof(TR) == typeof(DateTime?))
-                return (TR) (object) Convert.ToDateTime(ob, CultureInfo.InvariantCulture);
+                return (TR)(object)Convert.ToDateTime(ob, CultureInfo.InvariantCulture);
             if (typeof(TR) == typeof(decimal?))
-                return (TR) (object) Convert.ToDecimal(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(double?)) return (TR) (object) Convert.ToDouble(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(short?)) return (TR) (object) Convert.ToInt16(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(int?)) return (TR) (object) Convert.ToInt32(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(long?)) return (TR) (object) Convert.ToInt64(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(sbyte?)) return (TR) (object) Convert.ToSByte(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(float?)) return (TR) (object) Convert.ToSingle(ob, CultureInfo.InvariantCulture);
-            if (typeof(TR) == typeof(byte[])) return (TR) ob;
-            if (typeof(TR) == typeof(object)) return (TR) ob;
+                return (TR)(object)Convert.ToDecimal(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(double?)) return (TR)(object)Convert.ToDouble(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(short?)) return (TR)(object)Convert.ToInt16(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(int?)) return (TR)(object)Convert.ToInt32(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(long?)) return (TR)(object)Convert.ToInt64(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(sbyte?)) return (TR)(object)Convert.ToSByte(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(float?)) return (TR)(object)Convert.ToSingle(ob, CultureInfo.InvariantCulture);
+            if (typeof(TR) == typeof(byte[])) return (TR)ob;
+            if (typeof(TR) == typeof(object)) return (TR)ob;
             //var t = typeof(TR);
             //if (typeof(TR) == typeof(Guid))
             //{
@@ -338,7 +335,7 @@ namespace ORM_1_21_
             }
 
             if (t == typeof(uint)) return Convert.ToUInt32(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(ulong))return Convert.ToUInt64(ob, CultureInfo.InvariantCulture);
+            if (t == typeof(ulong)) return Convert.ToUInt64(ob, CultureInfo.InvariantCulture);
             if (t == typeof(ushort)) return Convert.ToUInt16(ob, CultureInfo.InvariantCulture);
             if (t == typeof(bool)) return Convert.ToBoolean(ob, CultureInfo.InvariantCulture);
             if (t == typeof(byte)) return Convert.ToByte(ob, CultureInfo.InvariantCulture);
@@ -381,7 +378,7 @@ namespace ORM_1_21_
         }
 
 
-       
+
 
 
         internal static string TanslycatorFieldParam1(string nameField, string table1)
@@ -396,28 +393,28 @@ namespace ORM_1_21_
         internal static object ConvertatorPrimaryKeyType(Type typeColumn, object val)
         {
             if (typeColumn == typeof(Guid))
-                return (Guid) val;
+                return (Guid)val;
             if (typeColumn == typeof(decimal))
                 return val;
             if (typeColumn == typeof(short))
-                return decimal.ToInt16((decimal) val);
+                return decimal.ToInt16((decimal)val);
             if (typeColumn == typeof(int))
-                return decimal.ToInt32((decimal) val);
+                return decimal.ToInt32((decimal)val);
             if (typeColumn == typeof(long))
-                return decimal.ToInt64((decimal) val);
+                return decimal.ToInt64((decimal)val);
             if (typeColumn == typeof(ushort))
-                return decimal.ToUInt16((decimal) val);
+                return decimal.ToUInt16((decimal)val);
             if (typeColumn == typeof(uint))
-                return decimal.ToUInt32((decimal) val);
+                return decimal.ToUInt32((decimal)val);
             if (typeColumn == typeof(ulong))
-                return decimal.ToUInt64((decimal) val);
+                return decimal.ToUInt64((decimal)val);
 
             if (typeColumn == typeof(double))
-                return decimal.ToDouble((decimal) val);
+                return decimal.ToDouble((decimal)val);
             if (typeColumn == typeof(double))
-                return decimal.ToSByte((sbyte) val);
+                return decimal.ToSByte((sbyte)val);
             if (typeColumn == typeof(float))
-                return decimal.ToSingle((sbyte) val);
+                return decimal.ToSingle((sbyte)val);
             throw new Exception($"Не могу найти тип для преобразования первичного ключа {typeColumn} {val}");
         }
 
@@ -437,7 +434,7 @@ namespace ORM_1_21_
             {
                 return false;
             }
-            if (type.GetInterface(typeof(ISerializableOrm).Name)!=null||type.IsArray)
+            if (type.GetInterface(typeof(ISerializableOrm).Name) != null || type.IsArray)
             {
                 return true;
             }
@@ -451,13 +448,13 @@ namespace ORM_1_21_
 
         public static string ObjectToJson(object o)
         {
-            string json =JsonConvert.SerializeObject(o);
-            return  json.Replace("'","''");
+            string json = JsonConvert.SerializeObject(o);
+            return json.Replace("'", "''");
         }
 
         public static object JsonToObject(string o, Type type)
         {
-            return  JsonConvert.DeserializeObject(o, type);
+            return JsonConvert.DeserializeObject(o, type);
         }
 
         public static string ClearTrim(string tableName)
@@ -474,13 +471,13 @@ namespace ORM_1_21_
                 foreach (DbParameter commandParameter in command.Parameters)
                     stringBuilder.Append($" {commandParameter.ParameterName} - {commandParameter.Value} ");
             }
-            
+
 
             return stringBuilder.ToString();
         }
 
-       
-        
+
+
     }
 }
 

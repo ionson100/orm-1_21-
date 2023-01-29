@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace ORM_1_21_.Linq.MsSql
 {
-    internal class MsSqlConstructorSql 
+    internal class MsSqlConstructorSql
     {
         private List<OneComprosite> _listOne;
         // private int i = 0;
@@ -46,7 +46,7 @@ namespace ORM_1_21_.Linq.MsSql
                     .Replace("#2#", "<").Replace("#3#", ">").Replace("#4#", ">=").Replace("#5#", "!=")
                     .Replace("#6#", "=").Replace("#7#", "=");
                 listOne.Add(new OneComprosite
-                    {Operand = Evolution.Where, Body = listOne.First(a => a.Operand == Evolution.All).Body});
+                { Operand = Evolution.Where, Body = listOne.First(a => a.Operand == Evolution.All).Body });
             }
 
             var sbb = new StringBuilder();
@@ -77,7 +77,7 @@ namespace ORM_1_21_.Linq.MsSql
                         string s = listOne.First(a => a.Operand == Evolution.DistinctCastom).Body;
                         if (PingComposite(Evolution.SelectNew))
                         {
-                            
+
                             sbb.Append(" DISTINCT " + s.TrimStart(new char[] { ' ', ',' }));
                         }
                         else

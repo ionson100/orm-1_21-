@@ -1,11 +1,8 @@
-﻿using System;
+﻿using ORM_1_21_;
+using ORM_1_21_.Attribute;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Google.Protobuf.Reflection;
-using ORM_1_21_;
-using ORM_1_21_.Attribute;
 
 namespace TestMysql
 {
@@ -48,7 +45,7 @@ namespace TestMysql
             };
             Configure.Session.InsertBulk(classes);
             var sss = Configure.Session
-                                 
+
                 .ExecuteScalar("SELECT table_name FROM information_schema.tables WHERE table_schema = 'test';");
             var i = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).
                 Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "simple" } });
@@ -74,8 +71,8 @@ namespace TestMysql
                 ProviderName.MySql, path);
             using (var ses = Configure.Session)
             {
-                if(ses.TableExists<MyClass>()==true)
-                  ses.DropTable<MyClass>();
+                if (ses.TableExists<MyClass>() == true)
+                    ses.DropTable<MyClass>();
                 if (ses.TableExists<MyClass>() == false)
                 {
                     ses.TableCreate<MyClass>();
@@ -94,15 +91,15 @@ namespace TestMysql
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [MapColumnName("name")] public string Name { get; set; }
-        [MapColumnName("age")] [MapIndex] public int Age { get; set; }
-        [MapColumnName("age1")] [MapIndex] public int? Age1 { get; set; }
+        [MapColumnName("age")][MapIndex] public int Age { get; set; }
+        [MapColumnName("age1")][MapIndex] public int? Age1 { get; set; }
 
         [MapColumnName("desc")]
         [MapColumnType("TEXT")]
         public string Description { get; set; }
 
         [MapColumnName("enum")] public MyEnum MyEnum { get; set; } = MyEnum.First;
-        [MapColumnName("date")] public DateTime? DateTime { get; set; } 
+        [MapColumnName("date")] public DateTime? DateTime { get; set; }
         [MapColumnName("test")]
         public List<Test23> Test23 { get; set; } = new List<Test23>() { new Test23() { Name = "simple" }
 
@@ -122,5 +119,5 @@ namespace TestMysql
         Def = 0, First = 1
     }
 
-    
+
 }

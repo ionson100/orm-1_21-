@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using ORM_1_21_.Attribute;
+using System;
 using System.Text;
-using ORM_1_21_.Attribute;
 
 namespace ORM_1_21_
 {
-   internal class UtilsCreateTableSqlite
+    internal class UtilsCreateTableSqlite
     {
         public static string Create<T>()
         {
@@ -27,7 +25,7 @@ namespace ORM_1_21_
             }
 
 
-            
+
             foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
                 builder.AppendLine($" {map.ColumnNameForReader} {GetTypeColumn(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
@@ -42,7 +40,7 @@ namespace ORM_1_21_
 
             //CREATE INDEX index_name ON table_name (column_name);
 
-            StringBuilder indexBuilder = new StringBuilder($"CREATE INDEX INDEX_{tableName} ON { tableName } (");
+            StringBuilder indexBuilder = new StringBuilder($"CREATE INDEX INDEX_{tableName} ON {tableName} (");
 
             bool add = false;
             foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
@@ -113,7 +111,7 @@ namespace ORM_1_21_
                 return "TEXT";
             }
 
-            if (type == typeof(System.Drawing.Image)||type==typeof(byte[]))
+            if (type == typeof(System.Drawing.Image) || type == typeof(byte[]))
             {
                 return "BLOB";
             }

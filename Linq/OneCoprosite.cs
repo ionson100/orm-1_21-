@@ -4,7 +4,7 @@ namespace ORM_1_21_.Linq
 {
     internal class OneComprosite
     {
-       
+
 
         internal Evolution Operand { get; set; }
         private string _body;
@@ -21,5 +21,5 @@ namespace ORM_1_21_.Linq
         public Delegate ExpressionDelegate { get; set; }
     }
 
-   
+
 }

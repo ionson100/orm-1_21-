@@ -40,11 +40,7 @@ namespace ORM_1_21_
 
                             var o = Utils.JsonToObject(e.ToString(), pr.PropertyType);
                             AttributesOfClass<TObj>.SetValue.Value[pr.Name](d,
-                                e == DBNull.Value
-                                    ? null
-                                    : o);
-
-
+                                e == DBNull.Value ? null : o);
                         }
                         else if (pr.PropertyType == typeof(Image))
                         {

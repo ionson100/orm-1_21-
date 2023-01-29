@@ -45,7 +45,7 @@ namespace ORM_1_21_.Linq.MySql
                     .Replace("#2#", "<").Replace("#3#", ">").Replace("#4#", ">=").Replace("#5#", "!=")
                     .Replace("#6#", "=").Replace("#7#", "=");
                 listOne.Add(new OneComprosite
-                    {Operand = Evolution.Where, Body = listOne.First(a => a.Operand == Evolution.All).Body});
+                { Operand = Evolution.Where, Body = listOne.First(a => a.Operand == Evolution.All).Body });
             }
 
             var ii = 0;
@@ -72,14 +72,14 @@ namespace ORM_1_21_.Linq.MySql
                         string s = listOne.First(a => a.Operand == Evolution.DistinctCastom).Body;
                         if (PingComposite(Evolution.SelectNew))
                         {
-                            
-                            sbb.Append(" DISTINCT " + s.TrimStart(new char[] {' ',','}) );
+
+                            sbb.Append(" DISTINCT " + s.TrimStart(new char[] { ' ', ',' }));
                         }
                         else
                         {
                             sbb.Append(" DISTINCT " + s);
                         }
-                        
+
                     }
 
                     else

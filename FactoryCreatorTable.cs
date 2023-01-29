@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Text;
-using ORM_1_21_.Attribute;
-using ORM_1_21_.Linq;
 
 namespace ORM_1_21_
 {
@@ -27,14 +24,14 @@ namespace ORM_1_21_
             }
         }
 
-        public static string GetDefaultValue(string def,Type type)
+        public static string GetDefaultValue(string def, Type type)
         {
             if (def != null)
             {
                 return def;
             }
 
-            if (type == typeof(long) )
+            if (type == typeof(long))
             {
                 return "NOT NULL DEFAULT '0'";
             }
@@ -48,15 +45,15 @@ namespace ORM_1_21_
                 || type == typeof(uint)
                 || type == typeof(long)
                 || type == typeof(short)
-                ||type == typeof(bool)
-                ||type == typeof(decimal)
-                ||type == typeof(float)
-                ||type == typeof(double))
+                || type == typeof(bool)
+                || type == typeof(decimal)
+                || type == typeof(float)
+                || type == typeof(double))
             {
                 return "NOT NULL DEFAULT '0'";
             }
-         
-            if (type == typeof(DateTime) )
+
+            if (type == typeof(DateTime))
             {
                 return "NULL";
             }

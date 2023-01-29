@@ -5,7 +5,7 @@
         public V(string sql)
         {
             _sql = sql;
-           
+
         }
         private readonly string _sql;
         public string FreeSql()

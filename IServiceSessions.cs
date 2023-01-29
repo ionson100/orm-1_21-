@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 
 
 namespace ORM_1_21_
@@ -9,6 +7,6 @@ namespace ORM_1_21_
     {
         IDbCommand CommandForLinq { get; }
         object Locker { get; }
-       
+
     }
 }

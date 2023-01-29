@@ -1,15 +1,13 @@
-﻿using System;
+﻿
+using Newtonsoft.Json;
+using ORM_1_21_.Linq;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using ORM_1_21_.Linq;
 
 namespace ORM_1_21_
 {
@@ -17,7 +15,7 @@ namespace ORM_1_21_
     ///</summary>
     public sealed partial class Sessione : ISession, IServiceSessions
     {
-        List<IDbCommand> _dbCommands=new List<IDbCommand>();
+        List<IDbCommand> _dbCommands = new List<IDbCommand>();
         IDbCommand IServiceSessions.CommandForLinq
         {
             get
@@ -30,7 +28,7 @@ namespace ORM_1_21_
 
         object IServiceSessions.Locker { get; } = new object();
 
-        
+
 
         //Dictionary<int, BoxCache> IServiceSessions.CacheFirstLevel { get; } = new Dictionary<int, BoxCache>();
 
@@ -76,9 +74,9 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        ///     Сохранение обьекта в базе равно как вставка и изменение
+        ///     Сохранение объекта в базе равно как вставка и изменение
         /// </summary>
-        /// <typeparam name="T">Тип обьекта</typeparam>
+        /// <typeparam name="T">Тип объекта</typeparam>
         /// <param name="item">сохраняемый объект</param>
         public int Save<T>(T item) where T : class
         {
@@ -91,7 +89,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <typeparam name="T">Тип объекта</typeparam>
         /// <param name="id">Значение первичного ключа</param>
-        /// <returns>Полученый объект, в случае отсутствия  в базe - NULL</returns>
+        /// <returns>Полученный объект, в случае отсутствия  в базe - NULL</returns>
         public T Get<T>(object id) where T : class
         {
             if (id == null) throw new ArgumentException("Объект первичного ключа, равен равен Null");
@@ -101,7 +99,7 @@ namespace ORM_1_21_
         /// <summary>
         ///     запрос на выборку с параметрами
         /// </summary>
-        /// <param name="sqlWhere">запрос на выборку, начиная с после where  с праметрами, можно поставить: 1=1</param>
+        /// <param name="sqlWhere">запрос на выборку, начиная с после where  с параметрами, можно поставить: 1=1</param>
         /// <param name="obj">список параметров в той последовательности в которой они идут в запросе.</param>
         /// <typeparam name="T">Тип сущности</typeparam>
         /// <returns></returns>
@@ -111,7 +109,7 @@ namespace ORM_1_21_
             var sqlAll = AttributesOfClass<T>.SimpleSqlSelect + AttributesOfClass<T>.AddSqlWhere(sqlWhere);
             var com = ProviderFactories.GetCommand();
             com.CommandText = sqlAll;
-            AddParam( com, obj);
+            AddParam(com, obj);
             com.Connection = _connect;
             IEnumerable<T> res;
             try
@@ -215,7 +213,7 @@ namespace ORM_1_21_
                         $"SELECT count(*) FROM pg_tables WHERE   tablename  = '{tableName}';";
 
                     OpenConnectAndTransaction(com);
-                    long res =(long) com.ExecuteScalar();
+                    long res = (long)com.ExecuteScalar();
                     return res != 0;
                 }
                 else
@@ -239,32 +237,25 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        ///     Пожарынй шланг данных
+        ///     Пожарный шланг данных
         /// </summary>
         /// <param name="sql"></param>
         /// <param name="objects">параметры</param>
         /// <returns></returns>
-        public IDataReader ExecuteReader(string sql,object[] objects)
+        public IDataReader ExecuteReader(string sql, object[] objects)
         {
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
 
             com.CommandText = sql;
-            AddParam(com,objects);
-            //try
-            //{
+            AddParam(com, objects);
             OpenConnectAndTransaction(com);
             return com.ExecuteReader();
-            // }
-            // finally
-            // {
-            //     //ComDisposable(com);
-            // }
         }
 
-       
+
         /// <summary>
-        /// 
+        /// IDataReader
         /// </summary>
         /// <param name="sql"></param>
         /// <param name="timeOut"></param>
@@ -280,15 +271,8 @@ namespace ORM_1_21_
                 com.CommandTimeout = timeOut;
             }
             AddParam(com, obj);
-            //try
-            //{
             OpenConnectAndTransaction(com);
             return com.ExecuteReader();
-            // }
-            // finally
-            // {
-            //     //ComDisposable(com);
-            // }
         }
 
         /// <summary>
@@ -297,7 +281,7 @@ namespace ORM_1_21_
         /// <param name="sql"></param>
         /// <param name="timeout">timeout=-1 (default)</param>
         /// <returns></returns>
-        public DataTable GetDataTable(string sql,int timeout=-1)
+        public DataTable GetDataTable(string sql, int timeout = -1)
         {
             var table = new DataTable();
 
@@ -307,7 +291,7 @@ namespace ORM_1_21_
             {
                 com.CommandTimeout = timeout;
             }
-            
+
             com.CommandText = sql;
             try
             {
@@ -337,7 +321,7 @@ namespace ORM_1_21_
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public List<string> GetTableNames()
         {
-           
+
             var com = ProviderFactories.GetCommand();
 
             var index = 2;
@@ -345,39 +329,39 @@ namespace ORM_1_21_
             switch (Configure.Provider)
             {
                 case ProviderName.Sqlite:
-                {
-                    index = 0;
-                    com.CommandText = "SELECT name FROM sqlite_master WHERE type='table';";
+                    {
+                        index = 0;
+                        com.CommandText = "SELECT name FROM sqlite_master WHERE type='table';";
                         break;
-                }
+                    }
                 case ProviderName.MsSql:
-                {
-                    com.CommandText = "SELECT * FROM information_schema.tables";
-                    index = 2;
-                    break;
-                }
-                   
+                    {
+                        com.CommandText = "SELECT * FROM information_schema.tables";
+                        index = 2;
+                        break;
+                    }
+
                 case ProviderName.MySql:
-                {
-                    index = 0;
-                    var strs = Configure.ConnectionString.Split(';');
-                    foreach (var str in strs)
-                        if (str.ToUpper().Contains("DATABASE"))
-                        {
-                            var nameBase = str.Split('=')[1].Trim();
-                            com.CommandText =
-                                $"SELECT table_name FROM information_schema.tables WHERE table_schema = '{nameBase}';";
-                        }
-                    break;
-                }
-                    
+                    {
+                        index = 0;
+                        var strs = Configure.ConnectionString.Split(';');
+                        foreach (var str in strs)
+                            if (str.ToUpper().Contains("DATABASE"))
+                            {
+                                var nameBase = str.Split('=')[1].Trim();
+                                com.CommandText =
+                                    $"SELECT table_name FROM information_schema.tables WHERE table_schema = '{nameBase}';";
+                            }
+                        break;
+                    }
+
                 case ProviderName.Postgresql:
-                {
-                    index = 0;
-                    com.CommandText = "SELECT table_name FROM information_schema.tables where table_schema='public'";
-                    break;
-                }
-                    
+                    {
+                        index = 0;
+                        com.CommandText = "SELECT table_name FROM information_schema.tables where table_schema='public'";
+                        break;
+                    }
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -438,7 +422,7 @@ namespace ORM_1_21_
                         if (File.Exists(baseName) == false)
                         {
                             com.Connection.GetType().GetMethod("CreateFile", BindingFlags.Static | BindingFlags.Public)
-                                ?.Invoke(com.Connection, new object[] {baseName});
+                                ?.Invoke(com.Connection, new object[] { baseName });
                             return -1;
                         }
 
@@ -468,7 +452,7 @@ namespace ORM_1_21_
         /// <param name="timeOut">default 30000</param>
         /// <typeparam name="T"></typeparam>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public void InsertBulk<T>(IEnumerable<T> list,  int timeOut = -1)
+        public void InsertBulk<T>(IEnumerable<T> list, int timeOut = -1)
         {
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
@@ -511,7 +495,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// 
+        /// Insert Bulk Fom File
         /// </summary>
         /// <param name="fileCsv"></param>
         /// <param name="fieldterminator"></param>
@@ -529,16 +513,16 @@ namespace ORM_1_21_
             switch (Configure.Provider)
             {
                 case ProviderName.MsSql:
-                    com.CommandText = UtilsBulkMsSql.InsertFile<T>( fileCsv, fieldterminator);
+                    com.CommandText = UtilsBulkMsSql.InsertFile<T>(fileCsv, fieldterminator);
                     break;
                 case ProviderName.MySql:
-                    com.CommandText = UtilsBulkMySql.InsertFile<T>( fileCsv, fieldterminator);
+                    com.CommandText = UtilsBulkMySql.InsertFile<T>(fileCsv, fieldterminator);
                     break;
                 case ProviderName.Postgresql:
-                    com.CommandText = UtilsBulkPostgres.InsertFile<T>( fileCsv, fieldterminator);
+                    com.CommandText = UtilsBulkPostgres.InsertFile<T>(fileCsv, fieldterminator);
                     break;
                 case ProviderName.Sqlite:
-                    com.CommandText = UtilsBulkMySql.InsertFile<T>( fileCsv, fieldterminator);
+                    com.CommandText = UtilsBulkMySql.InsertFile<T>(fileCsv, fieldterminator);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -561,7 +545,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// 
+        /// ExecuteScalar
         /// </summary>
         /// <param name="sql"></param>
         /// <param name="obj"></param>
@@ -573,7 +557,7 @@ namespace ORM_1_21_
             com.CommandType = CommandType.Text;
             com.CommandText = sql;
             AddParam(com, obj);
-           
+
             try
             {
                 OpenConnectAndTransaction(com);
@@ -591,14 +575,14 @@ namespace ORM_1_21_
             }
         }
 
-       /// <summary>
-       /// 
-       /// </summary>
-       /// <param name="sql"></param>
-       /// <param name="timeOut"></param>
-       /// <param name="obj"></param>
-       /// <returns></returns>
-       public object ExecuteScalarT(string sql, int timeOut = -1, params object[] obj)
+        /// <summary>
+        /// ExecuteScalarT (timeout)
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="timeOut"></param>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public object ExecuteScalarT(string sql, int timeOut = -1, params object[] obj)
         {
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
@@ -659,7 +643,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        ///     Получения выражения ling to SQL
+        ///     Получения выражения ling to SQL 
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
@@ -681,7 +665,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// 
+        /// DbConnection
         /// </summary>
         /// <returns></returns>
         public IDbConnection GetConnection()
@@ -690,7 +674,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// 
+        /// IDbDataAdapter
         /// </summary>
         /// <returns></returns>
         public IDbDataAdapter GetDataAdapter()
@@ -699,7 +683,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// 
+        /// IDataParameter
         /// </summary>
         /// <returns></returns>
         public IDataParameter GetDataParameter()
@@ -727,7 +711,7 @@ namespace ORM_1_21_
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
             com.CommandText = sql;
-            AddParam(com,obj);
+            AddParam(com, obj);
             try
             {
                 OpenConnectAndTransaction(com);
@@ -825,12 +809,12 @@ namespace ORM_1_21_
         /// <summary>
         ///     Возвращает лист объектов  табличной сущности
         /// </summary>
-        /// <typeparam name="T">Тип класа сущности</typeparam>
+        /// <typeparam name="T">Тип класса сущности</typeparam>
         /// <param name="sqlWhere">
         ///     Запрос на выборку начиная с Where, Where включительно
         ///     для полной выборки можно указать "" или NULL
         /// </param>
-        /// <returns>Лист оьектов сущности</returns>
+        /// <returns>Лист объектов сущности</returns>
         public IEnumerable<T> GetList<T>(string sqlWhere) where T : class
         {
             var sqlAll = AttributesOfClass<T>.SimpleSqlSelect + AttributesOfClass<T>.AddSqlWhere(sqlWhere);
@@ -841,10 +825,10 @@ namespace ORM_1_21_
             com.CommandText = sqlAll;
             try
             {
-             
+
                 OpenConnectAndTransaction(com);
                 lResul = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader());
-              
+
             }
             catch (Exception ex)
             {
@@ -963,16 +947,16 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        ///     Возвращает лист оъектов  табличной сущности
+        ///     Возвращает лист объектов  табличной сущности
         /// </summary>
         /// <typeparam name="T">Тип класса сущности</typeparam>
-        /// <returns>Лист оьектов сущности</returns>
+        /// <returns>Лист объектов сущности</returns>
         public IEnumerable<T> GetList<T>() where T : class
         {
             return GetList<T>("");
         }
 
-      
+
 
         /// <summary>
         ///возвращает название поля для таблицы
@@ -981,7 +965,7 @@ namespace ORM_1_21_
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public string ColumnName<T>(Expression<Func<T,object>> property)
+        public string ColumnName<T>(Expression<Func<T, object>> property)
         {
             LambdaExpression lambda = property;
             MemberExpression memberExpression;
@@ -989,14 +973,14 @@ namespace ORM_1_21_
             var expression = lambda.Body as UnaryExpression;
             if (expression != null)
             {
-                UnaryExpression unaryExpression = (UnaryExpression)expression;
+                UnaryExpression unaryExpression = expression;
                 memberExpression = (MemberExpression)(unaryExpression.Operand);
             }
             else
             {
                 memberExpression = (MemberExpression)(lambda.Body);
             }
-            string name=((PropertyInfo)memberExpression.Member).Name;
+            string name = ((PropertyInfo)memberExpression.Member).Name;
             foreach (var dal in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
                 if (dal.PropertyName == name)
@@ -1013,11 +997,11 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// Получает SQL строку Insert (бойся инъекций)
+        /// Получает SQL строку Insert 
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns>string sql from insert</returns>
-        public string InsertCommand<T>( T t)
+        public string InsertCommand<T>(T t)
         {
             switch (Configure.Provider)
             {
@@ -1026,13 +1010,13 @@ namespace ORM_1_21_
                 case ProviderName.MySql:
                     throw new Exception("не рализовано");
                 case ProviderName.Postgresql:
-                   return CommandNativePostgres.GetInsertSql(t);
+                    return CommandNativePostgres.GetInsertSql(t);
                 case ProviderName.Sqlite:
                     throw new Exception("не рализовано");
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-           
+
         }
 
         /// <summary>
@@ -1078,8 +1062,8 @@ namespace ORM_1_21_
             }
 
             com.CommandText = sql;
-            
-            
+
+
             try
             {
                 AddParam(com, obj);
@@ -1113,16 +1097,18 @@ namespace ORM_1_21_
         {
             try
             {
-               var str= JsonConvert.SerializeObject(ob);
+                var str = JsonConvert.SerializeObject(ob);
                 return JsonConvert.DeserializeObject<T>(str);
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Configure.SendError("Clone", ex);
                 throw;
 
             }
         }
+
+
     }
 }

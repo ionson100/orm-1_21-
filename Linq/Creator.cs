@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq.Expressions;
-using System.Threading;
 
 namespace ORM_1_21_.Linq
 {
@@ -13,19 +12,19 @@ namespace ORM_1_21_.Linq
 
         public static ObjectActivator<T> GetActivator(NewExpression m)
         {
-            if (typeof (T) != typeof (object))
+            if (typeof(T) != typeof(object))
             {
                 if (Activator == null)
                 {
                     lock (o)
                     {
-                            Activator = InnerGetActivator(m);
+                        Activator = InnerGetActivator(m);
                     }
 
                 }
                 return Activator;
             }
-            return  InnerGetActivator(m);
+            return InnerGetActivator(m);
         }
 
         static ObjectActivator<T> InnerGetActivator(NewExpression m)

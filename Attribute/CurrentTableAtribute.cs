@@ -3,7 +3,7 @@
 namespace ORM_1_21_.Attribute
 {
     /// <summary>
-    /// Атрибут для класса слоя, определяет тип и название колонки.Применяется только при транформацию листа в таблицу
+    /// Атрибут для класса слоя, определяет тип и название колонки.Применяется только при трансформацию листа в таблицу
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public sealed class CurrentTableAtribute : System.Attribute

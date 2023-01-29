@@ -36,19 +36,19 @@ namespace ORM_1_21_
                         //_curFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
                         break;
                     case ProviderName.MySql:
-                    {
-                        var assa = Utils.Assembler.GetType("MySql.Data.MySqlClient.MySqlClientFactory");
-                        _curFactory = (DbProviderFactory)assa.GetField("Instance").GetValue(null);
-                        break;
-                    }
+                        {
+                            var assa = Utils.Assembler.GetType("MySql.Data.MySqlClient.MySqlClientFactory");
+                            _curFactory = (DbProviderFactory)assa.GetField("Instance").GetValue(null);
+                            break;
+                        }
 
                     case ProviderName.Postgresql:
 
                         var type = Utils.Assembler.GetType("Npgsql.NpgsqlFactory");
                         var field = type.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
 
-                        _curFactory= (DbProviderFactory)field.GetValue(null);
-                      
+                        _curFactory = (DbProviderFactory)field.GetValue(null);
+
                         break;
                     case ProviderName.Sqlite:
                         var type1 = Utils.Assembler.GetType("System.Data.SQLite.SQLiteFactory");
@@ -79,6 +79,6 @@ namespace ORM_1_21_
 
         }
 
-      
+
     }
 }

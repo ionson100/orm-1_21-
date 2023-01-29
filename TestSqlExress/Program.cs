@@ -1,11 +1,9 @@
-﻿using System;
+﻿using ORM_1_21_;
+using ORM_1_21_.Attribute;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
-using ORM_1_21_;
-using ORM_1_21_.Attribute;
 
 namespace TestSqlExress
 {
@@ -52,13 +50,13 @@ namespace TestSqlExress
             //var @calss = Configure.GetSession().GetList<MyClass>("age =100 order by age ").FirstOrDefault();
             //var list22 = Configure.GetSession().Querion<MyClass>().Select(a => new { ageCore = a.Age, name = a.Name }).ToList();
             var list = Configure.Session.Querion<MyClass>();
-            var resList =await list.ToListAsync();
-           
-            var countDelete=Configure.Session.Querion<MyClass>().Where(s=>s.Age==100).Delete();
-            
-           
+            var resList = await list.ToListAsync();
+
+            var countDelete = Configure.Session.Querion<MyClass>().Where(s => s.Age == 100).Delete();
+
+
             var list2 = Configure.Session.Querion<MyClass>().Select(a => new { ageCore = a.Age }).ToList();
-            
+
 
         }
     }
@@ -103,13 +101,13 @@ namespace TestSqlExress
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [MapColumnName("name")] public string Name { get; set; }
-        [MapColumnName("age")] [MapIndex] public int Age { get; set; }
+        [MapColumnName("age")][MapIndex] public int Age { get; set; }
 
         [MapColumnName("desc")]
         [MapColumnType("TEXT")]
         public string Description { get; set; }
 
-        [MapColumnName("age1")] [MapIndex] public int? Age1 { get; set; }
+        [MapColumnName("age1")][MapIndex] public int? Age1 { get; set; }
 
 
         [MapColumnName("price")]

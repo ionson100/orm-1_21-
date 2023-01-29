@@ -1,7 +1,8 @@
 ﻿namespace ORM_1_21_.Linq
 {
     internal enum Evolution
-    {   None=0,
+    {
+        None = 0,
         First,
         Any,
         Last,
@@ -10,11 +11,11 @@
         GroupBy,
         OrderBy,
         Select,
-        DistinctCastom ,
-        SelectNew ,
-        Single ,
+        DistinctCastom,
+        SelectNew,
+        Single,
         SingleOrDefault,
-        SaveOrUpdate ,
+        SaveOrUpdate,
         //FindLikeContains,
         //FindLikeStartsWith,
         //FindLikeEndsWith,
@@ -32,7 +33,7 @@
         Update,
         Contains,
         JoinNew,
-        OverCache,
+        //OverCache,
         Timeout,
         FreeSql
     }

@@ -2,7 +2,7 @@
 {
     /// <summary>
     /// Сервисный интерфейс для обслуживания базы.Для своевременного действия, с работой  в базе
-    /// отнаследуйте свой табличный тип от этого интерфейса, и можете контролировать в отбработчиках
+    /// от наследуйте свой табличный тип от этого интерфейса, и можете контролировать в обработчиках
     /// интерфейса, все этапы работы с базой
     /// </summary>
     /// <typeparam name="T"></typeparam>
@@ -11,13 +11,13 @@
         /// <summary>
         /// Перед вставкой
         /// </summary>
-        /// <param name="item">обьект вставки</param>
+        /// <param name="item">объект вставки</param>
         void BeforeInsert(T item);
 
         /// <summary>
         /// После вставки
         /// </summary>
-        /// <param name="item">обьект вставки</param>
+        /// <param name="item">объект вставки</param>
         void AfterInsert(T item);
 
         /// <summary>
@@ -29,7 +29,7 @@
         /// <summary>
         /// После обновления
         /// </summary>
-        /// <param name="item">обьект обновления</param>
+        /// <param name="item">объект обновления</param>
         void AfterUpdate(T item);
 
         /// <summary>
@@ -41,7 +41,7 @@
         /// <summary>
         /// Полсле удаления
         /// </summary>
-        /// <param name="item">обьект после удаления, фантом.</param>
+        /// <param name="item">объект после удаления, фантом.</param>
         void AfterDelete(T item);
     }
 }

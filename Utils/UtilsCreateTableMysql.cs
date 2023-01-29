@@ -1,63 +1,61 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using ORM_1_21_.Attribute;
+using System;
 using System.Text;
-using ORM_1_21_.Attribute;
 
 namespace ORM_1_21_
 {
-   internal class UtilsCreateTableMySql
+    internal class UtilsCreateTableMySql
     {
         public static string Create<T>()
         {
             StringBuilder builder = new StringBuilder();
-          
-                var tableName = AttributesOfClass<T>.TableName;
-                tableName = tableName.Replace("[", "").Replace("]", "").Replace("`", "");
-                builder.AppendLine($"CREATE TABLE IF NOT EXISTS `{tableName}` (");
-                var pk = AttributesOfClass<T>.PkAttribute;
+
+            var tableName = AttributesOfClass<T>.TableName;
+            tableName = tableName.Replace("[", "").Replace("]", "").Replace("`", "");
+            builder.AppendLine($"CREATE TABLE IF NOT EXISTS `{tableName}` (");
+            var pk = AttributesOfClass<T>.PkAttribute;
 
 
-                builder.AppendLine($" `{pk.ColumnNameForRider}` {GetTypeMySql(pk.TypeColumn)}  PRIMARY KEY {(pk.Generator == Generator.Native ? "AUTO_INCREMENT" : "")},");
-                foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            builder.AppendLine($" `{pk.ColumnNameForRider}` {GetTypeMySql(pk.TypeColumn)}  PRIMARY KEY {(pk.Generator == Generator.Native ? "AUTO_INCREMENT" : "")},");
+            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            {
+                string typeColumn = map.TypeString;
+                if (typeColumn == null)
                 {
-                    string typeColumn = map.TypeString;
-                    if (typeColumn == null)
-                    {
-                        typeColumn=GetTypeMySql(map.TypeColumn);
-                    }
-                   
-                    builder.AppendLine($" `{map.ColumnNameForReader}` {typeColumn} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
-                   
-                   
+                    typeColumn = GetTypeMySql(map.TypeColumn);
                 }
 
-
-                string str2 = builder.ToString();
-                str2 = str2.Substring(0, str2.LastIndexOf(','));
-                builder.Clear();
-                builder.Append(str2);
-                builder.AppendLine(");").Append(AttributesOfClass<T>.GetTypeTable<T>());
+                builder.AppendLine($" `{map.ColumnNameForReader}` {typeColumn} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
 
 
+            }
 
-                StringBuilder indexBuilder = new StringBuilder($"ALTER TABLE `{ tableName }` ADD INDEX `INDEX_{tableName}` (");
 
-                bool add = false;
-                foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            string str2 = builder.ToString();
+            str2 = str2.Substring(0, str2.LastIndexOf(','));
+            builder.Clear();
+            builder.Append(str2);
+            builder.AppendLine(");").Append(AttributesOfClass<T>.GetTypeTable<T>());
+
+
+
+            StringBuilder indexBuilder = new StringBuilder($"ALTER TABLE `{tableName}` ADD INDEX `INDEX_{tableName}` (");
+
+            bool add = false;
+            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            {
+                if (map.IsIndex)
                 {
-                    if (map.IsIndex)
-                    {
-                        add = true;
-                        indexBuilder.AppendLine(map.ColumnName).Append(",");
-                    }
+                    add = true;
+                    indexBuilder.AppendLine(map.ColumnName).Append(",");
                 }
+            }
 
-                if (add == true)
-                {
-                    string index = indexBuilder.ToString().Substring(0, indexBuilder.ToString().LastIndexOf(',')).Trim() + ");";
-                    builder.AppendLine(index);
-                }
+            if (add == true)
+            {
+                string index = indexBuilder.ToString().Substring(0, indexBuilder.ToString().LastIndexOf(',')).Trim() + ");";
+                builder.AppendLine(index);
+            }
             return builder.ToString();
         }
         private static string GetTypeMySql(Type type)
@@ -112,7 +110,7 @@ namespace ORM_1_21_
                 return "VARCHAR(256)";
             }
 
-            if (type == typeof(System.Drawing.Image)||type==typeof(byte[]))
+            if (type == typeof(System.Drawing.Image) || type == typeof(byte[]))
             {
                 return "BLOB";
             }

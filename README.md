@@ -9,19 +9,18 @@ string path = null;
 #if DEBUG
     path = "SqlLog.txt";
 #endif
-_ = new Configure("ConnectionString",
-    ProviderName.Postgresql, path);
+_ = new Configure("ConnectionString",ProviderName.Postgresql, path);
     using (var ses=Configure.Session)
+    {
+      if (ses.TableExists<MyClass>())
        {
-         if (ses.TableExists<MyClass>())
-            {
-               ses.DropTable<MyClass>();
-            }
-         if (ses.TableExists<MyClass>() == false)
-            {
-               ses.TableCreate<MyClass>();
-            }
-        }     
+         ses.DropTable<MyClass>();
+       }
+      if (ses.TableExists<MyClass>() == false)
+       {
+         ses.TableCreate<MyClass>();
+       }
+    }     
 ```
 В режиме отладки создается файл лога:SqlLog.txt\
 Внимание: Файл не лимитирован по длине!\
@@ -35,7 +34,7 @@ SELECT "my_class"."id", "my_class"."name", "my_class"."age", "my_class"."desc", 
 ```
 Выбор типа базы, осуществляется вторым параметром конструктора.\
 Первый параметр - строка подключения: [ConnectionString](https://www.connectionstrings.com)\
-ОРМ предполагает автономное разветывание, исходя их этого требуется добавлении пакетов провайдера для\
+ОРМ предполагает автономное развертывание, исходя их этого требуется добавлении пакетов провайдера для\
 выбранной базы данных, через NuGet (Npgsql,Mysql.Data,System.Data.SQLite,System.Data.SqlClient)\
 Внимание: Для PostgreSQL, хранение даты осуществляется в старом режиме.
 ###### Мапинг таблиц.
@@ -68,14 +67,14 @@ SELECT "my_class"."id", "my_class"."name", "my_class"."age", "my_class"."desc", 
     };
 ```
 Внимание! Свойство IList, проецируются в базу как Text.И сохраняются как Json,\
-что ествественно сказывается на низкую производительность.
+что естественно сказывается на низкую производительность.
 Свойства не отмеченные атрибутом, в таблицу не проецируются.\
 Свойства помеченные индексом встают в таблицу одним собирательным индексом,\
-если нужно отдельно - нужно строить отделный запрос при создании таблицы.\
+если нужно отдельно - нужно строить отделенный запрос при создании таблицы.\
 Наличие свойства первичного ключа - обязательно, и только одно.\
 Генератор первичного ключа: Generator.Native, создает автоинкрементное поле в таблице.\
 Минимальная длина (int)\
-Для типа базы SQLite, генеатор должен быть - Generator.Native.\
+Для типа базы SQLite, генератор должен быть - Generator.Native.\
 Данный тип мапится в PosgreSql  в виде:
 ```sql
 CREATE TABLE IF NOT EXISTS "my_class" (
@@ -89,8 +88,9 @@ CREATE TABLE IF NOT EXISTS "my_class" (
 CREATE INDEX IF NOT EXISTS INDEX_my_class_age ON "my_class" ("age");
 ```
 ###### Ling To SQL.
+Отложенное выполнение или запрос по требованию.\
 Внимание! Не все конструкции реализованы в Визиторе, особенно для SQlite
-Пример запроса:\
+Пример запроса:
 ```C#
  var list = Configure.Session.Querion<MyClass>().
  Where(a => (a.Age > 5||a.Name.StartsWith("ion100"))&&a.Name.Contains("100")).
@@ -116,7 +116,48 @@ var dataTable = ses1.GetDataTable($"select * from {ses1.TableName<MyClass>()}");
 var dataTable = ses1.GetDataTable($"select * from {ses1.TableName<MyClass>()} where age = @1",-1,12);
 var coutn = dataTable.Rows.Count;
 ```
-Рефликсия для собирания результата запроса, рализована на компиляции деревьев выражений\
+FreeSql - быстрый запрос к базе ( не отложенный)\
+Запрос по одному полю:
+```C#
+ foreach (var r in Configure.Session.FreeSql<MyEnum>("select enum as enum1 from my_class"))
+   Console.WriteLine($" enum={r}");
+```
+запрос по нескольким полям:
+```C#
+ foreach (var r in Configure.Session.FreeSql<dynamic>("select enum as enum1,age from my_class"))
+   Console.WriteLine($" enum1={r.enum1} age={r.age}");
+```
+Запрос по нескольким полям или джойн, с типизированным перечислением.\
+Обязательно нужно определить тип, свойства замапить атрибутами, имена колонок должны соответствовать\
+именам полей в запросе, равно и как количество.
+```C#
+ [MapTableName("nomap")]
+    class MyClassTemp
+    {
+        [MapColumnName("id")]
+        public int Id { get; set; }
+        [MapColumnName("enum1")]
+        public MyEnum MyEnum { get; set; }
+        [MapColumnName("age")]
+        public int Age { get; set; }
+        public override string ToString()
+        {
+            return $" Id={Id}, MyEnum={MyEnum}, Age={Age}";
+        }
+    }
+ foreach (var r in Configure.Session.FreeSql<MyClassTemp>("select enum as enum1, age, id from my_class"))
+    Console.WriteLine($"{r}");
+```
+Перечисление анонимных типов, можно сделать через метод обертку:
+```C#
+ static IEnumerable<T> TempSql<T>(T t)
+ {
+   return Configure.Session.FreeSql<T>("select enum as enum1,age from my_class");
+ }
+ foreach (var r in TempSql(new { enum1 = 1, age = 2 }))
+    Console.WriteLine($"{r}");
+```
+Рефликсия для собирания результата запроса, реализована на компиляции деревьев выражений\
 [Тынц](https://github.com/ionson100/AccessGetSet)\
 Что дает хороший прирост производительности.
 ###### Интерфейсы.
@@ -139,7 +180,7 @@ var coutn = dataTable.Rows.Count;
     }
 ```
 Объект ( на основе маппинга) полученный из базы,\
-или сохраненный удачно в базе, имеет признак персистентности:
+или сохраненный удачно в базе, имеет признак персистентный:
 ```C#
 var isP = ses.IsPersistent(list[0]);
 ```
@@ -149,7 +190,7 @@ var o=new MyClass();
 ses.ToPersistent(o);
 ```
 если потом этот объект попытаться сохранить: ses.Save(o), то ОРМ попытается сделать запрос UPDATE.\
-При выполнении аснихронных запросов,иногда приведение типов не очень удачно работает,\
+При выполнении асинхронных запросов,иногда приведение типов не очень удачно работает,\
 например:
 ```C#
 await Configure.Session.Querion<MyClass>().Where(s=>s.Name!=null).GroupBy(f=>f.Age).ToListAsync().ContinueWith(f =>
@@ -168,6 +209,26 @@ Error...\
 ```
 Зпрос к базе не изменится.
 ```sql
-SELECT "my_class"."id", "my_class"."name", "my_class"."age", "my_class"."desc", "my_class"."enum", "my_class"."date", "my_class"."test" FROM "my_class" WHERE ("my_class"."name" is not null)
+SELECT "my_class"."id", "my_class"."name", "my_class"."age", "my_class"."desc", "my_class"."enum", "my_class"."date", "my_class"."test" 
+FROM "my_class" WHERE ("my_class"."name" is not null)
+```
+###### sql transaction.
+```C#
+ ISession session = Configure.Session;
+ var tr=session.BeginTransaction();
+   try
+   {
+      session.Save(new MyClass { Age=6,DateTime=DateTime.Now,Description="bla"});
+      tr.Commit();
+   }catch(Exception)
+   {
+      tr.Rollback();
+      throw;
+   }
+   finally
+   {
+      session.Dispose();
+   }
+   
 ```
 

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ORM_1_21_.Attribute;
+using System;
 using System.Drawing;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using ORM_1_21_.Attribute;
 
 namespace ORM_1_21_
 {
@@ -21,7 +18,7 @@ namespace ORM_1_21_
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
-                
+
                 builder.Append($" {map.ColumnName},");
             }
 
@@ -74,7 +71,7 @@ namespace ORM_1_21_
                 return o.ToString().Replace(",", ".");
             if (type == typeof(Guid) || type == typeof(string))
             {
-                return $"'{o.ToString().Replace("'","''")}'";
+                return $"'{o.ToString().Replace("'", "''")}'";
             }
             if (type == typeof(DateTime) || type == typeof(DateTime?))
                 return $"'{((DateTime)o).ToString("yyyy-MM-dd HH:mm:ss.fff")}'";
@@ -91,7 +88,7 @@ namespace ORM_1_21_
             }
 
             if (Utils.IsJsonType(type)) return $"'{Utils.ObjectToJson(o)}'";
-            return $"{o.ToString().Replace("'","''")}";
+            return $"{o.ToString().Replace("'", "''")}";
         }
 
         public static string GetDeleteSql<T>(T t)

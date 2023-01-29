@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace ORM_1_21_.Linq
 {
-    class JoinAlias:ExpressionVisitor
+    class JoinAlias : ExpressionVisitor
     {
         private string _alias;
         public string GetAlias(Expression m)
@@ -16,7 +16,7 @@ namespace ORM_1_21_.Linq
         {
             switch (u.NodeType)
             {
-                
+
 
                 case ExpressionType.Quote:
                     Visit(u.Operand);
@@ -35,9 +35,9 @@ namespace ORM_1_21_.Linq
             if (m.Expression != null
                 && m.Expression.NodeType == ExpressionType.Parameter)
             {
-              
-               _alias = (string) m.Expression.GetType().GetProperty("Name").GetValue(m.Expression, null);
-               
+
+                _alias = (string)m.Expression.GetType().GetProperty("Name").GetValue(m.Expression, null);
+
                 return m;
             }
             if (m.Expression != null
@@ -52,7 +52,7 @@ namespace ORM_1_21_.Linq
              && m.Expression.NodeType == ExpressionType.Constant)
             {
 
-              //  _alias = (string)m.Expression.GetType().GetProperty("Name").GetValue(m.Expression, null);
+                //  _alias = (string)m.Expression.GetType().GetProperty("Name").GetValue(m.Expression, null);
                 return m;
             }
             return m;

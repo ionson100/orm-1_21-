@@ -40,7 +40,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="connectionString">Строка соединения с базой</param>
         /// <param name="provider">Провайдер соединения с базой</param>
-        /// <param name="logFileName">Путь и название файла, куда будем писать логи, его отсутствие (null) отменяет запиь в файл.</param>
+        /// <param name="logFileName">Путь и название файла, куда будем писать логи, его отсутствие (null) отменяет запись в файл.</param>
         public Configure(string connectionString, ProviderName provider, string logFileName)
         {
 
@@ -81,7 +81,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// Провайдер, которы использует орм в текущий момент
+        /// Провайдер, который использует орм в текущий момент
         /// </summary>
         public static ProviderName Provider { get; private set; }
 

@@ -5,26 +5,26 @@ namespace ORM_1_21_
 {
     public sealed partial class Configure
     {
-        
+
         internal static void SendError(string sql, Exception exception)
         {
 #if DEBUG
             _configure.OnOnErrorOrm(new ErrorOrmEventArgs { ErrorMessage = exception.ToString(), Sql = sql, InnerException = exception.InnerException });
             return;
 #endif
-            _configure.OnOnErrorOrm(new ErrorOrmEventArgs {ErrorMessage = exception.Message,Sql = sql,InnerException = exception.InnerException });
+            _configure.OnOnErrorOrm(new ErrorOrmEventArgs { ErrorMessage = exception.Message, Sql = sql, InnerException = exception.InnerException });
         }
         /// <summary>
         /// 
         /// </summary>
         public event ErrorEvent onErrorOrm;
-       
+
 
         /// <summary>
         /// Нативная запись в лог файл.
         /// </summary>
         /// <param name="message">текст сообщения</param>
-        public  static void WriteLogFile(string message)
+        public static void WriteLogFile(string message)
         {
             MySqlLogger.Info(message);
         }

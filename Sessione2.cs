@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ORM_1_21_.Transaction;
+using System;
 using System.Data;
-using System.Data.Common;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
-using ORM_1_21_.Transaction;
 
 namespace ORM_1_21_
 {
@@ -28,7 +23,7 @@ namespace ORM_1_21_
         /// Конструктор 
         /// </summary>
         /// <param name="connectionString">Строка соединения с базой</param>
-        public Sessione(string connectionString )
+        public Sessione(string connectionString)
         {
             _connect = ProviderFactories.GetConnect();// dF.CreateConnection();
             _connect.ConnectionString = connectionString;
@@ -50,8 +45,8 @@ namespace ORM_1_21_
 
         private static void NotificBefore<T>(T item, ActionMode mode) where T : class
         {
-            
-            if (item is IValidateDal<T>&&mode==ActionMode.Insert)
+
+            if (item is IValidateDal<T> && mode == ActionMode.Insert)
             {
                 ((IValidateDal<T>)item).Validate(item);
             }
@@ -65,10 +60,10 @@ namespace ORM_1_21_
                 ((IActionDal<T>)item).BeforeDelete(item);
         }
 
-      
+
 
         /// <summary>
-        /// Получение объекта ITransaction с одновременно началом трансакции
+        /// Получение объекта ITransaction с одновременно началом транзакции
         /// </summary>
         /// <returns>ITransaction</returns>
         public ITransaction BeginTransaction()
@@ -79,7 +74,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        ///  Получение объекта ITransaction с одновременно началом трансакции
+        ///  Получение объекта ITransaction с одновременно началом транзакции
         /// </summary>
         /// <param name="value">Уровни изоляции</param>
         /// <returns>ITransaction</returns>
@@ -91,15 +86,15 @@ namespace ORM_1_21_
             return Transactionale;
         }
 
-     
+
 
         ///<summary>
-        /// Овобождение ресурсов
+        /// Освобождение ресурсов
         ///</summary>
         public void Dispose()
         {
-           
-          
+
+
             Transactionale.ListDispose.ForEach(a => a.Dispose());
             if (_connect != null)
                 _connect.Dispose();
@@ -128,15 +123,15 @@ namespace ORM_1_21_
             com.Transaction = Transaction;
         }
 
-        private static void AddParam( IDbCommand com, object[] obj)
+        private static void AddParam(IDbCommand com, object[] obj)
         {
-            if(obj==null) return;
+            if (obj == null) return;
             string sql = com.CommandText;
             var ss = sql.Split(Utils.Prefparam.ToArray(), StringSplitOptions.RemoveEmptyEntries);
             if (ss.Length - 1 != obj.Length)
                 throw new ArgumentException("не совпадает количество параметров");
-           
-            var list = Regex.Matches(sql, @"\"+Utils.Prefparam+@"\w+").Cast<Match>().Select(m => m.Value).ToList();
+
+            var list = Regex.Matches(sql, @"\" + Utils.Prefparam + @"\w+").Cast<Match>().Select(m => m.Value).ToList();
             if (list.Count != obj.Length)
             {
                 throw new Exception($"Количество параметров в sql запросе {list} не совпадает с количеством параметров переданных в метод {obj.Length}");
@@ -146,15 +141,15 @@ namespace ORM_1_21_
             {
                 IDataParameter dp = ProviderFactories.GetParameter();
                 var parName = list[index];
-               // var parName = ss[index + 1].IndexOf(' ') != -1
-               //     ? ss[index + 1].Substring(0, ss[index + 1].IndexOf(' '))
-               //     : ss[index + 1];
-               // parName =
-               //     parName.Replace(")", "")
-               //         .Replace(" ", "")
-               //         .Replace(";", "")
-               //         .TrimEnd(new[] { ')', ',', '=', ';', '-', ' ' });
-               dp.ParameterName = parName;
+                // var parName = ss[index + 1].IndexOf(' ') != -1
+                //     ? ss[index + 1].Substring(0, ss[index + 1].IndexOf(' '))
+                //     : ss[index + 1];
+                // parName =
+                //     parName.Replace(")", "")
+                //         .Replace(" ", "")
+                //         .Replace(";", "")
+                //         .TrimEnd(new[] { ')', ',', '=', ';', '-', ' ' });
+                dp.ParameterName = parName;
                 dp.Value = obj[index];
 
                 com.Parameters.Add(dp);
@@ -177,9 +172,9 @@ namespace ORM_1_21_
             }
             catch (Exception)
             {
-               //ignored
+                //ignored
             }
-           
+
         }
 
         /// <summary>
@@ -193,7 +188,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// Писать в лог файл напрямую
+        /// Писать в лог файл напрямую sql запрос
         /// </summary>
         /// <param name="command"></param>
         /// <exception cref="Exception"></exception>
@@ -214,7 +209,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// Пометить обьект, что он получен из базы
+        /// Пометить объект, что он получен из базы
         /// </summary>
         /// <param name="obj"></param>
         public void ToPersistent(object obj)
@@ -224,7 +219,7 @@ namespace ORM_1_21_
 
         private static void ClonableItems<T>(T item, object o)
         {
-            
+
             var rr = o.GetType().GetProperties();
             foreach (var propertyInfo in item.GetType().GetProperties())
             {

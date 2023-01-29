@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -41,7 +38,7 @@ namespace ManagerSql
 
         }
 
-       public static (int, string)? GetParamConnect(string s)
+        public static (int, string)? GetParamConnect(string s)
         {
             if (string.IsNullOrWhiteSpace(s)) return null;
             int last = s.LastIndexOf("   ", StringComparison.CurrentCulture);
@@ -49,7 +46,7 @@ namespace ManagerSql
             string c = s.Substring(0, last).Trim();
             string iss = s.Substring(last).Trim();
             int res;
-            if(int.TryParse(iss,out res))
+            if (int.TryParse(iss, out res))
             {
                 return (res, c);
             }
@@ -64,15 +61,15 @@ namespace ManagerSql
             {
                 foreach (string header in conList)
                 {
-                    ContextMenu  contextMenu= new ContextMenu();
-                    MenuItem delete=new MenuItem
+                    ContextMenu contextMenu = new ContextMenu();
+                    MenuItem delete = new MenuItem
                     {
                         Header = "Delete",
                         Tag = header
                     };
                     delete.Click += (sender, args) =>
                     {
-                        if(MessageBox.Show("Delete connection string from menu?", "Delete connection", MessageBoxButton.OKCancel,MessageBoxImage.Question)==MessageBoxResult.Cancel)
+                        if (MessageBox.Show("Delete connection string from menu?", "Delete connection", MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.Cancel)
                             return;
                         var sm = ((MenuItem)sender).Tag.ToString();
                         List<MenuItem> deItems = new List<MenuItem>();

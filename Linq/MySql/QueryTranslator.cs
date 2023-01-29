@@ -1,13 +1,12 @@
-﻿using System;
+﻿using ORM_1_21_.Linq.MsSql;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using ORM_1_21_.Linq.MsSql;
 
 namespace ORM_1_21_.Linq.MySql
 {
@@ -107,7 +106,7 @@ namespace ORM_1_21_.Linq.MySql
             if (ev == Evolution.Limit)
             {
                 if (paramList != null && paramList.Count == 2)
-                    if (Configure.Provider == ProviderName.Postgresql|| Configure.Provider == ProviderName.Sqlite)
+                    if (Configure.Provider == ProviderName.Postgresql || Configure.Provider == ProviderName.Sqlite)
                     {
                         ListOne.Add(new OneComprosite { Operand = Evolution.Limit, Body = string.Format(" Limit {1} OFFSET {0}", paramList[0], paramList[1]) });
                     }
@@ -115,16 +114,16 @@ namespace ORM_1_21_.Linq.MySql
                     {
                         ListOne.Add(new OneComprosite { Operand = Evolution.Limit, Body = string.Format(" Limit {0},{1}", paramList[0], paramList[1]) });
                     }
-                   
+
             }
             if (ev == Evolution.Update)
             {
                 ListOne.Add(new OneComprosite { Operand = Evolution.Update, Body = _sb.ToString() });
             }
-            if (ev == Evolution.OverCache)
-            {
-                ListOne.Add(new OneComprosite { Operand = Evolution.OverCache });
-            }
+            //if (ev == Evolution.OverCache)
+            //{
+            //    ListOne.Add(new OneComprosite { Operand = Evolution.OverCache });
+            //}
             if (ev == Evolution.Join)
             {
                 if (paramList != null)
@@ -411,12 +410,12 @@ namespace ORM_1_21_.Linq.MySql
                             StringB.Append(",'%'))");
                         }
 
-                       
+
                         return m;
                     case "LikeSql":
-                    {
-                        return m;
-                    }
+                        {
+                            return m;
+                        }
                     case "EndsWith":
                         if (Configure.Provider == ProviderName.Sqlite)
                         {
@@ -733,16 +732,16 @@ namespace ORM_1_21_.Linq.MySql
                 var typew = ((MemberExpression)lambda.Body).Expression.Type;
                 if (typew != typeof(T) && Utils.IsAnonymousType(typew) && ListOne.Any(a => a.Operand == Evolution.SelectNew))
                 {
-                   //var trtyetr= typeof (T);
-                   // throw new Exception("не реализовано");
+                    //var trtyetr= typeof (T);
+                    // throw new Exception("не реализовано");
                     //tt = Pizdaticus.GetDelegateForGroupBy((LambdaExpression)StripQuotes(m.Arguments[1]));
-                   tt= ((LambdaExpression)StripQuotes(m.Arguments[1])).Compile();
+                    tt = ((LambdaExpression)StripQuotes(m.Arguments[1])).Compile();
                 }
                 else
                 {
                     Expression exp = StripQuotes(m.Arguments[1]);
-                    LambdaExpression lexp = (LambdaExpression) exp;
-                   tt= GroupExpression<T>.Delegate(lexp);
+                    LambdaExpression lexp = (LambdaExpression)exp;
+                    tt = GroupExpression<T>.Delegate(lexp);
                     // if (lexp.ReturnType == typeof(Guid))
                     // {
                     //     tt = (Func<T, Guid>)(lexp).Compile();
@@ -768,12 +767,12 @@ namespace ORM_1_21_.Linq.MySql
 
 
                 var o = new OneComprosite
-                            {
-                                Operand = Evolution.GroupBy,
-                                Body = StringB.ToString(),
-                                ExpressionDelegate = tt
+                {
+                    Operand = Evolution.GroupBy,
+                    Body = StringB.ToString(),
+                    ExpressionDelegate = tt
 
-                            };
+                };
 
                 ListOne.Add(o);
                 StringB.Length = 0;
@@ -960,10 +959,10 @@ namespace ORM_1_21_.Linq.MySql
                     var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
                     var o1 = new OneComprosite
-                                 {
-                                     Operand = Evolution.Where,
-                                     Body = StringB.ToString()
-                                 };
+                    {
+                        Operand = Evolution.Where,
+                        Body = StringB.ToString()
+                    };
                     ListOne.Add(o1);
                     StringB.Length = 0;
 
@@ -987,10 +986,10 @@ namespace ORM_1_21_.Linq.MySql
                 else
                 {
                     var o = new OneComprosite
-                            {
-                                Operand = Evolution.OrderBy,
-                                Body = string.Format(" {0}.{1} DESC LIMIT 1", AttributesOfClass<T>.TableName, AttributesOfClass<T>.PkAttribute.ColumnName)
-                            };
+                    {
+                        Operand = Evolution.OrderBy,
+                        Body = string.Format(" {0}.{1} DESC LIMIT 1", AttributesOfClass<T>.TableName, AttributesOfClass<T>.PkAttribute.ColumnName)
+                    };
                     ListOne.Add(o);
                 }
                 var os = new OneComprosite
@@ -1370,7 +1369,7 @@ namespace ORM_1_21_.Linq.MySql
                             StringB.Append(((bool)c.Value) ? 1 : 0);
 
                         }
-                        
+
                         break;
                     case TypeCode.String:
 

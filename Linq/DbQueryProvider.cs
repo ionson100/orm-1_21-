@@ -334,7 +334,6 @@ namespace ORM_1_21_.Linq
 
 
             IDataReader dataReader = null;
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             try
             {
                 _sessione.OpenConnectAndTransaction(_com);
@@ -371,7 +370,6 @@ namespace ORM_1_21_.Linq
                     return res;
                 }
 
-                /////////////////////////////////////////////////////////////////////////////////////////////////
 
                 #region  dataReader
 

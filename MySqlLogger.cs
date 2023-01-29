@@ -1,26 +1,23 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ORM_1_21_
 {
-   internal static class MySqlLogger
-   {
-       private static  ConcurrentQueue<string> _cq;
+    internal static class MySqlLogger
+    {
+        private static ConcurrentQueue<string> _cq;
         private static bool _isActive = false;
         private static string _pathFile;
-        
+
         public static void Info(string message)
         {
             if (_isActive == false) return;
             _cq.Enqueue($"{message}");
         }
 
-         public static void RunLogger(string file)
+        public static void RunLogger(string file)
         {
             _pathFile = file;
             if (file == null)

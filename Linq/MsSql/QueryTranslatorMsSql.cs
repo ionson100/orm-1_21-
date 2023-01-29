@@ -48,7 +48,7 @@ namespace ORM_1_21_.Linq.MsSql
             CirrentEvalytion = 0;
             Visit(expression);
             ev = CirrentEvalytion;
-            var dd = new MsSqlConstructorSql().GetStringSql<T>(ListOne); 
+            var dd = new MsSqlConstructorSql().GetStringSql<T>(ListOne);
             return dd;
         }
 
@@ -56,22 +56,22 @@ namespace ORM_1_21_.Linq.MsSql
         {
             CirrentEvalytion = ev;
             Visit(expression);
-           
+
             if (ev == Evolution.Delete)
             {
-                ListOne.Add(new OneComprosite {Operand = Evolution.Delete});
-                ListOne.Add(new OneComprosite {Operand = Evolution.Where, Body = StringB.ToString()});
+                ListOne.Add(new OneComprosite { Operand = Evolution.Delete });
+                ListOne.Add(new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() });
             }
 
             if (ev == Evolution.DistinctCastom)
-                ListOne.Add(new OneComprosite {Operand = Evolution.DistinctCastom, Body = StringB.ToString()});
+                ListOne.Add(new OneComprosite { Operand = Evolution.DistinctCastom, Body = StringB.ToString() });
 
             if (ev == Evolution.GroupBy)
-                ListOne.Add(new OneComprosite {Operand = Evolution.GroupBy, Body = StringB.ToString()});
+                ListOne.Add(new OneComprosite { Operand = Evolution.GroupBy, Body = StringB.ToString() });
             if (ev == Evolution.Limit)
                 if (paramList != null && paramList.Count == 2)
                 {
-                    if (Configure.Provider == ProviderName.Postgresql|| Configure.Provider == ProviderName.Sqlite)
+                    if (Configure.Provider == ProviderName.Postgresql || Configure.Provider == ProviderName.Sqlite)
                     {
                         ListOne.Add(new OneComprosite
                         {
@@ -82,24 +82,27 @@ namespace ORM_1_21_.Linq.MsSql
                     }
                     else
                     {
-                        ListOne.Add(new OneComprosite { Operand = Evolution.Limit, Body =
+                        ListOne.Add(new OneComprosite
+                        {
+                            Operand = Evolution.Limit,
+                            Body =
                             $"LIMIT {paramList[0]},{paramList[1]}"
                         });
                     }
                 }
-                   
+
 
             if (ev == Evolution.Update)
-                ListOne.Add(new OneComprosite {Operand = Evolution.Update, Body = StringB.ToString()});
-            if (ev == Evolution.OverCache) ListOne.Add(new OneComprosite {Operand = Evolution.OverCache});
+                ListOne.Add(new OneComprosite { Operand = Evolution.Update, Body = StringB.ToString() });
+            //if (ev == Evolution.OverCache) ListOne.Add(new OneComprosite {Operand = Evolution.OverCache});
 
             if (ev == Evolution.Join)
                 if (paramList != null)
                 {
-                    foreach (var d in (Dictionary<string, object>) paramList[0]) Param.Add(d.Key, d.Value);
+                    foreach (var d in (Dictionary<string, object>)paramList[0]) Param.Add(d.Key, d.Value);
 
                     ListOne.Add(new OneComprosite
-                        {Operand = Evolution.Join, Body = paramList[1].ToString(), NewConctructor = paramList[2]});
+                    { Operand = Evolution.Join, Body = paramList[1].ToString(), NewConctructor = paramList[2] });
                 }
 
             StringB.Length = 0;
@@ -126,7 +129,7 @@ namespace ORM_1_21_.Linq.MsSql
 
         private static Expression StripQuotes(Expression e)
         {
-            while (e.NodeType == ExpressionType.Quote) e = ((UnaryExpression) e).Operand;
+            while (e.NodeType == ExpressionType.Quote) e = ((UnaryExpression)e).Operand;
             return e;
         }
 
@@ -135,12 +138,12 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(V)
                 && m.Method.Name == "FreeSql")
             {
-                var constantExpression = (ConstantExpression) m.Object;
+                var constantExpression = (ConstantExpression)m.Object;
                 if (constantExpression != null)
                 {
                     var val = m.Method.Invoke(constantExpression.Value, null);
 
-                    ListOne.Add(new OneComprosite {Body = val.ToString(), Operand = Evolution.FreeSql});
+                    ListOne.Add(new OneComprosite { Body = val.ToString(), Operand = Evolution.FreeSql });
                 }
 
                 return m;
@@ -158,7 +161,7 @@ namespace ORM_1_21_.Linq.MsSql
                 };
                 ListOne.Add(o);
                 Visit(m.Arguments[1]);
-                if (Configure.Provider == ProviderName.Postgresql|| Configure.Provider == ProviderName.Sqlite)
+                if (Configure.Provider == ProviderName.Postgresql || Configure.Provider == ProviderName.Sqlite)
                 {
                     ListOne.Add(new OneComprosite
                     {
@@ -229,7 +232,7 @@ namespace ORM_1_21_.Linq.MsSql
                 };
                 ListOne.Add(o);
                 Visit(m.Arguments[1]);
-                if (Configure.Provider == ProviderName.Postgresql|| Configure.Provider == ProviderName.Sqlite)
+                if (Configure.Provider == ProviderName.Postgresql || Configure.Provider == ProviderName.Sqlite)
                 {
                     ListOne.Add(new OneComprosite
                     {
@@ -245,7 +248,7 @@ namespace ORM_1_21_.Linq.MsSql
                         Body = $" LIMIT {StringB},1"
                     });
                 }
-              
+
                 StringB.Clear();
                 return m;
             }
@@ -387,7 +390,7 @@ namespace ORM_1_21_.Linq.MsSql
                     case "Concat":
                         IList<Expression> args = m.Arguments;
                         if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit)
-                            args = ((NewArrayExpression) args[0]).Expressions;
+                            args = ((NewArrayExpression)args[0]).Expressions;
                         StringB.Append("CONCAT(");
                         for (int i = 0, n = args.Count; i < n; i++)
                         {
@@ -614,9 +617,9 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "Where")
             {
-                var o = new OneComprosite {Operand = Evolution.Where};
+                var o = new OneComprosite { Operand = Evolution.Where };
                 Visit(m.Arguments[0]);
-                var lambda = (LambdaExpression) StripQuotes(m.Arguments[1]);
+                var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
 
                 Visit(lambda.Body);
                 o.Body = StringB.ToString();
@@ -629,16 +632,16 @@ namespace ORM_1_21_.Linq.MsSql
                 && m.Method.Name == "GroupBy")
             {
                 Visit(m.Arguments[0]);
-                var lambda = (LambdaExpression) StripQuotes(m.Arguments[1]);
+                var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Delegate tt;
 
-                var typew = ((MemberExpression) lambda.Body).Expression.Type;
+                var typew = ((MemberExpression)lambda.Body).Expression.Type;
                 if (typew != typeof(T) && Utils.IsAnonymousType(typew) &&
                     ListOne.Any(a => a.Operand == Evolution.SelectNew))
                 {
                     throw new Exception("не реализовано");
                 }
-                tt = (Func<T, object>) ((LambdaExpression) StripQuotes(m.Arguments[1])).Compile();
+                tt = (Func<T, object>)((LambdaExpression)StripQuotes(m.Arguments[1])).Compile();
                 Visit(lambda.Body);
                 var o = new OneComprosite
                 {
@@ -657,9 +660,9 @@ namespace ORM_1_21_.Linq.MsSql
             {
                 _currentTypeCode = Evolution.OrderBy;
                 Visit(m.Arguments[0]);
-                var lambda = (LambdaExpression) StripQuotes(m.Arguments[1]);
+                var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
-                var o = new OneComprosite {Operand = Evolution.OrderBy, Body = StringB.ToString().Trim(' ', ',')};
+                var o = new OneComprosite { Operand = Evolution.OrderBy, Body = StringB.ToString().Trim(' ', ',') };
                 ListOne.Add(o);
                 StringB.Length = 0;
                 return m;
@@ -682,7 +685,8 @@ namespace ORM_1_21_.Linq.MsSql
                         AttributesOfClass<T>.PkAttribute.ColumnName);
                 var o = new OneComprosite
                 {
-                    Operand = Evolution.Reverse, Body = string.Format("ORDER BY {0} DESC ", sb.ToString().TrimEnd(','))
+                    Operand = Evolution.Reverse,
+                    Body = string.Format("ORDER BY {0} DESC ", sb.ToString().TrimEnd(','))
                 };
                 ListOne.Add(o);
                 StringB.Length = 0;
@@ -694,10 +698,10 @@ namespace ORM_1_21_.Linq.MsSql
             {
                 _currentTypeCode = Evolution.OrderBy;
                 Visit(m.Arguments[0]);
-                var lambda = (LambdaExpression) StripQuotes(m.Arguments[1]);
+                var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
                 var o = new OneComprosite
-                    {Operand = Evolution.OrderBy, Body = StringB.ToString().Trim(' ', ',') + " DESC "};
+                { Operand = Evolution.OrderBy, Body = StringB.ToString().Trim(' ', ',') + " DESC " };
                 ListOne.Add(o);
                 StringB.Length = 0;
                 return m;
@@ -709,9 +713,9 @@ namespace ORM_1_21_.Linq.MsSql
                 _currentTypeCode = Evolution.Select;
 
                 Visit(m.Arguments[0]);
-                var lambda = (LambdaExpression) StripQuotes(m.Arguments[1]);
+                var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
-                var o = new OneComprosite {Operand = Evolution.Select, Body = StringB.ToString().Trim(' ', ',')};
+                var o = new OneComprosite { Operand = Evolution.Select, Body = StringB.ToString().Trim(' ', ',') };
                 if (!string.IsNullOrEmpty(StringB.ToString())) ListOne.Add(o);
                 StringB.Length = 0;
                 return m;
@@ -726,18 +730,18 @@ namespace ORM_1_21_.Linq.MsSql
                 Visit(m.Arguments[0]);
                 if (m.Arguments.Count == 2)
                 {
-                    var lambda = (LambdaExpression) StripQuotes(m.Arguments[1]);
+                    var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
-                    var o1 = new OneComprosite {Operand = Evolution.Where, Body = StringB.ToString()};
+                    var o1 = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
                     ListOne.Add(o1);
                     StringB.Length = 0;
-                    var o2 = new OneComprosite {Operand = pizda};
+                    var o2 = new OneComprosite { Operand = pizda };
                     ListOne.Add(o2);
                     StringB.Length = 0;
                     return m;
                 }
 
-                var o = new OneComprosite {Operand = pizda, Body = StringB.ToString()};
+                var o = new OneComprosite { Operand = pizda, Body = StringB.ToString() };
                 ListOne.Add(o);
                 StringB.Length = 0;
                 return m;
@@ -747,9 +751,9 @@ namespace ORM_1_21_.Linq.MsSql
                 && m.Method.Name == "All")
             {
                 Visit(m.Arguments[0]);
-                var lambda = (LambdaExpression) StripQuotes(m.Arguments[1]);
+                var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
-                var o1 = new OneComprosite {Operand = Evolution.All, Body = StringB.ToString()};
+                var o1 = new OneComprosite { Operand = Evolution.All, Body = StringB.ToString() };
                 ListOne.Add(o1);
                 return m;
             }
@@ -758,24 +762,24 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "Any")
             {
-            
+
                 Visit(m.Arguments[0]);
                 if (m.Arguments.Count == 2)
                 {
-                    var lambda = (LambdaExpression) StripQuotes(m.Arguments[1]);
+                    var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
-                    var o1 = new OneComprosite {Operand = Evolution.Where, Body = StringB.ToString()};
+                    var o1 = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
                     ListOne.Add(o1);
                     StringB.Length = 0;
-                    var o2 = new OneComprosite {Operand = Evolution.Any};
+                    var o2 = new OneComprosite { Operand = Evolution.Any };
                     ListOne.Add(o2);
                     StringB.Length = 0;
                     return m;
                 }
 
-                var o = new OneComprosite {Operand = Evolution.Where, Body = StringB.ToString()};
+                var o = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
                 ListOne.Add(o);
-                ListOne.Add(new OneComprosite {Operand = Evolution.Any});
+                ListOne.Add(new OneComprosite { Operand = Evolution.Any });
                 StringB.Length = 0;
 
                 return m;
@@ -791,7 +795,7 @@ namespace ORM_1_21_.Linq.MsSql
 
                 if (m.Arguments.Count == 2)
                 {
-                    var lambda = (LambdaExpression) StripQuotes(m.Arguments[1]);
+                    var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
                     var o1 = new OneComprosite
                     {
@@ -837,19 +841,19 @@ namespace ORM_1_21_.Linq.MsSql
                 Visit(m.Arguments[0]);
                 if (m.Arguments.Count == 2)
                 {
-                    var lambda = (LambdaExpression) StripQuotes(m.Arguments[1]);
+                    var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
-                    var o1 = new OneComprosite {Operand = Evolution.Where, Body = StringB.ToString()};
+                    var o1 = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
                     ListOne.Add(o1);
                     StringB.Length = 0;
-                    var o2 = new OneComprosite {Operand = Evolution.Count};
+                    var o2 = new OneComprosite { Operand = Evolution.Count };
                     ListOne.Add(o2);
                     StringB.Length = 0;
                     return m;
                 }
 
                 var o = new OneComprosite
-                    {Operand = Evolution.Count, Body = StringB.ToString()}; //|| m.Method.Name == "SingleOrDefault"
+                { Operand = Evolution.Count, Body = StringB.ToString() }; //|| m.Method.Name == "SingleOrDefault"
                 ListOne.Add(o);
                 StringB.Length = 0;
                 return m;
@@ -860,13 +864,13 @@ namespace ORM_1_21_.Linq.MsSql
                 && m.Method.Name == "Single")
             {
                 Visit(m.Arguments[0]);
-                ListOne.Add(new OneComprosite {Operand = Evolution.Single, Body = "", IsAgregate = true});
+                ListOne.Add(new OneComprosite { Operand = Evolution.Single, Body = "", IsAgregate = true });
 
                 if (m.Arguments.Count == 2)
                 {
-                    var o = new OneComprosite {Operand = Evolution.Where};
+                    var o = new OneComprosite { Operand = Evolution.Where };
                     Visit(m.Arguments[0]);
-                    var lambda = (LambdaExpression) StripQuotes(m.Arguments[1]);
+                    var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
                     o.Body = StringB.ToString();
                     ListOne.Add(o);
@@ -874,7 +878,7 @@ namespace ORM_1_21_.Linq.MsSql
                 }
 
 
-                ListOne.Add(new OneComprosite {Operand = Evolution.First, Body = ""});
+                ListOne.Add(new OneComprosite { Operand = Evolution.First, Body = "" });
 
                 return m;
             }
@@ -882,15 +886,15 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "SingleOrDefault")
             {
-                ListOne.Add(new OneComprosite {Operand = Evolution.SingleOrDefault, Body = "", IsAgregate = true});
-                ListOne.Add(new OneComprosite {Operand = Evolution.First, Body = ""});
+                ListOne.Add(new OneComprosite { Operand = Evolution.SingleOrDefault, Body = "", IsAgregate = true });
+                ListOne.Add(new OneComprosite { Operand = Evolution.First, Body = "" });
                 Visit(m.Arguments[0]);
 
                 if (m.Arguments.Count == 2)
                 {
-                    var o = new OneComprosite {Operand = Evolution.Where};
+                    var o = new OneComprosite { Operand = Evolution.Where };
 
-                    var lambda = (LambdaExpression) StripQuotes(m.Arguments[1]);
+                    var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
                     o.Body = StringB.ToString();
                     ListOne.Add(o);
@@ -915,19 +919,19 @@ namespace ORM_1_21_.Linq.MsSql
                         case "Min":
                         case "Max":
                         case "Average":
-                        {
-                            // var e = mcs.Arguments;
-                            Visit(mcs.Arguments[0]);
-                            var lambda = (LambdaExpression) StripQuotes(mcs.Arguments[1]);
-                            StringB.Length = 0;
-                            StringB.Append(mcs.Method.Name + "(");
-                            Visit(lambda.Body);
-                            StringB.Append(")");
-                            ListOne.Add(new OneComprosite
-                                {Operand = Evolution.Select, Body = StringB.ToString(), IsAgregate = true});
+                            {
+                                // var e = mcs.Arguments;
+                                Visit(mcs.Arguments[0]);
+                                var lambda = (LambdaExpression)StripQuotes(mcs.Arguments[1]);
+                                StringB.Length = 0;
+                                StringB.Append(mcs.Method.Name + "(");
+                                Visit(lambda.Body);
+                                StringB.Append(")");
+                                ListOne.Add(new OneComprosite
+                                { Operand = Evolution.Select, Body = StringB.ToString(), IsAgregate = true });
 
-                            break;
-                        }
+                                break;
+                            }
                     }
 
                     return m;
@@ -958,7 +962,7 @@ namespace ORM_1_21_.Linq.MsSql
                     {
                         var value = Expression.Lambda<Func<object>>(m.Object).Compile()();
                         var dddd = m.Arguments[0].GetType().GetProperty("Value")?.GetValue(m.Arguments[0], null);
-                        var tt = m.Method.Invoke(value, new[] {dddd});
+                        var tt = m.Method.Invoke(value, new[] { dddd });
                         AddParameter(tt);
                     }
 
@@ -990,8 +994,8 @@ namespace ORM_1_21_.Linq.MsSql
 
         private static LambdaExpression GetLambda(Expression e)
         {
-            while (e.NodeType == ExpressionType.Quote) e = ((UnaryExpression) e).Operand;
-            if (e.NodeType == ExpressionType.Constant) return ((ConstantExpression) e).Value as LambdaExpression;
+            while (e.NodeType == ExpressionType.Quote) e = ((UnaryExpression)e).Operand;
+            if (e.NodeType == ExpressionType.Constant) return ((ConstantExpression)e).Value as LambdaExpression;
             return e as LambdaExpression;
         }
 
@@ -1054,12 +1058,12 @@ namespace ORM_1_21_.Linq.MsSql
                         break;
                     }
 
-                    if (b.Right is UnaryExpression && ((UnaryExpression) b.Right).Operand.ToString() == "null")
+                    if (b.Right is UnaryExpression && ((UnaryExpression)b.Right).Operand.ToString() == "null")
                     {
                         StringB.Append(" is  ");
                         break;
                     }
-                
+
                     StringB.Append(" = ");
                     break;
                 case ExpressionType.NotEqual:
@@ -1070,7 +1074,7 @@ namespace ORM_1_21_.Linq.MsSql
                         break;
                     }
 
-                    if (b.Right is UnaryExpression && ((UnaryExpression) b.Right).Operand.ToString() == "null")
+                    if (b.Right is UnaryExpression && ((UnaryExpression)b.Right).Operand.ToString() == "null")
                     {
                         StringB.Append(" is not  ");
                         break;
@@ -1139,7 +1143,7 @@ namespace ORM_1_21_.Linq.MsSql
                 switch (Type.GetTypeCode(c.Value.GetType()))
                 {
                     case TypeCode.Boolean:
-                        StringB.Append((bool) c.Value ? 1 : 0);
+                        StringB.Append((bool)c.Value ? 1 : 0);
                         break;
                     case TypeCode.String:
 
@@ -1152,7 +1156,7 @@ namespace ORM_1_21_.Linq.MsSql
 
                         if (c.Value is T && PingComposite(Evolution.Contains))
                         {
-                            var o = (T) c.Value;
+                            var o = (T)c.Value;
                             var propertyName = AttributesOfClass<T>.PkAttribute.PropertyName;
                             var value = AttributesOfClass<T>.GetValue.Value[propertyName](o);
                             var tableName = AttributesOfClass<T>.TableName;
@@ -1451,7 +1455,7 @@ namespace ORM_1_21_.Linq.MsSql
                     return Expression.New(nex.Constructor, args, nex.Members);
                 }
 
-                ListOne.Add(new OneComprosite {Operand = Evolution.SelectNew, NewConctructor = nex});
+                ListOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConctructor = nex });
                 return Expression.New(nex.Constructor, args);
             }
             //todo ion100

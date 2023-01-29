@@ -15,8 +15,8 @@ namespace ORM_1_21_.Attribute
         /// Аттрибут первичного ключа
         /// </summary>
         /// <param name="columnName">Название поля</param>
-        /// <param name="generator">Тип генерации зачения на ключ, native-автоинремент,assigned-назначенный в рукопашную</param>
-        public MapPrimaryKeyAttribute(string columnName, Generator generator):base(columnName)
+        /// <param name="generator">Тип генерации зачернения на ключ, native-автоинкрементный,assigned-назначенный в рукопашную</param>
+        public MapPrimaryKeyAttribute(string columnName, Generator generator) : base(columnName)
         {
             _p = generator;
         }

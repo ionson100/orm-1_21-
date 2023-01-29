@@ -6,8 +6,8 @@ namespace ORM_1_21_.Attribute
     /// <summary>
     /// Атрибуты для класса слоя, определяют название  колонки в таблице
     /// </summary>
-     
-    public sealed class MapColumnNameAttribute :BaseAttribute
+
+    public sealed class MapColumnNameAttribute : BaseAttribute
     {
         /// <summary>
         /// поле индексируется
@@ -24,13 +24,13 @@ namespace ORM_1_21_.Attribute
         /// Конструктор
         /// </summary>
         /// <param name="nameColumnTable">Название колонки в таблице  базы</param>
-        public MapColumnNameAttribute(string nameColumnTable):base(nameColumnTable)
+        public MapColumnNameAttribute(string nameColumnTable) : base(nameColumnTable)
         {
         }
 
-        internal Type TypeColumn { get;  set; }
+        internal Type TypeColumn { get; set; }
 
-        internal String ColumnNameForReader => ColumnName.Trim('`', '\'', '[', ']','"');
+        internal String ColumnNameForReader => ColumnName.Trim('`', '\'', '[', ']', '"');
 
         internal DbType DbType()
         {
@@ -42,12 +42,12 @@ namespace ORM_1_21_.Attribute
     /// значение по умолчанию при создании таблицы 
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class MapDefaultValueAttribute :System.Attribute
+    public sealed class MapDefaultValueAttribute : System.Attribute
     {
         /// <summary>
         /// 
         /// </summary>
-        internal  string Value { get; private set; }
+        internal string Value { get; private set; }
 
         /// <summary>
         /// 

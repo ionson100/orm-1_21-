@@ -26,15 +26,15 @@ namespace ORM_1_21_
         public static IEnumerable<TR> DistinctCore<T, TR>(this IQueryable<T> coll, Expression<Func<T, TR>> exp)
         {
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCastom ,TypeRetyrn=typeof(TR),ListDistict=new List<TR>()});
+            { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCastom, TypeRetyrn = typeof(TR), ListDistict = new List<TR>() });
             return coll.Provider.Execute<IEnumerable<TR>>(coll.Expression);
         }
 
         /// <summary>
-        /// Удаление обьекта без вытаскивания данных на клиента
+        /// Удаление объекта без вытаскивания данных на клиента
         /// </summary>
         /// <param name="coll"></param>
-        /// <param name="exp">передикат на удаление</param>
+        /// <param name="exp">предикат на удаление</param>
         /// <typeparam name="T">Тип проекции таблицы</typeparam>
         /// <returns></returns>
         public static int Delete<T>(this IQueryable<T> coll, Expression<Func<T, bool>> exp = null) where T : class
@@ -139,7 +139,7 @@ namespace ORM_1_21_
 
 
         /// <summary>
-        ///     Выполенение произвольного запроса с параметрами
+        ///     Выполнение произвольного запроса с параметрами
         /// </summary>
         /// <param name="ses">ISession</param>
         /// <param name="sql">Запрос</param>
@@ -160,7 +160,7 @@ namespace ORM_1_21_
 
 
         /// <summary>
-        ///     Выполенение асинхронно произвольного запроса с параметрами 
+        ///     Выполнение асинхронно произвольного запроса с параметрами 
         /// </summary>
         /// <param name="ses">ISession</param>
         /// <param name="sql">Запрос</param>
@@ -211,8 +211,8 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="ses">ISession</param>
         /// <param name="sql">Текст процедуры</param>
-        /// <param name="par">Праметры</param>
-        /// <typeparam name="TResult">Тип еденицы перчисления</typeparam>
+        /// <param name="par">Параметры</param>
+        /// <typeparam name="TResult">Тип  перечисления</typeparam>
         /// <returns>IEnumerable(TResult)</returns>
         public static IEnumerable<TResult> ProcedureCallParam<TResult>(this ISession ses, string sql,
             params ParameterStoredPr[] par)
@@ -233,18 +233,19 @@ namespace ORM_1_21_
         {
             try
             {
+                var tre = typeof(TResult);
                 IInnerList d = (IInnerList)coll;
                 var list = d.GetInnerList();
                 return Task.FromResult((List<TResult>)list);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Configure.SendError(coll.ToString(), ex);
                 throw;
             }
-            
+
         }
-      
+
         /// <summary>
         /// Set CommandTimeout new value
         /// </summary>
@@ -252,7 +253,7 @@ namespace ORM_1_21_
         /// <param name="coll"></param>
         /// <param name="value">>=0</param>
         /// <returns></returns>
-        public static IQueryable<T> SetTimeOut<T>(this IQueryable<T> coll,int value)
+        public static IQueryable<T> SetTimeOut<T>(this IQueryable<T> coll, int value)
         {
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
             { Timeout = value, TypeRevalytion = Evolution.Timeout });

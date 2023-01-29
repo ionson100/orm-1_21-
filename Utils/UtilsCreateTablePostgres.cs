@@ -32,9 +32,9 @@ namespace ORM_1_21_
 
                         $" \"{Utils.ClearTrim(map.ColumnNameForReader)}\" {map.TypeString} ,");
                 }
-               
+
             }
-              
+
 
 
             var str2 = builder.ToString();
@@ -49,8 +49,8 @@ namespace ORM_1_21_
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
                 if (map.IsIndex)
                 {
-                    var colName = Utils.ClearTrim(map.ColumnName); 
-                  
+                    var colName = Utils.ClearTrim(map.ColumnName);
+
                     indexBuilder.AppendLine(
                         $"CREATE INDEX IF NOT EXISTS INDEX_{tableName}_{colName} ON \"{tableName}\" (\"{colName}\");");
                 }
@@ -95,8 +95,8 @@ namespace ORM_1_21_
 
             if (generator == Generator.Native)
             {
-                if (type == typeof(long)|| type == typeof(ulong) || type == typeof(long?)) return "BIGSERIAL";
-                if (type == typeof(int)|| type == typeof(uint) || type.BaseType == typeof(Enum) || type == typeof(int?)) return "SERIAL";
+                if (type == typeof(long) || type == typeof(ulong) || type == typeof(long?)) return "BIGSERIAL";
+                if (type == typeof(int) || type == typeof(uint) || type.BaseType == typeof(Enum) || type == typeof(int?)) return "SERIAL";
                 if (type == typeof(Guid)) return "UUID";
             }
 

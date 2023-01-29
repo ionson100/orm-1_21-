@@ -27,7 +27,7 @@ namespace ORM_1_21_
             var builder = new StringBuilder();
             var isAddPk = AttributesOfClass<T>.PkAttribute.Generator != Generator.Native;
 
-           
+
 
             foreach (var ob in list)
             {

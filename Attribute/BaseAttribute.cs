@@ -5,8 +5,8 @@ namespace ORM_1_21_.Attribute
     /// <summary>
     /// 
     /// </summary>
-     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-    public abstract class BaseAttribute:System.Attribute
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    public abstract class BaseAttribute : System.Attribute
     {
         private string _columnName;
 
@@ -21,19 +21,19 @@ namespace ORM_1_21_.Attribute
                 {
                     case ProviderName.MsSql:
                         return $"[{_columnName}]";
-                       
+
                     case ProviderName.MySql:
-                       return $"`{_columnName}`";
+                        return $"`{_columnName}`";
                     case ProviderName.Postgresql:
                         return $"\"{_columnName}\"";
-                       
+
                     case ProviderName.Sqlite:
                         return $"{_columnName}";
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            private set { _columnName = value.Trim(new[] {' ', '[', ']', '`','"'}); }
+            private set { _columnName = value.Trim(new[] { ' ', '[', ']', '`', '"' }); }
         }
 
         /// <summary>
@@ -62,5 +62,5 @@ namespace ORM_1_21_.Attribute
 
 
     }
-  
+
 }
