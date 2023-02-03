@@ -119,24 +119,17 @@ namespace ORM_1_21_
         /// Обновление таблицы без вытаскивания данных на клиента
         /// </summary>
         /// <param name="coll"></param>
-        /// <param name="parametr">Словарь поле - значение</param>
+        /// <param name="param">Словарь поле - значение</param>
         /// <typeparam name="T">Тип проекции таблицы</typeparam>
         /// <typeparam name="TKey">Свойство - поле</typeparam>
         /// <typeparam name="TValue">Значение</typeparam>
         /// <returns></returns>
-        public static int Update<T, TKey, TValue>(this IQueryable<T> coll,
-            Expression<Func<T, Dictionary<TKey, TValue>>> parametr) where T : class
+        public static int Update<T, TKey, TValue>(this IQueryable<T> coll, Expression<Func<T, Dictionary<TKey, TValue>>> param) where T : class
         {
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { CastomExpression = parametr, TypeRevalytion = Evolution.Update });
+            { CastomExpression = param, TypeRevalytion = Evolution.Update });
             return coll.Provider.Execute<int>(coll.Expression);
         }
-
-
-
-
-
-
 
         /// <summary>
         ///     Выполнение произвольного запроса с параметрами
@@ -158,7 +151,6 @@ namespace ORM_1_21_
             return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).Execute<TResult>(callExpr);
         }
 
-
         /// <summary>
         ///     Выполнение асинхронно произвольного запроса с параметрами 
         /// </summary>
@@ -167,7 +159,7 @@ namespace ORM_1_21_
         /// <param name="par">Параметры запроса</param>
         /// <typeparam name="TResult">Тип единицы Результата</typeparam>
         /// <returns>IEnumerableTResult</returns>
-        public static Task<IEnumerable<TResult>> FreeSqlAsunc<TResult>(this ISession ses, string sql, params Parameter[] par)
+        public static Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params Parameter[] par)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
@@ -214,8 +206,7 @@ namespace ORM_1_21_
         /// <param name="par">Параметры</param>
         /// <typeparam name="TResult">Тип  перечисления</typeparam>
         /// <returns>IEnumerable(TResult)</returns>
-        public static IEnumerable<TResult> ProcedureCallParam<TResult>(this ISession ses, string sql,
-            params ParameterStoredPr[] par)
+        public static IEnumerable<TResult> ProcedureCallParam<TResult>(this ISession ses, string sql, params ParameterStoredPr[] par)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(

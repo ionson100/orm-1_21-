@@ -24,9 +24,6 @@ namespace ORM_1_21_.Linq
         private readonly Sessione _sessione;
         private IDbCommand _com;
 
-        private Evolution _ev;
-
-
 
         private bool _isStoredPr;
         private List<OneComprosite> _listOne;
@@ -63,7 +60,7 @@ namespace ORM_1_21_.Linq
 
         public override string GetQueryText(Expression expression)
         {
-            return TranslateString(expression, out _ev);
+            return TranslateString(expression, out _);
         }
 
         public override object Execute(Expression expression)
@@ -89,11 +86,11 @@ namespace ORM_1_21_.Linq
         {
             var sb = new StringBuilder();
             IDataReader dataReader = null;
-            var servis = (IServiceSessions)Sessione;
-            _com = servis.CommandForLinq;
+            var services = (IServiceSessions)Sessione;
+            _com = services.CommandForLinq;
 
             _com.CommandType = CommandType.StoredProcedure;
-            _com.CommandText = Translate(expression, out _ev);
+            _com.CommandText = Translate(expression, out _);
             if (Configure.Provider == ProviderName.MsSql)
             {
                 var mat = new Regex(@"TOP\s@p\d").Matches(_com.CommandText);
@@ -114,8 +111,6 @@ namespace ORM_1_21_.Linq
                 pr.Direction = p.Direction;
                 pr.ParameterName = p.Name;
                 pr.Value = p.Value;
-                // pr.SourceColumn = p.SourceColumn;
-
                 _com.Parameters.Add(pr);
             }
 
@@ -125,13 +120,13 @@ namespace ORM_1_21_.Linq
                 dataReader = _com.ExecuteReader();
                 if (AttributesOfClass<TS>.IsValid)
                 {
-                    var lResul = AttributesOfClass<TS>.GetEnumerableObjects(dataReader);
+                    var lResult = AttributesOfClass<TS>.GetEnumerableObjects(dataReader);
                     foreach (var par in _com.Parameters)
                         if (((IDataParameter)par).Direction == ParameterDirection.InputOutput ||
                             ((IDataParameter)par).Direction == ParameterDirection.Output ||
                             ((IDataParameter)par).Direction == ParameterDirection.ReturnValue)
                             _parOut.Add(((IDataParameter)par).ParameterName, ((IDataParameter)par).Value);
-                    return lResul;
+                    return lResult;
                 }
                 else
                 {
@@ -251,10 +246,6 @@ namespace ORM_1_21_.Linq
         }
 
 
-        public object ExecuteAsync<TS>(Expression expression)
-        {
-            return Execute<TS>(expression);
-        }
         private int? GetTimeout()
         {
             foreach (var t in ListCastExpression)
@@ -266,10 +257,8 @@ namespace ORM_1_21_.Linq
 
         public override object Execute<TS>(Expression expression)
         {
-            var tt1 = typeof(T);
-            var tt2 = typeof(TS);
-            var servis = (IServiceSessions)Sessione;
-            _com = servis.CommandForLinq;
+            var services = (IServiceSessions)Sessione;
+            _com = services.CommandForLinq;
             if (GetTimeout() >= 0)
             {
                 _com.CommandTimeout = GetTimeout().Value;
@@ -279,7 +268,7 @@ namespace ORM_1_21_.Linq
             if (_isStoredPr)
                 _com.CommandType = CommandType.StoredProcedure;
 
-            _com.CommandText = Translate(expression, out _ev).Replace("FROM", " FROM ");
+            _com.CommandText = Translate(expression, out _).Replace("FROM", " FROM ");
             var sb = new StringBuilder();
             if (Configure.Provider == ProviderName.MsSql)
             {
@@ -568,7 +557,7 @@ namespace ORM_1_21_.Linq
             }
         }
 
-        private string Translate(Expression expression, out Evolution ev1) //update
+        private string Translate(Expression expression, out Evolution ev1) 
         {
             ITranslate sq;
             switch (Configure.Provider)
@@ -589,18 +578,13 @@ namespace ORM_1_21_.Linq
                     throw new ArgumentOutOfRangeException();
             }
 
-            if (sq != null)
-            {
-                _listOne = sq.ListOne;
-                _param = sq.Param;
-                //todo ion100
-                ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
-
-                var sql = sq.Translate(expression, out ev1);
-                return sql;
-            }
-
-            throw new Exception("sq == null");
+           
+            _listOne = sq.ListOne;
+            _param = sq.Param;
+            ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
+            var sql = sq.Translate(expression, out ev1);
+            return sql;
+         
         }
 
         private string TranslateString(Expression expression, out Evolution ev1)
@@ -656,8 +640,8 @@ namespace ORM_1_21_.Linq
             _listOne = sq.ListOne;
             _param = sq.Param;
             ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
-            Evolution ev1;
-            var eee = sq.Translate(expression, out ev1, parstr);
+
+            var eee = sq.Translate(expression, out _, parstr);
             comprosites.AddRange(_listOne);
             if (_param != null && _param.Any())
                 foreach (var d in _param)

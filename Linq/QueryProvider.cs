@@ -26,7 +26,8 @@ namespace ORM_1_21_.Linq
             }
             catch (TargetInvocationException tie)
             {
-                throw tie.InnerException;
+                if (tie.InnerException != null) throw tie.InnerException;
+                throw;
             }
         }
 
@@ -41,7 +42,7 @@ namespace ORM_1_21_.Linq
         }
 
         /// <summary>
-        /// 
+        ///Строка запроса
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
@@ -56,7 +57,7 @@ namespace ORM_1_21_.Linq
         public abstract object Execute<TS>(Expression expression);
 
         /// <summary>
-        /// 
+        /// Выполнение запрос к базе как к хранимой процедуре
         /// </summary>
         /// <param name="expression"></param>
         /// <typeparam name="TS"></typeparam>
@@ -64,7 +65,7 @@ namespace ORM_1_21_.Linq
         public abstract object ExecuteSPP<TS>(Expression expression);
 
         /// <summary>
-        /// 
+        /// Выполнение запрос к базе
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>

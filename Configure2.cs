@@ -10,14 +10,13 @@ namespace ORM_1_21_
         {
 #if DEBUG
             _configure.OnOnErrorOrm(new ErrorOrmEventArgs { ErrorMessage = exception.ToString(), Sql = sql, InnerException = exception.InnerException });
-            return;
 #endif
             _configure.OnOnErrorOrm(new ErrorOrmEventArgs { ErrorMessage = exception.Message, Sql = sql, InnerException = exception.InnerException });
         }
         /// <summary>
-        /// 
+        /// Событие визникновения ошибки в ОРМ, при подписке все исключения будут проходить через собыие
         /// </summary>
-        public event ErrorEvent onErrorOrm;
+        public event ErrorEvent OnErrorOrm;
 
 
         /// <summary>
@@ -44,10 +43,12 @@ namespace ORM_1_21_
         /// Строка запроса, где возникло исключение
         /// </summary>
         public string Sql { get; set; }
+
         /// <summary>
         /// Сообщение для исключения
         /// </summary>
         public string ErrorMessage { get; set; }
+
         /// <summary>
         /// Внутреннее исключение
         /// </summary>

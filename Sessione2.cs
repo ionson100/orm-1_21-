@@ -14,8 +14,8 @@ namespace ORM_1_21_
 
         internal IDbTransaction Transaction
         {
-            get { return Transactionale.Transaction; }
-            set { Transactionale.Transaction = value; }
+            get => Transactionale.Transaction;
+            set => Transactionale.Transaction = value;
         }
 
 
@@ -123,7 +123,7 @@ namespace ORM_1_21_
             com.Transaction = Transaction;
         }
 
-        private static void AddParam(IDbCommand com, object[] obj)
+        internal static void AddParam(IDbCommand com, object[] obj)
         {
             if (obj == null) return;
             string sql = com.CommandText;
@@ -139,22 +139,15 @@ namespace ORM_1_21_
 
             for (var index = 0; index < obj.Length; index++)
             {
-                IDataParameter dp = ProviderFactories.GetParameter();
+                IDataParameter dp = com.CreateParameter();
                 var parName = list[index];
-                // var parName = ss[index + 1].IndexOf(' ') != -1
-                //     ? ss[index + 1].Substring(0, ss[index + 1].IndexOf(' '))
-                //     : ss[index + 1];
-                // parName =
-                //     parName.Replace(")", "")
-                //         .Replace(" ", "")
-                //         .Replace(";", "")
-                //         .TrimEnd(new[] { ')', ',', '=', ';', '-', ' ' });
                 dp.ParameterName = parName;
                 dp.Value = obj[index];
 
                 com.Parameters.Add(dp);
             }
         }
+     
 
         bool ISession.IsDispose => _isDispose;
 
@@ -180,7 +173,7 @@ namespace ORM_1_21_
         /// <summary>
         /// Запись в лог файл
         /// </summary>
-        /// <param name="message">текст ошибки</param>
+        /// <param name="message">текст сообщения</param>
         public void WriteLogFile(string message)
         {
             MySqlLogger.Info(message);
@@ -190,7 +183,6 @@ namespace ORM_1_21_
         /// <summary>
         /// Писать в лог файл напрямую sql запрос
         /// </summary>
-        /// <param name="command"></param>
         /// <exception cref="Exception"></exception>
         public void WriteLogFile(IDbCommand command)
         {
@@ -201,7 +193,6 @@ namespace ORM_1_21_
         /// <summary>
         /// Определяет, откуда объект
         /// </summary>
-        /// <param name="obj"></param>
         /// <returns></returns>
         public bool IsPersistent(object obj)
         {
@@ -211,13 +202,12 @@ namespace ORM_1_21_
         /// <summary>
         /// Пометить объект, что он получен из базы
         /// </summary>
-        /// <param name="obj"></param>
         public void ToPersistent(object obj)
         {
             Utils.SetPersisten(obj);
         }
 
-        private static void ClonableItems<T>(T item, object o)
+        private static void CloneItems<T>(T item, object o)
         {
 
             var rr = o.GetType().GetProperties();

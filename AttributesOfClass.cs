@@ -231,7 +231,7 @@ namespace ORM_1_21_
         }
 
 
-        private static Dictionary<Type, string> AtivareTypeJoinLazy()
+        private static Dictionary<Type, string> ActivateTypeJoinLazy()
         {
             var dictionary = new Dictionary<Type, string>();
 
@@ -344,12 +344,20 @@ namespace ORM_1_21_
         }
 
 
-        public static IEnumerable<T> GetEnumerableObjects(IDataReader reader)
+        public static IEnumerable<T> GetEnumerableObjects(IDataReader reader,bool isOtherSql=false)
         {
             if (reader == null) return null;
-            var res = Pizdaticus.GetRiderToList<T>(reader);
-
-            return res;
+            if (isOtherSql == false)
+            {
+                var res = Pizdaticus.GetRiderToList<T>(reader);
+                return res;
+            }
+            else
+            {
+                var res = PizdaticusOtherBase.GetRiderToList<T>(reader);
+                return res;
+            }
+            
         }
 
 

@@ -125,16 +125,16 @@ namespace ORM_1_21_
 
 
         private void OnOnErrorOrm(ErrorOrmEventArgs args)
-        {
-            if (onErrorOrm == null)
+        { 
+            string errorMessage = args.ErrorMessage + Environment.NewLine + args.Sql;
+            if (OnErrorOrm == null)
             {
-                string errorMessage = args.ErrorMessage + Environment.NewLine + args.Sql;
-                MySqlLogger.Info(errorMessage);
+               MySqlLogger.Info(errorMessage);
                 throw new Exception(errorMessage);
 
             }
 
-            onErrorOrm.Invoke(this, args);
+            OnErrorOrm.Invoke(this, args);
 
         }
 

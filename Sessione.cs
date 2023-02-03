@@ -70,14 +70,14 @@ namespace ORM_1_21_
         /// <returns></returns>
         public IEnumerable<T> GetListMonster<T>(IDataReader reader) where T : class
         {
-            return AttributesOfClass<T>.GetEnumerableObjects(reader);
+            return AttributesOfClass<T>.GetEnumerableObjects(reader,true);
         }
 
         /// <summary>
-        ///     Сохранение объекта в базе равно как вставка и изменение
+        ///     Сохранение или обновление объекта в базе
         /// </summary>
         /// <typeparam name="T">Тип объекта</typeparam>
-        /// <param name="item">сохраняемый объект</param>
+        /// <param name="item">Cохраняемый или обновляемый объект</param>
         public int Save<T>(T item) where T : class
         {
             if (item == null) throw new ArgumentException("Объект для сохранения равен Null");
@@ -97,19 +97,19 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        ///     запрос на выборку с параметрами
+        /// Запрос на выборку с параметрами
         /// </summary>
-        /// <param name="sqlWhere">запрос на выборку, начиная с после where  с параметрами, можно поставить: 1=1</param>
-        /// <param name="obj">список параметров в той последовательности в которой они идут в запросе.</param>
+        /// <param name="sqlWhere">Запрос на выборку, начиная с после where  с параметрами, можно поставить: 1=1</param>
+        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
         /// <typeparam name="T">Тип сущности</typeparam>
         /// <returns></returns>
-        public IEnumerable<T> GetList<T>(string sqlWhere, params object[] obj) where T : class
+        public IEnumerable<T> GetList<T>(string sqlWhere, params object[] param) where T : class
         {
             if (sqlWhere == null) sqlWhere = "";
             var sqlAll = AttributesOfClass<T>.SimpleSqlSelect + AttributesOfClass<T>.AddSqlWhere(sqlWhere);
             var com = ProviderFactories.GetCommand();
             com.CommandText = sqlAll;
-            AddParam(com, obj);
+            AddParam(com, param);
             com.Connection = _connect;
             IEnumerable<T> res;
             try
@@ -129,7 +129,6 @@ namespace ORM_1_21_
             {
                 ComDisposable(com);
             }
-
             return res;
         }
 
@@ -239,38 +238,39 @@ namespace ORM_1_21_
         /// <summary>
         ///     Пожарный шланг данных
         /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="objects">параметры</param>
+        /// <param name="sql">Строка запроса</param>
+        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
         /// <returns></returns>
-        public IDataReader ExecuteReader(string sql, object[] objects)
+        public IDataReader ExecuteReader(string sql, object[] param)
         {
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
 
             com.CommandText = sql;
-            AddParam(com, objects);
+            AddParam(com, param);
             OpenConnectAndTransaction(com);
             return com.ExecuteReader();
         }
 
-
+        private void SetTimeOut(IDbCommand com, int timeOut)
+        {
+            com.CommandTimeout = timeOut < 30 ? 30 : timeOut;
+        }
         /// <summary>
         /// IDataReader
         /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="timeOut"></param>
-        /// <param name="obj"></param>
+        /// <param name="sql">Строка запроса</param>
+        /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
+        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
         /// <returns></returns>
-        public IDataReader ExecuteReaderT(string sql, int timeOut = -1, params object[] obj)
+        public IDataReader ExecuteReaderT(string sql, int timeOut = 30, params object[] param)
         {
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
             com.CommandText = sql;
-            if (timeOut != -1)
-            {
-                com.CommandTimeout = timeOut;
-            }
-            AddParam(com, obj);
+            SetTimeOut(com, timeOut);
+           
+            AddParam(com, param);
             OpenConnectAndTransaction(com);
             return com.ExecuteReader();
         }
@@ -278,19 +278,16 @@ namespace ORM_1_21_
         /// <summary>
         ///     получение DataTable
         /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="timeout">timeout=-1 (default)</param>
+        /// <param name="sql">Строка запроса</param>
+        /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
         /// <returns></returns>
-        public DataTable GetDataTable(string sql, int timeout = -1)
+        public DataTable GetDataTable(string sql, int timeOut = 30)
         {
             var table = new DataTable();
 
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
-            if (timeout != -1)
-            {
-                com.CommandTimeout = timeout;
-            }
+            SetTimeOut(com, timeOut);
 
             com.CommandText = sql;
             try
@@ -449,10 +446,10 @@ namespace ORM_1_21_
         /// <summary>
         /// </summary>
         /// <param name="list"></param>
-        /// <param name="timeOut">default 30000</param>
+        /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
         /// <typeparam name="T"></typeparam>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public void InsertBulk<T>(IEnumerable<T> list, int timeOut = -1)
+        public void InsertBulk<T>(IEnumerable<T> list, int timeOut = 30)
         {
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
@@ -478,10 +475,7 @@ namespace ORM_1_21_
             {
                 OpenConnectAndTransaction(com);
                 com.CommandTimeout = 30000;
-                if (timeOut != -1)
-                {
-                    com.CommandTimeout = timeOut;
-                }
+                SetTimeOut(com, timeOut);
                 com.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -499,17 +493,14 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="fileCsv"></param>
         /// <param name="fieldterminator"></param>
-        /// <param name="timeOut"></param>
+        /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
         /// <typeparam name="T"></typeparam>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public void InsertBulkFomFile<T>(string fileCsv = null, string fieldterminator = ";", int timeOut = -1)
+        public void InsertBulkFromFile<T>(string fileCsv, string fieldterminator = ";", int timeOut = 30)
         {
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
-            if (timeOut != -1)
-            {
-                com.CommandTimeout = timeOut;
-            }
+            SetTimeOut(com, timeOut);
             switch (Configure.Provider)
             {
                 case ProviderName.MsSql:
@@ -531,7 +522,7 @@ namespace ORM_1_21_
             try
             {
                 OpenConnectAndTransaction(com);
-                com.CommandTimeout = 30000;
+                com.CommandTimeout = 30;
                 com.ExecuteReader();
             }
             catch (Exception ex)
@@ -547,7 +538,7 @@ namespace ORM_1_21_
         /// <summary>
         /// ExecuteScalar
         /// </summary>
-        /// <param name="sql"></param>
+        /// <param name="sql">Строка запроса</param>
         /// <param name="obj"></param>
         /// <returns></returns>
         public object ExecuteScalar(string sql, params object[] obj)
@@ -578,21 +569,18 @@ namespace ORM_1_21_
         /// <summary>
         /// ExecuteScalarT (timeout)
         /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="timeOut"></param>
-        /// <param name="obj"></param>
+        /// <param name="sql">Строка запроса</param>
+        /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
+        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
         /// <returns></returns>
-        public object ExecuteScalarT(string sql, int timeOut = -1, params object[] obj)
+        public object ExecuteScalarT(string sql, int timeOut = 30, params object[] param)
         {
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
             com.CommandType = CommandType.Text;
             com.CommandText = sql;
-            AddParam(com, obj);
-            if (timeOut != -1)
-            {
-                com.CommandTimeout = timeOut;
-            }
+            AddParam(com, param);
+            SetTimeOut(com, timeOut);
 
             try
             {
@@ -704,14 +692,14 @@ namespace ORM_1_21_
         /// <summary>
         ///     Без возврата результата
         /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="obj"></param>
-        public int ExecuteNonQuery(string sql, params object[] obj)
+        /// <param name="sql">Строка запроса</param>
+        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
+        public int ExecuteNonQuery(string sql, params object[] param)
         {
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
             com.CommandText = sql;
-            AddParam(com, obj);
+            AddParam(com, param);
             try
             {
                 OpenConnectAndTransaction(com);
@@ -732,25 +720,22 @@ namespace ORM_1_21_
         /// <summary>
         /// Выполнение запроса с параметрами и TimeOut
         /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="timeOut"></param>
-        /// <param name="obj"></param>
+        /// <param name="sql">Строка запроса</param>
+        /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
+        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
         /// <returns></returns>
-        public int ExecuteNonQueryT(string sql, int timeOut = -1, params object[] obj)
+        public int ExecuteNonQueryT(string sql, int timeOut = 30, params object[] param)
         {
 
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
             com.CommandText = sql;
-            AddParam(com, obj);
+            AddParam(com, param);
             try
             {
                 OpenConnectAndTransaction(com);
                 com.CommandTimeout = 30000;
-                if (timeOut != -1)
-                {
-                    com.CommandTimeout = timeOut;
-                }
+                SetTimeOut(com, timeOut);
                 return com.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -765,7 +750,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        ///     table name from base
+        /// Table name from base
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
@@ -776,7 +761,7 @@ namespace ORM_1_21_
 
 
         /// <summary>
-        ///     Получения списка прототипов объекта
+        /// Получения списка прототипов объекта
         /// </summary>
         /// <param name="obj">прототип</param>
         /// <param name="sqlWhere">запрос Where включительно</param>
@@ -807,12 +792,12 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        ///     Возвращает лист объектов  табличной сущности
+        /// Возвращает лист объектов  табличной сущности
         /// </summary>
         /// <typeparam name="T">Тип класса сущности</typeparam>
         /// <param name="sqlWhere">
-        ///     Запрос на выборку начиная с Where, Where включительно
-        ///     для полной выборки можно указать "" или NULL
+        /// Запрос на выборку начиная с Where, Where включительно
+        /// для полной выборки можно указать "" или NULL
         /// </param>
         /// <returns>Лист объектов сущности</returns>
         public IEnumerable<T> GetList<T>(string sqlWhere) where T : class
@@ -891,12 +876,7 @@ namespace ORM_1_21_
             return rez;
         }
 
-        ///<summary>
-        ///</summary>
-        ///<param name="id"></param>
-        ///<typeparam name="T"></typeparam>
-        ///<returns></returns>
-        ///<exception cref="Exception"></exception>
+       
         private T GetReal<T>(object id) where T : class
         {
             var sqlAll = string.Format("{0} WHERE {1}.{2}='{3}'", AttributesOfClass<T>.SimpleSqlSelect,
@@ -947,7 +927,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        ///     Возвращает лист объектов  табличной сущности
+        ///Возвращает лист объектов  табличной сущности
         /// </summary>
         /// <typeparam name="T">Тип класса сущности</typeparam>
         /// <returns>Лист объектов сущности</returns>
@@ -959,7 +939,7 @@ namespace ORM_1_21_
 
 
         /// <summary>
-        ///возвращает название поля для таблицы
+        ///Возвращает название поля для таблицы
         /// </summary>
         /// <param name="property"></param>
         /// <typeparam name="T"></typeparam>
@@ -1001,7 +981,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns>string sql from insert</returns>
-        public string InsertCommand<T>(T t)
+        public string GetSqlInsertCommand<T>(T t)
         {
             switch (Configure.Provider)
             {
@@ -1025,7 +1005,7 @@ namespace ORM_1_21_
         /// <param name="t"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns>string sql for detete</returns>
-        public string DeleteCommand<T>(T t)
+        public string GetSqlDeleteCommand<T>(T t)
         {
             switch (Configure.Provider)
             {
@@ -1045,28 +1025,25 @@ namespace ORM_1_21_
         /// <summary>
         /// Get DataTable
         /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="timeout"></param>
-        /// <param name="obj"></param>
+        /// <param name="sql">Строка запроса</param>
+        /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
+        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
         /// <returns>DataTable</returns>
         /// <exception cref="NotImplementedException"></exception>
-        public DataTable GetDataTable(string sql, int timeout = -1, params object[] obj)
+        public DataTable GetDataTable(string sql, int timeOut = 30, params object[] param)
         {
             var table = new DataTable();
 
             var com = ProviderFactories.GetCommand();
             com.Connection = _connect;
-            if (timeout != -1)
-            {
-                com.CommandTimeout = timeout;
-            }
+            SetTimeOut(com, timeOut);
 
             com.CommandText = sql;
 
 
             try
             {
-                AddParam(com, obj);
+                AddParam(com, param);
                 OpenConnectAndTransaction(com);
                 var reader = com.ExecuteReader();
                 table.BeginLoadData();
@@ -1109,6 +1086,124 @@ namespace ORM_1_21_
             }
         }
 
+        /// <summary>
+        /// Получение sql для запроса  вставки пакетом
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public string GetSqlForInsertBulk<T>(IEnumerable<T> list)
+        {
+            switch (Configure.Provider)
+            {
+                case ProviderName.MsSql:
+                    return UtilsBulkMsSql.GetSql(list);
+                case ProviderName.MySql:
+                    return UtilsBulkMySql.GetSql(list);
+                case ProviderName.Postgresql:
+                    return UtilsBulkPostgres.GetSql(list);
+                case ProviderName.Sqlite:
+                    return UtilsBulkMySql.GetSql(list);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
+        /// <summary>
+        /// Получение перечисления из чужой базы
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="commandFactory">Объект IOtherBaseCommandFactory</param>
+        /// <param name="sql">Строка запроса</param>
+        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
+        /// <returns></returns>
+        public IEnumerable<T> GetListOtherBase<T>(IOtherBaseCommandFactory commandFactory, string sql, params object[] param)
+        {
+
+           
+            var com = commandFactory.GetDbCommand();
+            com.CommandText += sql;
+            AddParam(com, param);
+           
+            IEnumerable<T> res;
+            try
+            {
+                com.Connection.Open();
+                res = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(),true);
+            }
+            catch (Exception ex)
+            {
+                Configure.SendError(Utils.GetStringSql(com), ex);
+                return null;
+            }
+            finally
+            {
+                com.Connection.Close();
+                com.Dispose();
+                WriteLogFile(com);
+                
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// Выполнение ExecuteScalar  к чужой базе
+        /// </summary>
+        /// <param name="commandFactory">Объект IOtherBaseCommandFactory</param>
+        /// <param name="sql">Строка запроса</param>
+        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
+        /// <returns></returns>
+        public object GetObjectOtherBase(IOtherBaseCommandFactory commandFactory, string sql, params object[] param)
+        {
+            var com = commandFactory.GetDbCommand();
+            com.CommandText += sql;
+            AddParam(com, param);
+            try
+            { 
+                com.Connection.Open();
+               return  com.ExecuteScalar();
+            }
+            catch (Exception ex)
+            {
+                Configure.SendError(Utils.GetStringSql(com), ex);
+                return null;
+            }
+            finally
+            {
+                com.Connection.Close();
+                com.Dispose();
+                WriteLogFile(com);
+            }
+           
+        }
+        /// <summary>
+        /// Выполнение запроса ExecuteNonQuery к чужой базе
+        /// </summary>
+        /// <param name="commandFactory">Объект IOtherBaseCommandFactory</param>
+        /// <param name="sql">Строка запроса</param>
+        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
+        /// <returns></returns>
+        public int ExecuteNonQueryOtherBase(IOtherBaseCommandFactory commandFactory, string sql, params object[] param)
+        {
+            var com = commandFactory.GetDbCommand();
+            com.CommandText += sql;
+            AddParam(com, param);
+            try
+            {
+                com.Connection.Open();
+                return com.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                Configure.SendError(Utils.GetStringSql(com), ex);
+                return 0;
+            }
+            finally
+            {
+                com.Connection.Close();
+                com.Dispose();
+                WriteLogFile(com);
+            }
+        }
     }
 }

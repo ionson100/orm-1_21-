@@ -3,13 +3,14 @@ using ORM_1_21_.Attribute;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace TestSqlite
 {
 
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Starter.Run();
             MyClass myClass = new MyClass()
@@ -53,12 +54,16 @@ namespace TestSqlite
             var list1 = Configure.Session
                 .FreeSql<MyClass>($"select * from {Configure.Session.TableName<MyClass>()}");
             var list2 = Configure.Session.Querion<MyClass>().Select(a => new { ageCore = a.Age, name = a.Name }).ToList();
-            var list3 = Configure.Session.Querion<MyClass>().
-               Where(a => (a.Age > 5 || a.Name.StartsWith("ion100")) && a.Name.Contains("100")).
-               OrderBy(d => d.Age).
-               Select(f => new { age = f.Age }).
-               Limit(0, 2).
-               ToList();
+            var list3 = Configure.Session.Querion<MyClass>()
+                .Where(a => a.Age > 5 ).OrderBy(d => d.Age)
+                .Select(f => new { age = f.Age }).Limit(0, 2);
+            var r = await list3.ToListAsync();
+            foreach (var v in  r)
+            {
+                Console.WriteLine(r);
+            }
+
+            var ss = Configure.Session.FreeSql<MyClass>("select * from my_class where desc like $name",new Parameter("$name","'si%'"));
 
         }
     }

@@ -114,8 +114,10 @@
     <Compile Include="Linq\MsSql\QueryTranslatorMsSql.cs" />
     <Compile Include="Linq\StringConst.cs" />
     <Compile Include="MySqlLogger.cs" />
+    <Compile Include="IOtherBaseCommandFactory.cs" />
     <Compile Include="Parametr.cs" />
     <Compile Include="Pizdaticus.cs" />
+    <Compile Include="PizdaticusOtherBase.cs" />
     <Compile Include="ProviderName.cs" />
     <Compile Include="ProviderFactories.cs" />
     <Compile Include="IServiceSessions.cs" />
