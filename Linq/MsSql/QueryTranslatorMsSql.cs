@@ -22,14 +22,16 @@ namespace ORM_1_21_.Linq.MsSql
     internal sealed class QueryTranslatorMsSql<T> : ExpressionVisitor, ITranslate
     {
         private Evolution _currentTypeCode;
+        private ProviderName _providerName;
         private int _paramIndex;
 
-        public QueryTranslatorMsSql()
+        public QueryTranslatorMsSql(ProviderName name)
         {
+            _providerName = name;
             Param = new Dictionary<string, object>();
         }
 
-        private string ParamName => string.Format("{0}{1}", string.Format("{1}{0}", ParamStringName, Utils.Prefparam),
+        private string ParamName => string.Format("{0}{1}", string.Format("{1}{0}", ParamStringName, Utils.Prefparam(_providerName)),
             ++_paramIndex);
 
         private Evolution CirrentEvalytion { get; set; }
@@ -41,14 +43,23 @@ namespace ORM_1_21_.Linq.MsSql
         public Dictionary<string, object> Param { get; set; }
 
         public List<OneComprosite> ListOne { get; } = new List<OneComprosite>();
+        public string Translate(Expression expression, out Evolution ev1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string Translate(Expression expression, out Evolution ev1, string par)
+        {
+            throw new NotImplementedException();
+        }
 
 
-        public string Translate(Expression expression, out Evolution ev)
+        public string Translate(Expression expression, out Evolution ev,ProviderName providerName)
         {
             CirrentEvalytion = 0;
             Visit(expression);
             ev = CirrentEvalytion;
-            var dd = new MsSqlConstructorSql().GetStringSql<T>(ListOne);
+            var dd = new MsSqlConstructorSql().GetStringSql<T>(ListOne,providerName);
             return dd;
         }
 
@@ -71,7 +82,7 @@ namespace ORM_1_21_.Linq.MsSql
             if (ev == Evolution.Limit)
                 if (paramList != null && paramList.Count == 2)
                 {
-                    if (Configure.Provider == ProviderName.Postgresql || Configure.Provider == ProviderName.Sqlite)
+                    if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
                     {
                         ListOne.Add(new OneComprosite
                         {
@@ -108,10 +119,10 @@ namespace ORM_1_21_.Linq.MsSql
             StringB.Length = 0;
         }
 
-        public string Translate(Expression expression, out Evolution ev1, string par)
+        public string Translate(Expression expression, out Evolution ev1, string par,ProviderName providerName)
         {
             ParamStringName = par;
-            return Translate(expression, out ev1);
+            return Translate(expression, out ev1,providerName);
         }
 
         private bool PingComposite(Evolution eval)
@@ -161,7 +172,7 @@ namespace ORM_1_21_.Linq.MsSql
                 };
                 ListOne.Add(o);
                 Visit(m.Arguments[1]);
-                if (Configure.Provider == ProviderName.Postgresql || Configure.Provider == ProviderName.Sqlite)
+                if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
                 {
                     ListOne.Add(new OneComprosite
                     {
@@ -232,7 +243,7 @@ namespace ORM_1_21_.Linq.MsSql
                 };
                 ListOne.Add(o);
                 Visit(m.Arguments[1]);
-                if (Configure.Provider == ProviderName.Postgresql || Configure.Provider == ProviderName.Sqlite)
+                if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
                 {
                     ListOne.Add(new OneComprosite
                     {
@@ -682,7 +693,7 @@ namespace ORM_1_21_.Linq.MsSql
                     });
                 else
                     sb.AppendFormat("{0}.{1}", AttributesOfClass<T>.TableName,
-                        AttributesOfClass<T>.PkAttribute.ColumnName);
+                        AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName));
                 var o = new OneComprosite
                 {
                     Operand = Evolution.Reverse,
@@ -819,7 +830,7 @@ namespace ORM_1_21_.Linq.MsSql
                     var o = new OneComprosite
                     {
                         Operand = Evolution.OrderBy,
-                        Body = $" {AttributesOfClass<T>.TableName}.{AttributesOfClass<T>.PkAttribute.ColumnName} DESC "
+                        Body = $" {AttributesOfClass<T>.TableName}.{AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName)} DESC "
                     };
                     ListOne.Add(o);
                 }
@@ -1160,7 +1171,7 @@ namespace ORM_1_21_.Linq.MsSql
                             var propertyName = AttributesOfClass<T>.PkAttribute.PropertyName;
                             var value = AttributesOfClass<T>.GetValue.Value[propertyName](o);
                             var tableName = AttributesOfClass<T>.TableName;
-                            var key = AttributesOfClass<T>.PkAttribute.ColumnName;
+                            var key = AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName);
                             StringB.Append(string.Format("({0}.{1} = '{2}')", tableName, key, value));
                             break;
                         }

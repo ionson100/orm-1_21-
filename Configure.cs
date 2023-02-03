@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 
@@ -9,6 +10,7 @@ namespace ORM_1_21_
     /// </summary>
     public sealed partial class Configure
     {
+        internal static Dictionary<Type, ProviderName> TotalProviderNames = new Dictionary<Type, ProviderName>();
         //internal static bool UsageCache;
 
         internal static string ConnectionString;
@@ -104,6 +106,23 @@ namespace ORM_1_21_
             }
         }
 
+        /// <summary>
+        /// Получение сессии к другой базе данных
+        /// </summary>
+        /// <typeparam name="TF">Тип который должен реализовать интерфейс IOtherDataBaseFactory и
+        /// иметь конструктор по умолчанию</typeparam>
+        /// <returns></returns>
+        public static ISession GetSession<TF>()
+        {
+            if (_configure == null)
+            {
+                SendError(null, new Exception("ISession GetInnerSession error _configure==null"));
+                return null;
+            }
+
+            return _configure.GetInnerSession<TF>();
+        }
+
         private static void ActivateLogger(string fileNameLogFile)
         {
             if (Configure.LogFileName == null) return;
@@ -121,6 +140,30 @@ namespace ORM_1_21_
             {
                 return new Sessione(ConnectionString);
             }
+        }
+        private ISession GetInnerSession<TF>()
+        {
+            lock (_locker)
+            {
+                var res = GetDataBaseFactory<TF>();
+                if (res == null)
+                {
+                    throw new Exception("Не могу создать провайдера для другой базы данных");
+
+                }
+
+                if (Configure.TotalProviderNames.ContainsKey(typeof(TF)) == false)
+                {
+                   Configure.TotalProviderNames.Add(typeof(TF),res.GetProviderName());
+                }
+                return new Sessione(res); 
+            }
+        }
+
+        private IOtherDataBaseFactory GetDataBaseFactory<TF>()
+        {
+            var o = (IOtherDataBaseFactory)Activator.CreateInstance(typeof(TF));
+            return o;
         }
 
 

@@ -35,7 +35,7 @@ namespace ORM_1_21_
         }
         private static Delegate Action(LambdaExpression lexp, Type type)
         {
-
+           
             if (type == typeof(Guid)) { return (Func<T, Guid>)(lexp).Compile(); }
             if (type == typeof(DateTime)) { return (Func<T, DateTime>)(lexp).Compile(); }
             if (type == typeof(uint)) { return (Func<T, uint>)(lexp).Compile(); }
@@ -79,7 +79,7 @@ namespace ORM_1_21_
         }
     }
     /// <summary>
-    ///     Утилиты
+    ///  Утилиты
     /// </summary>
     internal static class Utils
     {
@@ -109,11 +109,10 @@ namespace ORM_1_21_
         internal const string Bungalo = "____";
         internal const string Base = "BASE", Error = "ERROR";
 
-        internal static string Pref
+        internal static string Pref(ProviderName providerName)
         {
-            get
-            {
-                switch (Configure.Provider)
+          
+                switch (providerName)
                 {
                     case ProviderName.MsSql:
                         return "SELECT IDENT_CURRENT ('{1}');";
@@ -126,14 +125,13 @@ namespace ORM_1_21_
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-            }
+           
         }
 
-        internal static string Prefparam
+        internal static string Prefparam(ProviderName providerName)
         {
-            get
-            {
-                switch (Configure.Provider)
+           
+                switch (providerName)
                 {
                     case ProviderName.MsSql:
                         return "@";
@@ -146,11 +144,11 @@ namespace ORM_1_21_
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-            }
+           
         }
 
 
-        private static ProviderName _providerName;
+       
 
         internal static Assembly Assembler;
 

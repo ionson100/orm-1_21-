@@ -17,17 +17,17 @@ namespace ORM_1_21_
 
 
 
-        internal static IDbDataParameter GetParameter()
+        internal static IDbDataParameter GetParameter(ProviderName providerName)
         {
-            return GetFactory().CreateParameter();
+            return GetFactory(providerName).CreateParameter();
         }
 
 
-        static DbProviderFactory GetFactory()
+        static DbProviderFactory GetFactory(ProviderName providerName)
         {
             if (_curFactory == null)
             {
-                switch (Configure.Provider)
+                switch (providerName)
                 {
                     case ProviderName.MsSql:
 
@@ -61,21 +61,21 @@ namespace ORM_1_21_
             }
             return _curFactory;
         }
-        public static IDbConnection GetConnect()
+        public static IDbConnection GetConnect(ProviderName name)
         {
 
-            return GetFactory().CreateConnection();
+            return GetFactory(name).CreateConnection();
 
         }
 
-        public static IDbCommand GetCommand()
+        public static IDbCommand GetCommand(ProviderName providerName)
         {
-            return GetFactory().CreateCommand();
+            return GetFactory(providerName).CreateCommand();
         }
 
-        public static IDbDataAdapter GetDataAdapter()
+        public static IDbDataAdapter GetDataAdapter(ProviderName providerName)
         {
-            return GetFactory().CreateDataAdapter();
+            return GetFactory(providerName).CreateDataAdapter();
 
         }
 

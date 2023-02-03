@@ -13,7 +13,7 @@ namespace ORM_1_21_
 {
     internal static class PizdaticusOtherBase
     {
-        public static IEnumerable<TObj> GetRiderToList<TObj>(IDataReader reader)
+        public static IEnumerable<TObj> GetRiderToList<TObj>(IDataReader reader,ProviderName providerName)
         {
             var res = new List<TObj>();
             while (reader.Read())
@@ -28,12 +28,12 @@ namespace ORM_1_21_
 
                         object e;
                        
-                        e = reader[Utils.ClearTrim(s.ColumnName)];
+                        e = reader[Utils.ClearTrim(s.GetColumnName(providerName))];
 
                         var pr = AttributesOfClass<TObj>.PropertyInfoList.Value[s.PropertyName];
 
 
-                        NewMethod(pr, e, d);
+                        NewMethod(pr, e, d,providerName);
                     }
                     catch (Exception e)
                     {
@@ -50,7 +50,7 @@ namespace ORM_1_21_
             return res;
         }
 
-        internal static void NewMethod<TObj>(PropertyInfo pr, object e, TObj d)
+        internal static void NewMethod<TObj>(PropertyInfo pr, object e, TObj d,ProviderName providerName)
         {
             if (Utils.IsJsonType(pr.PropertyType))
             {
@@ -78,7 +78,7 @@ namespace ORM_1_21_
             }
             else if (pr.PropertyType == typeof(DateTime))
             {
-                if (Configure.Provider == ProviderName.Sqlite)
+                if (providerName == ProviderName.Sqlite)
                 {
                     DateTime dateTime = DateTime.Parse(e.ToString());
                     AttributesOfClass<TObj>.SetValue.Value[pr.Name](d, dateTime);
@@ -90,7 +90,7 @@ namespace ORM_1_21_
             }
             else if (pr.PropertyType == typeof(DateTime?))
             {
-                if (Configure.Provider == ProviderName.Sqlite)
+                if (providerName == ProviderName.Sqlite)
                 {
                     DateTime? dateTime = null;
                     if (e != DBNull.Value)
@@ -437,7 +437,7 @@ namespace ORM_1_21_
             return null;
         }
 
-        public static IEnumerable<TObj> GetRiderToList2<TObj>(IDataReader reader)
+        public static IEnumerable<TObj> GetRiderToList2<TObj>(IDataReader reader,ProviderName providerName)
         {
             bool? fied = null;
             var res = new List<TObj>();
@@ -457,7 +457,7 @@ namespace ORM_1_21_
                         else
                             e =
                                 reader[
-                                    s.ColumnName.Replace("`", string.Empty)
+                                    s.GetColumnName(providerName).Replace("`", string.Empty)
                                         .Replace("[", string.Empty)
                                         .Replace("]", string.Empty)];
 

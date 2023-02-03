@@ -7,19 +7,26 @@ namespace ORM_1_21_
 {
     class CommandNativePostgres
     {
-        public static string GetInsertSql<T>(T t)
+        private readonly ProviderName _providerName;
+
+        public CommandNativePostgres(ProviderName providerName)
+        {
+            _providerName = providerName;
+        }
+
+        public  string GetInsertSql<T>(T t)
         {
             StringBuilder builder = new StringBuilder();
             builder.Append($"INSERT INTO {AttributesOfClass<T>.TableName} (");
             MapPrimaryKeyAttribute pk = AttributesOfClass<T>.PkAttribute;
             if (pk.Generator == Generator.Assigned)
             {
-                builder.Append($" {pk.ColumnName},");
+                builder.Append($" {pk.GetColumnName(_providerName)},");
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
 
-                builder.Append($" {map.ColumnName},");
+                builder.Append($" {map.GetColumnName(_providerName)},");
             }
 
             string s = builder.ToString().Trim(',');
@@ -47,7 +54,7 @@ namespace ORM_1_21_
 
         }
 
-        private static string GetValue(object o, Type type)
+        private  string GetValue(object o, Type type)
         {
             if (o == null) return "null";
 
@@ -82,7 +89,7 @@ namespace ORM_1_21_
 
             if (type == typeof(bool?) || type == typeof(bool))
             {
-                if (Configure.Provider == ProviderName.Postgresql) return o.ToString();
+                if (_providerName == ProviderName.Postgresql) return o.ToString();
                 var v = Convert.ToBoolean(o);
                 return v ? 0.ToString() : 1.ToString();
             }
@@ -91,12 +98,13 @@ namespace ORM_1_21_
             return $"{o.ToString().Replace("'", "''")}";
         }
 
-        public static string GetDeleteSql<T>(T t)
+        public  string GetDeleteSql<T>(T t)
         {
             var o = AttributesOfClass<T>.GetValue.Value[AttributesOfClass<T>.PkAttribute.PropertyName](t);
             Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute.PropertyName].PropertyType;
             return
-                $"Delete from {AttributesOfClass<T>.TableName} where {AttributesOfClass<T>.PkAttribute.ColumnName} = {GetValue(o, type)}";
+                $"Delete from {AttributesOfClass<T>.TableName} where " +
+                $"{AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName)} = {GetValue(o, type)}";
         }
     }
 }

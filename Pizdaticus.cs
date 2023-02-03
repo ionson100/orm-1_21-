@@ -12,7 +12,7 @@ namespace ORM_1_21_
 {
     internal static class Pizdaticus
     {
-        public static IEnumerable<TObj> GetRiderToList<TObj>(IDataReader reader)
+        public static IEnumerable<TObj> GetRiderToList<TObj>(IDataReader reader,ProviderName providerName)
         {
             bool? fied = null;
             var res = new List<TObj>();
@@ -30,12 +30,12 @@ namespace ORM_1_21_
                         if (fied == true)
                             e = reader[s.ColumnNameAlias];
                         else
-                            e = reader[Utils.ClearTrim(s.ColumnName)];
+                            e = reader[Utils.ClearTrim(s.GetColumnName(providerName))];
 
                         var pr = AttributesOfClass<TObj>.PropertyInfoList.Value[s.PropertyName];
 
 
-                       PizdaticusOtherBase.NewMethod(pr, e, d);
+                       PizdaticusOtherBase.NewMethod(pr, e, d,providerName);
                     }
                     catch (Exception e)
                     {
@@ -221,7 +221,7 @@ namespace ORM_1_21_
             return null;
         }
 
-        public static IEnumerable<TObj> GetRiderToList2<TObj>(IDataReader reader)
+        public static IEnumerable<TObj> GetRiderToList2<TObj>(IDataReader reader,ProviderName providerName)
         {
             bool? fied = null;
             var res = new List<TObj>();
@@ -241,7 +241,7 @@ namespace ORM_1_21_
                         else
                             e =
                                 reader[
-                                    s.ColumnName.Replace("`", string.Empty)
+                                    s.GetColumnName(providerName).Replace("`", string.Empty)
                                         .Replace("[", string.Empty)
                                         .Replace("]", string.Empty)];
 

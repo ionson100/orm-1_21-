@@ -9,7 +9,13 @@ namespace ORM_1_21_.Linq.MySql
 {
     internal class MySqlConstructorSql
     {
+        private readonly ProviderName _providerName;
         private List<OneComprosite> _listOne;
+
+        public MySqlConstructorSql(ProviderName providerName)
+        {
+            _providerName = providerName;
+        }
         // private int i = 0;
 
         private bool PingComposite(Evolution eval)
@@ -17,13 +23,13 @@ namespace ORM_1_21_.Linq.MySql
             return _listOne.Any(a => a.Operand == eval);
         }
 
-        public string GetStringSql<T>(List<OneComprosite> listOne)
+        public string GetStringSql<T>(List<OneComprosite> listOne,ProviderName providerName)
         {
             _listOne = listOne;
 
             if (PingComposite(Evolution.FreeSql)) return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
 
-            if (PingComposite(Evolution.Update)) return AttributesOfClass<T>.CreateCommandLimitForMySql(_listOne);
+            if (PingComposite(Evolution.Update)) return AttributesOfClass<T>.CreateCommandLimitForMySql(_listOne,providerName);
             if (PingComposite(Evolution.All))
             {
                 var sb = new StringBuilder(listOne.First(a => a.Operand == Evolution.All).Body);
@@ -90,14 +96,14 @@ namespace ORM_1_21_.Linq.MySql
                                 if (ii == 0)
                                     sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
                                         AttributesOfClass<T>.TableName + "." +
-                                        AttributesOfClass<T>.PkAttribute.ColumnName,
+                                        AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName),
                                         listOne.Any(a => a.Operand == Evolution.DistinctCastom &&
-                                                         a.Body == AttributesOfClass<T>.PkAttribute.ColumnName)
+                                                         a.Body == AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName))
                                             ? " Distinct "
                                             : ""));
                                 sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
-                                    AttributesOfClass<T>.TableName + "." + i.ColumnName,
-                                    listOne.Any(a => a.Operand == Evolution.DistinctCastom && a.Body == i.ColumnName)
+                                    AttributesOfClass<T>.TableName + "." + i.GetColumnName(_providerName),
+                                    listOne.Any(a => a.Operand == Evolution.DistinctCastom && a.Body == i.GetColumnName(_providerName))
                                         ? " Distinct "
                                         : ""));
 
@@ -164,7 +170,7 @@ namespace ORM_1_21_.Linq.MySql
             sbb.Append(ee);
             if (PingComposite(Evolution.ElementAt))
             {
-                if (Configure.Provider == ProviderName.Postgresql || Configure.Provider == ProviderName.Sqlite)
+                if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
                     sbb.AppendFormat(" LIMIT {0}", listOne.First(a => a.Operand == Evolution.ElementAt).Body);
                 else
                     sbb.AppendFormat(" LIMIT {0},1", listOne.First(a => a.Operand == Evolution.ElementAt).Body);
@@ -172,7 +178,7 @@ namespace ORM_1_21_.Linq.MySql
 
             if (PingComposite(Evolution.ElementAtOrDefault))
             {
-                if (Configure.Provider == ProviderName.Postgresql || Configure.Provider == ProviderName.Sqlite)
+                if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
                     sbb.AppendFormat(" LIMIT {0} ", listOne.First(a => a.Operand == Evolution.ElementAtOrDefault).Body);
                 else
                     sbb.AppendFormat(" LIMIT {0},1",
@@ -181,7 +187,7 @@ namespace ORM_1_21_.Linq.MySql
 
             if (PingComposite(Evolution.First))
             {
-                if (Configure.Provider == ProviderName.Postgresql || Configure.Provider == ProviderName.Sqlite)
+                if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
                 {
                     if (PingComposite(Evolution.Single) || PingComposite(Evolution.SingleOrDefault))
                         sbb.Append(" LIMIT 2 ");

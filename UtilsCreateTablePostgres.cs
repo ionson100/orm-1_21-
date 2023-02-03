@@ -6,7 +6,7 @@ namespace ORM_1_21_
 {
     internal class UtilsCreateTablePostgres
     {
-        public static string Create<T>()
+        public static string Create<T>(ProviderName providerName)
         {
             var builder = new StringBuilder();
 
@@ -17,20 +17,20 @@ namespace ORM_1_21_
 
 
             builder.AppendLine(
-                $" \"{Utils.ClearTrim(pk.ColumnNameForRider)}\" {GetTypePgPk(pk.TypeColumn, pk.Generator)}  PRIMARY KEY,");
+                $" \"{Utils.ClearTrim(pk.ColumnNameForRider(providerName))}\" {GetTypePgPk(pk.TypeColumn, pk.Generator)}  PRIMARY KEY,");
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
                 if (map.TypeString == null)
                 {
                     builder.AppendLine(
 
-                        $" \"{Utils.ClearTrim(map.ColumnNameForReader)}\" {GetTypePg(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
+                        $" \"{Utils.ClearTrim(map.ColumnNameForReader(providerName))}\" {GetTypePg(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
                 }
                 else
                 {
                     builder.AppendLine(
 
-                        $" \"{Utils.ClearTrim(map.ColumnNameForReader)}\" {map.TypeString} ,");
+                        $" \"{Utils.ClearTrim(map.ColumnNameForReader(providerName))}\" {map.TypeString} ,");
                 }
 
             }
@@ -49,7 +49,7 @@ namespace ORM_1_21_
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
                 if (map.IsIndex)
                 {
-                    var colName = Utils.ClearTrim(map.ColumnName);
+                    var colName = Utils.ClearTrim(map.GetColumnName(providerName));
 
                     indexBuilder.AppendLine(
                         $"CREATE INDEX IF NOT EXISTS INDEX_{tableName}_{colName} ON \"{tableName}\" (\"{colName}\");");

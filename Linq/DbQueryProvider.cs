@@ -23,6 +23,7 @@ namespace ORM_1_21_.Linq
         private readonly Dictionary<string, object> _parOut = new Dictionary<string, object>();
         private readonly Sessione _sessione;
         private IDbCommand _com;
+        private ProviderName _providerName;
 
 
         private bool _isStoredPr;
@@ -34,6 +35,7 @@ namespace ORM_1_21_.Linq
         {
             _sessione = ses;
             Sessione = ses;
+            _providerName = ses.GetCurrentProviderName();
         }
 
         public ISession Sessione { get; }
@@ -91,7 +93,7 @@ namespace ORM_1_21_.Linq
 
             _com.CommandType = CommandType.StoredProcedure;
             _com.CommandText = Translate(expression, out _);
-            if (Configure.Provider == ProviderName.MsSql)
+            if (_providerName == ProviderName.MsSql)
             {
                 var mat = new Regex(@"TOP\s@p\d").Matches(_com.CommandText);
                 foreach (var variable in mat)
@@ -107,7 +109,7 @@ namespace ORM_1_21_.Linq
             foreach (var p in _paramFreeStoredPr)
             {
                 sb.Append(string.Format(CultureInfo.CurrentCulture, "{0}-{1},", p.Name, p.Value));
-                IDataParameter pr = ProviderFactories.GetParameter();
+                IDataParameter pr = ProviderFactories.GetParameter(_providerName);
                 pr.Direction = p.Direction;
                 pr.ParameterName = p.Name;
                 pr.Value = p.Value;
@@ -120,7 +122,7 @@ namespace ORM_1_21_.Linq
                 dataReader = _com.ExecuteReader();
                 if (AttributesOfClass<TS>.IsValid)
                 {
-                    var lResult = AttributesOfClass<TS>.GetEnumerableObjects(dataReader);
+                    var lResult = AttributesOfClass<TS>.GetEnumerableObjects(dataReader,_providerName);
                     foreach (var par in _com.Parameters)
                         if (((IDataParameter)par).Direction == ParameterDirection.InputOutput ||
                             ((IDataParameter)par).Direction == ParameterDirection.Output ||
@@ -270,7 +272,7 @@ namespace ORM_1_21_.Linq
 
             _com.CommandText = Translate(expression, out _).Replace("FROM", " FROM ");
             var sb = new StringBuilder();
-            if (Configure.Provider == ProviderName.MsSql)
+            if (_providerName == ProviderName.MsSql)
             {
                 var mat = new Regex(@"TOP\s@p\d").Matches(_com.CommandText);
                 foreach (var variable in mat)
@@ -288,7 +290,7 @@ namespace ORM_1_21_.Linq
                 foreach (var p in _paramAdd)
                 {
                     sb.Append(string.Format(CultureInfo.CurrentCulture, "{0}-{1},", p.Key, p.Value));
-                    IDataParameter pr = ProviderFactories.GetParameter();
+                    IDataParameter pr = ProviderFactories.GetParameter(_providerName);
                     pr.ParameterName = p.Key;
                     pr.Value = p.Value;
                     //  _com.Parameters.Add(pr);
@@ -297,7 +299,7 @@ namespace ORM_1_21_.Linq
             foreach (var p in _param)
             {
                 sb.Append(string.Format(CultureInfo.CurrentCulture, "{0}-{1},", p.Key, p.Value));
-                IDataParameter pr = ProviderFactories.GetParameter();
+                IDataParameter pr = ProviderFactories.GetParameter(_providerName);
                 pr.ParameterName = p.Key;
                 pr.Value = p.Value;
                 _com.Parameters.Add(pr);
@@ -305,7 +307,7 @@ namespace ORM_1_21_.Linq
 
             foreach (var p in _paramFree)
             {
-                IDataParameter pr = ProviderFactories.GetParameter();
+                IDataParameter pr = ProviderFactories.GetParameter(_providerName);
                 pr.ParameterName = p.Key;
                 pr.Value = p.Value;
                 _com.Parameters.Add(pr);
@@ -313,7 +315,7 @@ namespace ORM_1_21_.Linq
 
             foreach (var p in _paramFreeStoredPr)
             {
-                IDataParameter pr = ProviderFactories.GetParameter();
+                IDataParameter pr = ProviderFactories.GetParameter(_providerName);
                 pr.Direction = p.Direction;
                 pr.ParameterName = p.Name;
                 pr.Value = p.Value;
@@ -529,11 +531,11 @@ namespace ORM_1_21_.Linq
                 if (_listOne.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
                 {
                     var lResult = AttributesOfClass<TS>.GetEnumerableObjectsGroupBy<T>(dataReader,
-                        _listOne.First(a => a.Operand == Evolution.GroupBy).ExpressionDelegate);
+                        _listOne.First(a => a.Operand == Evolution.GroupBy).ExpressionDelegate,_providerName);
                     return lResult;
                 }
 
-                var resd = AttributesOfClass<T>.GetEnumerableObjects(dataReader);
+                var resd = AttributesOfClass<T>.GetEnumerableObjects(dataReader,_providerName);
                 bool isActive;
                 var dataSingl = Pizdaticus.SingleData(_listOne, resd, out isActive);
                 var ress2 = !isActive ? (object)resd : dataSingl;
@@ -560,19 +562,19 @@ namespace ORM_1_21_.Linq
         private string Translate(Expression expression, out Evolution ev1) 
         {
             ITranslate sq;
-            switch (Configure.Provider)
+            switch (_providerName)
             {
                 case ProviderName.MySql:
-                    sq = new QueryTranslator<T>();
+                    sq = new QueryTranslator<T>(_providerName);
                     break;
                 case ProviderName.MsSql:
-                    sq = new QueryTranslatorMsSql<T>();
+                    sq = new QueryTranslatorMsSql<T>(_providerName);
                     break;
                 case ProviderName.Postgresql:
-                    sq = new QueryTranslator<T>();
+                    sq = new QueryTranslator<T>(_providerName);
                     break;
                 case ProviderName.Sqlite:
-                    sq = new QueryTranslator<T>();
+                    sq = new QueryTranslator<T>(_providerName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -590,19 +592,19 @@ namespace ORM_1_21_.Linq
         private string TranslateString(Expression expression, out Evolution ev1)
         {
             ITranslate sq;
-            switch (Configure.Provider)
+            switch (_providerName)
             {
                 case ProviderName.MySql:
-                    sq = new QueryTranslator<T>();
+                    sq = new QueryTranslator<T>(_providerName);
                     break;
                 case ProviderName.MsSql:
-                    sq = new QueryTranslatorMsSql<T>();
+                    sq = new QueryTranslatorMsSql<T>(_providerName);
                     break;
                 case ProviderName.Postgresql:
-                    sq = new QueryTranslator<T>();
+                    sq = new QueryTranslator<T>(_providerName);
                     break;
                 case ProviderName.Sqlite:
-                    sq = new QueryTranslator<T>();
+                    sq = new QueryTranslator<T>(_providerName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -619,23 +621,24 @@ namespace ORM_1_21_.Linq
             IDictionary<string, object> dictionary, string parstr)
         {
             ITranslate sq;
-            switch (Configure.Provider)
+            switch (_providerName)
             {
                 case ProviderName.MySql:
-                    sq = new QueryTranslator<T>();
+                    sq = new QueryTranslator<T>(_providerName);
                     break;
                 case ProviderName.MsSql:
-                    sq = new QueryTranslatorMsSql<T>();
+                    sq = new QueryTranslatorMsSql<T>(_providerName);
                     break;
                 case ProviderName.Postgresql:
-                    sq = new QueryTranslator<T>();
+                    sq = new QueryTranslator<T>(_providerName);
                     break;
                 case ProviderName.Sqlite:
-                    sq = new QueryTranslator<T>();
+                    sq = new QueryTranslator<T>(_providerName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+           
 
             _listOne = sq.ListOne;
             _param = sq.Param;

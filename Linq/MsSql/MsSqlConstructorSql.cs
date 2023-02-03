@@ -16,11 +16,11 @@ namespace ORM_1_21_.Linq.MsSql
             return _listOne.Any(a => a.Operand == eval);
         }
 
-        public string GetStringSql<T>(List<OneComprosite> listOne) //, JoinCapital joinCapital
+        public string GetStringSql<T>(List<OneComprosite> listOne,ProviderName providerName) //, JoinCapital joinCapital
         {
             _listOne = listOne;
 
-            if (PingComposite(Evolution.Update)) return AttributesOfClass<T>.CreateCommandUpdateFreeForMsSql(_listOne);
+            if (PingComposite(Evolution.Update)) return AttributesOfClass<T>.CreateCommandUpdateFreeForMsSql(_listOne,providerName);
 
             if (PingComposite(Evolution.FreeSql)) return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
 
@@ -91,7 +91,7 @@ namespace ORM_1_21_.Linq.MsSql
                     else if (_listOne.All(a => a.Operand != Evolution.Count))
                     {
                         sbb.Clear();
-                        var str1 = AttributesOfClass<T>.SimpleSqlSelect;
+                        var str1 = AttributesOfClass<T>.SimpleSqlSelect(providerName);
                         sbb.Append(str1.Substring(0,
                             str1.IndexOf("FROM", StringComparison.Ordinal)));
                     }
@@ -102,8 +102,8 @@ namespace ORM_1_21_.Linq.MsSql
                 }
             }
 
-            sbb.Append(AttributesOfClass<T>.SimpleSqlSelect.Substring(
-                AttributesOfClass<T>.SimpleSqlSelect.IndexOf("FROM", StringComparison.Ordinal)));
+            sbb.Append(AttributesOfClass<T>.SimpleSqlSelect(providerName).Substring(
+                AttributesOfClass<T>.SimpleSqlSelect(providerName).IndexOf("FROM", StringComparison.Ordinal)));
 
             var ss = listOne.Where(a => a.Operand == Evolution.Where);
             foreach (var i in ss)
@@ -162,7 +162,7 @@ namespace ORM_1_21_.Linq.MsSql
             }
 
             if (PingComposite(Evolution.Limit))
-                sbb = new StringBuilder(AttributesOfClass<T>.CreateCommandLimitForMsSql(listOne, sbb.ToString()));
+                sbb = new StringBuilder(AttributesOfClass<T>.CreateCommandLimitForMsSql(listOne, sbb.ToString(),providerName));
             if (PingComposite(Evolution.Join))
             {
                 var whereSb = new StringBuilder();

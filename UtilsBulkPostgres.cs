@@ -8,18 +8,25 @@ namespace ORM_1_21_
 {
     internal class UtilsBulkPostgres
     {
-        public static string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
+        private ProviderName providername;
+
+        public UtilsBulkPostgres(ProviderName providername)
+        {
+            this.providername = providername;
+        }
+
+        public  string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
             if (fileCsv != null)
                 return SqlFile(list, fileCsv, fieldterminator);
             return SqlSimple(list);
         }
-        public static string GetSql<T>(IEnumerable<T> list)
+        public  string GetSql<T>(IEnumerable<T> list)
         {
             return SqlSimple(list);
         }
 
-        private static string SqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
+        private  string SqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
             var sql = new StringBuilder();
 
@@ -59,7 +66,7 @@ namespace ORM_1_21_
             return sql.ToString();
         }
 
-        private static string SqlSimple<T>(IEnumerable<T> list)
+        private  string SqlSimple<T>(IEnumerable<T> list)
         {
             var builder = new StringBuilder($"INSERT INTO {AttributesOfClass<T>.TableName}");
             builder.Append(" ( ");
@@ -68,11 +75,11 @@ namespace ORM_1_21_
 
             var rowHead = new StringBuilder();
             if (isAddPk)
-                rowHead.Append($"\"{Utils.ClearTrim(AttributesOfClass<T>.PkAttribute.ColumnName)}\"").Append(",");
+                rowHead.Append($"\"{Utils.ClearTrim(AttributesOfClass<T>.PkAttribute.GetColumnName(providername))}\"").Append(",");
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
                 if (map.TypeColumn == typeof(Image) || map.TypeColumn == typeof(byte[])) continue;
-                rowHead.Append($"\"{Utils.ClearTrim(map.ColumnName)}\"").Append(",");
+                rowHead.Append($"\"{Utils.ClearTrim(map.GetColumnName(providername))}\"").Append(",");
             }
 
             builder.Append(rowHead.ToString()
@@ -85,7 +92,7 @@ namespace ORM_1_21_
                     var o = AttributesOfClass<T>.GetValue.Value[AttributesOfClass<T>.PkAttribute.PropertyName](ob);
                     var type = AttributesOfClass<T>.PropertyInfoList
                         .Value[AttributesOfClass<T>.PkAttribute.PropertyName].PropertyType;
-                    row.Append(UtilsBulkMySql.GetValue(o, type)).Append(",");
+                    row.Append(new UtilsBulkMySql(providername).GetValue(o, type)).Append(",");
                 }
 
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
@@ -93,7 +100,7 @@ namespace ORM_1_21_
                     var o = AttributesOfClass<T>.GetValue.Value[map.PropertyName](ob);
                     var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
                     if (type == typeof(Image) || type == typeof(byte[])) continue;
-                    var str = UtilsBulkMySql.GetValue(o, type);
+                    var str = new UtilsBulkMySql(providername).GetValue(o, type);
                     row.Append(str).Append(",");
                 }
 
@@ -104,7 +111,7 @@ namespace ORM_1_21_
             return res;
         }
 
-        public static string GetValueE(object o, Type type)
+        public  string GetValueE(object o, Type type)
         {
             if (o == null) return "null";
 
@@ -136,7 +143,7 @@ namespace ORM_1_21_
 
             if (type == typeof(bool?) || type == typeof(bool))
             {
-                if (Configure.Provider == ProviderName.Postgresql) return o.ToString();
+                if (providername == ProviderName.Postgresql) return o.ToString();
                 var v = Convert.ToBoolean(o);
                 return v ? 0.ToString() : 1.ToString();
             }
@@ -145,7 +152,7 @@ namespace ORM_1_21_
             return $"{o}";
         }
 
-        public static string InsertFile<T>(string fileCsv, string fieldterminator)
+        public  static string InsertFile<T>(string fileCsv, string fieldterminator)
         {
             return $"COPY {AttributesOfClass<T>.TableName} FROM '{fileCsv}' DELIMITER '{fieldterminator}';";
         }

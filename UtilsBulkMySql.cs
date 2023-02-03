@@ -8,7 +8,14 @@ namespace ORM_1_21_
 {
     internal class UtilsBulkMySql
     {
-        public static string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
+        private readonly ProviderName _providerName;
+
+        public UtilsBulkMySql(ProviderName providerName)
+        {
+            _providerName = providerName;
+        }
+
+        public  string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
             if (fileCsv != null)
             {
@@ -18,12 +25,12 @@ namespace ORM_1_21_
         }
 
 
-        public static string GetSql<T>(IEnumerable<T> list)
+        public  string GetSql<T>(IEnumerable<T> list)
         {
             return SqlSimple(list);
         }
 
-        private static string SqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
+        private  string SqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
             StringBuilder sql = new StringBuilder($"LOAD DATA INFILE '{fileCsv}'");
             sql.AppendLine($"INTO TABLE {AttributesOfClass<T>.TableName}");
@@ -37,12 +44,12 @@ namespace ORM_1_21_
             StringBuilder rowHead = new StringBuilder();
             if (isAddPk)
             {
-                rowHead.Append(AttributesOfClass<T>.PkAttribute.ColumnName)
+                rowHead.Append(AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName))
                     .Append(";");
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
-                rowHead.Append(map.ColumnName).Append(";");
+                rowHead.Append(map.GetColumnName(_providerName)).Append(";");
             }
 
             builder.Append(rowHead.ToString().Substring(0, rowHead.ToString().LastIndexOf(';')))
@@ -80,7 +87,7 @@ namespace ORM_1_21_
             return sql.ToString();
         }
 
-        private static string SqlSimple<T>(IEnumerable<T> list)
+        private  string SqlSimple<T>(IEnumerable<T> list)
         {
             StringBuilder builder = new StringBuilder($"INSERT INTO {AttributesOfClass<T>.TableName}");
             builder.Append(" ( ");
@@ -90,7 +97,7 @@ namespace ORM_1_21_
             StringBuilder rowHead = new StringBuilder();
             if (isAddPk == true)
             {
-                rowHead.Append(AttributesOfClass<T>.PkAttribute.ColumnName)
+                rowHead.Append(AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName))
                     .Append(",");
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
@@ -100,7 +107,7 @@ namespace ORM_1_21_
                 {
                     continue;
                 }
-                rowHead.Append(map.ColumnName).Append(",");
+                rowHead.Append(map.GetColumnName(_providerName)).Append(",");
             }
 
             builder.Append(rowHead.ToString().Substring(0, rowHead.ToString().LastIndexOf(",", StringComparison.Ordinal))).Append(") VALUES");
@@ -131,7 +138,7 @@ namespace ORM_1_21_
             return res;
         }
 
-        public static string GetValue(object o, Type type)
+        public  string GetValue(object o, Type type)
         {
             if (o == null)
             {
@@ -176,7 +183,7 @@ namespace ORM_1_21_
 
             if (type == typeof(bool?) || type == typeof(bool))
             {
-                if (Configure.Provider == ProviderName.Postgresql)
+                if (_providerName == ProviderName.Postgresql)
                 {
                     return o.ToString();
                 }
@@ -186,7 +193,7 @@ namespace ORM_1_21_
 
             if (Utils.IsJsonType(type))
             {
-                switch (Configure.Provider)
+                switch (_providerName)
                 {
                     case ProviderName.MsSql:
                         return $"'{Utils.ObjectToJson(o).Replace("'", "''")}'";
@@ -202,7 +209,7 @@ namespace ORM_1_21_
 
             }
 
-            switch (Configure.Provider)
+            switch (_providerName)
             {
                 case ProviderName.MsSql:
                     return $"'{o.ToString().Replace("'", "''")}'";

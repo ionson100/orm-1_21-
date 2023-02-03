@@ -114,7 +114,7 @@
     <Compile Include="Linq\MsSql\QueryTranslatorMsSql.cs" />
     <Compile Include="Linq\StringConst.cs" />
     <Compile Include="MySqlLogger.cs" />
-    <Compile Include="IOtherBaseCommandFactory.cs" />
+    <Compile Include="IOtherDataBaseFactory.cs" />
     <Compile Include="Parametr.cs" />
     <Compile Include="Pizdaticus.cs" />
     <Compile Include="PizdaticusOtherBase.cs" />
@@ -154,14 +154,14 @@
     <Compile Include="IValidateDAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Transactionale.cs" />
-    <Compile Include="Utils\Utils.cs" />
-    <Compile Include="Utils\UtilsBulkMsSql.cs" />
-    <Compile Include="Utils\UtilsBulkMySql.cs" />
-    <Compile Include="Utils\UtilsBulkPostgres.cs" />
-    <Compile Include="Utils\UtilsCreateTableMsSql.cs" />
-    <Compile Include="Utils\UtilsCreateTableMysql.cs" />
-    <Compile Include="Utils\UtilsCreateTablePostgres.cs" />
-    <Compile Include="Utils\UtilsCreateTableSqlite.cs" />
+    <Compile Include="Utils.cs" />
+    <Compile Include="UtilsBulkMsSql.cs" />
+    <Compile Include="UtilsBulkMySql.cs" />
+    <Compile Include="UtilsBulkPostgres.cs" />
+    <Compile Include="UtilsCreateTableMsSql.cs" />
+    <Compile Include="UtilsCreateTableMysql.cs" />
+    <Compile Include="UtilsCreateTablePostgres.cs" />
+    <Compile Include="UtilsCreateTableSqlite.cs" />
     <Compile Include="V.cs" />
   </ItemGroup>
   <ItemGroup>

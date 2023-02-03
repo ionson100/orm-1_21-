@@ -13,11 +13,10 @@ namespace ORM_1_21_.Attribute
         /// <summary>
         /// Название колонки в таблице  базы
         /// </summary>
-        public string ColumnName
+        public string GetColumnName(ProviderName providerName)
         {
-            get
-            {
-                switch (Configure.Provider)
+         
+                switch (providerName)
                 {
                     case ProviderName.MsSql:
                         return $"[{_columnName}]";
@@ -32,9 +31,13 @@ namespace ORM_1_21_.Attribute
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-            }
-            private set { _columnName = value.Trim(new[] { ' ', '[', ']', '`', '"' }); }
+          
+           
         }
+        public void SetColumnName(string value)
+        {
+            _columnName = value.Trim(new[] { ' ', '[', ']', '`', '"' });
+}
 
         /// <summary>
         /// Название свойства, которое соответствует данной

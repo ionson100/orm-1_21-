@@ -24,7 +24,11 @@ namespace ORM_1_21_.Attribute
         /// <summary>
         /// Название колонки первичного 
         /// </summary>
-        internal String ColumnNameForRider => Utils.ClearTrim(ColumnName);
+        internal String ColumnNameForRider(ProviderName providerName)
+        {
+          return  Utils.ClearTrim(GetColumnName(providerName));
+
+        }
 
 
         /// <summary>

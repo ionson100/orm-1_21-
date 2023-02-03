@@ -4,12 +4,19 @@ using System.Drawing;
 using System.IO;
 using System.Text;
 
-
 namespace ORM_1_21_
 {
     internal class UtilsBulkMsSql
     {
-        public static string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
+        private readonly ProviderName providerName;
+
+        public UtilsBulkMsSql(ProviderName providerName)
+        {
+            this.providerName = providerName;
+         
+        }
+
+        public  string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
             if (fileCsv != null)
             {
@@ -18,12 +25,12 @@ namespace ORM_1_21_
 
             return GetSimpleSql2(list);
         }
-        public static string GetSql<T>(IEnumerable<T> list)
+        public  string GetSql<T>(IEnumerable<T> list)
         {
             return GetSimpleSql2(list);
         }
 
-        private static string GetSqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
+        private  string GetSqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
             var tableName = AttributesOfClass<T>.TableName;
             StringBuilder sql = new StringBuilder("bulk insert " + tableName);
@@ -39,12 +46,12 @@ namespace ORM_1_21_
             StringBuilder rowHead = new StringBuilder();
             if (isAddPk == true)
             {
-                rowHead.Append(AttributesOfClass<T>.PkAttribute.ColumnName.Trim(new[] { '[', ']', '`' }))
+                rowHead.Append(AttributesOfClass<T>.PkAttribute.GetColumnName(providerName).Trim(new[] { '[', ']', '`' }))
                     .Append(";");
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
-                rowHead.Append(map.ColumnName.Trim(new[] { '[', ']', '`' })).Append(";");
+                rowHead.Append(map.GetColumnName(providerName).Trim(new[] { '[', ']', '`' })).Append(";");
             }
 
             builder.Append(rowHead.ToString().Substring(0, rowHead.ToString().LastIndexOf(';')))
@@ -74,7 +81,7 @@ namespace ORM_1_21_
 
 
 
-        private static string GetSimpleSql2<T>(IEnumerable<T> list)
+        private  string GetSimpleSql2<T>(IEnumerable<T> list)
         {
             bool isAddPk = AttributesOfClass<T>.PkAttribute.Generator != Generator.Native;
             StringBuilder builder = new StringBuilder("INSERT INTO");
@@ -83,7 +90,7 @@ namespace ORM_1_21_
             StringBuilder headBuilder = new StringBuilder();
             if (isAddPk == true)
             {
-                headBuilder.Append(AttributesOfClass<T>.PkAttribute.ColumnName).Append(",");
+                headBuilder.Append(AttributesOfClass<T>.PkAttribute.GetColumnName(providerName)).Append(",");
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
@@ -91,7 +98,7 @@ namespace ORM_1_21_
                 {
                     continue;
                 }
-                headBuilder.Append(map.ColumnName).Append(",");
+                headBuilder.Append(map.GetColumnName(providerName)).Append(",");
             }
 
             builder.Append(headBuilder.ToString().Substring(0, headBuilder.ToString().LastIndexOf(',')));
@@ -106,7 +113,7 @@ namespace ORM_1_21_
                 {
                     var o = AttributesOfClass<T>.GetValue.Value[AttributesOfClass<T>.PkAttribute.PropertyName](ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute.PropertyName].PropertyType;
-                    row.Append(UtilsBulkMySql.GetValue(o, type)).Append(",");
+                    row.Append(new UtilsBulkMySql(providerName).GetValue(o, type)).Append(",");
                 }
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
                 {
@@ -116,7 +123,7 @@ namespace ORM_1_21_
                     {
                         continue;
                     }
-                    string str = UtilsBulkMySql.GetValue(o, type);
+                    string str = new UtilsBulkMySql(providerName).GetValue(o, type);
                     row.Append(str).Append(",");
                 }
                 builder.AppendLine(row.ToString().Substring(0, row.ToString().LastIndexOf(',')));
@@ -126,7 +133,7 @@ namespace ORM_1_21_
             return "SET DATEFORMAT YMD;" + res;
         }
 
-        public static string InsertFile<T>(string fileCsv, string fieldterminator)
+        public static  string InsertFile<T>(string fileCsv, string fieldterminator)
         {
             StringBuilder sql = new StringBuilder("bulk insert " + AttributesOfClass<T>.TableName);
             sql.AppendLine($"from '{fileCsv}'");

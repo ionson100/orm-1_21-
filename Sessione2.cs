@@ -8,7 +8,7 @@ namespace ORM_1_21_
 {
     public sealed partial class Sessione
     {
-
+        private IOtherDataBaseFactory _factory;
         private bool _isDispose;
         internal readonly Transactionale Transactionale = new Transactionale();
 
@@ -18,6 +18,18 @@ namespace ORM_1_21_
             set => Transactionale.Transaction = value;
         }
 
+        public ProviderName GetCurrentProviderName()
+        {
+            if (_factory == null)
+            {
+                return Configure.Provider;
+            }
+            else
+            {
+               return _factory.GetProviderName();
+            }
+        }
+
 
         /// <summary>
         /// Конструктор 
@@ -25,11 +37,23 @@ namespace ORM_1_21_
         /// <param name="connectionString">Строка соединения с базой</param>
         public Sessione(string connectionString)
         {
-            _connect = ProviderFactories.GetConnect();// dF.CreateConnection();
+            _connect = ProviderFactories.GetConnect(GetCurrentProviderName());// dF.CreateConnection();
             _connect.ConnectionString = connectionString;
+        }
+        /// <summary>
+        /// Конструктор для подключения к бругой базе
+        /// </summary>
+       
+        public Sessione(IOtherDataBaseFactory factory)
+        {
+            _factory = factory;
+            _connect = factory.GetDbConnection();
+            _connect.ConnectionString = factory.GetConnectionString();
         }
 
         private readonly IDbConnection _connect;
+
+      
 
         private static void NotificAfter<T>(T item, ActionMode mode) where T : class
         {
@@ -123,15 +147,15 @@ namespace ORM_1_21_
             com.Transaction = Transaction;
         }
 
-        internal static void AddParam(IDbCommand com, object[] obj)
+        internal static void AddParam(IDbCommand com,ProviderName providerName, object[] obj)
         {
             if (obj == null) return;
             string sql = com.CommandText;
-            var ss = sql.Split(Utils.Prefparam.ToArray(), StringSplitOptions.RemoveEmptyEntries);
+            var ss = sql.Split(Utils.Prefparam(providerName).ToArray(), StringSplitOptions.RemoveEmptyEntries);
             if (ss.Length - 1 != obj.Length)
                 throw new ArgumentException("не совпадает количество параметров");
 
-            var list = Regex.Matches(sql, @"\" + Utils.Prefparam + @"\w+").Cast<Match>().Select(m => m.Value).ToList();
+            var list = Regex.Matches(sql, @"\" + Utils.Prefparam(providerName) + @"\w+").Cast<Match>().Select(m => m.Value).ToList();
             if (list.Count != obj.Length)
             {
                 throw new Exception($"Количество параметров в sql запросе {list} не совпадает с количеством параметров переданных в метод {obj.Length}");

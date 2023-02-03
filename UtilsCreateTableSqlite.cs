@@ -4,30 +4,31 @@ using System.Text;
 
 namespace ORM_1_21_
 {
-    internal class UtilsCreateTableMySql
+    internal class UtilsCreateTableSqlite
     {
-        public static string Create<T>()
+        public static string Create<T>(ProviderName providerName)
         {
             StringBuilder builder = new StringBuilder();
 
             var tableName = AttributesOfClass<T>.TableName;
             tableName = tableName.Replace("[", "").Replace("]", "").Replace("`", "");
-            builder.AppendLine($"CREATE TABLE IF NOT EXISTS `{tableName}` (");
+            builder.AppendLine($"CREATE TABLE  {tableName} (");
             var pk = AttributesOfClass<T>.PkAttribute;
+            if (pk.Generator == Generator.Native)
+            {
+                //
+                builder.AppendLine($" {pk.ColumnNameForRider(providerName)}  INTEGER PRIMARY KEY AUTOINCREMENT,");
+            }
+            else
+            {
+                builder.AppendLine($" {pk.ColumnNameForRider(providerName)}  {GetTypeColumn(pk.TypeColumn)}  PRIMARY KEY,");
+            }
 
 
-            builder.AppendLine($" `{pk.ColumnNameForRider}` {GetTypeMySql(pk.TypeColumn)}  PRIMARY KEY {(pk.Generator == Generator.Native ? "AUTO_INCREMENT" : "")},");
+
             foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
             {
-                string typeColumn = map.TypeString;
-                if (typeColumn == null)
-                {
-                    typeColumn = GetTypeMySql(map.TypeColumn);
-                }
-
-                builder.AppendLine($" `{map.ColumnNameForReader}` {typeColumn} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
-
-
+                builder.AppendLine($" {map.ColumnNameForReader(providerName)} {GetTypeColumn(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
             }
 
 
@@ -35,11 +36,11 @@ namespace ORM_1_21_
             str2 = str2.Substring(0, str2.LastIndexOf(','));
             builder.Clear();
             builder.Append(str2);
-            builder.AppendLine(");").Append(AttributesOfClass<T>.GetTypeTable<T>());
+            builder.AppendLine(");");
 
+            //CREATE INDEX index_name ON table_name (column_name);
 
-
-            StringBuilder indexBuilder = new StringBuilder($"ALTER TABLE `{tableName}` ADD INDEX `INDEX_{tableName}` (");
+            StringBuilder indexBuilder = new StringBuilder($"CREATE INDEX INDEX_{tableName} ON {tableName} (");
 
             bool add = false;
             foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
@@ -47,7 +48,7 @@ namespace ORM_1_21_
                 if (map.IsIndex)
                 {
                     add = true;
-                    indexBuilder.AppendLine(map.ColumnName).Append(",");
+                    indexBuilder.AppendLine(map.GetColumnName(providerName)).Append(",");
                 }
             }
 
@@ -58,56 +59,56 @@ namespace ORM_1_21_
             }
             return builder.ToString();
         }
-        private static string GetTypeMySql(Type type)
+        private static string GetTypeColumn(Type type)
         {
             if (type == typeof(Guid) || type == typeof(Guid?))
             {
-                return "VARCHAR(36)";
+                return "TEXT";
             }
             if (type == typeof(long) || type == typeof(long?))
             {
-                return "BIGINT";
+                return "NUM";
             }
 
             if (type == typeof(int) || type.BaseType == typeof(Enum) || type == typeof(int?) || type == typeof(uint) || type.BaseType == typeof(uint?))
             {
-                return "INT(11)";
+                return "INT";
             }
             if (type == typeof(short) || type.BaseType == typeof(short?))
             {
-                return "SMALLINT";
+                return "INT";
             }
             if (type == typeof(bool) || type == typeof(bool?))
             {
-                return "TINYINT(1)";
+                return "INT";
             }
             if (type == typeof(decimal) || type == typeof(decimal?))
             {
-                return "DECIMAL(10,2)";
+                return "REAL";
             }
             if (type == typeof(float) || type == typeof(float?))
             {
-                return "FLOAT";
+                return "REAL";
             }
 
             if (type == typeof(double) || type == typeof(double?))
             {
-                return "DOUBLE";
+                return "REAL";
             }
 
             if (type == typeof(DateTime) || type == typeof(DateTime?))
             {
-                return "DATETIME";
+                return "TEXT";
             }
 
             if (type.BaseType == typeof(Enum))
             {
-                return "ENUM";
+                return "INT";
             }
 
             if (type == typeof(string))
             {
-                return "VARCHAR(256)";
+                return "TEXT";
             }
 
             if (type == typeof(System.Drawing.Image) || type == typeof(byte[]))
@@ -118,5 +119,6 @@ namespace ORM_1_21_
             return "TEXT";
 
         }
+
     }
 }

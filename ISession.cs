@@ -299,29 +299,29 @@ namespace ORM_1_21_
         /// Получение перечисления из чужой базы
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="commandFactory"></param>
+        /// <param name="factory"></param>
         /// <param name="sql">Строка запроса</param>
         /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
         /// <returns></returns>
-        IEnumerable<T> GetListOtherBase<T>(IOtherBaseCommandFactory commandFactory, string sql, params object[] param);
+        IEnumerable<T> GetListOtherBase<T>(IOtherDataBaseFactory factory, string sql, params object[] param);
 
         /// <summary>
         /// Выполнение ExecuteScalar  к чужой базе
         /// </summary>
-        /// <param name="commandFactory"></param>
+        /// <param name="factory"></param>
         /// <param name="sql">Строка запроса</param>
         /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
         /// <returns></returns>
-        object GetObjectOtherBase(IOtherBaseCommandFactory commandFactory, string sql, params object[] param);
+        object GetObjectOtherBase(IOtherDataBaseFactory factory, string sql, params object[] param);
 
         /// <summary>
         /// Выполнение запроса ExecuteNonQuery к чужой базе
         /// </summary>
-        /// <param name="commandFactory"></param>
+        /// <param name="factory"></param>
         /// <param name="sql">Строка запроса</param>
         /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
         /// <returns></returns>
-        int ExecuteNonQueryOtherBase(IOtherBaseCommandFactory commandFactory, string sql, params object[] param);
+        int ExecuteNonQueryOtherBase(IOtherDataBaseFactory factory, string sql, params object[] param);
 
 
     }

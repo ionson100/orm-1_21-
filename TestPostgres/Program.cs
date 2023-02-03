@@ -16,7 +16,9 @@ namespace TestPostgres
 
         static async Task Main(string[] args)
         {
+            
             Starter.Run();
+            var mysql = Configure.GetSession<MyDb>().Querion<MyClassMysql>().ToList();
 
             MyClass myClass = new MyClass()
             {
@@ -86,7 +88,7 @@ namespace TestPostgres
                 session.Dispose();
             }
 
-            var sd5 = Configure.Session.GetListOtherBase<MyClass>(new MyDb(), "select * from my_class where name<> @1","100");
+            //var sd5 = Configure.Session.GetListOtherBase<MyClass>(new MyDb(), "select * from my_class where name<> @1","100");
 
             foreach (var r in Configure.Session.FreeSql<MyEnum>("select enum as enum1 from my_class"))
             {
@@ -160,12 +162,28 @@ namespace TestPostgres
 
     }
 
-    class MyDb:IOtherBaseCommandFactory
+    class MyDb:IOtherDataBaseFactory
     {
+       
         public IDbCommand GetDbCommand()
         {
             
             return new MySqlCommand("SET character_set_results=utf8;", new MySqlConnection("Server=localhost;Database=test;Uid=root;Pwd=12345;"));
+        }
+
+        public ProviderName GetProviderName()
+        {
+            return ProviderName.MySql;
+        }
+
+        public IDbConnection GetDbConnection()
+        {
+            return new MySqlConnection();
+        }
+
+        public string GetConnectionString()
+        {
+            return "Server=localhost;Database=test;Uid=root;Pwd=12345;";
         }
     }
     [MapTableName("nomap")]
@@ -211,7 +229,19 @@ namespace TestPostgres
     }
 
     [MapTableName("my_class")]
-    class MyClass : IValidateDal<MyClass>, IActionDal<MyClass>
+    class MyClass :MyClassBase
+    {
+
+    }
+    //[MapTableDataBase(typeof(MyDb))]
+    [MapProviderName(ProviderName.MySql)]
+    [MapTableName("my_class")]
+    class MyClassMysql : MyClassBase
+    {
+
+    }
+
+    class MyClassBase
     {
         [MapPrimaryKey("id", Generator.Assigned)]
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -236,42 +266,9 @@ namespace TestPostgres
 
         [MapColumnName("test")]
         public List<MyTest> Test23 { get; set; } = new List<MyTest>() { new MyTest() { Name = "simple" }
-    };
+        };
 
-        void IActionDal<MyClass>.AfterDelete(MyClass item)
-        {
-
-        }
-
-        void IActionDal<MyClass>.AfterInsert(MyClass item)
-        {
-
-        }
-
-        void IActionDal<MyClass>.AfterUpdate(MyClass item)
-        {
-
-        }
-
-        void IActionDal<MyClass>.BeforeDelete(MyClass item)
-        {
-
-        }
-
-        void IActionDal<MyClass>.BeforeInsert(MyClass item)
-        {
-
-        }
-
-        void IActionDal<MyClass>.BeforeUpdate(MyClass item)
-        {
-
-        }
-
-        void IValidateDal<MyClass>.Validate(MyClass item)
-        {
-
-        }
+    
     }
 
     class MyTest

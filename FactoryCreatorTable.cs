@@ -7,18 +7,18 @@ namespace ORM_1_21_
     /// </summary>
     internal class FactoryCreatorTable
     {
-        public string SqlCreate<T>()
+        public string SqlCreate<T>(ProviderName providerName)
         {
-            switch (Configure.Provider)
+            switch (providerName)
             {
                 case ProviderName.MySql:
-                    return UtilsCreateTableMySql.Create<T>();
+                    return UtilsCreateTableMySql.Create<T>(providerName);
                 case ProviderName.MsSql:
-                    return UtilsCreateTableMsSql.Create<T>();
+                    return UtilsCreateTableMsSql.Create<T>(providerName);
                 case ProviderName.Postgresql:
-                    return UtilsCreateTablePostgres.Create<T>();
+                    return UtilsCreateTablePostgres.Create<T>(providerName);
                 case ProviderName.Sqlite:
-                    return UtilsCreateTableSqlite.Create<T>();
+                    return UtilsCreateTableSqlite.Create<T>(providerName);
                 default:
                     return null;
             }

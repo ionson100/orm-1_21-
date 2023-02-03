@@ -18,20 +18,22 @@ namespace ORM_1_21_.Linq.MySql
         private StringBuilder _sb = new StringBuilder();
         private int _paramIndex;
         private string _paramStringName = "p";
+        private ProviderName _providerName;
 
         private bool PingComposite(Evolution eval)
         {
             return _listOne.Any(a => a.Operand == eval);
         }
 
-        public QueryTranslator()
+        public QueryTranslator(ProviderName name)
         {
+            _providerName = name;
             Param = new Dictionary<string, object>();
         }
 
         private string ParamName
         {
-            get { return string.Format("{0}{1}", string.Format("{1}{0}", ParamStringName, Utils.Prefparam), ++_paramIndex); }
+            get { return string.Format("{0}{1}", string.Format("{1}{0}", ParamStringName, Utils.Prefparam(_providerName)), ++_paramIndex); }
         }
 
         private string GetColumnName(string member, Type type)
@@ -77,7 +79,7 @@ namespace ORM_1_21_.Linq.MySql
             _currentEvalytion = 0;
             Visit(expression);
             ev = CurrentEvalytion;
-            var dd = new MySqlConstructorSql().GetStringSql<T>(ListOne);//,_joinCapital
+            var dd = new MySqlConstructorSql(_providerName).GetStringSql<T>(ListOne,_providerName);//,_joinCapital
             return dd;
         }
 
@@ -106,7 +108,7 @@ namespace ORM_1_21_.Linq.MySql
             if (ev == Evolution.Limit)
             {
                 if (paramList != null && paramList.Count == 2)
-                    if (Configure.Provider == ProviderName.Postgresql || Configure.Provider == ProviderName.Sqlite)
+                    if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
                     {
                         ListOne.Add(new OneComprosite { Operand = Evolution.Limit, Body = string.Format(" Limit {1} OFFSET {0}", paramList[0], paramList[1]) });
                     }
@@ -397,7 +399,7 @@ namespace ORM_1_21_.Linq.MySql
                     case "StartsWith":
                         StringB.Append("(");
                         Visit(m.Object);
-                        if (Configure.Provider == ProviderName.Sqlite)
+                        if (_providerName == ProviderName.Sqlite)
                         {
                             StringB.AppendFormat(" {0} ", StringConst.Like);
                             Visit(m.Arguments[0]);
@@ -417,7 +419,7 @@ namespace ORM_1_21_.Linq.MySql
                             return m;
                         }
                     case "EndsWith":
-                        if (Configure.Provider == ProviderName.Sqlite)
+                        if (_providerName == ProviderName.Sqlite)
                         {
                             StringB.Append("(");
                             Visit(m.Object);
@@ -435,7 +437,7 @@ namespace ORM_1_21_.Linq.MySql
                         }
                         return m;
                     case "Contains":
-                        if (Configure.Provider == ProviderName.Sqlite)
+                        if (_providerName == ProviderName.Sqlite)
                         {
                             StringB.Append("(");
                             Visit(m.Object);
@@ -809,7 +811,7 @@ namespace ORM_1_21_.Linq.MySql
                 }
                 else
                 {
-                    sb.AppendFormat("{0}.{1}", AttributesOfClass<T>.TableName, AttributesOfClass<T>.PkAttribute.ColumnName);
+                    sb.AppendFormat("{0}.{1}", AttributesOfClass<T>.TableName, AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName));
                 }
 
 
@@ -988,7 +990,8 @@ namespace ORM_1_21_.Linq.MySql
                     var o = new OneComprosite
                     {
                         Operand = Evolution.OrderBy,
-                        Body = string.Format(" {0}.{1} DESC LIMIT 1", AttributesOfClass<T>.TableName, AttributesOfClass<T>.PkAttribute.ColumnName)
+                        Body = string.Format(" {0}.{1} DESC LIMIT 1", AttributesOfClass<T>.TableName, 
+                            AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName))
                     };
                     ListOne.Add(o);
                 }
@@ -1360,7 +1363,7 @@ namespace ORM_1_21_.Linq.MySql
                 switch (Type.GetTypeCode(c.Value.GetType()))
                 {
                     case TypeCode.Boolean:
-                        if (Configure.Provider == ProviderName.Postgresql)
+                        if (_providerName == ProviderName.Postgresql)
                         {
                             StringB.Append(((bool)c.Value));
                         }
@@ -1386,7 +1389,7 @@ namespace ORM_1_21_.Linq.MySql
                                 var propertyname = AttributesOfClass<T>.PkAttribute.PropertyName;
                                 var value = AttributesOfClass<T>.GetValue.Value[propertyname](o);
                                 var tablenane = AttributesOfClass<T>.TableName;
-                                var key = AttributesOfClass<T>.PkAttribute.ColumnName;
+                                var key = AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName);
                                 StringB.Append(string.Format("({0}.{1} = '{2}')", tablenane, key, value));
                                 break;
                             }

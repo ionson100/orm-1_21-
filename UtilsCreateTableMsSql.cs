@@ -7,7 +7,7 @@ namespace ORM_1_21_
 {
     internal class UtilsCreateTableMsSql
     {
-        public static string Create<T>()
+        public static string Create<T>(ProviderName providerName)
         {
             var tableName = AttributesOfClass<T>.TableName;
             tableName = tableName.Replace("[", "").Replace("]", "");
@@ -17,12 +17,12 @@ namespace ORM_1_21_
             if (pk.Generator == Generator.Native)
             {
 
-                builder.AppendLine($"[{pk.ColumnNameForRider}] {GetTypeMsSQl(pk.TypeColumn)} IDENTITY(1,1) NOT NULL PRIMARY KEY,");
+                builder.AppendLine($"[{pk.ColumnNameForRider(providerName)}] {GetTypeMsSQl(pk.TypeColumn)} IDENTITY(1,1) NOT NULL PRIMARY KEY,");
             }
             if (pk.Generator == Generator.Assigned)
             {
 
-                builder.AppendLine($"[{pk.ColumnNameForRider}] uniqueIdentifier default (newId()) primary key,");
+                builder.AppendLine($"[{pk.ColumnNameForRider(providerName)}] uniqueIdentifier default (newId()) primary key,");
             }
 
 
@@ -31,11 +31,11 @@ namespace ORM_1_21_
                 var typeUser = map.TypeString;
                 if (typeUser == null)
                 {
-                    builder.AppendLine($" [{map.ColumnNameForReader}] {GetTypeMsSQl(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
+                    builder.AppendLine($" [{map.ColumnNameForReader(providerName)}] {GetTypeMsSQl(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
                 }
                 else
                 {
-                    builder.AppendLine($" [{map.ColumnNameForReader}] {typeUser} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
+                    builder.AppendLine($" [{map.ColumnNameForReader(providerName)}] {typeUser} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
                 }
 
             }
@@ -48,7 +48,7 @@ namespace ORM_1_21_
                 if (map.IsIndex)
                 {
                     add = true;
-                    indexBuilder.AppendLine(map.ColumnName).Append(",");
+                    indexBuilder.AppendLine(map.GetColumnName(providerName)).Append(",");
                 }
 
             }
