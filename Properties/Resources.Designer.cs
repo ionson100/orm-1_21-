@@ -19,7 +19,7 @@ namespace ORM_1_21_.Properties {
     // с помощью такого средства, как ResGen или Visual Studio.
     // Чтобы добавить или удалить член, измените файл .ResX и снова запустите ResGen
     // с параметром /str или перестройте свой проект VS.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -57,20 +57,6 @@ namespace ORM_1_21_.Properties {
             }
             set {
                 resourceCulture = value;
-            }
-        }
-        
-        /// <summary>
-        ///   Ищет локализованную строку, похожую на &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
-        ///&lt;SQL&gt;
-        ///  &lt;MSSql pref=&quot;SELECT IDENT_CURRENT (&apos;{1}&apos;);&quot; prefparam=&quot;@&quot;/&gt;
-        ///  &lt;MySql pref=&quot;;SELECT LAST_INSERT_ID()&quot; prefparam=&quot;?&quot;/&gt;
-        ///&lt;/SQL&gt;
-        ///.
-        /// </summary>
-        internal static string SQL {
-            get {
-                return ResourceManager.GetString("SQL", resourceCulture);
             }
         }
     }

@@ -10,10 +10,10 @@ namespace ORM_1_21_
         {
             StringBuilder builder = new StringBuilder();
 
-            var tableName = AttributesOfClass<T>.TableName;
+            var tableName = AttributesOfClass<T>.TableName(providerName);
             tableName = tableName.Replace("[", "").Replace("]", "").Replace("`", "");
             builder.AppendLine($"CREATE TABLE  {tableName} (");
-            var pk = AttributesOfClass<T>.PkAttribute;
+            var pk = AttributesOfClass<T>.PkAttribute(providerName);
             if (pk.Generator == Generator.Native)
             {
                 //
@@ -26,7 +26,7 @@ namespace ORM_1_21_
 
 
 
-            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
                 builder.AppendLine($" {map.ColumnNameForReader(providerName)} {GetTypeColumn(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
             }
@@ -43,7 +43,7 @@ namespace ORM_1_21_
             StringBuilder indexBuilder = new StringBuilder($"CREATE INDEX INDEX_{tableName} ON {tableName} (");
 
             bool add = false;
-            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
                 if (map.IsIndex)
                 {

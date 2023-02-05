@@ -32,7 +32,7 @@ namespace ORM_1_21_
 
         private  string GetSqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
-            var tableName = AttributesOfClass<T>.TableName;
+            var tableName = AttributesOfClass<T>.TableName(providerName);
             StringBuilder sql = new StringBuilder("bulk insert " + tableName);
             sql.AppendLine($"from '{fileCsv}'");
             sql.AppendLine(" with(");
@@ -41,15 +41,15 @@ namespace ORM_1_21_
             sql.AppendLine("ROWTERMINATOR = '\n'");
             sql.AppendLine(")");
             StringBuilder builder = new StringBuilder();
-            bool isAddPk = AttributesOfClass<T>.PkAttribute.Generator != Generator.Native;
+            bool isAddPk = AttributesOfClass<T>.PkAttribute(providerName).Generator != Generator.Native;
 
             StringBuilder rowHead = new StringBuilder();
             if (isAddPk == true)
             {
-                rowHead.Append(AttributesOfClass<T>.PkAttribute.GetColumnName(providerName).Trim(new[] { '[', ']', '`' }))
+                rowHead.Append(AttributesOfClass<T>.PkAttribute(providerName).GetColumnName(providerName).Trim(new[] { '[', ']', '`' }))
                     .Append(";");
             }
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
                 rowHead.Append(map.GetColumnName(providerName).Trim(new[] { '[', ']', '`' })).Append(";");
             }
@@ -64,12 +64,12 @@ namespace ORM_1_21_
                 StringBuilder row = new StringBuilder();
                 if (isAddPk == true)
                 {
-                    row.Append(AttributesOfClass<T>.GetValue.Value[AttributesOfClass<T>.PkAttribute.PropertyName](ob))
+                    row.Append(AttributesOfClass<T>.GetValueE(providerName, AttributesOfClass<T>.PkAttribute(providerName).PropertyName,ob))
                         .Append(";");
                 }
                 foreach (var keyValuePair in AttributesOfClass<T>.PropertyInfoList.Value)
                 {
-                    row.Append(AttributesOfClass<T>.GetValue.Value[keyValuePair.Value.Name](ob)).Append(";");
+                    row.Append(AttributesOfClass<T>.GetValueE(providerName, keyValuePair.Value.Name,ob)).Append(";");
                 }
 
                 string s = row.ToString().Substring(0, row.ToString().LastIndexOf(",", StringComparison.Ordinal)) + "\n";
@@ -83,16 +83,16 @@ namespace ORM_1_21_
 
         private  string GetSimpleSql2<T>(IEnumerable<T> list)
         {
-            bool isAddPk = AttributesOfClass<T>.PkAttribute.Generator != Generator.Native;
+            bool isAddPk = AttributesOfClass<T>.PkAttribute(providerName).Generator != Generator.Native;
             StringBuilder builder = new StringBuilder("INSERT INTO");
-            builder.Append(AttributesOfClass<T>.TableName);
+            builder.Append(AttributesOfClass<T>.TableName(providerName));
             builder.Append("(");
             StringBuilder headBuilder = new StringBuilder();
             if (isAddPk == true)
             {
-                headBuilder.Append(AttributesOfClass<T>.PkAttribute.GetColumnName(providerName)).Append(",");
+                headBuilder.Append(AttributesOfClass<T>.PkAttribute(providerName).GetColumnName(providerName)).Append(",");
             }
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
                 if (map.TypeColumn == typeof(Image) || map.TypeColumn == typeof(byte[]))
                 {
@@ -111,13 +111,13 @@ namespace ORM_1_21_
                 StringBuilder row = new StringBuilder("SELECT ");
                 if (isAddPk == true)
                 {
-                    var o = AttributesOfClass<T>.GetValue.Value[AttributesOfClass<T>.PkAttribute.PropertyName](ob);
-                    Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute.PropertyName].PropertyType;
+                    var o = AttributesOfClass<T>.GetValueE(providerName, AttributesOfClass<T>.PkAttribute(providerName).PropertyName,ob);
+                    Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute(providerName).PropertyName].PropertyType;
                     row.Append(new UtilsBulkMySql(providerName).GetValue(o, type)).Append(",");
                 }
-                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
+                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
                 {
-                    var o = AttributesOfClass<T>.GetValue.Value[map.PropertyName](ob);
+                    var o = AttributesOfClass<T>.GetValueE(providerName, map.PropertyName,ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
                     if (type == typeof(Image) || type == typeof(byte[]))
                     {
@@ -133,9 +133,9 @@ namespace ORM_1_21_
             return "SET DATEFORMAT YMD;" + res;
         }
 
-        public static  string InsertFile<T>(string fileCsv, string fieldterminator)
+        public static  string InsertFile<T>(string fileCsv, string fieldterminator,ProviderName providerName)
         {
-            StringBuilder sql = new StringBuilder("bulk insert " + AttributesOfClass<T>.TableName);
+            StringBuilder sql = new StringBuilder("bulk insert " + AttributesOfClass<T>.TableName(providerName));
             sql.AppendLine($"from '{fileCsv}'");
             sql.AppendLine(" with(");
             sql.AppendLine("FIRSTROW = 2,");

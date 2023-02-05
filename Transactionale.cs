@@ -6,7 +6,7 @@ namespace ORM_1_21_.Transaction
 {
     /// <summary>
     /// Тип контейнер,содержит данные для транзакции,
-    /// занятость трансакции, фабрику для транзакций
+    /// занятость транзакции, фабрику для транзакций
     /// </summary>
     internal class Transactionale : ITransaction
     {

@@ -91,18 +91,18 @@ namespace ORM_1_21_.Linq.MySql
                     else
                     {
                         if (!PingComposite(Evolution.Count))
-                            foreach (var i in AttributesOfClass<T>.CurrentTableAttributeDall)
+                            foreach (var i in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
                             {
                                 if (ii == 0)
                                     sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
-                                        AttributesOfClass<T>.TableName + "." +
-                                        AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName),
+                                        AttributesOfClass<T>.TableName(providerName) + "." +
+                                        AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName),
                                         listOne.Any(a => a.Operand == Evolution.DistinctCastom &&
-                                                         a.Body == AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName))
+                                                         a.Body == AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
                                             ? " Distinct "
                                             : ""));
                                 sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
-                                    AttributesOfClass<T>.TableName + "." + i.GetColumnName(_providerName),
+                                    AttributesOfClass<T>.TableName(providerName) + "." + i.GetColumnName(_providerName),
                                     listOne.Any(a => a.Operand == Evolution.DistinctCastom && a.Body == i.GetColumnName(_providerName))
                                         ? " Distinct "
                                         : ""));
@@ -119,7 +119,7 @@ namespace ORM_1_21_.Linq.MySql
             }
 
             sbb.Append(" FROM ");
-            sbb.Append(AttributesOfClass<T>.TableName);
+            sbb.Append(AttributesOfClass<T>.TableName(providerName));
 
             var ss = listOne.Where(a => a.Operand == Evolution.Where);
             foreach (var i in ss)

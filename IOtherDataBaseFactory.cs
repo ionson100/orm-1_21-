@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,28 +9,23 @@ using System.Threading.Tasks;
 namespace ORM_1_21_
 {
     /// <summary>
-    /// Обращение к чужой базе данных
+    /// Интерфейс для  обращение к чужой базе данных
     /// </summary>
     public interface IOtherDataBaseFactory
     {
         /// <summary>
-        /// Получение IDbCommand
-        /// </summary>
-        /// <returns></returns>
-        IDbCommand GetDbCommand();
-
-        /// <summary>
         /// Тип базы данных 
         /// </summary>
-        /// <returns></returns>
         ProviderName GetProviderName();
 
         /// <summary>
-        /// Получение IDbConnection
+        /// Получение Провайдера для выбранной базы данных
         /// </summary>
-        /// <returns></returns>
-        IDbConnection GetDbConnection();
+        DbProviderFactory GetDbProviderFactories();
 
+        /// <summary>
+        /// Строка подключения к базе данных
+        /// </summary>
         string GetConnectionString();
     }
 }

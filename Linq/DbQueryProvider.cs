@@ -29,13 +29,13 @@ namespace ORM_1_21_.Linq
         private bool _isStoredPr;
         private List<OneComprosite> _listOne;
         private Dictionary<string, object> _param;
-        private Dictionary<string, object> _paramAdd;
+        
 
         public DbQueryProvider(Sessione ses)
         {
             _sessione = ses;
             Sessione = ses;
-            _providerName = ses.GetCurrentProviderName();
+            _providerName = ses.MyProviderName;
         }
 
         public ISession Sessione { get; }
@@ -90,7 +90,6 @@ namespace ORM_1_21_.Linq
             IDataReader dataReader = null;
             var services = (IServiceSessions)Sessione;
             _com = services.CommandForLinq;
-
             _com.CommandType = CommandType.StoredProcedure;
             _com.CommandText = Translate(expression, out _);
             if (_providerName == ProviderName.MsSql)
@@ -109,7 +108,7 @@ namespace ORM_1_21_.Linq
             foreach (var p in _paramFreeStoredPr)
             {
                 sb.Append(string.Format(CultureInfo.CurrentCulture, "{0}-{1},", p.Name, p.Value));
-                IDataParameter pr = ProviderFactories.GetParameter(_providerName);
+                IDataParameter pr = _com.CreateParameter();
                 pr.Direction = p.Direction;
                 pr.ParameterName = p.Name;
                 pr.Value = p.Value;
@@ -122,7 +121,7 @@ namespace ORM_1_21_.Linq
                 dataReader = _com.ExecuteReader();
                 if (AttributesOfClass<TS>.IsValid)
                 {
-                    var lResult = AttributesOfClass<TS>.GetEnumerableObjects(dataReader,_providerName);
+                    var lResult = AttributesOfClass<TS>.GetEnumerableObjects(dataReader, _providerName);
                     foreach (var par in _com.Parameters)
                         if (((IDataParameter)par).Direction == ParameterDirection.InputOutput ||
                             ((IDataParameter)par).Direction == ParameterDirection.Output ||
@@ -193,6 +192,8 @@ namespace ORM_1_21_.Linq
             }
         }
 
+        
+
         public object ExecuteMonster<TS>(IDataReader dataReader)
         {
 
@@ -226,7 +227,7 @@ namespace ORM_1_21_.Linq
                     while (dataReader.Read())
                     {
                         for (var i = 0; i < dataReader.FieldCount; i++)
-                            AttributesOfClass<TS>.SetValueFreeSql.Value[dataReader.GetName(i)]((TS)employee,
+                            AttributesOfClass<TS>.SetValueFreeSqlE(_providerName, dataReader.GetName(i), (TS)employee,
                                 dataReader[i] == DBNull.Value ? null : dataReader[i]);
                         resDis.Add((TS)employee);
                     }
@@ -286,20 +287,12 @@ namespace ORM_1_21_.Linq
             }
 
             _com.Parameters.Clear();
-            if (_paramAdd != null)
-                foreach (var p in _paramAdd)
-                {
-                    sb.Append(string.Format(CultureInfo.CurrentCulture, "{0}-{1},", p.Key, p.Value));
-                    IDataParameter pr = ProviderFactories.GetParameter(_providerName);
-                    pr.ParameterName = p.Key;
-                    pr.Value = p.Value;
-                    //  _com.Parameters.Add(pr);
-                }
+           
 
             foreach (var p in _param)
             {
                 sb.Append(string.Format(CultureInfo.CurrentCulture, "{0}-{1},", p.Key, p.Value));
-                IDataParameter pr = ProviderFactories.GetParameter(_providerName);
+                IDataParameter pr = _com.CreateParameter();
                 pr.ParameterName = p.Key;
                 pr.Value = p.Value;
                 _com.Parameters.Add(pr);
@@ -307,7 +300,7 @@ namespace ORM_1_21_.Linq
 
             foreach (var p in _paramFree)
             {
-                IDataParameter pr = ProviderFactories.GetParameter(_providerName);
+                IDataParameter pr = _com.CreateParameter();
                 pr.ParameterName = p.Key;
                 pr.Value = p.Value;
                 _com.Parameters.Add(pr);
@@ -315,11 +308,10 @@ namespace ORM_1_21_.Linq
 
             foreach (var p in _paramFreeStoredPr)
             {
-                IDataParameter pr = ProviderFactories.GetParameter(_providerName);
+                IDataParameter pr = _com.CreateParameter();
                 pr.Direction = p.Direction;
                 pr.ParameterName = p.Name;
                 pr.Value = p.Value;
-                //  pr.SourceColumn = p.SourceColumn;
                 _com.Parameters.Add(pr);
             }
 
@@ -398,7 +390,7 @@ namespace ORM_1_21_.Linq
                             while (dataReader.Read())
                             {
                                 for (var i = 0; i < dataReader.FieldCount; i++)
-                                    AttributesOfClass<TS>.SetValueFreeSql.Value[dataReader.GetName(i)]((TS)employee,
+                                    AttributesOfClass<TS>.SetValueFreeSqlE(_providerName, dataReader.GetName(i), (TS)employee,
                                         dataReader[i] == DBNull.Value ? null : dataReader[i]);
                                 resDis.Add((TS)employee);
                             }
@@ -434,6 +426,7 @@ namespace ORM_1_21_.Linq
                         rObj = dataReader[0];
                         break;
                     }
+                    
 
                     dataReader.Dispose();
                     var res = Utils.Convertor<TS>(rObj);
@@ -531,11 +524,11 @@ namespace ORM_1_21_.Linq
                 if (_listOne.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
                 {
                     var lResult = AttributesOfClass<TS>.GetEnumerableObjectsGroupBy<T>(dataReader,
-                        _listOne.First(a => a.Operand == Evolution.GroupBy).ExpressionDelegate,_providerName);
+                        _listOne.First(a => a.Operand == Evolution.GroupBy).ExpressionDelegate, _providerName);
                     return lResult;
                 }
 
-                var resd = AttributesOfClass<T>.GetEnumerableObjects(dataReader,_providerName);
+                var resd = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                 bool isActive;
                 var dataSingl = Pizdaticus.SingleData(_listOne, resd, out isActive);
                 var ress2 = !isActive ? (object)resd : dataSingl;
@@ -559,7 +552,7 @@ namespace ORM_1_21_.Linq
             }
         }
 
-        private string Translate(Expression expression, out Evolution ev1) 
+        private string Translate(Expression expression, out Evolution ev1)
         {
             ITranslate sq;
             switch (_providerName)
@@ -580,13 +573,14 @@ namespace ORM_1_21_.Linq
                     throw new ArgumentOutOfRangeException();
             }
 
-           
+
             _listOne = sq.ListOne;
             _param = sq.Param;
             ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
-            var sql = sq.Translate(expression, out ev1);
-            return sql;
-         
+            string res = sq.Translate(expression, out ev1);
+           
+            return res;
+
         }
 
         private string TranslateString(Expression expression, out Evolution ev1)
@@ -613,8 +607,10 @@ namespace ORM_1_21_.Linq
             _listOne = sq.ListOne;
             _param = sq.Param;
             ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
-            var eee = sq.Translate(expression, out ev1);
-            return eee;
+            string res = sq.Translate(expression, out ev1);
+           
+
+            return res;
         }
 
         private string TranslateString(Expression expression, List<OneComprosite> comprosites,
@@ -638,7 +634,7 @@ namespace ORM_1_21_.Linq
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-           
+
 
             _listOne = sq.ListOne;
             _param = sq.Param;

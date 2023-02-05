@@ -38,7 +38,7 @@ namespace ORM_1_21_.Linq.MySql
 
         private string GetColumnName(string member, Type type)
         {
-            var ss = AttributesOfClass<T>.GetNameFieldForQuery(member, type);
+            var ss = AttributesOfClass<T>.GetNameFieldForQuery(member, type,_providerName);
             return ss;
 
         }
@@ -811,7 +811,8 @@ namespace ORM_1_21_.Linq.MySql
                 }
                 else
                 {
-                    sb.AppendFormat("{0}.{1}", AttributesOfClass<T>.TableName, AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName));
+                    sb.AppendFormat("{0}.{1}", AttributesOfClass<T>.TableName(_providerName), 
+                        AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName));
                 }
 
 
@@ -990,8 +991,8 @@ namespace ORM_1_21_.Linq.MySql
                     var o = new OneComprosite
                     {
                         Operand = Evolution.OrderBy,
-                        Body = string.Format(" {0}.{1} DESC LIMIT 1", AttributesOfClass<T>.TableName, 
-                            AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName))
+                        Body = string.Format(" {0}.{1} DESC LIMIT 1", AttributesOfClass<T>.TableName(_providerName), 
+                            AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
                     };
                     ListOne.Add(o);
                 }
@@ -1386,10 +1387,10 @@ namespace ORM_1_21_.Linq.MySql
                             if (c.Value is T && PingComposite(Evolution.Contains))
                             {
                                 var o = (T)c.Value;
-                                var propertyname = AttributesOfClass<T>.PkAttribute.PropertyName;
-                                var value = AttributesOfClass<T>.GetValue.Value[propertyname](o);
-                                var tablenane = AttributesOfClass<T>.TableName;
-                                var key = AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName);
+                                var propertyname = AttributesOfClass<T>.PkAttribute(_providerName).PropertyName;
+                                var value = AttributesOfClass<T>.GetValueE(_providerName, propertyname,o);
+                                var tablenane = AttributesOfClass<T>.TableName(_providerName);
+                                var key = AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName);
                                 StringB.Append(string.Format("({0}.{1} = '{2}')", tablenane, key, value));
                                 break;
                             }

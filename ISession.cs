@@ -1,4 +1,5 @@
-﻿using ORM_1_21_.Linq;
+﻿
+using ORM_1_21_.Linq;
 using ORM_1_21_.Transaction;
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace ORM_1_21_
         IEnumerable<T> GetList<T>(string sqlWhere, params object[] param) where T : class;
 
         /// <summary>
-        /// Для чужой базы из родственной DataBase type
+        /// Запрос на выборку 
         /// </summary>
         /// <param name="reader">IDataReader</param>
         /// <typeparam name="T"></typeparam>
@@ -35,14 +36,14 @@ namespace ORM_1_21_
         IEnumerable<T> GetListMonster<T>(IDataReader reader) where T : class;
 
         /// <summary>
-        /// Сохранение объекта в базе равно как вставка или изменение
+        /// Сохранение объекта в базе (insert or update), возвращает количество затронутых строк
         /// </summary>
         /// <typeparam name="T">Тип объекта</typeparam>
         /// <param name="item">Сохраняемый объект</param>
         int Save<T>(T item) where T : class;
 
         /// <summary>
-        /// Удаление объекта из базы, возвращаете количество удаленных объектов
+        /// Удаление объекта из базы, возвращаете количество удаленных строк
         /// </summary>
         /// <typeparam name="T">Тип удаляемого объекта</typeparam>
         /// <param name="item">Удаляемый объект</param>
@@ -51,14 +52,12 @@ namespace ORM_1_21_
         /// <summary>
         /// Получение объекта ITransaction с одновременно началом транзакции
         /// </summary>
-        /// <returns>ITransaction</returns>
         ITransaction BeginTransaction();
 
         /// <summary>
         /// Получение объекта ITransaction с одновременно началом транзакции
         /// </summary>
         /// <param name="value">Параметр изоляции транзакции</param>
-        /// <returns>ITransaction</returns>
         ITransaction BeginTransaction(IsolationLevel value);
 
         /// <summary>
@@ -72,71 +71,65 @@ namespace ORM_1_21_
         /// <summary>
         /// Создание таблицы
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        void TableCreate<T>() where T : class;
+        /// <typeparam name="T">Тип создаваемой таблицы</typeparam>
+        int TableCreate<T>() where T : class;
 
         /// <summary>
-        /// Получение DbCommand
+        /// Получение DbCommand в контексте сессии
         /// </summary>
-        /// <returns>DbCommand</returns>
         IDbCommand GeDbCommand();
 
         /// <summary>
         /// Удаление таблицы
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        void DropTable<T>() where T : class;
+        /// <typeparam name="T">Тип удаляемой таблицы</typeparam>
+        int DropTable<T>() where T : class;
 
         /// <summary>
         /// Проверка на существование таблицы в базе
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T">Тип проверяемой таблицы</typeparam>
         bool TableExists<T>() where T : class;
 
         /// <summary>
-        ///  Получение ExecuteReader ( закрываем сами)
+        ///  Получение результата запрос в виде ExecuteReader
         /// </summary>
         /// <param name="sql">Строка запроса</param>
         /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
-        /// <returns></returns>
         IDataReader ExecuteReader(string sql, params object[] param);
 
         /// <summary>
-        /// Получение ExecuteReader ( закрываем сами)
+        /// Получение ExecuteReader  c изменением времени выполнения  команды-запроса
         /// </summary>
         /// <param name="sql">Строка запроса</param>
         /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
         /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
-        /// <returns></returns>
         IDataReader ExecuteReaderT(string sql, int timeOut = 30, params object[] param);
 
         /// <summary>
-        /// Получение DataTable
+        /// Получение объекта DataTable
         /// </summary>
         /// <param name="sql">Строка запроса</param>
         /// <param name="timeout">Время ожидания выполнения команды (30 сек)</param>
-        /// <returns>DataTable</returns>
         DataTable GetDataTable(string sql, int timeout = 30);
 
         /// <summary>
-        /// Получение DataTable
+        /// Получение объекта DataTable
         /// </summary>
         /// <param name="sql">sql text</param>
         /// <param name="timeout">Время ожидания выполнения команды (30 сек)</param>
         /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
-        /// <returns>DataTable</returns>
         DataTable GetDataTable(string sql, int timeout = 30, params object[] param);
 
         /// <summary>
-        ///Возвращает список названия таблиц из базы
+        ///Возвращает список названия таблиц из  текущей  базы
         /// </summary>
-        /// <returns></returns>
         List<string> GetTableNames();
 
-        /// Создает базу данных
+        /// <summary>
+        /// Создание базы данных
+        /// </summary>
         /// <param name="baseName">название базы для Mysql  , путь до базы для Postgesql,Sqlite,MSSql</param>
-        /// <returns>-1 успешно</returns>
         int CreateBase(string baseName);
 
         /// <summary>
@@ -144,8 +137,8 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="list">Перечисление вставляемых объектов</param>
         /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
-        /// <typeparam name="T"></typeparam>
-        void InsertBulk<T>(IEnumerable<T> list, int timeOut = 30);
+        /// <typeparam name="T">Тип перечисления</typeparam>
+        int InsertBulk<T>(IEnumerable<T> list, int timeOut = 30);
 
         /// <summary>
         /// Вставка в базу пакетом, запрос записан в файл
@@ -154,36 +147,33 @@ namespace ORM_1_21_
         /// <param name="FIELDTERMINATOR"></param>
         /// <param name="timeOut"></param>
         /// <typeparam name="T">разделитель полей</typeparam>
-        void InsertBulkFromFile<T>(string fileCsv, string FIELDTERMINATOR = ";", int timeOut = 30);
+        int InsertBulkFromFile<T>(string fileCsv, string FIELDTERMINATOR = ";", int timeOut = 30);
 
         /// <summary>
         /// Возвращает первый элемент запроса
         /// </summary>
         /// <param name="sql">Строка запроса</param>
         /// <param name="obj">параметры запроса</param>
-        /// <returns></returns>
         object ExecuteScalar(string sql, params object[] obj);
 
         /// <summary>
-        /// Возвращает первый элемент запроса
+        /// Возвращает первый элемент запроса с параметром Время ожидания выполнения команды
         /// </summary>
         /// <param name="sql">Строка запроса</param>
         /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
         /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
-        /// <returns></returns>
         object ExecuteScalarT(string sql, int timeOut = 30, params object[] param);
 
         /// <summary>
         /// Пересоздание таблицы
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">Тип пере создаваемой таблицы</typeparam>
         int TruncateTable<T>();
 
         /// <summary>
         /// Выборка через Linq to Sql
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         Query<T> Querion<T>();
 
         /// <summary>
@@ -208,27 +198,19 @@ namespace ORM_1_21_
         /// <summary>
         /// Получение автономного IDbCommand, закрывать  вручную
         /// </summary>
-        /// <returns>IDbCommand</returns>
         IDbCommand GetCommand();
 
         /// <summary>
         /// Получение автономного соединения в контексте орм, закрывать и очищать вручную
         /// </summary>
-        /// <returns>IDbConnection</returns>
         IDbConnection GetConnection();
 
         /// <summary>
         /// Получение адаптера, автономного в контексте орм, закрывать и очищать вручную
         /// </summary>
-        /// <returns>IDbDataAdapter</returns>
         IDbDataAdapter GetDataAdapter();
 
-        /// <summary>
-        /// Получение параметра в контексте орм
-        /// </summary>
-        /// <returns></returns>
-        IDataParameter GetDataParameter();
-
+        
         /// <summary>
         /// Получение строки соединения в контексте работы орм
         /// </summary>
@@ -236,13 +218,15 @@ namespace ORM_1_21_
         string GetConnectionString();
 
         /// <summary>
+        /// выполняет sql-выражение и возвращает количество измененных записей
         /// </summary>
         /// <param name="sql">Строка запроса</param>
         /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
         int ExecuteNonQuery(string sql, params object[] param);
 
         /// <summary>
-        /// Выполнение ExecuteNonQuery
+        /// Выполняет sql-выражение и возвращает количество измененных записей
+        /// с параметром время ожидания выполнения команды
         /// </summary>
         /// <param name="sql">Строка запроса</param>
         /// <param name="timeOut">Время ожидания выполнения команды (30 сек)м</param>
@@ -252,23 +236,20 @@ namespace ORM_1_21_
         /// <summary>
         /// Получение названия таблицы, для построения sql запроса.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T">Тип таблицы</typeparam>
         string TableName<T>();
 
         /// <summary>
-        /// возвращает название поля для базы
+        /// Возвращает название поля для базы
         /// </summary>
         /// <param name="property"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T">Тип таблицы</typeparam>
         string ColumnName<T>(Expression<Func<T, object>> property);
 
         /// <summary>
         /// Получает SQL строку Insert
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T">Тип имеющий MapAttributes</typeparam>
         string GetSqlInsertCommand<T>(T t);
 
         /// <summary>
@@ -280,11 +261,11 @@ namespace ORM_1_21_
         string GetSqlDeleteCommand<T>(T t);
 
         /// <summary>
-        /// Клонирование объекта
+        /// Клонирование объекта через JSON
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="ob"></param>
-        /// <returns>T</returns>
+        /// <typeparam name="T">Тип клонируемого объекта</typeparam>
+        /// <param name="ob">Объект для клонирования</param>
+        /// <returns>Новый объект</returns>
         T Clone<T>(T ob);
 
         /// <summary>
@@ -292,37 +273,12 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="enumerable"></param>
         /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         string GetSqlForInsertBulk<T>(IEnumerable<T> enumerable);
-
         /// <summary>
-        /// Получение перечисления из чужой базы
+        /// Получает список полей таблицы
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="factory"></param>
-        /// <param name="sql">Строка запроса</param>
-        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
-        /// <returns></returns>
-        IEnumerable<T> GetListOtherBase<T>(IOtherDataBaseFactory factory, string sql, params object[] param);
-
-        /// <summary>
-        /// Выполнение ExecuteScalar  к чужой базе
-        /// </summary>
-        /// <param name="factory"></param>
-        /// <param name="sql">Строка запроса</param>
-        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
-        /// <returns></returns>
-        object GetObjectOtherBase(IOtherDataBaseFactory factory, string sql, params object[] param);
-
-        /// <summary>
-        /// Выполнение запроса ExecuteNonQuery к чужой базе
-        /// </summary>
-        /// <param name="factory"></param>
-        /// <param name="sql">Строка запроса</param>
-        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
-        /// <returns></returns>
-        int ExecuteNonQueryOtherBase(IOtherDataBaseFactory factory, string sql, params object[] param);
-
-
+        IEnumerable<TableColumn> GetTableColumns<T>();
+      
     }
 }

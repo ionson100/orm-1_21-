@@ -102,6 +102,7 @@
     <Compile Include="Attribute\MapIndexAttribute.cs" />
     <Compile Include="Attribute\MapTableNameAttribute.cs" />
     <Compile Include="Attribute\MapTypeMysqlTableAttribite.cs" />
+    <Compile Include="TableColumn.cs" />
     <Compile Include="CallExp.cs" />
     <Compile Include="CommandNativePostgres.cs" />
     <Compile Include="DbTypeConverter.cs" />
@@ -117,7 +118,6 @@
     <Compile Include="IOtherDataBaseFactory.cs" />
     <Compile Include="Parametr.cs" />
     <Compile Include="Pizdaticus.cs" />
-    <Compile Include="PizdaticusOtherBase.cs" />
     <Compile Include="ProviderName.cs" />
     <Compile Include="ProviderFactories.cs" />
     <Compile Include="IServiceSessions.cs" />
@@ -170,7 +170,6 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="SQL.xml" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

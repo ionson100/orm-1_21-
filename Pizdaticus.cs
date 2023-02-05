@@ -19,7 +19,7 @@ namespace ORM_1_21_
             while (reader.Read())
             {
                 var d = (TObj)FormatterServices.GetSafeUninitializedObject(typeof(TObj));
-                foreach (var s in AttributesOfClass<TObj>.ListBaseAttr.Value)
+                foreach (var s in AttributesOfClass<TObj>.ListBaseAttrE(providerName))
                 {
                     try
                     {
@@ -35,7 +35,220 @@ namespace ORM_1_21_
                         var pr = AttributesOfClass<TObj>.PropertyInfoList.Value[s.PropertyName];
 
 
-                       PizdaticusOtherBase.NewMethod(pr, e, d,providerName);
+                        if (Utils.IsJsonType(pr.PropertyType))
+                        {
+                            var o = Utils.JsonToObject(e.ToString(), pr.PropertyType);
+                            AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,
+                                e == DBNull.Value ? null : o);
+                        }
+
+                        else if (pr.PropertyType == typeof(Image))
+                        {
+                            AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,
+                                e == DBNull.Value ? null : Utils.ImageFromByte((byte[])e));
+                        }
+                        else if (pr.PropertyType == typeof(bool))
+                        {
+                            if (e == DBNull.Value)
+                            {
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
+                            }
+                            else
+                            {
+                                var b = Convert.ToBoolean(e);
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, b);
+                            }
+                        }
+                        else if (pr.PropertyType == typeof(DateTime))
+                        {
+                            if (providerName == ProviderName.Sqlite)
+                            {
+                                DateTime dateTime = DateTime.Parse(e.ToString());
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, dateTime);
+                            }
+                            else
+                            {
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e);
+                            }
+                        }
+                        else if (pr.PropertyType == typeof(DateTime?))
+                        {
+                            if (providerName == ProviderName.Sqlite)
+                            {
+                                DateTime? dateTime = null;
+                                if (e != DBNull.Value)
+                                {
+                                    dateTime = DateTime.Parse(e.ToString());
+                                }
+
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, dateTime);
+                            }
+                            else
+                            {
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : e);
+                            }
+                        }
+                        else if (pr.PropertyType.BaseType == typeof(Enum))
+                        {
+                            var eres = Enum.Parse(pr.PropertyType, e.ToString());
+                            AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : eres);
+                        }
+                        else if (pr.PropertyType == typeof(Guid))
+                        {
+                            var eres = new Guid(e.ToString());
+                            AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? Guid.Empty : eres);
+                        }
+                        else if (pr.PropertyType == typeof(Guid?))
+                        {
+                            if (e == DBNull.Value)
+                            {
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
+                            }
+                            else
+                            {
+                                var resUuid = new Guid(e.ToString());
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, resUuid);
+                            }
+                        }
+                        else if (pr.PropertyType == typeof(float))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0f);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToSingle(e));
+                        }
+                        else if (pr.PropertyType == typeof(float?))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToSingle(e));
+                        }
+                        else if (pr.PropertyType == typeof(double))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToDouble(e));
+                        }
+                        else if (pr.PropertyType == typeof(double?))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToDouble(e));
+                        }
+                        else if (pr.PropertyType == typeof(decimal))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToDecimal(e));
+                        }
+                        else if (pr.PropertyType == typeof(decimal?))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToDecimal(e));
+                        }
+                        else if (pr.PropertyType == typeof(int))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToInt32(e));
+                        }
+                        else if (pr.PropertyType == typeof(int?))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToInt32(e));
+                        }
+                        else if (pr.PropertyType == typeof(uint))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToUInt32(e));
+                        }
+                        else if (pr.PropertyType == typeof(uint?))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToUInt32(e));
+                        }
+                        else if (pr.PropertyType == typeof(ushort))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToUInt16(e));
+                        }
+                        else if (pr.PropertyType == typeof(ushort?))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToUInt16(e));
+                        }
+                        else if (pr.PropertyType == typeof(ulong))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToUInt64(e));
+                        }
+                        else if (pr.PropertyType == typeof(ulong?))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToUInt64(e));
+                        }
+                        else if (pr.PropertyType == typeof(byte))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToByte(e));
+                        }
+                        else if (pr.PropertyType == typeof(byte?))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToByte(e));
+                        }
+                        else if (pr.PropertyType == typeof(sbyte))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToSByte(e));
+                        }
+                        else if (pr.PropertyType == typeof(sbyte?))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToSByte(e));
+                        }
+                        else
+                        {
+                            var tt = e.GetType();
+                            var tte = pr.PropertyType;
+                            try
+                            {
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : e);
+                            }
+                            catch (Exception exception)
+                            {
+                                Console.WriteLine(exception);
+                            }
+                        }
                     }
                     catch (Exception e)
                     {
@@ -230,7 +443,7 @@ namespace ORM_1_21_
                 while (read.Read())
                 {
                     var d = (TObj)FormatterServices.GetSafeUninitializedObject(typeof(TObj));
-                    foreach (var s in AttributesOfClass<TObj>.ListBaseAttr.Value)
+                    foreach (var s in AttributesOfClass<TObj>.ListBaseAttrE(providerName))
                     {
                         if (fied == null)
                             fied = Utils.ColumnExists(reader, s.ColumnNameAlias);
@@ -249,42 +462,41 @@ namespace ORM_1_21_
                         {
                             if (Utils.IsJsonType(pr.PropertyType))
                             {
-                                AttributesOfClass<TObj>.SetValue.Value[pr.Name](d,
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name,d,
                                     e == DBNull.Value
                                         ? null
                                         : Utils.JsonToObject(e.ToString(), pr.PropertyType));
                             }
                             else if (pr.PropertyType == typeof(Image))
                             {
-                                AttributesOfClass<TObj>.SetValue.Value[pr.Name](d,
-                                    e == DBNull.Value ? null : Utils.ImageFromByte((byte[])e));
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name,d,e == DBNull.Value ? null : Utils.ImageFromByte((byte[])e));
                             }
                             else if (pr.PropertyType == typeof(bool))
                             {
                                 if (e == DBNull.Value)
                                 {
-                                    AttributesOfClass<TObj>.SetValue.Value[pr.Name](d, null);
+                                    AttributesOfClass<TObj>.SetValueE(providerName, pr.Name,d, null);
                                 }
                                 else
                                 {
                                     var b = Convert.ToBoolean(e);
-                                    AttributesOfClass<TObj>.SetValue.Value[pr.Name](d, b);
+                                    AttributesOfClass<TObj>.SetValueE(providerName, pr.Name,d, b);
                                 }
                             }
                             else if (pr.PropertyType == typeof(DateTime))
                             {
                                 var tt = e.GetType();
-                                AttributesOfClass<TObj>.SetValue.Value[pr.Name](d, e == DBNull.Value ? null : e);
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : e);
                             }
                             else if (pr.PropertyType.BaseType == typeof(Enum))
                             {
                                 var eres = Enum.Parse(pr.PropertyType, e.ToString());
-                                AttributesOfClass<TObj>.SetValue.Value[pr.Name](d, e == DBNull.Value ? null : eres);
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : eres);
                             }
                             else if (pr.PropertyType == typeof(Guid))
                             {
                                 var eres = new Guid(e.ToString());
-                                AttributesOfClass<TObj>.SetValue.Value[pr.Name](d,
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name,d,
                                     e == DBNull.Value ? Guid.Empty : eres);
                             }
                             else
@@ -292,7 +504,7 @@ namespace ORM_1_21_
                                 var tt = e.GetType();
                                 var tte = pr.PropertyType;
 
-                                AttributesOfClass<TObj>.SetValue.Value[pr.Name](d, e == DBNull.Value ? null : e);
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : e);
                             }
                         }
                     }

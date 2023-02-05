@@ -7,6 +7,7 @@ namespace ORM_1_21_
     {
         IDbCommand CommandForLinq { get; }
         ProviderName CurrentProviderName { get; }
+ 
         object Locker { get; }
 
     }

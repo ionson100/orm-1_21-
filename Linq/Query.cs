@@ -19,10 +19,17 @@ namespace ORM_1_21_.Linq
     public sealed class Query<T> : IOrderedQueryable<T>, IGetTypeQuery, IInnerList
     {
         /// <summary>
-        /// 
+        /// Перебор коллекции
         /// </summary>
-        /// <returns></returns>
-        public object GetInnerList()
+        public void ForEach(Action<T> action)
+        {
+            foreach (var item in this)
+            {
+                action(item);
+            }
+        }
+        
+        object IInnerList.GetInnerList()
         {
             return _provider.Execute<T>(_expression);
         }
@@ -43,14 +50,8 @@ namespace ORM_1_21_.Linq
             _expression = Expression.Constant(this);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="provider"></param>
-        /// <param name="expression"></param>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public Query(QueryProvider provider, Expression expression)
+        
+        internal Query(QueryProvider provider, Expression expression)
         {
             if (expression == null)
             {
@@ -66,15 +67,7 @@ namespace ORM_1_21_.Linq
             _expression = expression;
         }
 
-        internal Query(QueryProvider provider, Expression expression, int i)
-        {
-            //if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
-            //{
-            //    throw new ArgumentOutOfRangeException("expression");
-            //}
-            _provider = provider ?? throw new ArgumentNullException("provider");
-            _expression = expression ?? throw new ArgumentNullException("expression");
-        }
+        
 
         Expression IQueryable.Expression
         {
@@ -102,26 +95,16 @@ namespace ORM_1_21_.Linq
 
         }
         /// <summary>
-        /// 
+        /// Текстовая интерпретация запроса к базе данных
         /// </summary>
-        /// <returns></returns>
         public override string ToString()
         {
             return _provider.GetQueryText(_expression);
         }
 
-
-
-
-        /// <summary>
-        /// Тип 
-        /// </summary>
-        /// <returns></returns>
-        public Type GetTypeQuery()
+        Type IGetTypeQuery.GetTypeQuery()
         {
             return typeof(T);
         }
-
-
     }
 }

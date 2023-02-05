@@ -1,7 +1,8 @@
 #### ORM-1_21
 ОРМ ( MySql,PostgreSQL,MSSQL,Sqlite)\
+Допускает обращение к разным базам данных (MSSQL,Postgresql,MySQL,Sqlite) из одного контекста приложения.\
 Реализация в стиле HiberNate;\
-При старте инициализируем Configure, проверяем создание таблиц (CodeFirst)\
+При старте инициализируем Configure,базой по умолчанию, проверяем создание таблиц (CodeFirst)\
 Потом из любого места обращаемся к базе.\
 Статическая инициализация:
 ```C#
@@ -32,11 +33,18 @@ INSERT INTO "my_class" ( "name","age","desc","enum","date","test") VALUES('ion10
 SELECT "my_class"."age"  FROM  "my_class" WHERE ((("my_class"."age" > @p1) or ("my_class"."name" LIKE CONCAT(@p2,'%'))) and ("my_class"."name" LIKE CONCAT('%',@p3,'%'))) ORDER BY "my_class"."age" Limit 2 OFFSET 0 params:  @p1 - 5  @p2 - ion100  @p3 - 100 
 SELECT "my_class"."id", "my_class"."name", "my_class"."age", "my_class"."desc", "my_class"."enum", "my_class"."date", "my_class"."test"  FROM  "my_class" WHERE ("my_class"."name" is not null) LIMIT 1
 ```
-Выбор типа базы, осуществляется вторым параметром конструктора.\
+Выбор типа базы по умолчанию, осуществляется вторым параметром конструктора.\
 Первый параметр - строка подключения: [ConnectionString](https://www.connectionstrings.com)\
 ОРМ предполагает автономное развертывание, исходя их этого требуется добавлении пакетов провайдера для\
 выбранной базы данных, через NuGet (Npgsql,Mysql.Data,System.Data.SQLite,System.Data.SqlClient)\
-Внимание: Для PostgreSQL, хранение даты осуществляется в старом режиме.
+**Внимание:Ограничения для PostgreSQL.**\
+Хранение даты осуществляется в старом режиме.\
+Корректировку:
+```C#
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+```
+ОРМ добавляет сама.
 ###### Мапинг таблиц.
 ```C#
  [MapTableName("my_class")]
@@ -127,7 +135,7 @@ FreeSql - быстрый запрос к базе ( не отложенный)\
  foreach (var r in Configure.Session.FreeSql<dynamic>("select enum as enum1,age from my_class"))
    Console.WriteLine($" enum1={r.enum1} age={r.age}");
 ```
-Запрос по нескольким полям или джойн, с типизированным перечислением.\
+Типизированный запрос по нескольким полям или джойн.\
 Обязательно нужно определить тип, свойства замапить атрибутами, имена колонок должны соответствовать\
 именам полей в запросе, равно и как количество.
 ```C#
@@ -157,7 +165,7 @@ FreeSql - быстрый запрос к базе ( не отложенный)\
  foreach (var r in TempSql(new { enum1 = 1, age = 2 }))
     Console.WriteLine($"{r}");
 ```
-Рефликсия для собирания результата запроса, реализована на компиляции деревьев выражений\
+Рефлексия для собирания результата запроса, реализована на компиляции деревьев выражений\
 [Тынц](https://github.com/ionson100/AccessGetSet)\
 Что дает хороший прирост производительности.
 ###### Интерфейсы.
@@ -176,7 +184,7 @@ FreeSql - быстрый запрос к базе ( не отложенный)\
 
         void IActionDal<T>.BeforeUpdate(T item){}
 
-        void IValidateDal<T>.Validate(T item){}// действуе перед вставкой и обновлением
+        void IValidateDal<T>.Validate(T item){}// действе перед вставкой и обновлением
     }
 ```
 Объект ( на основе маппинга) полученный из базы,\
@@ -184,7 +192,7 @@ FreeSql - быстрый запрос к базе ( не отложенный)\
 ```C#
 var isP = ses.IsPersistent(list[0]);
 ```
-сделать объект персистентным ( как бы получен из базы):
+сделать объект персистентным ( как бы он получен из базы):
 ```C#
 var o=new MyClass();
 ses.ToPersistent(o);
@@ -207,7 +215,7 @@ Error...\
         Console.WriteLine(res.Count());
       });
 ```
-Зпрос к базе не изменится.
+Запрос к базе не изменится.
 ```sql
 SELECT "my_class"."id", "my_class"."name", "my_class"."age", "my_class"."desc", "my_class"."enum", "my_class"."date", "my_class"."test" 
 FROM "my_class" WHERE ("my_class"."name" is not null)
@@ -231,4 +239,105 @@ FROM "my_class" WHERE ("my_class"."name" is not null)
    }
    
 ```
+###### Обращение к дугой базе данных.
+Для обращения к другой DB, есть метод получения сессии 
+```C#
+var session=Configure.GetSession<TS>()
+```
+Где TS тип который реализует интерфейс
+```C#
+  /// <summary>
+  ///Интерфейс для  обращение к чужой базе данных
+  /// </summary>
+ public interface IOtherDataBaseFactory
+ {
+    /// <summary>
+    /// Тип базы данных 
+    /// </summary>
+    ProviderName GetProviderName();
+
+    /// <summary>
+    /// Получение Провайдера для выбранной базы данных
+    /// </summary>
+    DbProviderFactory GetDbProviderFactories();
+
+    /// <summary>
+    /// Строка подключения к базе данных
+    /// </summary>
+    string GetConnectionString();
+ }
+```
+Если обращений к базе будет много , можно реализовать как singleton
+```C#
+class MyDbMySql : IOtherDataBaseFactory
+ {
+     private static readonly Lazy<DbProviderFactory> dbProviderFactory = new Lazy<DbProviderFactory>(() =>
+     {
+        return new MySqlClientFactory();
+     });
+     public ProviderName GetProviderName()
+     {
+         return ProviderName.MySql;
+     }
+     public string GetConnectionString()
+     {
+         return "Server=localhost;Database=test;Uid=root;Pwd=12345;";
+     }
+
+     public DbProviderFactory GetDbProviderFactories()
+     {
+         return dbProviderFactory.Value;
+     }
+ }
+```
+Пример реализации для приложения где орм настроена на Postgresql, а есть желание\
+обращаться и к MySql.
+```C#
+ class MyDbMySql : IOtherDataBaseFactory
+ {
+     public ProviderName GetProviderName()
+     {
+         return ProviderName.MySql;
+     }
+     public string GetConnectionString()
+     {
+         return "Server=localhost;Database=test;Uid=root;Pwd=12345;";
+     }
+
+     public DbProviderFactory GetDbProviderFactories()
+     {
+         return MySql.Data.MySqlClient.MySqlClientFactory.Instance;
+     }
+ }
+/*******************/
+var session=Configure.GetSession<MyDbMySql>();
+var r1 = session.Querion<MyClassMysql>().Where(d => d.Age != 123)
+                .Select(f => new { name = f.Name });
+var task = r1.ToListAsync();
+var mysql = await task;
+```
+Сессия открыта только для обращения к базе MySql.\
+Следует учитывать. ВАЖНО.\
+Если вы использовали тип, в примере MyClassMysql, к обращению к одной базе, к другой базе\
+этот тип в контексте App, уже обращаться не может (кэширование)\
+Если структура таблиц в разных базах одинакова можно сделать трюк с наследованием
+```C#
+class BaseMap
+{
+  [MapColumnName("id")]
+  public Guid Id { get; set; } = Guid.NewGuid();
+
+  [MapColumnName("name")]
+  public string Name { get; set; }
+}
+[MapTableName("my_class")]
+class TablePostgres:BaseMap{}
+
+[MapTableName("my_class")]
+class TableMysql:BaseMap{}
+```
+Один класс для обращения к Postgresql (TablePostgres)\
+Другой класс (TableMysql) для обращения к MySql.
+
+
 

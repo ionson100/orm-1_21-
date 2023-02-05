@@ -9,11 +9,11 @@ namespace ORM_1_21_
     {
         public static string Create<T>(ProviderName providerName)
         {
-            var tableName = AttributesOfClass<T>.TableName;
+            var tableName = AttributesOfClass<T>.TableName(providerName);
             tableName = tableName.Replace("[", "").Replace("]", "");
             StringBuilder builder = new StringBuilder($"IF not exists (select 1 from information_schema.tables where table_name = '{tableName}')");
             builder.AppendLine($"CREATE TABLE [dbo].[{tableName}](");
-            var pk = AttributesOfClass<T>.PkAttribute;
+            var pk = AttributesOfClass<T>.PkAttribute(providerName);
             if (pk.Generator == Generator.Native)
             {
 
@@ -26,7 +26,7 @@ namespace ORM_1_21_
             }
 
 
-            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
                 var typeUser = map.TypeString;
                 if (typeUser == null)
@@ -42,7 +42,7 @@ namespace ORM_1_21_
             StringBuilder indexBuilder = new StringBuilder($"CREATE INDEX [INDEX_{tableName}] ON [{tableName}] (");
 
             bool add = false;
-            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
 
                 if (map.IsIndex)

@@ -20,23 +20,19 @@ namespace ORM_1_21_
         {
             get
             {
-                if (_factory != null)
-                {
-                    IDbCommand comf = _factory.GetDbCommand();
-                    comf.Connection = _connect;
-                    return comf;
-                }
-                var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+               
+                var com = ProviderFactories.GetCommand(_factory);
                 com.Connection = _connect;
                 return com;
 
             }
         }
 
-        ProviderName IServiceSessions.CurrentProviderName => GetCurrentProviderName();
+        ProviderName IServiceSessions.CurrentProviderName => MyProviderName;
 
         object IServiceSessions.Locker { get; } = new object();
 
+        
 
 
         //Dictionary<int, BoxCache> IServiceSessions.CacheFirstLevel { get; } = new Dictionary<int, BoxCache>();
@@ -49,9 +45,9 @@ namespace ORM_1_21_
         public int Delete<T>(T item) where T : class
         {
             if (!Utils.IsPersistent(item)) return 0;
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
-            AttributesOfClass<T>.CreateDeleteCommand(com, item,GetCurrentProviderName());
+            AttributesOfClass<T>.CreateDeleteCommand(com, item,MyProviderName);
             try
             {
                 NotificBefore(item, ActionMode.Delete);
@@ -79,7 +75,7 @@ namespace ORM_1_21_
         /// <returns></returns>
         public IEnumerable<T> GetListMonster<T>(IDataReader reader) where T : class
         {
-            return AttributesOfClass<T>.GetEnumerableObjects(reader,GetCurrentProviderName());
+            return AttributesOfClass<T>.GetEnumerableObjects(reader,MyProviderName);
         }
 
         /// <summary>
@@ -115,10 +111,10 @@ namespace ORM_1_21_
         public IEnumerable<T> GetList<T>(string sqlWhere, params object[] param) where T : class
         {
             if (sqlWhere == null) sqlWhere = "";
-            var sqlAll = AttributesOfClass<T>.SimpleSqlSelect(GetCurrentProviderName()) + AttributesOfClass<T>.AddSqlWhere(sqlWhere);
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var sqlAll = AttributesOfClass<T>.SimpleSqlSelect(MyProviderName) + AttributesOfClass<T>.AddSqlWhere(sqlWhere, MyProviderName);
+            var com = ProviderFactories.GetCommand(_factory);
             com.CommandText = sqlAll;
-            AddParam(com,GetCurrentProviderName(), param);
+            AddParam(com,MyProviderName, param);
             com.Connection = _connect;
             IEnumerable<T> res;
             try
@@ -126,7 +122,7 @@ namespace ORM_1_21_
                 //var res1 = GetCache<T>(true, com);
                 // if (res1 != null) return (IEnumerable<T>) res1;
                 OpenConnectAndTransaction(com);
-                res = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(),GetCurrentProviderName());
+                res = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(),MyProviderName);
                 //SetCache<T>(true, com, res);
             }
             catch (Exception ex)
@@ -145,21 +141,22 @@ namespace ORM_1_21_
         ///     Создание таблицы
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public void TableCreate<T>() where T : class
+        public int TableCreate<T>() where T : class
         {
-            var ss = new FactoryCreatorTable().SqlCreate<T>(GetCurrentProviderName());
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var ss = new FactoryCreatorTable().SqlCreate<T>(MyProviderName);
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
 
             com.CommandText = ss;
             try
             {
                 OpenConnectAndTransaction(com);
-                com.ExecuteNonQuery();
+                return com.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
                 Configure.SendError(Utils.GetStringSql(com), ex);
+                return 0;
             }
             finally
             {
@@ -174,31 +171,37 @@ namespace ORM_1_21_
         /// <returns></returns>
         public IDbCommand GeDbCommand()
         {
-            return ProviderFactories.GetCommand(GetCurrentProviderName());
+            if(_factory != null)
+            {
+               return _factory.GetDbProviderFactories().CreateCommand();
+            }
+            return ProviderFactories.GetCommand(_factory);
         }
 
         /// <summary>
         ///     Удаление таблицы
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public void DropTable<T>() where T : class
+        public int DropTable<T>() where T : class
         {
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
 
-            com.CommandText = $"DROP TABLE {AttributesOfClass<T>.TableName}";
+            com.CommandText = $"DROP TABLE {AttributesOfClass<T>.TableName(MyProviderName)}";
             try
             {
                 OpenConnectAndTransaction(com);
-                com.ExecuteNonQuery();
-                WriteLogFile(com.CommandText);
+                return com.ExecuteNonQuery();
+                
             }
             catch (Exception ex)
             {
                 Configure.SendError(Utils.GetStringSql(com), ex);
+                return 0;
             }
             finally
             {
+                WriteLogFile(com.CommandText);
                 ComDisposable(com);
             }
         }
@@ -210,13 +213,13 @@ namespace ORM_1_21_
         /// <returns></returns>
         public bool TableExists<T>() where T : class
         {
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             try
             {
-                if (GetCurrentProviderName() == ProviderName.Postgresql)
+                if (MyProviderName== ProviderName.Postgresql)
                 {
                     com.Connection = _connect;
-                    var tableName = Utils.ClearTrim(AttributesOfClass<T>.TableName);
+                    var tableName = Utils.ClearTrim(AttributesOfClass<T>.TableName(MyProviderName));
                     com.CommandText =
                         $"SELECT count(*) FROM pg_tables WHERE   tablename  = '{tableName}';";
 
@@ -226,9 +229,9 @@ namespace ORM_1_21_
                 }
                 else
                 {
-                    com = ProviderFactories.GetCommand(GetCurrentProviderName());
+                    com = ProviderFactories.GetCommand(_factory);
                     com.Connection = _connect;
-                    com.CommandText = $"select 1 from {AttributesOfClass<T>.TableName};";
+                    com.CommandText = $"select 1 from {AttributesOfClass<T>.TableName(MyProviderName)};";
                     OpenConnectAndTransaction(com);
                     com.ExecuteNonQuery();
                     return true;
@@ -252,11 +255,11 @@ namespace ORM_1_21_
         /// <returns></returns>
         public IDataReader ExecuteReader(string sql, object[] param)
         {
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
 
             com.CommandText = sql;
-            AddParam(com, GetCurrentProviderName(), param);
+            AddParam(com, MyProviderName, param);
             OpenConnectAndTransaction(com);
             return com.ExecuteReader();
         }
@@ -274,12 +277,12 @@ namespace ORM_1_21_
         /// <returns></returns>
         public IDataReader ExecuteReaderT(string sql, int timeOut = 30, params object[] param)
         {
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
             com.CommandText = sql;
             SetTimeOut(com, timeOut);
            
-            AddParam(com, GetCurrentProviderName(), param);
+            AddParam(com, MyProviderName, param);
             OpenConnectAndTransaction(com);
             return com.ExecuteReader();
         }
@@ -294,7 +297,7 @@ namespace ORM_1_21_
         {
             var table = new DataTable();
 
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
             SetTimeOut(com, timeOut);
 
@@ -328,11 +331,11 @@ namespace ORM_1_21_
         public List<string> GetTableNames()
         {
 
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
 
             var index = 2;
 
-            switch (GetCurrentProviderName())
+            switch (MyProviderName)
             {
                 case ProviderName.Sqlite:
                     {
@@ -404,13 +407,13 @@ namespace ORM_1_21_
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public int CreateBase(string baseName)
         {
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
 
 
             try
             {
-                switch (GetCurrentProviderName())
+                switch (MyProviderName)
                 {
                     case ProviderName.MsSql:
                         if (File.Exists(baseName))
@@ -458,11 +461,11 @@ namespace ORM_1_21_
         /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
         /// <typeparam name="T"></typeparam>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public void InsertBulk<T>(IEnumerable<T> list, int timeOut = 30)
+        public int InsertBulk<T>(IEnumerable<T> list, int timeOut = 30)
         {
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
-            switch (GetCurrentProviderName())
+            switch (MyProviderName)
             {
                 case ProviderName.MsSql:
                     
@@ -486,11 +489,12 @@ namespace ORM_1_21_
                 OpenConnectAndTransaction(com);
                 com.CommandTimeout = 30000;
                 SetTimeOut(com, timeOut);
-                com.ExecuteNonQuery();
+               return com.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
                 Configure.SendError(Utils.GetStringSql(com), ex);
+                return -100;
             }
             finally
             {
@@ -499,31 +503,31 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// Insert Bulk Fom File
+        /// Insert Bulk From File
         /// </summary>
         /// <param name="fileCsv"></param>
         /// <param name="fieldterminator"></param>
         /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
         /// <typeparam name="T"></typeparam>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public void InsertBulkFromFile<T>(string fileCsv, string fieldterminator = ";", int timeOut = 30)
+        public int InsertBulkFromFile<T>(string fileCsv, string fieldterminator = ";", int timeOut = 30)
         {
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
             SetTimeOut(com, timeOut);
-            switch (GetCurrentProviderName())
+            switch (MyProviderName)
             {
                 case ProviderName.MsSql:
-                    com.CommandText = UtilsBulkMsSql.InsertFile<T>(fileCsv, fieldterminator);
+                    com.CommandText = UtilsBulkMsSql.InsertFile<T>(fileCsv, fieldterminator,MyProviderName);
                     break;
                 case ProviderName.MySql:
-                    com.CommandText = UtilsBulkMySql.InsertFile<T>(fileCsv, fieldterminator);
+                    com.CommandText = UtilsBulkMySql.InsertFile<T>(fileCsv, fieldterminator,MyProviderName);
                     break;
                 case ProviderName.Postgresql:
-                    com.CommandText = UtilsBulkPostgres.InsertFile<T>(fileCsv, fieldterminator);
+                    com.CommandText = UtilsBulkPostgres.InsertFile<T>(fileCsv, fieldterminator,MyProviderName);
                     break;
                 case ProviderName.Sqlite:
-                    com.CommandText = UtilsBulkMySql.InsertFile<T>(fileCsv, fieldterminator);
+                    com.CommandText = UtilsBulkMySql.InsertFile<T>(fileCsv, fieldterminator,MyProviderName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -533,11 +537,12 @@ namespace ORM_1_21_
             {
                 OpenConnectAndTransaction(com);
                 com.CommandTimeout = 30;
-                com.ExecuteReader();
+                return com.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
                 Configure.SendError(Utils.GetStringSql(com), ex);
+                return -100;
             }
             finally
             {
@@ -553,11 +558,11 @@ namespace ORM_1_21_
         /// <returns></returns>
         public object ExecuteScalar(string sql, params object[] obj)
         {
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
             com.CommandType = CommandType.Text;
             com.CommandText = sql;
-            AddParam(com, GetCurrentProviderName(), obj);
+            AddParam(com, MyProviderName, obj);
 
             try
             {
@@ -585,11 +590,11 @@ namespace ORM_1_21_
         /// <returns></returns>
         public object ExecuteScalarT(string sql, int timeOut = 30, params object[] param)
         {
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
             com.CommandType = CommandType.Text;
             com.CommandText = sql;
-            AddParam(com, GetCurrentProviderName(), param);
+            AddParam(com, MyProviderName, param);
             SetTimeOut(com, timeOut);
 
             try
@@ -616,13 +621,13 @@ namespace ORM_1_21_
         /// <returns></returns>
         public int TruncateTable<T>()
         {
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
             com.CommandType = CommandType.Text;
-            if (GetCurrentProviderName() == ProviderName.Sqlite)
-                com.CommandText = $"DELETE FROM {AttributesOfClass<T>.TableName};";
+            if (MyProviderName== ProviderName.Sqlite)
+                com.CommandText = $"DELETE FROM {AttributesOfClass<T>.TableName(MyProviderName)};";
             else
-                com.CommandText = $"TRUNCATE TABLE {AttributesOfClass<T>.TableName};";
+                com.CommandText = $"TRUNCATE TABLE {AttributesOfClass<T>.TableName(MyProviderName)};";
 
             try
             {
@@ -647,7 +652,7 @@ namespace ORM_1_21_
         /// <returns></returns>
         public Query<T> Querion<T>()
         {
-            AttributesOfClass<T>.CurProvider = _factory != null ? _factory.GetProviderName() : Configure.Provider;
+            //AttributesOfClass<T>.CurProvider = _factory != null ? _factory.GetProviderName() : Configure.Provider;
             QueryProvider p = new DbQueryProvider<T>(this);
             return new Query<T>(p);
         }
@@ -658,7 +663,7 @@ namespace ORM_1_21_
         /// <returns></returns>
         public IDbCommand GetCommand()
         {
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
             return com;
         }
@@ -669,7 +674,7 @@ namespace ORM_1_21_
         /// <returns></returns>
         public IDbConnection GetConnection()
         {
-            return ProviderFactories.GetConnect(GetCurrentProviderName());
+            return ProviderFactories.GetConnect(_factory);
         }
 
         /// <summary>
@@ -678,17 +683,10 @@ namespace ORM_1_21_
         /// <returns></returns>
         public IDbDataAdapter GetDataAdapter()
         {
-            return ProviderFactories.GetDataAdapter(GetCurrentProviderName());
+            return ProviderFactories.GetDataAdapter(_factory);
         }
 
-        /// <summary>
-        /// IDataParameter
-        /// </summary>
-        /// <returns></returns>
-        public IDataParameter GetDataParameter()
-        {
-            return ProviderFactories.GetParameter(GetCurrentProviderName());
-        }
+       
 
 
         /// <summary>
@@ -707,10 +705,10 @@ namespace ORM_1_21_
         /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
         public int ExecuteNonQuery(string sql, params object[] param)
         {
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
             com.CommandText = sql;
-            AddParam(com, GetCurrentProviderName(), param);
+            AddParam(com, MyProviderName, param);
             try
             {
                 OpenConnectAndTransaction(com);
@@ -738,10 +736,10 @@ namespace ORM_1_21_
         public int ExecuteNonQueryT(string sql, int timeOut = 30, params object[] param)
         {
 
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
             com.CommandText = sql;
-            AddParam(com, GetCurrentProviderName(), param);
+            AddParam(com, MyProviderName, param);
             try
             {
                 OpenConnectAndTransaction(com);
@@ -767,7 +765,7 @@ namespace ORM_1_21_
         /// <returns></returns>
         public string TableName<T>()
         {
-            return AttributesOfClass<T>.TableName;
+            return AttributesOfClass<T>.TableName(MyProviderName);
         }
 
 
@@ -781,13 +779,13 @@ namespace ORM_1_21_
         public IEnumerable<T> GetList<T>(T obj, string sqlWhere) where T : class
         {
             IEnumerable<T> lResult;
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
-            com.CommandText = AttributesOfClass<T>.SimpleSqlSelect(GetCurrentProviderName()) + AttributesOfClass<T>.AddSqlWhere(sqlWhere);
+            com.CommandText = AttributesOfClass<T>.SimpleSqlSelect(MyProviderName) + AttributesOfClass<T>.AddSqlWhere(sqlWhere,MyProviderName);
             try
             {
                 OpenConnectAndTransaction(com);
-                lResult = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(),GetCurrentProviderName());
+                lResult = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(),MyProviderName);
             }
             catch (Exception ex)
             {
@@ -813,17 +811,17 @@ namespace ORM_1_21_
         /// <returns>Лист объектов сущности</returns>
         public IEnumerable<T> GetList<T>(string sqlWhere) where T : class
         {
-            var sqlAll = AttributesOfClass<T>.SimpleSqlSelect(GetCurrentProviderName()) + AttributesOfClass<T>.AddSqlWhere(sqlWhere);
+            var sqlAll = AttributesOfClass<T>.SimpleSqlSelect(MyProviderName) + AttributesOfClass<T>.AddSqlWhere(sqlWhere,MyProviderName);
 
             IEnumerable<T> lResul;
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
             com.CommandText = sqlAll;
             try
             {
 
                 OpenConnectAndTransaction(com);
-                lResul = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(),GetCurrentProviderName());
+                lResul = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(),MyProviderName);
 
             }
             catch (Exception ex)
@@ -842,18 +840,21 @@ namespace ORM_1_21_
         private int SaveNew<T>(T item) where T : class
         {
             var rez = 0;
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            IDbCommand com= ProviderFactories.GetCommand(_factory);
+
+
             com.Connection = _connect;
+            com.CommandText = String.Empty;
 
             try
             {
                 if (Utils.IsPersistent(item))
                 {
                     NotificBefore(item, ActionMode.Update);
-                    if (GetCurrentProviderName() == ProviderName.Postgresql || GetCurrentProviderName() == ProviderName.Sqlite)
-                        AttributesOfClass<T>.CreateUpdateCommandPostgres(com, item, GetCurrentProviderName());
+                    if (MyProviderName== ProviderName.Postgresql || MyProviderName== ProviderName.Sqlite)
+                        AttributesOfClass<T>.CreateUpdateCommandPostgres(com, item, MyProviderName);
                     else
-                        AttributesOfClass<T>.CreateUpdateCommandMysql(com, item, GetCurrentProviderName());
+                        AttributesOfClass<T>.CreateUpdateCommandMysql(com, item, MyProviderName);
 
 
                     OpenConnectAndTransaction(com);
@@ -863,12 +864,12 @@ namespace ORM_1_21_
                 else
                 {
                     NotificBefore(item, ActionMode.Insert);
-                    AttributesOfClass<T>.CreateInsetCommand(com, item, GetCurrentProviderName());
+                    AttributesOfClass<T>.CreateInsetCommand(com, item, MyProviderName);
                     OpenConnectAndTransaction(com);
                     var val = com.ExecuteScalar();
                     if (val != null)
                     {
-                        AttributesOfClass<T>.RedefiningPrimaryKey(item, val);
+                        AttributesOfClass<T>.RedefiningPrimaryKey(item, val,MyProviderName);
                         rez = 1;
                     }
                     Utils.SetPersisten(item);
@@ -890,15 +891,15 @@ namespace ORM_1_21_
        
         private T GetReal<T>(object id) where T : class
         {
-            var sqlAll = string.Format("{0} WHERE {1}.{2}='{3}'", AttributesOfClass<T>.SimpleSqlSelect(GetCurrentProviderName()),
-                AttributesOfClass<T>.TableName, AttributesOfClass<T>.PkAttribute.GetColumnName(GetCurrentProviderName()), id);
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var sqlAll = string.Format("{0} WHERE {1}.{2}='{3}'", AttributesOfClass<T>.SimpleSqlSelect(MyProviderName),
+                AttributesOfClass<T>.TableName(MyProviderName), AttributesOfClass<T>.PkAttribute(MyProviderName).GetColumnName(MyProviderName), id);
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
             com.CommandText = sqlAll;
             try
             {
                 OpenConnectAndTransaction(com);
-                var res = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(),GetCurrentProviderName());
+                var res = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(),MyProviderName);
 
                 var enumerable = res as T[] ?? res.ToArray();
                 return enumerable.Any() ? enumerable.First() : null;
@@ -972,29 +973,25 @@ namespace ORM_1_21_
                 memberExpression = (MemberExpression)(lambda.Body);
             }
             string name = ((PropertyInfo)memberExpression.Member).Name;
-            foreach (var dal in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (var dal in AttributesOfClass<T>.CurrentTableAttributeDall(MyProviderName))
             {
                 if (dal.PropertyName == name)
                 {
-                    return dal.GetColumnName(GetCurrentProviderName());
+                    return dal.GetColumnName(MyProviderName);
                 }
             }
-            if (AttributesOfClass<T>.PkAttribute.PropertyName == name)
+            if (AttributesOfClass<T>.PkAttribute(MyProviderName).PropertyName == name)
             {
-                return AttributesOfClass<T>.PkAttribute.GetColumnName(GetCurrentProviderName());
+                return AttributesOfClass<T>.PkAttribute(MyProviderName).GetColumnName(MyProviderName);
             }
             throw new Exception($"Не могу определить поле таблицы для типа {typeof(T)}");
 
         }
 
-        /// <summary>
-        /// Получает SQL строку Insert 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns>string sql from insert</returns>
-        public string GetSqlInsertCommand<T>(T t)
+        
+         string ISession.GetSqlInsertCommand<T>(T t)
         {
-            switch (GetCurrentProviderName())
+            switch (MyProviderName)
             {
                 case ProviderName.MsSql:
                     throw new Exception("не рализовано");
@@ -1010,15 +1007,10 @@ namespace ORM_1_21_
 
         }
 
-        /// <summary>
-        /// Строка запроса на удаление
-        /// </summary>
-        /// <param name="t"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns>string sql for detete</returns>
-        public string GetSqlDeleteCommand<T>(T t)
+        
+         string ISession.GetSqlDeleteCommand<T>(T t)
         {
-            switch (GetCurrentProviderName())
+            switch (MyProviderName)
             {
                 case ProviderName.MsSql:
                     throw new Exception("не рализовано");
@@ -1033,19 +1025,22 @@ namespace ORM_1_21_
             }
             // 
         }
-        /// <summary>
-        /// Get DataTable
-        /// </summary>
-        /// <param name="sql">Строка запроса</param>
-        /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
-        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
-        /// <returns>DataTable</returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public DataTable GetDataTable(string sql, int timeOut = 30, params object[] param)
+
+        DataTable ISession.GetDataTable(string sql, int timeOut = 30, params object[] param)
         {
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new ArgumentException($"\"{nameof(sql)}\" не может быть неопределенным или пустым.", nameof(sql));
+            }
+
+            if (param is null)
+            {
+                throw new ArgumentNullException(nameof(param));
+            }
+
             var table = new DataTable();
 
-            var com = ProviderFactories.GetCommand(GetCurrentProviderName());
+            var com = ProviderFactories.GetCommand(_factory);
             com.Connection = _connect;
             SetTimeOut(com, timeOut);
 
@@ -1054,7 +1049,7 @@ namespace ORM_1_21_
 
             try
             {
-                AddParam(com, GetCurrentProviderName(), param);
+                AddParam(com, MyProviderName, param);
                 OpenConnectAndTransaction(com);
                 var reader = com.ExecuteReader();
                 table.BeginLoadData();
@@ -1074,14 +1069,8 @@ namespace ORM_1_21_
             }
         }
 
-        /// <summary>
-        /// Клонирование объекта
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="ob"></param>
-        /// <returns>T</returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public T Clone<T>(T ob)
+      
+         T ISession.Clone<T>(T ob)
         {
             try
             {
@@ -1097,15 +1086,10 @@ namespace ORM_1_21_
             }
         }
 
-        /// <summary>
-        /// Получение sql для запроса  вставки пакетом
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="list"></param>
-        /// <returns></returns>
-        public string GetSqlForInsertBulk<T>(IEnumerable<T> list)
+       
+         string ISession.GetSqlForInsertBulk<T>(IEnumerable<T> list)
         {
-            switch (GetCurrentProviderName())
+            switch (MyProviderName)
             {
                 case ProviderName.MsSql:
                     return new UtilsBulkMsSql(ProviderName.MsSql).GetSql(list);
@@ -1120,101 +1104,9 @@ namespace ORM_1_21_
             }
         }
 
-        /// <summary>
-        /// Получение перечисления из чужой базы
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="factory">Объект IOtherBaseCommandFactory</param>
-        /// <param name="sql">Строка запроса</param>
-        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
-        /// <returns></returns>
-        public IEnumerable<T> GetListOtherBase<T>(IOtherDataBaseFactory factory, string sql, params object[] param)
+         IEnumerable<TableColumn> ISession.GetTableColumns<T>()
         {
-
-           
-            var com = factory.GetDbCommand();
-            com.CommandText += sql;
-            AddParam(com, GetCurrentProviderName(), param);
-           
-            IEnumerable<T> res;
-            try
-            {
-                com.Connection.Open();
-                res = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(),GetCurrentProviderName());
-            }
-            catch (Exception ex)
-            {
-                Configure.SendError(Utils.GetStringSql(com), ex);
-                return null;
-            }
-            finally
-            {
-                com.Connection.Close();
-                com.Dispose();
-                WriteLogFile(com);
-                
-            }
-            return res;
-        }
-
-        /// <summary>
-        /// Выполнение ExecuteScalar  к чужой базе
-        /// </summary>
-        /// <param name="factory">Объект IOtherBaseCommandFactory</param>
-        /// <param name="sql">Строка запроса</param>
-        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
-        /// <returns></returns>
-        public object GetObjectOtherBase(IOtherDataBaseFactory factory, string sql, params object[] param)
-        {
-            var com = factory.GetDbCommand();
-            com.CommandText += sql;
-            AddParam(com, GetCurrentProviderName(), param);
-            try
-            { 
-                com.Connection.Open();
-               return  com.ExecuteScalar();
-            }
-            catch (Exception ex)
-            {
-                Configure.SendError(Utils.GetStringSql(com), ex);
-                return null;
-            }
-            finally
-            {
-                com.Connection.Close();
-                com.Dispose();
-                WriteLogFile(com);
-            }
-           
-        }
-        /// <summary>
-        /// Выполнение запроса ExecuteNonQuery к чужой базе
-        /// </summary>
-        /// <param name="factory">Объект IOtherBaseCommandFactory</param>
-        /// <param name="sql">Строка запроса</param>
-        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
-        /// <returns></returns>
-        public int ExecuteNonQueryOtherBase(IOtherDataBaseFactory factory, string sql, params object[] param)
-        {
-            var com = factory.GetDbCommand();
-            com.CommandText += sql;
-            AddParam(com, GetCurrentProviderName(), param);
-            try
-            {
-                com.Connection.Open();
-                return com.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                Configure.SendError(Utils.GetStringSql(com), ex);
-                return 0;
-            }
-            finally
-            {
-                com.Connection.Close();
-                com.Dispose();
-                WriteLogFile(com);
-            }
+            throw new NotImplementedException();
         }
     }
 }

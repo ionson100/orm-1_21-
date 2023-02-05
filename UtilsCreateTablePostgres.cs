@@ -10,15 +10,15 @@ namespace ORM_1_21_
         {
             var builder = new StringBuilder();
 
-            var tableName = AttributesOfClass<T>.TableName;
+            var tableName = AttributesOfClass<T>.TableName(providerName);
             tableName = Utils.ClearTrim(tableName);
             builder.AppendLine($"CREATE TABLE IF NOT EXISTS \"{tableName}\" (");
-            var pk = AttributesOfClass<T>.PkAttribute;
+            var pk = AttributesOfClass<T>.PkAttribute(providerName);
 
 
             builder.AppendLine(
                 $" \"{Utils.ClearTrim(pk.ColumnNameForRider(providerName))}\" {GetTypePgPk(pk.TypeColumn, pk.Generator)}  PRIMARY KEY,");
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
                 if (map.TypeString == null)
                 {
@@ -46,7 +46,7 @@ namespace ORM_1_21_
             var indexBuilder = new StringBuilder();
 
             //var add = false;
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
                 if (map.IsIndex)
                 {
                     var colName = Utils.ClearTrim(map.GetColumnName(providerName));

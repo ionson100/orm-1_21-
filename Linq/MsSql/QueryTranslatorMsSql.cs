@@ -45,22 +45,16 @@ namespace ORM_1_21_.Linq.MsSql
         public List<OneComprosite> ListOne { get; } = new List<OneComprosite>();
         public string Translate(Expression expression, out Evolution ev1)
         {
-            throw new NotImplementedException();
+            CirrentEvalytion = 0;
+            Visit(expression);
+            ev1 = CirrentEvalytion;
+            var dd = new MsSqlConstructorSql().GetStringSql<T>(ListOne, _providerName);
+            return dd;
         }
 
         public string Translate(Expression expression, out Evolution ev1, string par)
         {
             throw new NotImplementedException();
-        }
-
-
-        public string Translate(Expression expression, out Evolution ev,ProviderName providerName)
-        {
-            CirrentEvalytion = 0;
-            Visit(expression);
-            ev = CirrentEvalytion;
-            var dd = new MsSqlConstructorSql().GetStringSql<T>(ListOne,providerName);
-            return dd;
         }
 
         public void Translate(Expression expression, Evolution ev, List<object> paramList)
@@ -119,20 +113,15 @@ namespace ORM_1_21_.Linq.MsSql
             StringB.Length = 0;
         }
 
-        public string Translate(Expression expression, out Evolution ev1, string par,ProviderName providerName)
-        {
-            ParamStringName = par;
-            return Translate(expression, out ev1,providerName);
-        }
 
         private bool PingComposite(Evolution eval)
         {
             return ListOne.Any(a => a.Operand == eval);
         }
 
-        private static string GetColumnName(string member, Type type)
+        private static string GetColumnName(string member, Type type,ProviderName providerName)
         {
-            var ss = AttributesOfClass<T>.GetNameFieldForQuery(member, type);
+            var ss = AttributesOfClass<T>.GetNameFieldForQuery(member, type,providerName);
             return ss;
         }
 
@@ -692,8 +681,8 @@ namespace ORM_1_21_.Linq.MsSql
                         ListOne.Remove(a);
                     });
                 else
-                    sb.AppendFormat("{0}.{1}", AttributesOfClass<T>.TableName,
-                        AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName));
+                    sb.AppendFormat("{0}.{1}", AttributesOfClass<T>.TableName(_providerName),
+                        AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName));
                 var o = new OneComprosite
                 {
                     Operand = Evolution.Reverse,
@@ -830,7 +819,8 @@ namespace ORM_1_21_.Linq.MsSql
                     var o = new OneComprosite
                     {
                         Operand = Evolution.OrderBy,
-                        Body = $" {AttributesOfClass<T>.TableName}.{AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName)} DESC "
+                        Body = $" {AttributesOfClass<T>.TableName(_providerName)}." +
+                        $"{AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName)} DESC "
                     };
                     ListOne.Add(o);
                 }
@@ -1168,10 +1158,10 @@ namespace ORM_1_21_.Linq.MsSql
                         if (c.Value is T && PingComposite(Evolution.Contains))
                         {
                             var o = (T)c.Value;
-                            var propertyName = AttributesOfClass<T>.PkAttribute.PropertyName;
-                            var value = AttributesOfClass<T>.GetValue.Value[propertyName](o);
-                            var tableName = AttributesOfClass<T>.TableName;
-                            var key = AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName);
+                            var propertyName = AttributesOfClass<T>.PkAttribute(_providerName).PropertyName;
+                            var value = AttributesOfClass<T>.GetValueE(_providerName, propertyName,o);
+                            var tableName = AttributesOfClass<T>.TableName(_providerName);
+                            var key = AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName);
                             StringB.Append(string.Format("({0}.{1} = '{2}')", tableName, key, value));
                             break;
                         }
@@ -1198,14 +1188,14 @@ namespace ORM_1_21_.Linq.MsSql
                     StringB.Append("#" + m.Member.Name + "#");
                     return m;
                 }
-                StringB.Append(GetColumnName(m.Member.Name, m.Expression.Type));
+                StringB.Append(GetColumnName(m.Member.Name, m.Expression.Type,_providerName));
                 return m;
             }
 
             if (m.Expression != null
                 && m.Expression.NodeType == ExpressionType.New)
             {
-                StringB.Append(GetColumnName(m.Member.Name, m.Expression.Type));
+                StringB.Append(GetColumnName(m.Member.Name, m.Expression.Type,_providerName));
                 return m;
             }
 
@@ -1324,7 +1314,7 @@ namespace ORM_1_21_.Linq.MsSql
             var strs = new JoinAlias().GetAlias(m.Expression);
             if (strs != null && strs.IndexOf("TransparentIdentifier", StringComparison.Ordinal) != -1)
             {
-                StringB.Append(GetColumnName(m.Member.Name, m.Expression.Type));
+                StringB.Append(GetColumnName(m.Member.Name, m.Expression.Type, _providerName));
                 return;
             }
 

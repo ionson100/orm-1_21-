@@ -1,12 +1,12 @@
-﻿using ORM_1_21_;
+﻿using MySql.Data.MySqlClient;
+using ORM_1_21_;
 using ORM_1_21_.Attribute;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
-using Npgsql;
 
 namespace TestPostgres
 {
@@ -16,9 +16,67 @@ namespace TestPostgres
 
         static async Task Main(string[] args)
         {
-            
+
             Starter.Run();
-            var mysql = Configure.GetSession<MyDb>().Querion<MyClassMysql>().ToList();
+
+            ISession sesw = Configure.GetSession<MyDbMySql>();
+            var tr44 = sesw.BeginTransaction();
+            if (sesw.TableExists<MyClassMysql2>())
+            {
+                var e = sesw.DropTable<MyClassMysql2>();
+            }
+            if (sesw.TableExists<MyClassMysql2>() == false)
+            {
+                var e2 = sesw.TableCreate<MyClassMysql2>();
+            }
+            List<MyClassMysql2> list = new List<MyClassMysql2>();
+            list.Add(new MyClassMysql2());
+            list.Add(new MyClassMysql2());
+            list.Add(new MyClassMysql2());
+            list.Add(new MyClassMysql2());
+            list.Add(new MyClassMysql2());
+            var dtr = sesw.GetSqlForInsertBulk(list);
+            int ee23 = sesw.InsertBulk(list);
+            tr44.Commit();
+
+            var ee = Configure.GetSession<MyDbMySql>().Querion<MyClassMysql2>();
+            var eee = ee.ToString();
+
+            ee.ForEach(s =>
+            {
+                Console.WriteLine("__" + s.Id);
+            });
+
+
+
+            var r2 = Configure.GetSession<MyDbMySql>().FreeSql<MyClassMysql>("select * from my_class where age > @1",
+                new Parameter("@1", 20)).ToList();
+            r2.ForEach(s =>
+            {
+                Console.WriteLine($"MySql {s}");
+            });
+
+            var tr1 = sesw.BeginTransaction();
+            try
+            {
+                MyClassMysql df = new MyClassMysql() { Age = 120 };
+                var r23 = sesw.Save(df);
+                if (1 == 1) throw new Exception();
+            }
+            catch (Exception)
+            {
+                tr1.Rollback();
+            }
+            var r233 = Configure.GetSession<MyDbMySql>().FreeSql<dynamic>("select * from my_class where age > @1", new Parameter("@1", 20)).ToList();
+
+
+
+
+            var r1 = Configure.GetSession<MyDbMySql>().Querion<MyClassMysql>().Where(d => d.Age != 123)
+                .Select(f => new { namme = f.Name });
+            var task = r1.ToListAsync();
+            var mysql = await task;
+
 
             MyClass myClass = new MyClass()
             {
@@ -51,14 +109,14 @@ namespace TestPostgres
                 var tra = ses.BeginTransaction();
                 try
                 {
-                    
+
                     ses.Save(myClass);
-                   
+
                     myClass.Description = "ss";
                     ses.Save(myClass);
-                  
-                    
-                    
+
+
+
 
                     ses.InsertBulk(list1);
                     tra.Commit();
@@ -94,64 +152,60 @@ namespace TestPostgres
             {
                 Console.WriteLine($" enum={r}");
             }
-             foreach (var r in Configure.Session.FreeSql<dynamic>("select enum as enum1,age from my_class"))
-                 Console.WriteLine($" enum1={r.enum1} age={r.age}");
-            
-            
-             foreach (var r in Configure.Session.FreeSql<MyClassTemp>("select enum as enum1, age, id from my_class"))
-                 Console.WriteLine($"{r}");
-            
-             foreach (var r in TempSql(new { enum1 = 1, age = 2 }))
-                 Console.WriteLine($"{r}");
-            
-            
-             var ses1 = Configure.Session;
-             string t = ses1.TableName<MyClass>();
-             var i0 = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).ToList();
-             var i = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).
-             Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "simple" } });
-             var @calss = ses1.GetList<MyClass>("age =100 order by age ").FirstOrDefault();
-            
-             var eri = Configure.Session.Querion<MyClass>().ToList();
-             var list = ses1.Querion<MyClass>().
-                 Where(a => (a.Age > 5 || a.Name.StartsWith("ion100")) && a.Name.Contains("100")).
-                 OrderBy(d => d.Age).
-                 Select(f => f.Age).
-                 Limit(0, 2);
-             await list.ToListAsync().ContinueWith(r =>
-             {
-                 Console.WriteLine(r.Result.Count);
-             });
-             var ee = Configure.Session.Querion<MyClass>().DistinctCore(s => new { ass = s.Age, name = s.Name }).ToList();
-             foreach (var s in ee)
-             {
-            
-             }
-             try
-             {
-                 await Configure.Session.Querion<MyClass>().Where(s => !s.Name.Contains("sdFROMUU")).SetTimeOut(20).GroupBy(f => f.Age).ToListAsync().ContinueWith(f =>
-                 {
-                     Console.WriteLine(f.Result.Count());
-                 });
-            
-             }
-             catch (Exception ex)
-             {
-                 Console.WriteLine(ex);
-             }
-            
-            
-             var rs = await ses1.Querion<MyClass>().Where(a => a.Name != null).Select(d => new { sd = d.Age, name = d.Name }).ToListAsync();
-             foreach (var r in rs)
-             {
-                 Console.WriteLine(r);
-             }
-             var val1 = ses1.FreeSql<MyClass>($"select * from {ses1.TableName<MyClass>()} where \"name\" LIKE CONCAT(@p1,'%')",
-                     new Parameter("@p1", "ion100")).ToList();
-             var isP = ses1.IsPersistent(val1[0]);
-            
-             var dataTable = ses1.GetDataTable($"select * from {ses1.TableName<MyClass>()} ");
-             var coutn = dataTable.Rows.Count;
+            foreach (var r in Configure.Session.FreeSql<dynamic>("select enum as enum1,age from my_class"))
+                Console.WriteLine($" enum1={r.enum1} age={r.age}");
+
+
+            foreach (var r in Configure.Session.FreeSql<MyClassTemp>("select enum as enum1, age, id from my_class"))
+                Console.WriteLine($"{r}");
+
+            foreach (var r in TempSql(new { enum1 = 1, age = 2 }))
+                Console.WriteLine($"{r}");
+
+
+            var ses1 = Configure.Session;
+            string t = ses1.TableName<MyClass>();
+            var i0 = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).ToList();
+            var i = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).
+            Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "simple" } });
+            var @calss = ses1.GetList<MyClass>("age =100 order by age ").FirstOrDefault();
+
+            var eri = Configure.Session.Querion<MyClass>().ToList();
+            var list3 = ses1.Querion<MyClass>().
+                Where(a => (a.Age > 5 || a.Name.StartsWith("ion100")) && a.Name.Contains("100")).
+                OrderBy(d => d.Age).
+                Select(f => f.Age).
+                Limit(0, 2);
+            await list3.ToListAsync().ContinueWith(r =>
+            {
+                Console.WriteLine(r.Result.Count);
+            });
+            var ee3 = Configure.Session.Querion<MyClass>().DistinctCore(s => new { ass = s.Age, name = s.Name }).ToList();
+            foreach (var s in ee3)
+            {
+
+            }
+
+
+
+            var rs = await ses1.Querion<MyClass>()
+                .Where(a => a.Name != null)
+                .Select(d => new { sd = d.Age, name = d.Name })
+                .ToListAsync();
+            foreach (var r in rs)
+            {
+                Console.WriteLine(r);
+            }
+            List<MyClass> val1 = ses1.FreeSql<MyClass>(
+                $"select * from {ses1.TableName<MyClass>()} where \"name\" LIKE CONCAT(@p1,'%')", new Parameter("@p1", "ion100")).ToList();
+            var isP = ses1.IsPersistent(val1[0]);
+
+            using (var dataTable = ses1.GetDataTable($"select * from {ses1.TableName<MyClass>()} "))
+            {
+                var coutn = dataTable.Rows.Count;
+            }
+
+            Console.Read();
         }
 
         static IEnumerable<T> TempSql<T>(T t)
@@ -162,28 +216,24 @@ namespace TestPostgres
 
     }
 
-    class MyDb:IOtherDataBaseFactory
+    class MyDbMySql : IOtherDataBaseFactory
     {
-       
-        public IDbCommand GetDbCommand()
+        private static readonly Lazy<DbProviderFactory> dbProviderFactory = new Lazy<DbProviderFactory>(() =>
         {
-            
-            return new MySqlCommand("SET character_set_results=utf8;", new MySqlConnection("Server=localhost;Database=test;Uid=root;Pwd=12345;"));
-        }
-
+            return new MySqlClientFactory();
+        });
         public ProviderName GetProviderName()
         {
             return ProviderName.MySql;
         }
-
-        public IDbConnection GetDbConnection()
-        {
-            return new MySqlConnection();
-        }
-
         public string GetConnectionString()
         {
             return "Server=localhost;Database=test;Uid=root;Pwd=12345;";
+        }
+
+        public DbProviderFactory GetDbProviderFactories()
+        {
+            return dbProviderFactory.Value;
         }
     }
     [MapTableName("nomap")]
@@ -229,14 +279,19 @@ namespace TestPostgres
     }
 
     [MapTableName("my_class")]
-    class MyClass :MyClassBase
+    class MyClass : MyClassBase
     {
 
     }
-    //[MapTableDataBase(typeof(MyDb))]
-    [MapProviderName(ProviderName.MySql)]
+
+
     [MapTableName("my_class")]
     class MyClassMysql : MyClassBase
+    {
+
+    }
+    [MapTableName("my_class2")]
+    class MyClassMysql2 : MyClassBase
     {
 
     }
@@ -268,7 +323,7 @@ namespace TestPostgres
         public List<MyTest> Test23 { get; set; } = new List<MyTest>() { new MyTest() { Name = "simple" }
         };
 
-    
+
     }
 
     class MyTest

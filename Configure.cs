@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Linq;
 
 namespace ORM_1_21_
 {
@@ -10,13 +10,13 @@ namespace ORM_1_21_
     /// </summary>
     public sealed partial class Configure
     {
-        internal static Dictionary<Type, ProviderName> TotalProviderNames = new Dictionary<Type, ProviderName>();
+       
         //internal static bool UsageCache;
 
         internal static string ConnectionString;
 
         /// <summary>
-        /// GetConnectionString
+        /// Строка соединения к базе данных
         /// </summary>
         /// <returns></returns>
         public static string GetConnectionString()
@@ -28,7 +28,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// 
+        /// Название файла лога
         /// </summary>
         public static string LogFileName { get; private set; }
 
@@ -119,6 +119,17 @@ namespace ORM_1_21_
                 SendError(null, new Exception("ISession GetInnerSession error _configure==null"));
                 return null;
             }
+            Type type = typeof(TF);
+            var any = type.GetInterfaces().Any(si => si == typeof(IOtherDataBaseFactory));
+            if (any == false)
+            {
+                throw new Exception($"Тип {type.Name} не реализует интерфейс IOtherDataBaseFactory");
+            }
+            var isExistCtor = type.GetConstructor(Type.EmptyTypes);
+            if (isExistCtor == null)
+            {
+                throw new Exception($"Тип {type.Name} не имеет конструктора по умолчанию");
+            }
 
             return _configure.GetInnerSession<TF>();
         }
@@ -152,10 +163,7 @@ namespace ORM_1_21_
 
                 }
 
-                if (Configure.TotalProviderNames.ContainsKey(typeof(TF)) == false)
-                {
-                   Configure.TotalProviderNames.Add(typeof(TF),res.GetProviderName());
-                }
+               
                 return new Sessione(res); 
             }
         }

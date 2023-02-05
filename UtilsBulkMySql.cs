@@ -33,21 +33,21 @@ namespace ORM_1_21_
         private  string SqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
         {
             StringBuilder sql = new StringBuilder($"LOAD DATA INFILE '{fileCsv}'");
-            sql.AppendLine($"INTO TABLE {AttributesOfClass<T>.TableName}");
+            sql.AppendLine($"INTO TABLE {AttributesOfClass<T>.TableName(_providerName)}");
             sql.AppendLine($"FIELDS TERMINATED BY '{fieldterminator}'");
             sql.AppendLine("ENCLOSED BY '\"'");
             sql.AppendLine("LINES TERMINATED BY '\n'");
             sql.AppendLine("IGNORE 1 ROWS");
             StringBuilder builder = new StringBuilder();
-            bool isAddPk = AttributesOfClass<T>.PkAttribute.Generator != Generator.Native;
+            bool isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator != Generator.Native;
 
             StringBuilder rowHead = new StringBuilder();
             if (isAddPk)
             {
-                rowHead.Append(AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName))
+                rowHead.Append(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
                     .Append(";");
             }
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
             {
                 rowHead.Append(map.GetColumnName(_providerName)).Append(";");
             }
@@ -62,13 +62,13 @@ namespace ORM_1_21_
                 StringBuilder row = new StringBuilder();
                 if (isAddPk)
                 {
-                    var o = AttributesOfClass<T>.GetValue.Value[AttributesOfClass<T>.PkAttribute.PropertyName](ob);
-                    Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute.PropertyName].PropertyType;
+                    var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName,ob);
+                    Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
                     row.Append(GetValue(o, type)).Append(";");
                 }
-                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
+                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
                 {
-                    var o = AttributesOfClass<T>.GetValue.Value[map.PropertyName](ob);
+                    var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName,ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
                     if (type == typeof(Image) || type == typeof(byte[]))
                     {
@@ -89,18 +89,18 @@ namespace ORM_1_21_
 
         private  string SqlSimple<T>(IEnumerable<T> list)
         {
-            StringBuilder builder = new StringBuilder($"INSERT INTO {AttributesOfClass<T>.TableName}");
+            StringBuilder builder = new StringBuilder($"INSERT INTO {AttributesOfClass<T>.TableName(_providerName)}");
             builder.Append(" ( ");
 
-            bool isAddPk = AttributesOfClass<T>.PkAttribute.Generator != Generator.Native;
+            bool isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator != Generator.Native;
 
             StringBuilder rowHead = new StringBuilder();
             if (isAddPk == true)
             {
-                rowHead.Append(AttributesOfClass<T>.PkAttribute.GetColumnName(_providerName))
+                rowHead.Append(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
                     .Append(",");
             }
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
             {
 
                 if (map.TypeColumn == typeof(Image) || map.TypeColumn == typeof(byte[]))
@@ -116,13 +116,13 @@ namespace ORM_1_21_
                 StringBuilder row = new StringBuilder("(");
                 if (isAddPk)
                 {
-                    var o = AttributesOfClass<T>.GetValue.Value[AttributesOfClass<T>.PkAttribute.PropertyName](ob);
-                    Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute.PropertyName].PropertyType;
+                    var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName,ob);
+                    Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
                     row.Append(GetValue(o, type)).Append(",");
                 }
-                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall)
+                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
                 {
-                    var o = AttributesOfClass<T>.GetValue.Value[map.PropertyName](ob);
+                    var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName,ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
                     if (type == typeof(Image) || type == typeof(byte[]))
                     {
@@ -225,10 +225,10 @@ namespace ORM_1_21_
 
         }
 
-        public static string InsertFile<T>(string fileCsv, string fieldterminator)
+        public static string InsertFile<T>(string fileCsv, string fieldterminator,ProviderName providerName)
         {
             StringBuilder sql = new StringBuilder($"LOAD DATA INFILE '{fileCsv}'");
-            sql.AppendLine($"INTO TABLE {AttributesOfClass<T>.TableName}");
+            sql.AppendLine($"INTO TABLE {AttributesOfClass<T>.TableName(providerName)}");
             sql.AppendLine($"FIELDS TERMINATED BY '{fieldterminator}'");
             sql.AppendLine("ENCLOSED BY '\"'");
             sql.AppendLine("LINES TERMINATED BY '\n'");

@@ -18,15 +18,18 @@ namespace ORM_1_21_
             set => Transactionale.Transaction = value;
         }
 
-        public ProviderName GetCurrentProviderName()
+        internal ProviderName MyProviderName
         {
-            if (_factory == null)
+            get
             {
-                return Configure.Provider;
-            }
-            else
-            {
-               return _factory.GetProviderName();
+                if (_factory == null)
+                {
+                    return Configure.Provider;
+                }
+                else
+                {
+                    return _factory.GetProviderName();
+                }
             }
         }
 
@@ -37,18 +40,24 @@ namespace ORM_1_21_
         /// <param name="connectionString">Строка соединения с базой</param>
         public Sessione(string connectionString)
         {
-            _connect = ProviderFactories.GetConnect(GetCurrentProviderName());// dF.CreateConnection();
+            _connect = ProviderFactories.GetConnect(_factory);
             _connect.ConnectionString = connectionString;
         }
         /// <summary>
-        /// Конструктор для подключения к бругой базе
+        /// Конструктор для подключения к другой базе
         /// </summary>
        
         public Sessione(IOtherDataBaseFactory factory)
         {
             _factory = factory;
-            _connect = factory.GetDbConnection();
+            _connect = factory.GetDbProviderFactories().CreateConnection();
             _connect.ConnectionString = factory.GetConnectionString();
+            if(factory != null && factory.GetProviderName() == ProviderName.Postgresql)
+            {
+                AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+                AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+            }
+            
         }
 
         private readonly IDbConnection _connect;
@@ -86,23 +95,15 @@ namespace ORM_1_21_
 
 
 
-        /// <summary>
-        /// Получение объекта ITransaction с одновременно началом транзакции
-        /// </summary>
-        /// <returns>ITransaction</returns>
-        public ITransaction BeginTransaction()
+         ITransaction ISession.BeginTransaction()
         {
             Transactionale.IsOccupied = true;
             Transactionale.Connection = _connect;
             return Transactionale;
         }
 
-        /// <summary>
-        ///  Получение объекта ITransaction с одновременно началом транзакции
-        /// </summary>
-        /// <param name="value">Уровни изоляции</param>
-        /// <returns>ITransaction</returns>
-        public ITransaction BeginTransaction(IsolationLevel value)
+        
+         ITransaction ISession.BeginTransaction(IsolationLevel value)
         {
             Transactionale.IsOccupied = true;
             Transactionale.Connection = _connect;

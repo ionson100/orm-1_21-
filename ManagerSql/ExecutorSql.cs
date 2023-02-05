@@ -20,6 +20,7 @@ namespace ManagerSql
             _ = dataGrid.Dispatcher.BeginInvoke(new Action(() =>
               {
                   dataGrid.DataContext = r;
+                  r.Dispose();
               }));
         }
 

@@ -10,15 +10,15 @@ namespace ORM_1_21_
         {
             StringBuilder builder = new StringBuilder();
 
-            var tableName = AttributesOfClass<T>.TableName;
+            var tableName = AttributesOfClass<T>.TableName(providerName);
             tableName = tableName.Replace("[", "").Replace("]", "").Replace("`", "");
             builder.AppendLine($"CREATE TABLE IF NOT EXISTS `{tableName}` (");
-            var pk = AttributesOfClass<T>.PkAttribute;
+            var pk = AttributesOfClass<T>.PkAttribute(providerName);
 
 
             builder.AppendLine($" `{pk.ColumnNameForRider(providerName)}` {GetTypeMySql(pk.TypeColumn)}  " +
                                $"PRIMARY KEY {(pk.Generator == Generator.Native ? "AUTO_INCREMENT" : "")},");
-            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
                 string typeColumn = map.TypeString;
                 if (typeColumn == null)
@@ -36,14 +36,14 @@ namespace ORM_1_21_
             str2 = str2.Substring(0, str2.LastIndexOf(','));
             builder.Clear();
             builder.Append(str2);
-            builder.AppendLine(");").Append(AttributesOfClass<T>.GetTypeTable<T>());
+            builder.AppendLine(");").Append(AttributesOfClass<T>.GetTypeTable(providerName));
 
 
 
             StringBuilder indexBuilder = new StringBuilder($"ALTER TABLE `{tableName}` ADD INDEX `INDEX_{tableName}` (");
 
             bool add = false;
-            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall)
+            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
                 if (map.IsIndex)
                 {

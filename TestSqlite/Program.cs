@@ -70,6 +70,7 @@ namespace TestSqlite
 
     static class Starter
     {
+        //PRAGMA table_info("my_class")
         public static void Run()
         {
 
