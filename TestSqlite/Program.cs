@@ -2,7 +2,10 @@
 using ORM_1_21_.Attribute;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity.SqlServer;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TestSqlite
@@ -13,57 +16,92 @@ namespace TestSqlite
         static async Task Main(string[] args)
         {
             Starter.Run();
-            MyClass myClass = new MyClass()
+            new Thread(() =>
             {
-                Age = 12,
-                Description = "simple",
-                Name = "ion100FROMfromFrom ass",
-                DateTime = DateTime.Now
-            };
-            Configure.Session.Save(myClass);
-            List<MyClass> classes = new List<MyClass>()
-           {
-               new MyClass()
-               {
-                   Age = 12,
-                   Description = "simple",
-                   Name = "ion100FROMfromFrom ass",
-                   DateTime = DateTime.Now
-               },
-               new MyClass()
-               {
-                   Age = 121,
-                   Description = "simple",
-                   Name = "ion100FROMfromFrom ass",
-                   DateTime = DateTime.Now
-               },
-               new MyClass()
-               {
-                   Age = 121,
-                   Description = "simple",
-                   Name = "ion100FROMfromFrom ass",
-                   DateTime = DateTime.Now
-               }
-           };
-            Configure.Session.InsertBulk(classes);
-            var i = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).
-                Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "simple" } });
-            var @calss = Configure.Session.GetList<MyClass>("age =100 order by age ").FirstOrDefault();
-            var eee = Configure.Session.ExecuteScalar("SELECT name FROM sqlite_temp_master WHERE type='table';");
-            var list = Configure.Session.Querion<MyClass>().Where(a => a.Age > 5).ToList();
-            var list1 = Configure.Session
-                .FreeSql<MyClass>($"select * from {Configure.Session.TableName<MyClass>()}");
-            var list2 = Configure.Session.Querion<MyClass>().Select(a => new { ageCore = a.Age, name = a.Name }).ToList();
-            var list3 = Configure.Session.Querion<MyClass>()
-                .Where(a => a.Age > 5 ).OrderBy(d => d.Age)
-                .Select(f => new { age = f.Age }).Limit(0, 2);
-            var r = await list3.ToListAsync();
-            foreach (var v in  r)
-            {
-                Console.WriteLine(r);
-            }
+                while (true)
+                {
+                    var ses = Configure.Session;
+                    var t = ses.BeginTransaction(IsolationLevel.Serializable);
+                    MyClass c = new MyClass();
+                    ses.Save(c);
+                    
+                    var s = Configure.Session.Querion<MyClass>().Where(a => a.Age != -1).ToList();
+                    Console.WriteLine("1 -- "+s.Count());
+                    t.Commit();
 
-            var ss = Configure.Session.FreeSql<MyClass>("select * from my_class where desc like $name",new Parameter("$name","'si%'"));
+                }
+
+            }).Start();
+
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    var ses = Configure.Session;
+                    var t = ses.BeginTransaction(IsolationLevel.Serializable);
+                    MyClass c = new MyClass();
+                    ses.Save(c);
+
+                    var s = Configure.Session.Querion<MyClass>().Where(a => a.Age != -1).ToList();
+                    Console.WriteLine("2 -- " + s.Count());
+                    t.Commit();
+                }
+
+            }).Start();
+            Console.ReadKey();
+            //  List<TableColumn> list33 = Configure.Session.GetTableColumns(Configure.Session.TableName<MyClass>()).ToList();
+            // 
+            //  MyClass myClass = new MyClass()
+            //  {
+            //      Age = 12,
+            //      Description = "simple",
+            //      Name = "ion100FROMfromFrom ass",
+            //      DateTime = DateTime.Now
+            //  };
+            //  Configure.Session.Save(myClass);
+            //  List<MyClass> classes = new List<MyClass>()
+            // {
+            //     new MyClass()
+            //     {
+            //         Age = 12,
+            //         Description = "simple",
+            //         Name = "ion100FROMfromFrom ass",
+            //         DateTime = DateTime.Now
+            //     },
+            //     new MyClass()
+            //     {
+            //         Age = 121,
+            //         Description = "simple",
+            //         Name = "ion100FROMfromFrom ass",
+            //         DateTime = DateTime.Now
+            //     },
+            //     new MyClass()
+            //     {
+            //         Age = 121,
+            //         Description = "simple",
+            //         Name = "ion100FROMfromFrom ass",
+            //         DateTime = DateTime.Now
+            //     }
+            // };
+            //  Configure.Session.InsertBulk(classes);
+            //  var i = Configure.Session.Querion<MyClass>().Where(a => a.Age == 12).
+            //      Update(s => new Dictionary<object, object> { { s.Age, 100 }, { s.Name, "simple" } });
+            //  var @calss = Configure.Session.GetList<MyClass>("age =100 order by age ").FirstOrDefault();
+            //  var eee = Configure.Session.ExecuteScalar("SELECT name FROM sqlite_temp_master WHERE type='table';");
+            //  var list = Configure.Session.Querion<MyClass>().Where(a => a.Age > 5).ToList();
+            //  var list1 = Configure.Session
+            //      .FreeSql<MyClass>($"select * from {Configure.Session.TableName<MyClass>()}");
+            //  var list2 = Configure.Session.Querion<MyClass>().Select(a => new { ageCore = a.Age, name = a.Name }).ToList();
+            //  var list3 = Configure.Session.Querion<MyClass>()
+            //      .Where(a => a.Age > 5 ).OrderBy(d => d.Age)
+            //      .Select(f => new { age = f.Age }).Limit(0, 2);
+            //  var r = await list3.ToListAsync();
+            //  foreach (var v in  r)
+            //  {
+            //      Console.WriteLine(r);
+            //  }
+            //
+            //  var ss = Configure.Session.FreeSql<MyClass>("select * from my_class where desc like $name",new Parameter("$name","'si%'"));
 
         }
     }

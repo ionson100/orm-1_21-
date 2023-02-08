@@ -2,7 +2,9 @@
 using ORM_1_21_.Attribute;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TestSqlExress
@@ -13,6 +15,61 @@ namespace TestSqlExress
         static async Task Main(string[] args)
         {
             Starter.Run();
+
+            new Thread( () =>
+            {
+                while (true)
+                {
+                    try
+                    {
+                        var ses = Configure.Session;
+                        var ts = ses.BeginTransaction(IsolationLevel.ReadCommitted);
+                        MyClass c = new MyClass();
+                        ses.Save(c);
+
+                        var s = ses.Querion<MyClass>().Where(a => a.Age != -1);
+                        var ees = s.ToList();
+                        Console.WriteLine("1 -- " + ees.Count());
+                        ts.Commit();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
+                   
+
+                }
+
+            }).Start();
+
+
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    try
+                    {
+                        var ses = Configure.Session;
+                        var ts = ses.BeginTransaction(IsolationLevel.ReadCommitted);
+                        MyClass c = new MyClass();
+                        ses.Save(c);
+
+                        var s = ses.Querion<MyClass>().Where(a => a.Age != -1).ToList();
+                        Console.WriteLine("2 -- " + s.Count());
+                        ts.Commit();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
+                  
+                }
+
+            }).Start();
+            Console.ReadKey();
+            var sas = Configure.Session.GetTableColumns(Configure.Session.TableName<MyClass>()).ToList();
             MyClass myClass = new MyClass()
             {
                 Age = 12,
@@ -77,8 +134,8 @@ namespace TestSqlExress
 #if DEBUG
             path = "SqlLog.txt";
 #endif
-            _ = new Configure("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=test;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False",
-                ProviderName.MsSql, path);
+            _ = new Configure("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=audi124;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False",
+                ProviderName.MsSql, path,true);
             using (var ses = Configure.Session)
             {
                 if (ses.TableExists<MyClass>())

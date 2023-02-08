@@ -34,10 +34,7 @@ namespace ORM_1_21_.Attribute
           
            
         }
-        public void SetColumnName(string value)
-        {
-            _columnName = value.Trim(new[] { ' ', '[', ']', '`', '"' });
-}
+      
 
         /// <summary>
         /// Название свойства, которое соответствует данной
@@ -50,7 +47,7 @@ namespace ORM_1_21_.Attribute
         /// <param name="columnName"></param>
         protected BaseAttribute(string columnName)
         {
-            _columnName = columnName;
+            _columnName = columnName.Trim(' ', '[', ']', '`', '"', '\'');
         }
 
         internal string DefaultValue { get; set; }

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ORM_1_21_
@@ -8,18 +11,27 @@ namespace ORM_1_21_
     internal static class MySqlLogger
     {
         private static ConcurrentQueue<string> _cq;
-        private static bool _isActive = false;
-        private static string _pathFile;
+        private static bool _isActive;
+        private static StreamWriter _sw;
+        private static long _runner;
+
+        public static void StopLogger()
+        {
+            if(Interlocked.Read(ref _runner) == 1)
+              Interlocked.Decrement(ref _runner);
+            
+        }
 
         public static void Info(string message)
         {
+           
             if (_isActive == false) return;
             _cq.Enqueue($"{message}");
         }
 
-        public static void RunLogger(string file)
+        public static async Task RunLogger(string file)
         {
-            _pathFile = file;
+           
             if (file == null)
             {
                 _isActive = false;
@@ -27,25 +39,36 @@ namespace ORM_1_21_
             }
 
             _isActive = true;
-
+            Interlocked.Increment(ref _runner);
             _cq = new ConcurrentQueue<string>();
-            Action();
+
+            using (_sw = File.AppendText(file))
+            {
+               await Action();
+            }
+
+            
+
+            
+            
             Info($"---------   Init Log : {DateTime.Now:s} ----------");
 
         }
 
-        private static void Action()
+        private static async Task Action()
         {
-            Task.Run(() =>
+            await Task.Run(() =>
             {
-                while (true)
+                while (Interlocked.Read(ref _runner)==1)
                 {
                     while (_cq.TryDequeue(out var sql))
                     {
-                        File.AppendAllText(_pathFile, sql + Environment.NewLine);
+                        _sw.WriteLine(sql);
                     }
                 }
             });
         }
+
+       
     }
 }

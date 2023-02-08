@@ -25,7 +25,7 @@ namespace ORM_1_21_
         /// <param name="param">список параметров в той последовательности в которой они идут в запросе.</param>
         /// <typeparam name="T">Тип сущности</typeparam>
         /// <returns>Перечисление выбранных объектов</returns>
-        IEnumerable<T> GetList<T>(string sqlWhere, params object[] param) where T : class;
+        IEnumerable<T> GetList<T>(string sqlWhere=null, params object[] param) where T : class;
 
         /// <summary>
         /// Запрос на выборку 
@@ -138,7 +138,7 @@ namespace ORM_1_21_
         /// <param name="list">Перечисление вставляемых объектов</param>
         /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
         /// <typeparam name="T">Тип перечисления</typeparam>
-        int InsertBulk<T>(IEnumerable<T> list, int timeOut = 30);
+        int InsertBulk<T>(IEnumerable<T> list, int timeOut = 30) where T : class;
 
         /// <summary>
         /// Вставка в базу пакетом, запрос записан в файл
@@ -147,7 +147,7 @@ namespace ORM_1_21_
         /// <param name="FIELDTERMINATOR"></param>
         /// <param name="timeOut"></param>
         /// <typeparam name="T">разделитель полей</typeparam>
-        int InsertBulkFromFile<T>(string fileCsv, string FIELDTERMINATOR = ";", int timeOut = 30);
+        int InsertBulkFromFile<T>(string fileCsv, string FIELDTERMINATOR = ";", int timeOut = 30) where T : class;
 
         /// <summary>
         /// Возвращает первый элемент запроса
@@ -168,26 +168,26 @@ namespace ORM_1_21_
         /// Пересоздание таблицы
         /// </summary>
         /// <typeparam name="T">Тип пере создаваемой таблицы</typeparam>
-        int TruncateTable<T>();
+        int TruncateTable<T>() where T : class;
 
         /// <summary>
         /// Выборка через Linq to Sql
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        Query<T> Querion<T>();
+        Query<T> Querion<T>() where T : class;
 
         /// <summary>
         /// Определяет, получен ли объект с базы, или был создан на клиенте
         /// </summary>
         /// <param name="obj">Объект проверяемый</param>
         /// <returns>True -из базы, False - созданный на клиенте</returns>
-        bool IsPersistent(object obj);
+        bool IsPersistent<T>(T obj) where T : class;
 
         /// <summary>
         /// Делаем объект персистентным ( как бы объект получен из базы)
         /// </summary>
         /// <param name="obj"></param>
-        void ToPersistent(object obj);
+        void ToPersistent<T>(T obj) where T : class;
 
         /// <summary>
         /// Запись в лог, если запись в лог включена, при инициализации орм, можно записать текст сообщения пользователя
@@ -237,20 +237,20 @@ namespace ORM_1_21_
         /// Получение названия таблицы, для построения sql запроса.
         /// </summary>
         /// <typeparam name="T">Тип таблицы</typeparam>
-        string TableName<T>();
+        string TableName<T>() where T : class;
 
         /// <summary>
         /// Возвращает название поля для базы
         /// </summary>
         /// <param name="property"></param>
         /// <typeparam name="T">Тип таблицы</typeparam>
-        string ColumnName<T>(Expression<Func<T, object>> property);
+        string ColumnName<T>(Expression<Func<T, object>> property) where T : class;
 
         /// <summary>
         /// Получает SQL строку Insert
         /// </summary>
         /// <typeparam name="T">Тип имеющий MapAttributes</typeparam>
-        string GetSqlInsertCommand<T>(T t);
+        string GetSqlInsertCommand<T>(T t) where T : class;
 
         /// <summary>
         /// Строка запроса на удаление
@@ -258,7 +258,7 @@ namespace ORM_1_21_
         /// <param name="t"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns>string sql for detete</returns>
-        string GetSqlDeleteCommand<T>(T t);
+        string GetSqlDeleteCommand<T>(T t) where T : class;
 
         /// <summary>
         /// Клонирование объекта через JSON
@@ -266,19 +266,25 @@ namespace ORM_1_21_
         /// <typeparam name="T">Тип клонируемого объекта</typeparam>
         /// <param name="ob">Объект для клонирования</param>
         /// <returns>Новый объект</returns>
-        T Clone<T>(T ob);
+        T Clone<T>(T ob) where T : class;
 
         /// <summary>
         /// Получение sql запроса для вставки пакетом
         /// </summary>
         /// <param name="enumerable"></param>
         /// <typeparam name="T"></typeparam>
-        string GetSqlForInsertBulk<T>(IEnumerable<T> enumerable);
+        string GetSqlForInsertBulk<T>(IEnumerable<T> enumerable) where T : class;
+        
+
+        /// <summary>
+        /// Писать в лог файл напрямую sql запрос
+        /// </summary>
+        /// <exception cref="Exception"></exception>
+        void WriteLogFile(IDbCommand command);
         /// <summary>
         /// Получает список полей таблицы
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        IEnumerable<TableColumn> GetTableColumns<T>();
-      
+        /// <param name="tableName"></param>
+        IEnumerable<TableColumn> GetTableColumns(string tableName);
     }
 }

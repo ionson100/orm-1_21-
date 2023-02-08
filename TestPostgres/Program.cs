@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TestPostgres
@@ -17,9 +18,53 @@ namespace TestPostgres
         static async Task Main(string[] args)
         {
 
+           
             Starter.Run();
 
+
+
+            new Thread(async () =>
+            {
+                while (true)
+                {
+                    var ses = Configure.Session;
+                    var ts = ses.BeginTransaction();
+                    MyClass c = new MyClass();
+                    ses.Save(c);
+
+                    var s = Configure.Session.Querion<MyClass>().Where(a => a.Age != -1);
+                    var ees = await s.ToListAsync();
+                    Console.WriteLine("1 -- " + ees.Count());
+                    ts.Commit();
+
+                }
+
+            }).Start();
+
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    var ses = Configure.Session;
+                    var ts = ses.BeginTransaction();
+                    MyClass c = new MyClass();
+                    ses.Save(c);
+
+                    var s = Configure.Session.Querion<MyClass>().Where(a => a.Age != -1).ToList();
+                    Console.WriteLine("2 -- " + s.Count());
+                    ts.Commit();
+                }
+
+            }).Start();
+            Console.ReadKey();
+
+            //var tcc = Configure.Session.Querion<MyClass>().Where(a=>a.Age!=23)l
+
             ISession sesw = Configure.GetSession<MyDbMySql>();
+            var myClassMysqls = sesw.Querion<MyClassMysql>().Where(a => a.Age != 3);
+            //sesw.Dispose();
+            myClassMysqls.ToList();
+
             var tr44 = sesw.BeginTransaction();
             if (sesw.TableExists<MyClassMysql2>())
             {
@@ -29,12 +74,14 @@ namespace TestPostgres
             {
                 var e2 = sesw.TableCreate<MyClassMysql2>();
             }
-            List<MyClassMysql2> list = new List<MyClassMysql2>();
-            list.Add(new MyClassMysql2());
-            list.Add(new MyClassMysql2());
-            list.Add(new MyClassMysql2());
-            list.Add(new MyClassMysql2());
-            list.Add(new MyClassMysql2());
+            List<MyClassMysql2> list = new List<MyClassMysql2>
+            {
+                new MyClassMysql2(),
+                new MyClassMysql2(),
+                new MyClassMysql2(),
+                new MyClassMysql2(),
+                new MyClassMysql2()
+            };
             var dtr = sesw.GetSqlForInsertBulk(list);
             int ee23 = sesw.InsertBulk(list);
             tr44.Commit();
@@ -47,7 +94,7 @@ namespace TestPostgres
                 Console.WriteLine("__" + s.Id);
             });
 
-
+            var sass = Configure.GetSession<MyDbMySql>().GetList<MyClassMysql2>();
 
             var r2 = Configure.GetSession<MyDbMySql>().FreeSql<MyClassMysql>("select * from my_class where age > @1",
                 new Parameter("@1", 20)).ToList();
@@ -205,7 +252,7 @@ namespace TestPostgres
                 var coutn = dataTable.Rows.Count;
             }
 
-            Console.Read();
+            Console.ReadKey();
         }
 
         static IEnumerable<T> TempSql<T>(T t)
@@ -222,7 +269,7 @@ namespace TestPostgres
         {
             return new MySqlClientFactory();
         });
-        public ProviderName GetProviderName()
+        public ProviderName  GetProviderName()
         {
             return ProviderName.MySql;
         }
@@ -260,7 +307,7 @@ namespace TestPostgres
 
             string path = null;
 #if DEBUG
-            path = "SqlLog.txt";
+            path =  "SqlLog.txt";
 #endif
             _ = new Configure("Server=localhost;Port=5432;Database=testorm;User Id=postgres;Password=ion100312873;",
                 ProviderName.Postgresql, path);

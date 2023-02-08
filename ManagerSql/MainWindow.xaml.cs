@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Data;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using ORM_1_21_;
 
 namespace ManagerSql
 {
@@ -59,6 +61,21 @@ namespace ManagerSql
                 });
                 stack.Children.Add(new Label { Content = tableName });
                 var s = new TreeViewItem() { Header = stack, Tag = tableName };
+                var tc = Configure.Session.GetTableColumns(tableName).ToList().OrderByDescending(a=>a.IsPk);
+                foreach (var c in tc)
+                {
+                    StackPanel stack1 = new StackPanel { Orientation = Orientation.Horizontal };
+
+                    stack1.Children.Add(new Image
+                    {
+                        Source =c.IsPk==false?new BitmapImage(new Uri("pack://application:,,/Resources/column.png")):new BitmapImage(new Uri("pack://application:,,/Resources/key.png")),
+                        Width = 15,
+                        Height = 15
+                    });
+                    stack1.Children.Add(new Label { Content = $"{c.ColumnName} ({c.ColumnType})" });
+                    s.Items.Add(new TreeViewItem() { Header = stack1});
+                }
+               
                 TreeViewTables.Items.Add(s);
             }
 
@@ -162,6 +179,7 @@ namespace ManagerSql
         {
             if (TreeViewTables.SelectedItem == null) return;
             TreeViewItem item = (TreeViewItem)TreeViewTables.SelectedItem;
+            if(item.Tag==null) return;
             string table = (string)item.Tag;
             string sql;
 

@@ -61,7 +61,8 @@
                         <Button FontSize="20" Name="ButtonInit" Grid.Column="2" Width="150" Margin="2" Click="ButtonBase_OnClickRefreshBase">Refresh Base</Button>
                         <Button FontSize="20" Name="ButtonExecute" Grid.Column="3" Width="150" Margin="2" Click="ButtonBase_OnClickExecuteSql">Execute Sql</Button>
                     </Grid>
-                   <TextBox Background="Azure" FontSize="20" KeyDown="TextBoxSql_OnKeyDown" Name="TextBoxSql" Grid.Row="1"/>
+                    <TextBox Background="Azure" FontSize="20" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                             MaxLines="100" KeyDown="TextBoxSql_OnKeyDown" Name="TextBoxSql" Grid.Row="1"/>
                 </Grid>
 
 

@@ -25,7 +25,7 @@ namespace ORM_1_21_
         /// <param name="message">текст сообщения</param>
         public static void WriteLogFile(string message)
         {
-            MySqlLogger.Info(message);
+            MySqlLogger.Info($"WriteLogFile: {message}");
         }
     }
 

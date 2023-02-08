@@ -56,6 +56,11 @@ namespace ManagerSql
 
         }
 
+        static List<ORM_1_21_.TableColumn> GeTableColumns(string tableName)
+       {
+           return Configure.Session.GetTableColumns(tableName).ToList();
+       }
+
 
 
     }

@@ -3,6 +3,7 @@ using ORM_1_21_.Attribute;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace TestMysql
 {
@@ -11,6 +12,42 @@ namespace TestMysql
         static void Main(string[] args)
         {
             Starter.Run();
+
+            new Thread(async () =>
+            {
+                while (true)
+                {
+                    var ses = Configure.Session;
+                    var ts = ses.BeginTransaction();
+                    MyClass c = new MyClass();
+                    ses.Save(c);
+
+                    var s = Configure.Session.Querion<MyClass>().Where(a => a.Age != -1);
+                    var ees = await s.ToListAsync();
+                    Console.WriteLine("1 -- " + ees.Count());
+                    ts.Commit();
+
+                }
+
+            }).Start();
+
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    var ses = Configure.Session;
+                    var ts = ses.BeginTransaction();
+                    MyClass c = new MyClass();
+                    ses.Save(c);
+
+                    var s = Configure.Session.Querion<MyClass>().Where(a => a.Age != -1).ToList();
+                    Console.WriteLine("2 -- " + s.Count());
+                    ts.Commit();
+                }
+
+            }).Start();
+            Console.ReadKey();
+            var tss = Configure.Session.GetTableColumns(Configure.Session.TableName<MyClass>() ).ToList();
             MyClass myClass = new MyClass()
             {
                 Age = 12,

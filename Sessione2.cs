@@ -1,5 +1,6 @@
 ﻿using ORM_1_21_.Transaction;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,7 +9,7 @@ namespace ORM_1_21_
 {
     public sealed partial class Sessione
     {
-        private IOtherDataBaseFactory _factory;
+        private readonly IOtherDataBaseFactory _factory;
         private bool _isDispose;
         internal readonly Transactionale Transactionale = new Transactionale();
 
@@ -40,19 +41,20 @@ namespace ORM_1_21_
         /// <param name="connectionString">Строка соединения с базой</param>
         public Sessione(string connectionString)
         {
-            _connect = ProviderFactories.GetConnect(_factory);
+            _connect = ProviderFactories.GetConnect(null);
             _connect.ConnectionString = connectionString;
         }
         /// <summary>
         /// Конструктор для подключения к другой базе
         /// </summary>
-       
+        /// <param name="factory">Объект реализующий соединение к другой базе</param>
         public Sessione(IOtherDataBaseFactory factory)
         {
             _factory = factory;
             _connect = factory.GetDbProviderFactories().CreateConnection();
+            if (_connect == null) throw new Exception("Не могу создать соединение к другой базе");
             _connect.ConnectionString = factory.GetConnectionString();
-            if(factory != null && factory.GetProviderName() == ProviderName.Postgresql)
+            if(factory.GetProviderName() == ProviderName.Postgresql)
             {
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
@@ -118,18 +120,7 @@ namespace ORM_1_21_
         ///</summary>
         public void Dispose()
         {
-
-
-            Transactionale.ListDispose.ForEach(a => a.Dispose());
-            if (_connect != null)
-                _connect.Dispose();
-            GC.SuppressFinalize(this);
-            _isDispose = true;
-            foreach (var dbCommand in _dbCommands)
-            {
-                dbCommand.Dispose();
-            }
-            _dbCommands.Clear();
+            InnerDispose();
         }
 
 
@@ -182,11 +173,27 @@ namespace ORM_1_21_
         /// </summary>
         ~Sessione()
         {
-            Transactionale.ListDispose.ForEach(a => a.Dispose());
+            InnerDispose(true);
+
+        }
+
+        void InnerDispose(bool isFinalize = false)
+        {
+            if (_isDispose) return;
             try
             {
-                _connect?.Dispose();
+                Transactionale.ListDispose.ForEach(a => a.Dispose());
+                if (_connect != null)
+                    _connect.Dispose();
 
+                _isDispose = true;
+                foreach (var dbCommand in _dbCommands)
+                {
+                    dbCommand.Dispose();
+                }
+                _dbCommands.Clear();
+                if (isFinalize == false)
+                    GC.SuppressFinalize(this);
             }
             catch (Exception)
             {
@@ -195,44 +202,43 @@ namespace ORM_1_21_
 
         }
 
-        /// <summary>
-        /// Запись в лог файл
-        /// </summary>
-        /// <param name="message">текст сообщения</param>
-        public void WriteLogFile(string message)
-        {
-            MySqlLogger.Info(message);
 
+        void ISession.WriteLogFile(string message)
+        {
+            InnerWriteLogFile($"WriteLogFile: {message}");
         }
 
-        /// <summary>
-        /// Писать в лог файл напрямую sql запрос
-        /// </summary>
-        /// <exception cref="Exception"></exception>
-        public void WriteLogFile(IDbCommand command)
-        {
+         private void InnerWriteLogFile(string message)
+         { 
+             MySqlLogger.Info(message);
+         }
+
+         private void InnerWriteLogFile(IDbCommand command)
+         {
             MySqlLogger.Info(Utils.GetStringSql(command));
 
         }
 
-        /// <summary>
-        /// Определяет, откуда объект
-        /// </summary>
-        /// <returns></returns>
-        public bool IsPersistent(object obj)
+
+        void ISession.WriteLogFile(IDbCommand command)
+        {
+            InnerWriteLogFile($"WriteLogFile: {command}");
+
+        }
+
+        
+         bool ISession.IsPersistent<T>(T obj)
         {
             return Utils.IsPersistent(obj);
         }
-
-        /// <summary>
-        /// Пометить объект, что он получен из базы
-        /// </summary>
-        public void ToPersistent(object obj)
+         
+         
+         void ISession.ToPersistent<T>(T obj)
         {
             Utils.SetPersisten(obj);
         }
 
-        private static void CloneItems<T>(T item, object o)
+         private static void CloneItems<T>(T item, object o)
         {
 
             var rr = o.GetType().GetProperties();
@@ -244,5 +250,15 @@ namespace ORM_1_21_
                 propertyInfo.SetValue(item, value, null);
             }
         }
+
+      
+         IEnumerable<TableColumn> ISession.GetTableColumns(string tableName)
+         {
+             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+             com.Connection = _connect;
+             return ColumnsTableFactory.GeTableColumns(MyProviderName, com,Utils.ClearTrim(tableName.Trim()));
+
+
+         }
     }
 }
