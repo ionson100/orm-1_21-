@@ -29,26 +29,28 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="10*" />
             </Grid.ColumnDefinitions>
-            <TreeView  Name="TreeViewTables" Background="Beige" FontSize="20" Padding="10" Grid.Column="0" SelectedItemChanged="TreeViewTables_OnSelectedItemChanged" >
+            <TreeView  Name="TreeViewTables" Background="Beige" FontSize="20" Padding="10" 
+                       Grid.Column="0" SelectedItemChanged="TreeViewTables_OnSelectedItemChanged" >
 
             </TreeView>
             <GridSplitter Name="Splitter1" Grid.Column="1" DragCompleted="Thumb_OnDragCompleted"   Width="3" HorizontalAlignment="Center" VerticalAlignment="Stretch" />
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition  Name="RowTextSql" Height="*"/>
+                   
+                    <RowDefinition   Height="*"/>
                 </Grid.RowDefinitions>
                 <Grid Background="Lavender" Grid.Row="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
+                       
                     </Grid.RowDefinitions>
                     <Grid Grid.Row="0" Margin="2" >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="8*"/>
                             <ColumnDefinition  Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <ComboBox Name="ComboBoxTypeBase" Grid.Column="0" FontSize="20" Margin="2">
@@ -60,18 +62,16 @@
                         <TextBox Name="TextBoxConnectionString" FontWeight="Bold"   Grid.Column="1" Margin="2" FontSize="20"/>
                         <Button FontSize="20" Name="ButtonInit" Grid.Column="2" Width="150" Margin="2" Click="ButtonBase_OnClickRefreshBase">Refresh Base</Button>
                         <Button FontSize="20" Name="ButtonExecute" Grid.Column="3" Width="150" Margin="2" Click="ButtonBase_OnClickExecuteSql">Execute Sql</Button>
+                        <Button FontSize="20" Name="ButtonAdd" Grid.Column="4" Width="50" Margin="2" Click="ButtonBase_OnClickAdd"> Sql</Button>
                     </Grid>
-                    <TextBox Background="Azure" FontSize="20" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                             MaxLines="100" KeyDown="TextBoxSql_OnKeyDown" Name="TextBoxSql" Grid.Row="1"/>
+                   
                 </Grid>
+                <TabControl Name="TabControlToot"  Grid.Row="1"></TabControl>
 
 
-                <GridSplitter Name="Splitter2" DragCompleted="Thumb_OnDragCompleted" Grid.Row="1" Height="3" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalAlignment="Center" />
+                
 
-                <DataGrid Grid.Row="2" Name="DataGridSql" CanUserAddRows="False" FontSize="14" ItemsSource="{Binding}"
-                          AlternatingRowBackground="GhostWhite" AlternationCount="1"
-                          CellEditEnding="DataGridSql_OnCellEditEnding"/>
-                    <TextBox Visibility="Hidden" MaxLines="100" Foreground="Red" FontSize="16" Grid.Row="2" Name="TextBoxError" />
+               
                 
 
 

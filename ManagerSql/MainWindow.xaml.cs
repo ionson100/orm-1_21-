@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using Newtonsoft.Json;
 using ORM_1_21_;
 
 namespace ManagerSql
@@ -20,9 +22,7 @@ namespace ManagerSql
         {
             InitializeComponent();
             InitBase(SettingsMy.Default.TypeBase, SettingsMy.Default.ConnctionString, true);
-            TextBoxSql.Text = SettingsMy.Default.LastSql;
             ColumnTree.Width = new GridLength(SettingsMy.Default.Sp1);
-            RowTextSql.Height = new GridLength(SettingsMy.Default.Sp2);
             ComboBoxTypeBase.SelectedIndex = SettingsMy.Default.TypeBase;
             SettingsMy.Default.Connects.Remove("start");
             Utils.InitMenu(MenuLastConnects, (sender, args) =>
@@ -33,15 +33,45 @@ namespace ManagerSql
                 if (par.Value.Item1 > 3) return;
                 ComboBoxTypeBase.SelectedIndex = par.Value.Item1;
                 TextBoxConnectionString.Text = par.Value.Item2;
-
-                DataGridSql.DataContext = null;
                 ButtonBase_OnClickRefreshBase(null, null);
-
-
             });
-
-
+            this.Closing += SaveToBase;
         }
+
+        private void SaveToBase(object sender, CancelEventArgs es)
+        {
+            List<ModelData> list = new List<ModelData>();
+            foreach (var item in TabControlToot.Items)
+            {
+                TabItem i = (TabItem)item;
+                MyTabItem mi = (MyTabItem)i.Content;
+                ModelData data = mi.GetModelData();
+                if (data == null) continue;
+                list.Add(data);
+            }
+
+            using (var ses = Configure.GetSession<MyDataProvider>())
+            {
+                var t = ses.BeginTransaction(IsolationLevel.Serializable);
+                try
+                {
+                    ses.TruncateTable<SqliteModel>();
+                    if (list.Any())
+                    {
+                        var s = JsonConvert.SerializeObject(list);
+                        ses.Save(new SqliteModel { Join = s });
+                    }
+
+                    t.Commit();
+                }
+                catch (Exception e)
+                {
+                    t.Rollback();
+                    MessageBox.Show(e.ToString());
+                }
+            }
+        }
+
 
         void InitBase(int typeBase, string conStr, bool isStart = false)
         {
@@ -61,21 +91,22 @@ namespace ManagerSql
                 });
                 stack.Children.Add(new Label { Content = tableName });
                 var s = new TreeViewItem() { Header = stack, Tag = tableName };
-                var tc = Configure.Session.GetTableColumns(tableName).ToList().OrderByDescending(a=>a.IsPk);
+                var tc = Configure.Session.GetTableColumns(tableName).ToList().OrderByDescending(a => a.IsPk);
                 foreach (var c in tc)
                 {
                     StackPanel stack1 = new StackPanel { Orientation = Orientation.Horizontal };
-
                     stack1.Children.Add(new Image
                     {
-                        Source =c.IsPk==false?new BitmapImage(new Uri("pack://application:,,/Resources/column.png")):new BitmapImage(new Uri("pack://application:,,/Resources/key.png")),
+                        Source = c.IsPk == false
+                            ? new BitmapImage(new Uri("pack://application:,,/Resources/column.png"))
+                            : new BitmapImage(new Uri("pack://application:,,/Resources/key.png")),
                         Width = 15,
                         Height = 15
                     });
                     stack1.Children.Add(new Label { Content = $"{c.ColumnName} ({c.ColumnType})" });
-                    s.Items.Add(new TreeViewItem() { Header = stack1});
+                    s.Items.Add(new TreeViewItem() { Header = stack1 });
                 }
-               
+
                 TreeViewTables.Items.Add(s);
             }
 
@@ -88,14 +119,31 @@ namespace ManagerSql
                 SettingsMy.Default.ConnctionString = conStr;
                 SettingsMy.Default.TypeBase = ComboBoxTypeBase.SelectedIndex;
                 SettingsMy.Default.Save();
-
-
             }
 
             Utils.UpdateLastConnects(typeBase, TextBoxConnectionString.Text);
+            using (var ses = Configure.GetSession<MyDataProvider>())
+            {
+                if (ses.TableExists<SqliteModel>() == false)
+                {
+                    ses.TableCreate<SqliteModel>();
+                }
+                var m = ses.Querion<SqliteModel>().FirstOrDefault();
+                if (m == null) return;
+                var list = JsonConvert.DeserializeObject<List<ModelData>>(m.Join);
+                if (list != null)
+                    foreach (var sqliteModel in list)
+                    {
+                        var ti = new MyTabItem();
+                        ti.SetModelData(sqliteModel);
+                        TabControlToot.Items.Add(ti.TabItem);
+                    }
 
-
-
+                if (TabControlToot.Items.Count > 0)
+                {
+                    TabControlToot.SelectedIndex = 0;
+                }
+            }
         }
 
         private void ButtonBase_OnClickRefreshBase(object sender, RoutedEventArgs e)
@@ -105,6 +153,7 @@ namespace ManagerSql
                 MessageBox.Show("Строка соединения с базой отсутствует!");
                 return;
             }
+
             InitBase(ComboBoxTypeBase.SelectedIndex, TextBoxConnectionString.Text.Trim());
         }
 
@@ -115,30 +164,10 @@ namespace ManagerSql
 
         private async Task Execute()
         {
-            if (string.IsNullOrWhiteSpace(TextBoxSql.Text)) return;
-
-            await Dispatcher.BeginInvoke((Action)(() =>
-                Mouse.OverrideCursor = Cursors.Wait));
-            ButtonExecute.IsEnabled = ButtonInit.IsEnabled = TextBoxConnectionString.IsEnabled = false;
-            try
-            {
-                await new ExecutorSql().Execute(TextBoxSql.Text, DataGridSql);
-
-                TextBoxError.Visibility = Visibility.Hidden;
-                SettingsMy.Default.LastSql = TextBoxSql.Text.Trim();
-                SettingsMy.Default.Save();
-            }
-            catch (Exception ex)
-            {
-                DataGridSql.DataContext = null;
-                TextBoxError.Visibility = Visibility.Visible;
-                TextBoxError.Text = ex.Message;
-            }
-            finally
-            {
-                await Dispatcher.BeginInvoke((Action)(() => Mouse.OverrideCursor = null));
-                ButtonExecute.IsEnabled = ButtonInit.IsEnabled = TextBoxConnectionString.IsEnabled = true;
-            }
+            var selectedItem = TabControlToot.SelectedItem;
+            if (selectedItem == null) return;
+            MyTabItem myTabItem = (MyTabItem)((TabItem)selectedItem).Content;
+            await myTabItem.Execute(ButtonExecute, ButtonInit, TextBoxConnectionString, ButtonAdd, TreeViewTables);
         }
 
         private void MenuItem_OnClick(object sender, RoutedEventArgs e)
@@ -148,74 +177,48 @@ namespace ManagerSql
 
         private void Thumb_OnDragCompleted(object sender, DragCompletedEventArgs e)
         {
-            GridSplitter gridSplitter = (GridSplitter)sender;
-            switch (gridSplitter.Name)
-            {
-                case "Splitter1":
-                    {
-                        SettingsMy.Default.Sp1 = ColumnTree.Width.Value;
-                        SettingsMy.Default.Save();
-                        break;
-                    }
-                case "Splitter2":
-                    {
-                        SettingsMy.Default.Sp2 = RowTextSql.Height.Value;
-                        SettingsMy.Default.Save();
-                        break;
-                    }
-            }
-
-        }
-
-        private async void TextBoxSql_OnKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                await Execute();
-            }
+            SettingsMy.Default.Sp1 = ColumnTree.Width.Value;
+            SettingsMy.Default.Save();
         }
 
         private async void TreeViewTables_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (TreeViewTables.SelectedItem == null) return;
             TreeViewItem item = (TreeViewItem)TreeViewTables.SelectedItem;
-            if(item.Tag==null) return;
+            if (item.Tag == null) return;
             string table = (string)item.Tag;
             string sql;
 
             switch (ComboBoxTypeBase.SelectedIndex)
             {
-                case 3://Sqlite
+                case 3: //Sqlite
                     sql = $"SELECT  * FROM {table} LIMIT 10";
                     break;
-                case 2://MSSQL
+                case 2: //MSSQL
                     sql = $"SELECT TOP 1000 * FROM [{table}]";
                     break;
-                case 1://MYSQL
+                case 1: //MYSQL
                     sql = $"SELECT * FROM `{table}` LIMIT 0,10";
                     break;
-                case 0://POSTGRESQL
+                case 0: //POSTGRESQL
                     sql = $"SELECT * FROM \"{table}\" LIMIT 10";
                     break;
                 default:
-                    {
-                        sql = $"SELECT  * FROM {table} LIMIT 10";
-                        break;
-                    }
-
-
+                {
+                    sql = $"SELECT  * FROM {table} LIMIT 10";
+                    break;
+                }
             }
 
-            TextBoxSql.Text = sql;
+            TabControlToot.Items.Add(new MyTabItem(sql).TabItem);
+            TabControlToot.SelectedIndex = TabControlToot.Items.Count - 1;
             await Execute();
         }
 
-
-
-
-        private void DataGridSql_OnCellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        private void ButtonBase_OnClickAdd(object sender, RoutedEventArgs e)
         {
-            DataTable d = (DataTable)DataGridSql.DataContext;
+            TabControlToot.Items.Add(new MyTabItem().TabItem);
+            TabControlToot.SelectedIndex = TabControlToot.Items.Count - 1;
         }
     }
 }

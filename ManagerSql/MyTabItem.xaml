@@ -8,17 +8,17 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition/>
+            <RowDefinition Name="RowTextSql"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
         <TextBox Background="Azure" FontSize="20" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                 MaxLines="100" KeyDown="TextBoxSql_OnKeyDown" Name="TextBoxSql" Grid.Row="0"/>
-        <GridSplitter Name="Splitter2" DragCompleted="Thumb_OnDragCompleted" Grid.Row="1" Height="3" HorizontalAlignment="Stretch"
+                 MaxLines="100"  Name="TextBoxSql" Grid.Row="0"/>
+        <GridSplitter Name="Splitter2"  Grid.Row="1" Height="3" HorizontalAlignment="Stretch"
                       HorizontalContentAlignment="Stretch" VerticalAlignment="Center" />
         <DataGrid Grid.Row="2" Name="DataGridSql" CanUserAddRows="False" FontSize="14" ItemsSource="{Binding}"
                   AlternatingRowBackground="GhostWhite" AlternationCount="1"
-                  CellEditEnding="DataGridSql_OnCellEditEnding"/>
+                 />
         <TextBox Visibility="Hidden" MaxLines="100" Foreground="Red" FontSize="16" Grid.Row="2" Name="TextBoxError" />
 
     </Grid>
