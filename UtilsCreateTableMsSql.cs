@@ -9,8 +9,7 @@ namespace ORM_1_21_
     {
         public static string Create<T>(ProviderName providerName)
         {
-            var tableName = AttributesOfClass<T>.TableName(providerName);
-            tableName = tableName.Replace("[", "").Replace("]", "");
+            var tableName = AttributesOfClass<T>.TableNameRaw(providerName);
             StringBuilder builder = new StringBuilder($"IF not exists (select 1 from information_schema.tables where table_name = '{tableName}')");
             builder.AppendLine($"CREATE TABLE [dbo].[{tableName}](");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
@@ -35,34 +34,23 @@ namespace ORM_1_21_
                 }
                 else
                 {
-                    builder.AppendLine($" [{map.ColumnNameForReader(providerName)}] {typeUser} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
+                    builder.AppendLine(
+                        $" [{map.ColumnNameForReader(providerName)}] {typeUser} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
                 }
-
             }
-            StringBuilder indexBuilder = new StringBuilder($"CREATE INDEX [INDEX_{tableName}] ON [{tableName}] (");
 
-            bool add = false;
+            string res = builder.ToString().Trim(' ', ',') + ");";
+            builder.Clear().Append(res);
             foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
-
                 if (map.IsIndex)
                 {
-                    add = true;
-                    indexBuilder.AppendLine(map.GetColumnName(providerName)).Append(",");
+                    builder.AppendLine(
+                        $"CREATE INDEX [INDEX_{tableName}_{map.GetColumnNameRaw()}] ON [{tableName}] ({map.GetColumnNameRaw()});");
                 }
-
-            }
-            string res = builder.ToString().Trim(new[] { ' ', ',' }) + ");";
-            if (add == true)
-            {
-                string index = indexBuilder.ToString().Substring(0, indexBuilder.ToString().LastIndexOf(',')).Trim() + ");";
-
-                res += Environment.NewLine + index;
             }
 
-
-
-            return res;
+            return builder.ToString();
         }
         private static string GetTypeMsSQl(Type type)
         {

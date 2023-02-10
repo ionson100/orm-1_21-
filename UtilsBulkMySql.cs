@@ -30,11 +30,11 @@ namespace ORM_1_21_
             return SqlSimple(list);
         }
 
-        private  string SqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
+        private  string SqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldTerminator)
         {
             StringBuilder sql = new StringBuilder($"LOAD DATA INFILE '{fileCsv}'");
             sql.AppendLine($"INTO TABLE {AttributesOfClass<T>.TableName(_providerName)}");
-            sql.AppendLine($"FIELDS TERMINATED BY '{fieldterminator}'");
+            sql.AppendLine($"FIELDS TERMINATED BY '{fieldTerminator}'");
             sql.AppendLine("ENCLOSED BY '\"'");
             sql.AppendLine("LINES TERMINATED BY '\n'");
             sql.AppendLine("IGNORE 1 ROWS");
@@ -95,7 +95,7 @@ namespace ORM_1_21_
             bool isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator != Generator.Native;
 
             StringBuilder rowHead = new StringBuilder();
-            if (isAddPk == true)
+            if (isAddPk)
             {
                 rowHead.Append(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
                     .Append(",");

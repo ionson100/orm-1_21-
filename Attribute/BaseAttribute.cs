@@ -11,7 +11,7 @@ namespace ORM_1_21_.Attribute
         private string _columnName;
 
         /// <summary>
-        /// Название колонки в таблице  базы
+        /// Название колонки в таблице  базы c учетом sql
         /// </summary>
         public string GetColumnName(ProviderName providerName)
         {
@@ -34,6 +34,15 @@ namespace ORM_1_21_.Attribute
           
            
         }
+
+        /// <summary>
+        /// Название колонки в таблице  без учета sql
+        /// </summary>
+        /// <returns></returns>
+        public string GetColumnNameRaw()
+        {
+            return _columnName;
+        }
       
 
         /// <summary>
@@ -47,7 +56,7 @@ namespace ORM_1_21_.Attribute
         /// <param name="columnName"></param>
         protected BaseAttribute(string columnName)
         {
-            _columnName = columnName.Trim(' ', '[', ']', '`', '"', '\'');
+            _columnName = Utils.ClearTrim(columnName);
         }
 
         internal string DefaultValue { get; set; }

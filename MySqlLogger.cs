@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,21 +15,17 @@ namespace ORM_1_21_
 
         public static void StopLogger()
         {
-            if(Interlocked.Read(ref _runner) == 1)
-              Interlocked.Decrement(ref _runner);
-            
+            if (Interlocked.Read(ref _runner) == 1) Interlocked.Decrement(ref _runner);
         }
 
         public static void Info(string message)
         {
-           
             if (_isActive == false) return;
             _cq.Enqueue($"{message}");
         }
 
         public static async Task RunLogger(string file)
         {
-           
             if (file == null)
             {
                 _isActive = false;
@@ -44,22 +38,17 @@ namespace ORM_1_21_
 
             using (_sw = File.AppendText(file))
             {
-               await Action();
+                await Action();
             }
 
-            
-
-            
-            
             Info($"---------   Init Log : {DateTime.Now:s} ----------");
-
         }
 
         private static async Task Action()
         {
             await Task.Run(() =>
             {
-                while (Interlocked.Read(ref _runner)==1)
+                while (Interlocked.Read(ref _runner) == 1)
                 {
                     while (_cq.TryDequeue(out var sql))
                     {
@@ -68,7 +57,5 @@ namespace ORM_1_21_
                 }
             });
         }
-
-       
     }
 }

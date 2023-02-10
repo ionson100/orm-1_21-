@@ -18,7 +18,7 @@ namespace ORM_1_21_.Attribute
         /// <param name="tableName">Название таблицы в базе данных</param>
         public MapTableNameAttribute(string tableName)
         {
-            _tableName = tableName.Trim(new[] { ' ', '[', ']', '`', '"' });
+            _tableName = Utils.ClearTrim(tableName);
         }
 
         ///<summary>
@@ -28,7 +28,7 @@ namespace ORM_1_21_.Attribute
         ///<param name="sqlWhere">добавление критерия запроса по where пример: "id='1'"</param>
         public MapTableNameAttribute(string tableName, string sqlWhere)
         {
-            _tableName = tableName.Trim(new[] { ' ', '[', ']', '`', '"' });
+            _tableName = Utils.ClearTrim(tableName);
             _sqlWhere = sqlWhere;
         }
 
@@ -41,7 +41,6 @@ namespace ORM_1_21_.Attribute
             {
                 case ProviderName.MsSql:
                     return $"[{_tableName}]";
-
                 case ProviderName.MySql:
                     return $"`{_tableName}`";
                 case ProviderName.Postgresql:
@@ -56,6 +55,5 @@ namespace ORM_1_21_.Attribute
         internal string SqlWhere => _sqlWhere ?? "";
 
     }
-
-
 }
+  

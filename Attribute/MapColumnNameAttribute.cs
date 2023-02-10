@@ -33,7 +33,7 @@ namespace ORM_1_21_.Attribute
         internal String ColumnNameForReader(ProviderName providerName)
         {
             
-            return GetColumnName(providerName).Trim('`', '\'', '[', ']', '"');
+            return Utils.ClearTrim(GetColumnName(providerName));
         }
 
         internal DbType DbType()

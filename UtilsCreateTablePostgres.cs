@@ -9,13 +9,9 @@ namespace ORM_1_21_
         public static string Create<T>(ProviderName providerName)
         {
             var builder = new StringBuilder();
-
-            var tableName = AttributesOfClass<T>.TableName(providerName);
-            tableName = Utils.ClearTrim(tableName);
+            var tableName = AttributesOfClass<T>.TableNameRaw(providerName);
             builder.AppendLine($"CREATE TABLE IF NOT EXISTS \"{tableName}\" (");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
-
-
             builder.AppendLine(
                 $" \"{Utils.ClearTrim(pk.ColumnNameForRider(providerName))}\" {GetTypePgPk(pk.TypeColumn, pk.Generator)}  PRIMARY KEY,");
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
@@ -23,19 +19,14 @@ namespace ORM_1_21_
                 if (map.TypeString == null)
                 {
                     builder.AppendLine(
-
                         $" \"{Utils.ClearTrim(map.ColumnNameForReader(providerName))}\" {GetTypePg(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
                 }
                 else
                 {
                     builder.AppendLine(
-
                         $" \"{Utils.ClearTrim(map.ColumnNameForReader(providerName))}\" {map.TypeString} ,");
                 }
-
             }
-
-
 
             var str2 = builder.ToString();
             str2 = str2.Substring(0, str2.LastIndexOf(','));
@@ -43,19 +34,14 @@ namespace ORM_1_21_
             builder.Append(str2);
             builder.AppendLine(");");
 
-            var indexBuilder = new StringBuilder();
-
-            //var add = false;
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
                 if (map.IsIndex)
                 {
-                    var colName = Utils.ClearTrim(map.GetColumnName(providerName));
+                    var colName = map.GetColumnNameRaw();
 
-                    indexBuilder.AppendLine(
-                        $"CREATE INDEX IF NOT EXISTS INDEX_{tableName}_{colName} ON \"{tableName}\" (\"{colName}\");");
+                    builder.AppendLine(
+                        $"CREATE INDEX IF NOT EXISTS \"INDEX_{tableName}_{colName}\" ON \"{tableName}\" (\"{colName}\");");
                 }
-            builder.AppendLine(indexBuilder.ToString());
-
 
             return builder.ToString();
         }

@@ -10,27 +10,23 @@ namespace ORM_1_21_
         {
             StringBuilder builder = new StringBuilder();
 
-            var tableName = AttributesOfClass<T>.TableName(providerName);
-            tableName = tableName.Replace("[", "").Replace("]", "").Replace("`", "");
-            builder.AppendLine($"CREATE TABLE  {tableName} (");
+            var tableName = AttributesOfClass<T>.TableNameRaw(providerName);
+            builder.AppendLine($"CREATE TABLE IF NOT EXISTS '{tableName}' (");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
             if (pk.Generator == Generator.Native)
             {
-                //
-                builder.AppendLine($" {pk.ColumnNameForRider(providerName)}  INTEGER PRIMARY KEY AUTOINCREMENT,");
+                builder.AppendLine($" '{pk.GetColumnName(providerName)}' INTEGER PRIMARY KEY AUTOINCREMENT,");
             }
             else
             {
-                builder.AppendLine($" {pk.ColumnNameForRider(providerName)}  {GetTypeColumn(pk.TypeColumn)}  PRIMARY KEY,");
+                builder.AppendLine($" '{pk.GetColumnName(providerName)}'  {GetTypeColumn(pk.TypeColumn)} PRIMARY KEY,");
             }
-
-
 
             foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
-                builder.AppendLine($" {map.ColumnNameForReader(providerName)} {GetTypeColumn(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
+                builder.AppendLine(
+                    $" '{map.GetColumnName(providerName)}' {GetTypeColumn(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
             }
-
 
             string str2 = builder.ToString();
             str2 = str2.Substring(0, str2.LastIndexOf(','));
@@ -38,25 +34,15 @@ namespace ORM_1_21_
             builder.Append(str2);
             builder.AppendLine(");");
 
-            //CREATE INDEX index_name ON table_name (column_name);
-
-            StringBuilder indexBuilder = new StringBuilder($"CREATE INDEX INDEX_{tableName} ON {tableName} (");
-
-            bool add = false;
             foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
                 if (map.IsIndex)
                 {
-                    add = true;
-                    indexBuilder.AppendLine(map.GetColumnName(providerName)).Append(",");
+                    var c = map.GetColumnNameRaw();
+                    builder.AppendLine($"CREATE INDEX 'INDEX_{tableName}_{c}' ON '{tableName}' ('{c}');");
                 }
             }
 
-            if (add == true)
-            {
-                string index = indexBuilder.ToString().Substring(0, indexBuilder.ToString().LastIndexOf(',')).Trim() + ");";
-                builder.AppendLine(index);
-            }
             return builder.ToString();
         }
         private static string GetTypeColumn(Type type)

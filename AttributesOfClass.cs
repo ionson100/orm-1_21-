@@ -224,6 +224,11 @@ namespace ORM_1_21_
             return TableNameAllLazy.Value[typeof(T)];
         }
 
+        public static string TableNameRaw(ProviderName provider)
+        {
+            return Utils.ClearTrim(TableName(provider));
+        }
+
         private static string SqlWhere => SqlWhereAllLazy.Value[typeof(T)];
 
         private static string SqlWhereBase =>

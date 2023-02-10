@@ -157,7 +157,8 @@ class User implements IUsingGuidId {
     }
 }
 ```
-Выборку одиночного объекта можно производить в этом случае:
+Выборку одиночного объекта можно производить только по полю ключа\
+ в этом случае:
 ```java
  String uuid="9df35d16-a36b-4515-b03f-2dfe4331216d";
  User user=Configure.getSession().get(User.class,uuid);

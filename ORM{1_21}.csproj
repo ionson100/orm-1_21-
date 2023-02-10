@@ -129,7 +129,6 @@
     <Compile Include="Generator.cs" />
     <Compile Include="Attribute\MapPrimaryKeyAttribute.cs" />
     <Compile Include="Attribute\MapColumnNameAttribute.cs" />
-    <Compile Include="Attribute\CurrentTableAtribute.cs" />
     <Compile Include="IActionDAL.cs" />
     <Compile Include="ISession.cs" />
     <Compile Include="Linq\Creator.cs" />

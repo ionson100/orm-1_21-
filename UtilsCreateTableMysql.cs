@@ -10,11 +10,9 @@ namespace ORM_1_21_
         {
             StringBuilder builder = new StringBuilder();
 
-            var tableName = AttributesOfClass<T>.TableName(providerName);
-            tableName = tableName.Replace("[", "").Replace("]", "").Replace("`", "");
+            var tableName = AttributesOfClass<T>.TableNameRaw(providerName);
             builder.AppendLine($"CREATE TABLE IF NOT EXISTS `{tableName}` (");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
-
 
             builder.AppendLine($" `{pk.ColumnNameForRider(providerName)}` {GetTypeMySql(pk.TypeColumn)}  " +
                                $"PRIMARY KEY {(pk.Generator == Generator.Native ? "AUTO_INCREMENT" : "")},");
@@ -26,11 +24,9 @@ namespace ORM_1_21_
                     typeColumn = GetTypeMySql(map.TypeColumn);
                 }
 
-                builder.AppendLine($" `{map.ColumnNameForReader(providerName)}` {typeColumn} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
-
-
+                builder.AppendLine(
+                    $" `{map.ColumnNameForReader(providerName)}` {typeColumn} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
             }
-
 
             string str2 = builder.ToString();
             str2 = str2.Substring(0, str2.LastIndexOf(','));
@@ -38,27 +34,18 @@ namespace ORM_1_21_
             builder.Append(str2);
             builder.AppendLine(");").Append(AttributesOfClass<T>.GetTypeTable(providerName));
 
-
-
-            StringBuilder indexBuilder = new StringBuilder($"ALTER TABLE `{tableName}` ADD INDEX `INDEX_{tableName}` (");
-
-            bool add = false;
             foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
                 if (map.IsIndex)
                 {
-                    add = true;
-                    indexBuilder.AppendLine(map.GetColumnName(providerName)).Append(",");
+                    builder.AppendLine(
+                        $"ALTER TABLE `{tableName}` ADD INDEX `INDEX_{tableName}_{map.GetColumnNameRaw()}` ({map.GetColumnNameRaw()});");
                 }
             }
 
-            if (add == true)
-            {
-                string index = indexBuilder.ToString().Substring(0, indexBuilder.ToString().LastIndexOf(',')).Trim() + ");";
-                builder.AppendLine(index);
-            }
             return builder.ToString();
         }
+
         private static string GetTypeMySql(Type type)
         {
             if (type == typeof(Guid) || type == typeof(Guid?))
