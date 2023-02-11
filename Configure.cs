@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
@@ -47,10 +46,11 @@ namespace ORM_1_21_
         /// <param name="connectionString">Строка соединения с базой</param>
         /// <param name="provider">Провайдер соединения с базой</param>
         /// <param name="logFileName">Путь и название файла, куда будем писать логи, его отсутствие (null) отменяет запись в файл.</param>
-        /// <param name="isSearchGac"> true:Искать поставшика данных в хранилище GAC</param>
+        /// <param name="isSearchGac"> true:Искать поставщика данных в хранилище GAC</param>
         public Configure(string connectionString, ProviderName provider, string logFileName, bool isSearchGac=false)
         {
-
+ 
+            _configure = this;
             _curFactory = null;
             ConnectionString = connectionString;
             _isSearchGac = isSearchGac;
@@ -144,7 +144,7 @@ namespace ORM_1_21_
                     }
             }
 
-            _configure = this;
+           
         }
 
         /// <summary>
@@ -198,6 +198,7 @@ namespace ORM_1_21_
 
             return _configure.GetInnerSession<TF>();
         }
+       
 
         private static void ActivateLogger(string fileNameLogFile)
         {
@@ -210,6 +211,7 @@ namespace ORM_1_21_
 
             Task.Run(async ()=> await MySqlLogger.RunLogger(fileNameLogFile));
         }
+       
 
         private ISession GetInnerSession()
         {

@@ -1,6 +1,7 @@
 ﻿using ORM_1_21_.Linq.MsSql;
 using ORM_1_21_.Linq.MySql;
 using ORM_1_21_.Transaction;
+using ORM_1_21_.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -151,7 +153,7 @@ namespace ORM_1_21_.Linq
                         {
                             if (countcol == 1)
                             {
-                                resDis.Add((TS)Utils.Convertor<TS>(dataReader[0]));
+                                resDis.Add((TS)UtilsCore.Convertor<TS>(dataReader[0]));
                             }
                             else
                             {
@@ -223,7 +225,16 @@ namespace ORM_1_21_.Linq
             {
                 if (typeof(TS) != typeof(object) && typeof(TS).IsClass)
                 {
-                    object employee = Activator.CreateInstance<TS>();
+                    object employee;
+                    var isLegasy = AttributesOfClass<TS>.IsUssageActivator(_providerName);
+                    if (isLegasy)
+                    {
+                        employee = Activator.CreateInstance<TS>();
+                    }
+                    else
+                    {
+                        employee = (TS)FormatterServices.GetSafeUninitializedObject(typeof(TS));
+                    }
                     while (dataReader.Read())
                     {
                         for (var i = 0; i < dataReader.FieldCount; i++)
@@ -386,7 +397,16 @@ namespace ORM_1_21_.Linq
                     {
                         if (typeof(TS) != typeof(object) && typeof(TS).IsClass)
                         {
-                            object employee = Activator.CreateInstance<TS>();
+                            object employee;
+                            var isLegasy = AttributesOfClass<TS>.IsUssageActivator(_providerName);
+                            if (isLegasy)
+                            {
+                                employee = Activator.CreateInstance<TS>();
+                            }
+                            else
+                            {
+                                employee = (TS)FormatterServices.GetSafeUninitializedObject(typeof(TS));
+                            }
                             while (dataReader.Read())
                             {
                                 for (var i = 0; i < dataReader.FieldCount; i++)
@@ -429,7 +449,7 @@ namespace ORM_1_21_.Linq
                     
 
                     dataReader.Dispose();
-                    var res = Utils.Convertor<TS>(rObj);
+                    var res = UtilsCore.Convertor<TS>(rObj);
                     return res;
                 }
 
@@ -452,7 +472,7 @@ namespace ORM_1_21_.Linq
                 {
                     var lres = new List<TS>();
                     dataReader = _com.ExecuteReader();
-                    while (dataReader.Read()) lres.Add((TS)Utils.Convertor<TS>(dataReader[0]));
+                    while (dataReader.Read()) lres.Add((TS)UtilsCore.Convertor<TS>(dataReader[0]));
                     dataReader.Dispose();
                     bool isactive1;
                     var datasingl1 = Pizdaticus.SingleData(_listOne, lres, out isactive1);
@@ -493,7 +513,7 @@ namespace ORM_1_21_.Linq
                     var ss = _listOne.Single(a => a.Operand == Evolution.SelectNew).NewConctructor;
                     _com.CommandText = _com.CommandText.Replace(",?p", "?p");
                     dataReader = _com.ExecuteReader();
-                    if (Utils.IsAnonymousType(typeof(TS)))
+                    if (UtilsCore.IsAnonymousType(typeof(TS)))
                     {
                         var lRes = Pizdaticus.GetListAnonymusObj<TS>(dataReader, ss);
                         bool isaActive1;
@@ -537,7 +557,7 @@ namespace ORM_1_21_.Linq
 
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(_com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(_com), ex);
                 return null;
             }
 

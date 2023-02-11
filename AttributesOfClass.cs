@@ -1,5 +1,6 @@
-﻿using ORM_1_21_.Attribute;
+﻿
 using ORM_1_21_.Linq;
+using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -19,53 +20,51 @@ namespace ORM_1_21_
     /// <typeparam name="T">Тип  класса</typeparam>
     internal static class AttributesOfClass<T>
     {
-        private static object lockO = new object();
+        internal static readonly object LockO = new object();
        
         private static ProviderName CurProviderName
         {
             get
             {
               
-                if (provider == null)
+                if (ProviderName == null)
                 {
                     return Configure.Provider;
                 }
                 else
                 {
-                    return provider.Value;
+                    return ProviderName.Value;
                 }
             }
         }
 
         private static ProviderName Provider
         {
-            get
-            {
-                lock (lockO)
-                {
-                    if (provider == null)
-                    {
-                        return Configure.Provider;
-                    }
-                    else
-                    {
-                        return provider.Value;
-                    }
-                }
-               
-            }
             set
             {
-                lock (lockO)
+                lock (LockO)
                 {
-                    if (provider == null)
+                    if (ProviderName == null)
                     {
-                        provider = value;
+                        ProviderName = value;
                     }
                 }
                
             }
         }
+        public static bool IsUssageActivator(ProviderName providerName)
+        {
+            Provider = providerName;
+            return IsUssageActivatorInner.Value;
+        }
+
+        public static Lazy<bool> IsUssageActivatorInner = new Lazy<bool>(() =>
+        {
+            var t = typeof(T).GetCustomAttribute(typeof(MapUssageActivatorAttribute),true);
+            if(t != null) return true;
+            return false;
+                        
+        }, LazyThreadSafetyMode.PublicationOnly);
 
         private static readonly Lazy<Dictionary<string, string>> ColumnName = new Lazy<Dictionary<string, string>>(() =>
         {
@@ -94,9 +93,9 @@ namespace ORM_1_21_
                 LazyThreadSafetyMode.PublicationOnly);
 
 
-        public static List<BaseAttribute> ListBaseAttrE(ProviderName provider)
+        public static List<BaseAttribute> ListBaseAttrE(ProviderName providerName)
         {
-            Provider = provider;
+            Provider = providerName;
             return ListBaseAttr.Value;
         }
 
@@ -116,9 +115,9 @@ namespace ORM_1_21_
                 return d;
             }, LazyThreadSafetyMode.PublicationOnly);
 
-        public static object GetValueE(ProviderName provider, string k, T o)
+        public static object GetValueE(ProviderName providerName, string k, T o)
         {
-            Provider = provider;
+            Provider = providerName;
             return GetValue.Value[k](o);
         }
 
@@ -141,9 +140,9 @@ namespace ORM_1_21_
                 }, LazyThreadSafetyMode.PublicationOnly);
 
 
-        public static void SetValueE(ProviderName provider, string name, T t, object a)
+        public static void SetValueE(ProviderName providerName, string name, T t, object a)
         {
-            Provider = provider;
+            Provider = providerName;
             SetValue.Value[name](t, a);
         }
 
@@ -173,9 +172,9 @@ namespace ORM_1_21_
                     return list;
                 }, LazyThreadSafetyMode.PublicationOnly);
 
-        public static void SetValueFreeSqlE(ProviderName provider, string name, T t, object a)
+        public static void SetValueFreeSqlE(ProviderName providerName, string name, T t, object a)
         {
-            Provider = provider;
+            Provider = providerName;
             SetValueFreeSql.Value[name](t, a);
         }
 
@@ -204,29 +203,29 @@ namespace ORM_1_21_
                     return list;
                 }, LazyThreadSafetyMode.PublicationOnly);
 
-        public static List<MapColumnNameAttribute> CurrentTableAttributeDall(ProviderName provider)
+        public static List<MapColumnNameAttribute> CurrentTableAttributeDall(ProviderName providerName)
         {
-            Provider = provider;
+            Provider = providerName;
             return AttributeDall.Value[typeof(T)];
         }
 
         public static string AllSqlWhereFromMap => GetSqlAll();
 
-        public static MapPrimaryKeyAttribute PkAttribute(ProviderName provider)
+        public static MapPrimaryKeyAttribute PkAttribute(ProviderName providerName)
         {
-            Provider = provider;
+            Provider = providerName;
             return PrimaryKeyLazy.Value[typeof(T)].First();
         }
 
-        public static string TableName(ProviderName provider)
+        public static string TableName(ProviderName providerName)
         {
-            Provider = provider;
+            Provider = providerName;
             return TableNameAllLazy.Value[typeof(T)];
         }
 
-        public static string TableNameRaw(ProviderName provider)
+        public static string TableNameRaw(ProviderName providerName)
         {
-            return Utils.ClearTrim(TableName(provider));
+            return UtilsCore.ClearTrim(TableName(providerName));
         }
 
         private static string SqlWhere => SqlWhereAllLazy.Value[typeof(T)];
@@ -243,7 +242,7 @@ namespace ORM_1_21_
         }
 
         public static bool IsValid => typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), true).Any();
-        private static ProviderName? provider { get; set; } = null;
+        private static ProviderName? ProviderName { get; set; }
 
         private static Dictionary<Type, List<MapColumnNameAttribute>> ActivateDallAll()
         {
@@ -333,7 +332,7 @@ namespace ORM_1_21_
                 pr.PropertyName = f.Name;
                 pr.DeclareType = type;
                 pr.TypeColumn = f.PropertyType;
-                pr.ColumnNameAlias = Utils.GetAsAlias(TableNameAllLazy.Value[type], pr.GetColumnName(providerName));
+                pr.ColumnNameAlias = UtilsCore.GetAsAlias(TableNameAllLazy.Value[type], pr.GetColumnName(providerName));
                 l1.Add(pr);
             }
 
@@ -364,7 +363,7 @@ namespace ORM_1_21_
                     ((MapColumnNameAttribute)o1.First()).DefaultValue = ((MapDefaultValueAttribute)o3.First()).Value;
                 }
 
-                ((MapColumnNameAttribute)o1.First()).ColumnNameAlias = Utils.GetAsAlias(
+                ((MapColumnNameAttribute)o1.First()).ColumnNameAlias = UtilsCore.GetAsAlias(
                     TableNameAllLazy.Value[typeof(T)],
                     ((MapColumnNameAttribute)o1.First())
                     .GetColumnName(providerName));
@@ -435,7 +434,7 @@ namespace ORM_1_21_
             sb.Append(StringConst.Select + " ");
             foreach (var type in AttributeDall.Value.Keys.Reverse())
             {
-                if (providerName == ProviderName.Postgresql)
+                if (providerName == ORM_1_21_.ProviderName.Postgresql)
                 {
                     foreach (var a in AttributeDall.Value[type])
                         sb.AppendFormat($" {a.GetColumnName(providerName)},");
@@ -449,12 +448,12 @@ namespace ORM_1_21_
                         sb.AppendFormat(" {0}.{1} AS {2},",
                             TableNameAllLazy.Value[type],
                             a.GetColumnName(providerName),
-                            Utils.GetAsAlias(TableNameAllLazy.Value[type], a.GetColumnName(providerName)));
+                            UtilsCore.GetAsAlias(TableNameAllLazy.Value[type], a.GetColumnName(providerName)));
                     foreach (var pk in PrimaryKeyLazy.Value[type])
                         sb.AppendFormat(" {0}.{1} AS {2},",
                             TableNameAllLazy.Value[type],
                             pk.GetColumnName(providerName),
-                            Utils.GetAsAlias(TableNameAllLazy.Value[type], pk.GetColumnName(providerName)));
+                            UtilsCore.GetAsAlias(TableNameAllLazy.Value[type], pk.GetColumnName(providerName)));
                 }
 
             }
@@ -467,27 +466,27 @@ namespace ORM_1_21_
         }
 
 
-        public static void CreateUpdateCommandMysql(IDbCommand command, T item, ProviderName provider)
+        public static void CreateUpdateCommandMysql(IDbCommand command, T item, ProviderName providerName)
         {
-            Provider = provider;
+            Provider = providerName;
             var listType = TableNameAllLazy.Value.Keys.Reverse();
             var allSql = new StringBuilder();
-            switch (provider)
+            switch (providerName)
             {
-                case ProviderName.MsSql:
+                case ORM_1_21_.ProviderName.MsSql:
                     //allSql.Append("DECLARE @T1 VARCHAR(20);BEGIN TRAN T1;");
                     break;
-                case ProviderName.MySql:
+                case ORM_1_21_.ProviderName.MySql:
                     allSql.Append(""); //START TRANSACTION;
                     break;
-                case ProviderName.Postgresql:
+                case ORM_1_21_.ProviderName.Postgresql:
                     allSql.Append("");
                     break;
-                case ProviderName.Sqlite:
+                case ORM_1_21_.ProviderName.Sqlite:
                     allSql.Append("");
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(provider), provider, null);
+                    throw new ArgumentOutOfRangeException(nameof(providerName), providerName, null);
             }
 
             var i = 0;
@@ -503,17 +502,17 @@ namespace ORM_1_21_
                 foreach (var pra in AttributeDall.Value[type]
                     .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
                 {
-                    par.AppendFormat(" {0}.{1} = {3}p{2},", TableNameAllLazy.Value[type], pra.GetColumnName(provider), ++i,
-                        Utils.Prefparam(provider));
+                    par.AppendFormat(" {0}.{1} = {3}p{2},", TableNameAllLazy.Value[type], pra.GetColumnName(providerName), ++i,
+                        UtilsCore.Prefparam(providerName));
 
                     IDataParameter pr = command.CreateParameter();
-                    pr.ParameterName = string.Format("{1}p{0}", i, Utils.Prefparam(provider));
+                    pr.ParameterName = string.Format("{1}p{0}", i, UtilsCore.Prefparam(providerName));
                     var prcore = item.GetType().GetProperties().First(a => a.Name == pra.PropertyName);
                     object vall;
                     if (prcore.PropertyType == typeof(Image))
-                        vall = Utils.ImageToByte((Image)GetValue.Value[prcore.Name](item));
-                    else if (Utils.IsJsonType(prcore.PropertyType))
-                        vall = Utils.ObjectToJson(GetValue.Value[prcore.Name](item));
+                        vall = UtilsCore.ImageToByte((Image)GetValue.Value[prcore.Name](item));
+                    else if (UtilsCore.IsJsonType(prcore.PropertyType))
+                        vall = UtilsCore.ObjectToJson(GetValue.Value[prcore.Name](item));
                     else if (prcore.PropertyType.BaseType == typeof(Enum))
                         vall = (int)GetValue.Value[prcore.Name](item);
                     else
@@ -527,10 +526,10 @@ namespace ORM_1_21_
 
                 sb.AppendFormat("UPDATE {0} SET {1} WHERE {0}.{2} = {4}p{3}; ", TableNameAllLazy.Value[type],
                     par.ToString().Trim(','),
-                    PrimaryKeyLazy.Value[type].First().GetColumnName(provider), ++i, Utils.Prefparam(provider));
+                    PrimaryKeyLazy.Value[type].First().GetColumnName(providerName), ++i, UtilsCore.Prefparam(providerName));
 
                 IDataParameter pr1 = command.CreateParameter();
-                pr1.ParameterName = string.Format("{1}p{0}", i, Utils.Prefparam(provider));
+                pr1.ParameterName = string.Format("{1}p{0}", i, UtilsCore.Prefparam(providerName));
                 var cname = PrimaryKeyLazy.Value[type].First();
                 var sxs = item.GetType().GetProperties().First(a => a.Name == cname.PropertyName);
 
@@ -544,22 +543,22 @@ namespace ORM_1_21_
             }
 
 
-            switch (provider)
+            switch (providerName)
             {
-                case ProviderName.MsSql:
+                case ORM_1_21_.ProviderName.MsSql:
                     // allSql.Append("COMMIT TRAN T1;");
                     break;
-                case ProviderName.MySql:
+                case ORM_1_21_.ProviderName.MySql:
                     allSql.Append(""); //COMMIT;
                     break;
-                case ProviderName.Postgresql:
+                case ORM_1_21_.ProviderName.Postgresql:
                     allSql.Append("");
                     break;
-                case ProviderName.Sqlite:
+                case ORM_1_21_.ProviderName.Sqlite:
                     allSql.Append("");
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(provider), provider, null);
+                    throw new ArgumentOutOfRangeException(nameof(providerName), providerName, null);
             }
 
             command.CommandText = allSql.ToString();
@@ -583,20 +582,20 @@ namespace ORM_1_21_
                 foreach (var pra in AttributeDall.Value[type]
                     .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
                 {
-                    par.AppendFormat(" {0} = {2}p{1},", pra.GetColumnName(providerName), ++i, Utils.Prefparam(providerName));
+                    par.AppendFormat(" {0} = {2}p{1},", pra.GetColumnName(providerName), ++i, UtilsCore.Prefparam(providerName));
 
                     IDataParameter pr = command.CreateParameter();
-                    pr.ParameterName = string.Format("{1}p{0}", i, Utils.Prefparam(providerName));
+                    pr.ParameterName = string.Format("{1}p{0}", i, UtilsCore.Prefparam(providerName));
                     var prcore =
                         item.GetType()
                             .GetProperties()
                             .First(a => a.Name == pra.PropertyName);
                     object vall;
                     if (prcore.PropertyType == typeof(Image))
-                        vall = Utils.ImageToByte((Image)GetValue.Value[prcore.Name](item));
+                        vall = UtilsCore.ImageToByte((Image)GetValue.Value[prcore.Name](item));
 
-                    else if (Utils.IsJsonType(prcore.PropertyType))
-                        vall = Utils.ObjectToJson(GetValue.Value[prcore.Name](item));
+                    else if (UtilsCore.IsJsonType(prcore.PropertyType))
+                        vall = UtilsCore.ObjectToJson(GetValue.Value[prcore.Name](item));
                     else if (prcore.PropertyType.BaseType == typeof(Enum))
                         vall = (int)GetValue.Value[prcore.Name](item);
                     else
@@ -612,7 +611,7 @@ namespace ORM_1_21_
                         pr.DbType = pra.DbType();
                     }
 
-                    if (prcore.PropertyType == typeof(Guid) && providerName == ProviderName.Sqlite)
+                    if (prcore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.Sqlite)
                     {
                         pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
                         pr.Value = GetValue.Value[prcore.Name](item).ToString();
@@ -626,10 +625,10 @@ namespace ORM_1_21_
 
                 sb.AppendFormat("UPDATE {0} SET {1} WHERE {2} = {4}p{3}; ", TableNameAllLazy.Value[type],
                     par.ToString().Trim(','),
-                    PrimaryKeyLazy.Value[type].First().GetColumnName(providerName), ++i, Utils.Prefparam(providerName));
+                    PrimaryKeyLazy.Value[type].First().GetColumnName(providerName), ++i, UtilsCore.Prefparam(providerName));
 
                 IDataParameter pr1 = command.CreateParameter();
-                pr1.ParameterName = string.Format("{1}p{0}", i, Utils.Prefparam(providerName));
+                pr1.ParameterName = string.Format("{1}p{0}", i, UtilsCore.Prefparam(providerName));
                 var cname = PrimaryKeyLazy.Value[type].First();
                 var sxs = item.GetType().GetProperties().First(a => a.Name == cname.PropertyName);
                 var val1 = GetValue.Value[sxs.Name](item);
@@ -669,7 +668,7 @@ namespace ORM_1_21_
                 where = new StringBuilder(" WHERE " + where.ToString().Trim("AND".ToArray()));
             var from = si.Substring(si.IndexOf("FROM", StringComparison.Ordinal) + 4);
 
-            if (providerName == ProviderName.Postgresql || providerName == ProviderName.Sqlite)
+            if (providerName == ORM_1_21_.ProviderName.Postgresql || providerName == ORM_1_21_.ProviderName.Sqlite)
             {
                 string str = string.Format("UPDATE {0} SET {1}  {2};", from, sb.ToString().Trim(','), where.ToString().Trim(','));
                 return str.Replace($"{TableName(providerName)}.", "");
@@ -753,7 +752,7 @@ namespace ORM_1_21_
                     doSql.Substring(0, doSql.IndexOf("FROM", StringComparison.Ordinal)).Replace(StringConst.Select, "")
                         .Split(',');
                 foreach (var s in sss)
-                    d.Append(s.Replace("]", "").Replace("[", "").Replace(".", Utils.Bungalo).ToLower() + " ,");
+                    d.Append(s.Replace("]", "").Replace("[", "").Replace(".", UtilsCore.Bungalo).ToLower() + " ,");
             }
 
 
@@ -794,9 +793,9 @@ namespace ORM_1_21_
                     if (pk.Generator == Generator.Native) continue;
                     if (pk.Generator == Generator.Assigned) continue;
                     sbvalues.AppendFormat(" {0}.{1}={2}{3}{4},", TableNameAllLazy.Value[type], pk.GetColumnName(providerName),
-                        Utils.Prefparam(providerName), par, ++i);
+                        UtilsCore.Prefparam(providerName), par, ++i);
                     IDataParameter pr = command.CreateParameter();
-                    pr.ParameterName = string.Format("{0}{1}{2}", Utils.Prefparam(providerName), par, i);
+                    pr.ParameterName = string.Format("{0}{1}{2}", UtilsCore.Prefparam(providerName), par, i);
                     var val = GetValue.Value[pr.ParameterName](item);
                     pr.Value = val ?? DBNull.Value;
                     pr.DbType = pk.DbType();
@@ -806,9 +805,9 @@ namespace ORM_1_21_
                 foreach (var rtp in AttributeDall.Value[type])
                 {
                     sbvalues.AppendFormat(" {0}.{1}={2}{3}{4},", TableNameAllLazy.Value[type], rtp.GetColumnName(providerName),
-                        Utils.Prefparam(providerName), par, ++i);
+                        UtilsCore.Prefparam(providerName), par, ++i);
                     IDataParameter pr = command.CreateParameter();
-                    pr.ParameterName = string.Format("{0}{1}{2}", Utils.Prefparam(providerName), par, i);
+                    pr.ParameterName = string.Format("{0}{1}{2}", UtilsCore.Prefparam(providerName), par, i);
                     var val = GetValue.Value[rtp.PropertyName](item);
                     pr.Value = val ?? DBNull.Value;
                     pr.DbType = rtp.DbType();
@@ -829,7 +828,7 @@ namespace ORM_1_21_
             Provider = providerName;
             var e = PrimaryKeyLazy.Value[typeof(T)].First();
             if (e.Generator != Generator.Native) return;
-            var valCore = Utils.ConvertatorPrimaryKeyType(e.TypeColumn, Convert.ToDecimal(val));
+            var valCore = UtilsCore.ConvertatorPrimaryKeyType(e.TypeColumn, Convert.ToDecimal(val));
             item.GetType().GetProperty(e.PropertyName).SetValue(item, valCore, null);
         }
 
@@ -853,7 +852,7 @@ namespace ORM_1_21_
 
                     if (pk.Generator != Generator.Assigned) continue;
 
-                    if (providerName == ProviderName.Postgresql || providerName == ProviderName.Sqlite)
+                    if (providerName == ORM_1_21_.ProviderName.Postgresql || providerName == ORM_1_21_.ProviderName.Sqlite)
                     {
                         sb.AppendFormat($"{pk.GetColumnName(providerName)}, ");
                     }
@@ -867,9 +866,9 @@ namespace ORM_1_21_
                     }
                     else
                     {
-                        sbvalues.AppendFormat("{0}{1}{2},", Utils.Prefparam(providerName), par, ++i);
+                        sbvalues.AppendFormat("{0}{1}{2},", UtilsCore.Prefparam(providerName), par, ++i);
                         IDataParameter pr = command.CreateParameter();// 
-                        pr.ParameterName = string.Format("{0}{1}{2}", Utils.Prefparam(providerName), par, i);
+                        pr.ParameterName = string.Format("{0}{1}{2}", UtilsCore.Prefparam(providerName), par, i);
                         // var val = obj.GetType().GetProperty(pk.PropertyName).GetValue(obj, null);
                         var val = GetValue.Value[pk.PropertyName](obj);
 
@@ -883,7 +882,7 @@ namespace ORM_1_21_
                 foreach (var rtp in AttributeDall.Value[type])
                 {
 
-                    if (providerName == ProviderName.Postgresql || providerName == ProviderName.Sqlite)
+                    if (providerName == ORM_1_21_.ProviderName.Postgresql || providerName == ORM_1_21_.ProviderName.Sqlite)
                     {
                         sb.AppendFormat($"{rtp.GetColumnName(providerName)}, ");
                     }
@@ -899,24 +898,24 @@ namespace ORM_1_21_
                     else
                     {
                         bool isEnum = false;
-                        sbvalues.AppendFormat("{0}{1}{2},", Utils.Prefparam(providerName), par, ++i);
+                        sbvalues.AppendFormat("{0}{1}{2},", UtilsCore.Prefparam(providerName), par, ++i);
                         IDataParameter pr = command.CreateParameter();// ProviderFactories.GetParameter(providerName);
-                        pr.ParameterName = $"{Utils.Prefparam(providerName)}{par}{i}";
+                        pr.ParameterName = $"{UtilsCore.Prefparam(providerName)}{par}{i}";
                         var prcore = obj.GetType().GetProperty(rtp.PropertyName);
                         object vall;
                         if (prcore.PropertyType == typeof(Image))
-                            vall = Utils.ImageToByte((Image)GetValue.Value[prcore.Name](obj));
+                            vall = UtilsCore.ImageToByte((Image)GetValue.Value[prcore.Name](obj));
                         if (prcore.PropertyType.BaseType == typeof(Enum))
                         {
                             vall = (int)GetValue.Value[prcore.Name](obj);
                             isEnum = true;
                         }
-                        else if (Utils.IsJsonType(prcore.PropertyType))
-                            vall = Utils.ObjectToJson(GetValue.Value[prcore.Name](obj));
+                        else if (UtilsCore.IsJsonType(prcore.PropertyType))
+                            vall = UtilsCore.ObjectToJson(GetValue.Value[prcore.Name](obj));
                         else
                             vall = GetValue.Value[prcore.Name](obj);
 
-                        if (prcore.PropertyType == typeof(Guid) && providerName == ProviderName.Sqlite)
+                        if (prcore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.Sqlite)
                         {
                             pr.Value = vall.ToString();
                             pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
@@ -940,30 +939,30 @@ namespace ORM_1_21_
 
             switch (providerName)
             {
-                case ProviderName.MsSql:
+                case ORM_1_21_.ProviderName.MsSql:
                     {
                         allSb.Insert(0, declare);
                         break;
                     }
-                case ProviderName.Postgresql:
+                case ORM_1_21_.ProviderName.Postgresql:
                     {
                         var s = allSb.ToString().Trim(new[] { ' ', ';' });
                         allSb.Length = 0;
-                        allSb.Append(s).Append(" ").Append(Utils.Pref(providerName).Replace("{1}", TableNameAllLazy.Value[typeof(T)])
+                        allSb.Append(s).Append(" ").Append(UtilsCore.Pref(providerName).Replace("{1}", TableNameAllLazy.Value[typeof(T)])
                             .Replace("{2}", PkAttribute(providerName).GetColumnName(providerName)));
                         break;
                     }
-                case ProviderName.Sqlite:
+                case ORM_1_21_.ProviderName.Sqlite:
                     {
                         var s = allSb.ToString().Trim(new[] { ' ', ';' });
                         allSb.Length = 0;
-                        allSb.Append(s).Append(" ").Append(Utils.Pref(providerName).Replace("{1}", TableNameAllLazy.Value[typeof(T)])
+                        allSb.Append(s).Append(" ").Append(UtilsCore.Pref(providerName).Replace("{1}", TableNameAllLazy.Value[typeof(T)])
                             .Replace("{2}", PkAttribute(providerName).GetColumnName(providerName)));
                         break;
                     }
-                case ProviderName.MySql:
+                case ORM_1_21_.ProviderName.MySql:
                     {
-                        allSb.Append(Utils.Pref(providerName).Replace("{1}", TableNameAllLazy.Value[typeof(T)]).Replace("{2}",
+                        allSb.Append(UtilsCore.Pref(providerName).Replace("{1}", TableNameAllLazy.Value[typeof(T)]).Replace("{2}",
                             PkAttribute(providerName).GetColumnName(providerName)));
                         break;
                     }
@@ -995,9 +994,9 @@ namespace ORM_1_21_
             Provider = providerName;
             command.CommandText = string.Format(" DELETE FROM {0} WHERE {0}.{1} = {2}p1",
                 TableNameAllLazy.Value[typeof(T)],
-                PrimaryKeyLazy.Value[typeof(T)].First().GetColumnName(providerName), Utils.Prefparam(providerName));
+                PrimaryKeyLazy.Value[typeof(T)].First().GetColumnName(providerName), UtilsCore.Prefparam(providerName));
             IDataParameter pr = command.CreateParameter();
-            pr.ParameterName = string.Format("{0}p1", Utils.Prefparam(providerName));
+            pr.ParameterName = string.Format("{0}p1", UtilsCore.Prefparam(providerName));
             var prr = obj.GetType().GetProperty(PrimaryKeyLazy.Value[typeof(T)].First().PropertyName);
             var val = GetValue.Value[prr.Name](obj);
 

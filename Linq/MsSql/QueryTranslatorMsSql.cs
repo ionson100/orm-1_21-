@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ORM_1_21_.Utils;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -31,7 +32,7 @@ namespace ORM_1_21_.Linq.MsSql
             Param = new Dictionary<string, object>();
         }
 
-        private string ParamName => string.Format("{0}{1}", string.Format("{1}{0}", ParamStringName, Utils.Prefparam(_providerName)),
+        private string ParamName => string.Format("{0}{1}", string.Format("{1}{0}", ParamStringName, UtilsCore.Prefparam(_providerName)),
             ++_paramIndex);
 
         private Evolution CirrentEvalytion { get; set; }
@@ -636,7 +637,7 @@ namespace ORM_1_21_.Linq.MsSql
                 Delegate tt;
 
                 var typew = ((MemberExpression)lambda.Body).Expression.Type;
-                if (typew != typeof(T) && Utils.IsAnonymousType(typew) &&
+                if (typew != typeof(T) && UtilsCore.IsAnonymousType(typew) &&
                     ListOne.Any(a => a.Operand == Evolution.SelectNew))
                 {
                     throw new Exception("не реализовано");

@@ -13,9 +13,11 @@ namespace ORM_1_21_
         private static StreamWriter _sw;
         private static long _runner;
 
-        public static void StopLogger()
+        public static void StopLogger(bool isFinish=false)
         {
             if (Interlocked.Read(ref _runner) == 1) Interlocked.Decrement(ref _runner);
+            if(isFinish)
+            _sw.Dispose();
         }
 
         public static void Info(string message)
@@ -43,6 +45,7 @@ namespace ORM_1_21_
 
             Info($"---------   Init Log : {DateTime.Now:s} ----------");
         }
+      
 
         private static async Task Action()
         {
@@ -53,6 +56,7 @@ namespace ORM_1_21_
                     while (_cq.TryDequeue(out var sql))
                     {
                         _sw.WriteLine(sql);
+                        _sw.Flush();
                     }
                 }
             });

@@ -1,4 +1,4 @@
-﻿namespace ORM_1_21_.Transaction
+﻿namespace ORM_1_21_
 {
     /// <summary>
     /// Транзакция

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ORM_1_21_.Attribute
+namespace ORM_1_21_
 {
     /// <summary>
     /// Информация для создания определенного типа таблиц, только для MySql пример: ENGINE=InnoDB  DEFAULT CHARSET=UTF8;

@@ -43,7 +43,7 @@ namespace ManagerSql
                 // name = ProviderName.MsSql;
                 // conString =
                 //     @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=audi124;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
-                _ = new Configure(conString, name, null);
+                _ = new Configure(conString, name, "myLog.txt");
                 return Configure.Session.GetTableNames().OrderBy(a => a).ToList();
             }
             catch (Exception ex)

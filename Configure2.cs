@@ -14,7 +14,7 @@ namespace ORM_1_21_
             _configure.OnOnErrorOrm(new ErrorOrmEventArgs { ErrorMessage = exception.Message, Sql = sql, InnerException = exception.InnerException });
         }
         /// <summary>
-        /// Событие визникновения ошибки в ОРМ, при подписке все исключения будут проходить через собыие
+        /// Событие возникновения ошибки в ОРМ, при подписке все исключения будут проходить через событие
         /// </summary>
         public event ErrorEvent OnErrorOrm;
 

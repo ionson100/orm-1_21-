@@ -1,4 +1,5 @@
 ﻿using ORM_1_21_.Linq.MsSql;
+using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -33,7 +34,7 @@ namespace ORM_1_21_.Linq.MySql
 
         private string ParamName
         {
-            get { return string.Format("{0}{1}", string.Format("{1}{0}", ParamStringName, Utils.Prefparam(_providerName)), ++_paramIndex); }
+            get { return string.Format("{0}{1}", string.Format("{1}{0}", ParamStringName, UtilsCore.Prefparam(_providerName)), ++_paramIndex); }
         }
 
         private string GetColumnName(string member, Type type)
@@ -732,7 +733,7 @@ namespace ORM_1_21_.Linq.MySql
 
 
                 var typew = ((MemberExpression)lambda.Body).Expression.Type;
-                if (typew != typeof(T) && Utils.IsAnonymousType(typew) && ListOne.Any(a => a.Operand == Evolution.SelectNew))
+                if (typew != typeof(T) && UtilsCore.IsAnonymousType(typew) && ListOne.Any(a => a.Operand == Evolution.SelectNew))
                 {
                     //var trtyetr= typeof (T);
                     // throw new Exception("не реализовано");
@@ -1418,7 +1419,7 @@ namespace ORM_1_21_.Linq.MySql
 
                 if (m.Expression.Type != typeof(T))
                 {
-                    if (Utils.IsAnonymousType(m.Expression.Type))
+                    if (UtilsCore.IsAnonymousType(m.Expression.Type))
                     {
                         return m;
                     }

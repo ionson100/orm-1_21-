@@ -1,4 +1,5 @@
 ﻿using ORM_1_21_.Linq;
+using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -68,7 +69,7 @@ namespace ORM_1_21_
         /// <returns></returns>
         public static Image GetImage(this byte[] coll)
         {
-            return Utils.ImageFromByte(coll);
+            return UtilsCore.ImageFromByte(coll);
         }
 
         /// <summary>

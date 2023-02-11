@@ -1,6 +1,7 @@
-﻿using System;
+﻿using ORM_1_21_.Utils;
+using System;
 
-namespace ORM_1_21_.Attribute
+namespace ORM_1_21_
 {
 
     /// <summary>
@@ -18,7 +19,7 @@ namespace ORM_1_21_.Attribute
         /// <param name="tableName">Название таблицы в базе данных</param>
         public MapTableNameAttribute(string tableName)
         {
-            _tableName = Utils.ClearTrim(tableName);
+            _tableName = UtilsCore.ClearTrim(tableName);
         }
 
         ///<summary>
@@ -28,7 +29,7 @@ namespace ORM_1_21_.Attribute
         ///<param name="sqlWhere">добавление критерия запроса по where пример: "id='1'"</param>
         public MapTableNameAttribute(string tableName, string sqlWhere)
         {
-            _tableName = Utils.ClearTrim(tableName);
+            _tableName = UtilsCore.ClearTrim(tableName);
             _sqlWhere = sqlWhere;
         }
 

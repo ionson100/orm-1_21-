@@ -58,6 +58,10 @@
       <Project>{3D3C03BF-6EFE-4C92-9A91-FCEDA1823DC4}</Project>
       <Name>ORM{1_21}</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TestLibrary\TestLibrary.csproj">
+      <Project>{af9674f0-edf4-468a-8ca2-9f7bc78113ff}</Project>
+      <Name>TestLibrary</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

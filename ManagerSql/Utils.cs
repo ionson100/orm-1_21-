@@ -103,5 +103,10 @@ namespace ManagerSql
                 }
             }
         }
+
+        public static int GetHashStr(string str)
+        {
+            return  str.Replace(" ","").ToUpper().GetHashCode();
+        }
     }
 }

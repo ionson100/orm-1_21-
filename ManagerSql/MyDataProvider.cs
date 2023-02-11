@@ -28,13 +28,23 @@ namespace ManagerSql
         }
 
     }
-    [MapTableName("ion100")]
+    [MapTableName("ion1")]
     class SqliteModel
     {
         [MapPrimaryKey("id",Generator.Native)]
         public int Id { get; set; }
-        [MapColumnName("tab_join")]
-        public string Join { get; set; }
+
+
+        [MapColumnName("base_name")]
+        public int BaseName { get; set; } = 0;
+
+        [MapColumnName("hash_str")]
+        public int HashStr { get; set; } = 0;
+
+        [MapColumnName("tab_list")]
+        public List<ModelData> list { get; set; }=new List<ModelData>();
+        public List<ModelData> list2 { get; set; } = new List<ModelData>();
+        public int sd { get; set; } = 45;
     }
 
     public class ModelData

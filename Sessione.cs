@@ -1,6 +1,7 @@
 ﻿
 using Newtonsoft.Json;
 using ORM_1_21_.Linq;
+using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -21,7 +22,7 @@ namespace ORM_1_21_
         {
             get
             {
-                var com = ProviderFactories.GetCommand(_factory,((ISession)this).IsDispose);
+                var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
                 com.Connection = _connect;
                 return com;
             }
@@ -30,13 +31,13 @@ namespace ORM_1_21_
         ProviderName IServiceSessions.CurrentProviderName => MyProviderName;
 
         object IServiceSessions.Locker { get; } = new object();
-       
-         int ISession.Delete<T>(T item) 
+
+        int ISession.Delete<T>(T item)
         {
-            if (!Utils.IsPersistent(item)) return 0;
+            if (!UtilsCore.IsPersistent(item)) return 0;
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
-            AttributesOfClass<T>.CreateDeleteCommand(com, item,MyProviderName);
+            AttributesOfClass<T>.CreateDeleteCommand(com, item, MyProviderName);
             try
             {
                 NotificBefore(item, ActionMode.Delete);
@@ -45,7 +46,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
                 return 0;
             }
             finally
@@ -54,41 +55,41 @@ namespace ORM_1_21_
                 NotificAfter(item, ActionMode.Delete);
             }
         }
-        
-         IEnumerable<T> ISession.GetListMonster<T>(IDataReader reader) 
+
+        IEnumerable<T> ISession.GetListMonster<T>(IDataReader reader)
         {
-            return AttributesOfClass<T>.GetEnumerableObjects(reader,MyProviderName);
+            return AttributesOfClass<T>.GetEnumerableObjects(reader, MyProviderName);
         }
 
-         int ISession.Save<T>(T item)
+        int ISession.Save<T>(T item)
         {
             if (item == null) throw new ArgumentException("Объект для сохранения равен Null");
             return SaveNew(item);
         }
 
-         T ISession.Get<T>(object id) 
+        T ISession.Get<T>(object id)
         {
             if (id == null) throw new ArgumentException("Объект первичного ключа, равен равен Null");
             return GetReal<T>(id);
         }
-        
-         IEnumerable<T> ISession.GetList<T>(string sqlWhere, params object[] param) 
+
+        IEnumerable<T> ISession.GetList<T>(string sqlWhere, params object[] param)
         {
             if (sqlWhere == null) sqlWhere = "";
             var sqlAll = AttributesOfClass<T>.SimpleSqlSelect(MyProviderName) + AttributesOfClass<T>.AddSqlWhere(sqlWhere, MyProviderName);
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.CommandText = sqlAll;
-            AddParam(com,MyProviderName, param);
+            AddParam(com, MyProviderName, param);
             com.Connection = _connect;
             IEnumerable<T> res;
             try
             {
                 OpenConnectAndTransaction(com);
-                res = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(),MyProviderName);
+                res = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(), MyProviderName);
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
                 return null;
             }
             finally
@@ -98,7 +99,7 @@ namespace ORM_1_21_
             return res;
         }
 
-         int ISession.TableCreate<T>() 
+        int ISession.TableCreate<T>()
         {
             var ss = new FactoryCreatorTable().SqlCreate<T>(MyProviderName);
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
@@ -112,7 +113,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
                 return 0;
             }
             finally
@@ -120,17 +121,17 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
         }
-       
-         IDbCommand ISession.GeDbCommand()
+
+        IDbCommand ISession.GeDbCommand()
         {
-            if(_factory != null)
+            if (_factory != null)
             {
-               return _factory.GetDbProviderFactories().CreateCommand();
+                return _factory.GetDbProviderFactories().CreateCommand();
             }
             return ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
         }
-        
-         int ISession.DropTable<T>() 
+
+        int ISession.DropTable<T>()
         {
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
@@ -140,11 +141,11 @@ namespace ORM_1_21_
             {
                 OpenConnectAndTransaction(com);
                 return com.ExecuteNonQuery();
-                
+
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
                 return 0;
             }
             finally
@@ -153,16 +154,16 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
         }
-        
-         bool ISession.TableExists<T>() 
+
+        bool ISession.TableExists<T>()
         {
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             try
             {
-                if (MyProviderName== ProviderName.Postgresql)
+                if (MyProviderName == ProviderName.Postgresql)
                 {
                     com.Connection = _connect;
-                    var tableName = Utils.ClearTrim(AttributesOfClass<T>.TableName(MyProviderName));
+                    var tableName = UtilsCore.ClearTrim(AttributesOfClass<T>.TableName(MyProviderName));
                     com.CommandText =
                         $"SELECT count(*) FROM pg_tables WHERE   tablename  = '{tableName}';";
 
@@ -189,8 +190,8 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
         }
-     
-         IDataReader ISession.ExecuteReader(string sql, object[] param)
+
+        IDataReader ISession.ExecuteReader(string sql, object[] param)
         {
             if (sql == null) throw new ArgumentNullException(nameof(sql));
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
@@ -202,25 +203,25 @@ namespace ORM_1_21_
             return com.ExecuteReader();
         }
 
-         private void SetTimeOut(IDbCommand com, int timeOut)
+        private void SetTimeOut(IDbCommand com, int timeOut)
         {
             com.CommandTimeout = timeOut < 30 ? 30 : timeOut;
         }
-       
-         IDataReader ISession.ExecuteReaderT(string sql, int timeOut = 30, params object[] param)
+
+        IDataReader ISession.ExecuteReaderT(string sql, int timeOut, params object[] param)
         {
             if (sql == null) throw new ArgumentNullException(nameof(sql));
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = sql;
             SetTimeOut(com, timeOut);
-           
+
             AddParam(com, MyProviderName, param);
             OpenConnectAndTransaction(com);
             return com.ExecuteReader();
         }
-       
-         DataTable ISession.GetDataTable(string sql, int timeOut = 30)
+
+        DataTable ISession.GetDataTable(string sql, int timeOut)
         {
             if (sql == null) throw new ArgumentNullException(nameof(sql));
             var table = new DataTable();
@@ -250,8 +251,8 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
         }
-       
-         List<string> ISession.GetTableNames()
+
+        List<string> ISession.GetTableNames()
         {
 
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
@@ -312,7 +313,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
             }
             finally
             {
@@ -321,8 +322,8 @@ namespace ORM_1_21_
 
             return result;
         }
-       
-         int ISession.CreateBase(string baseName)
+
+        int ISession.CreateBase(string baseName)
         {
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
@@ -372,7 +373,7 @@ namespace ORM_1_21_
             }
         }
 
-         int ISession.InsertBulk<T>(IEnumerable<T> list, int timeOut = 30)
+        int ISession.InsertBulk<T>(IEnumerable<T> list, int timeOut)
         {
             if (list == null) throw new ArgumentNullException(nameof(list));
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
@@ -380,14 +381,14 @@ namespace ORM_1_21_
             switch (MyProviderName)
             {
                 case ProviderName.MsSql:
-                    
+
                     com.CommandText = new UtilsBulkMsSql(ProviderName.MsSql).GetSql(list);
                     break;
                 case ProviderName.MySql:
                     com.CommandText = new UtilsBulkMySql(ProviderName.MySql).GetSql(list);
                     break;
                 case ProviderName.Postgresql:
-                    com.CommandText =new  UtilsBulkPostgres(ProviderName.Postgresql).GetSql(list);
+                    com.CommandText = new UtilsBulkPostgres(ProviderName.Postgresql).GetSql(list);
                     break;
                 case ProviderName.Sqlite:
                     com.CommandText = new UtilsBulkMySql(ProviderName.Sqlite).GetSql(list);
@@ -401,11 +402,11 @@ namespace ORM_1_21_
                 OpenConnectAndTransaction(com);
                 com.CommandTimeout = 30000;
                 SetTimeOut(com, timeOut);
-               return com.ExecuteNonQuery();
+                return com.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
                 return -100;
             }
             finally
@@ -413,8 +414,8 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
         }
-        
-         int ISession.InsertBulkFromFile<T>(string fileCsv, string fieldterminator = ";", int timeOut = 30)
+
+        int ISession.InsertBulkFromFile<T>(string fileCsv, string fieldterminator, int timeOut)
         {
             if (fileCsv == null) throw new ArgumentNullException(nameof(fileCsv));
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
@@ -423,16 +424,16 @@ namespace ORM_1_21_
             switch (MyProviderName)
             {
                 case ProviderName.MsSql:
-                    com.CommandText = UtilsBulkMsSql.InsertFile<T>(fileCsv, fieldterminator,MyProviderName);
+                    com.CommandText = UtilsBulkMsSql.InsertFile<T>(fileCsv, fieldterminator, MyProviderName);
                     break;
                 case ProviderName.MySql:
-                    com.CommandText = UtilsBulkMySql.InsertFile<T>(fileCsv, fieldterminator,MyProviderName);
+                    com.CommandText = UtilsBulkMySql.InsertFile<T>(fileCsv, fieldterminator, MyProviderName);
                     break;
                 case ProviderName.Postgresql:
-                    com.CommandText = UtilsBulkPostgres.InsertFile<T>(fileCsv, fieldterminator,MyProviderName);
+                    com.CommandText = UtilsBulkPostgres.InsertFile<T>(fileCsv, fieldterminator, MyProviderName);
                     break;
                 case ProviderName.Sqlite:
-                    com.CommandText = UtilsBulkMySql.InsertFile<T>(fileCsv, fieldterminator,MyProviderName);
+                    com.CommandText = UtilsBulkMySql.InsertFile<T>(fileCsv, fieldterminator, MyProviderName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -446,7 +447,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
                 return -100;
             }
             finally
@@ -454,8 +455,8 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
         }
-        
-         object ISession.ExecuteScalar(string sql, params object[] obj)
+
+        object ISession.ExecuteScalar(string sql, params object[] obj)
         {
             if (sql == null) throw new ArgumentNullException(nameof(sql));
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
@@ -472,7 +473,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
                 return null;
             }
             finally
@@ -480,8 +481,8 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
         }
-        
-         object ISession.ExecuteScalarT(string sql, int timeOut = 30, params object[] param)
+
+        object ISession.ExecuteScalarT(string sql, int timeOut, params object[] param)
         {
             if (sql == null) throw new ArgumentNullException(nameof(sql));
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
@@ -499,7 +500,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
                 return null;
             }
             finally
@@ -507,13 +508,13 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
         }
-       
-         int ISession.TruncateTable<T>()
+
+        int ISession.TruncateTable<T>()
         {
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandType = CommandType.Text;
-            if (MyProviderName== ProviderName.Sqlite)
+            if (MyProviderName == ProviderName.Sqlite)
                 com.CommandText = $"DELETE FROM {AttributesOfClass<T>.TableName(MyProviderName)};";
             else
                 com.CommandText = $"TRUNCATE TABLE {AttributesOfClass<T>.TableName(MyProviderName)};";
@@ -525,7 +526,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
                 return 0;
             }
             finally
@@ -533,37 +534,37 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
         }
-        
-         Query<T> ISession.Querion<T>()
+
+        Query<T> ISession.Querion<T>()
         {
             //AttributesOfClass<T>.CurProvider = _factory != null ? _factory.GetProviderName() : Configure.Provider;
             QueryProvider p = new DbQueryProvider<T>(this);
             return new Query<T>(p);
         }
-        
-         IDbCommand ISession.GetCommand()
+
+        IDbCommand ISession.GetCommand()
         {
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
             return com;
         }
-       
-         IDbConnection ISession.GetConnection()
+
+        IDbConnection ISession.GetConnection()
         {
             return ProviderFactories.GetConnect(_factory);
         }
-       
-         IDbDataAdapter ISession.GetDataAdapter()
+
+        IDbDataAdapter ISession.GetDataAdapter()
         {
             return ProviderFactories.GetDataAdapter(_factory);
         }
-        
-         string ISession.GetConnectionString()
+
+        string ISession.GetConnectionString()
         {
             return _connect.ConnectionString;
         }
-       
-         int ISession.ExecuteNonQuery(string sql, params object[] param)
+
+        int ISession.ExecuteNonQuery(string sql, params object[] param)
         {
             if (sql == null) throw new ArgumentNullException(nameof(sql));
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
@@ -578,7 +579,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
                 return -1;
             }
             finally
@@ -587,7 +588,7 @@ namespace ORM_1_21_
             }
         }
 
-         int ISession.ExecuteNonQueryT(string sql, int timeOut = 30, params object[] param)
+        int ISession.ExecuteNonQueryT(string sql, int timeOut, params object[] param)
         {
             if (sql == null) throw new ArgumentNullException(nameof(sql));
 
@@ -604,7 +605,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
                 return -1;
             }
             finally
@@ -612,16 +613,16 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
         }
-        
-         string ISession.TableName<T>()
+
+        string ISession.TableName<T>()
         {
             return AttributesOfClass<T>.TableName(MyProviderName);
         }
 
-         private int SaveNew<T>(T item) where T : class
+        private int SaveNew<T>(T item) where T : class
         {
             var rez = 0;
-            IDbCommand com= ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            IDbCommand com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
 
 
             com.Connection = _connect;
@@ -629,10 +630,10 @@ namespace ORM_1_21_
 
             try
             {
-                if (Utils.IsPersistent(item))
+                if (UtilsCore.IsPersistent(item))
                 {
                     NotificBefore(item, ActionMode.Update);
-                    if (MyProviderName== ProviderName.Postgresql || MyProviderName== ProviderName.Sqlite)
+                    if (MyProviderName == ProviderName.Postgresql || MyProviderName == ProviderName.Sqlite)
                         AttributesOfClass<T>.CreateUpdateCommandPostgres(com, item, MyProviderName);
                     else
                         AttributesOfClass<T>.CreateUpdateCommandMysql(com, item, MyProviderName);
@@ -650,16 +651,16 @@ namespace ORM_1_21_
                     var val = com.ExecuteScalar();
                     if (val != null)
                     {
-                        AttributesOfClass<T>.RedefiningPrimaryKey(item, val,MyProviderName);
+                        AttributesOfClass<T>.RedefiningPrimaryKey(item, val, MyProviderName);
                         rez = 1;
                     }
-                    Utils.SetPersisten(item);
+                    UtilsCore.SetPersisten(item);
                     NotificAfter(item, ActionMode.Insert);
                 }
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
             }
             finally
             {
@@ -668,8 +669,8 @@ namespace ORM_1_21_
 
             return rez;
         }
-       
-         private T GetReal<T>(object id) where T : class
+
+        private T GetReal<T>(object id) where T : class
         {
             var sqlAll = string.Format("{0} WHERE {1}.{2}='{3}'", AttributesOfClass<T>.SimpleSqlSelect(MyProviderName),
                 AttributesOfClass<T>.TableName(MyProviderName), AttributesOfClass<T>.PkAttribute(MyProviderName).GetColumnName(MyProviderName), id);
@@ -679,14 +680,14 @@ namespace ORM_1_21_
             try
             {
                 OpenConnectAndTransaction(com);
-                var res = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(),MyProviderName);
+                var res = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(), MyProviderName);
 
                 var enumerable = res as T[] ?? res.ToArray();
                 return enumerable.Any() ? enumerable.First() : null;
             }
             catch (Exception ex)
             {
-                Configure.SendError(Utils.GetStringSql(com), ex);
+                Configure.SendError(UtilsCore.GetStringSql(com), ex);
 
                 return null;
             }
@@ -696,8 +697,8 @@ namespace ORM_1_21_
                 //GetCache<T>(false, com);
             }
         }
-         
-         internal void ComDisposable(IDbCommand com)
+
+        internal void ComDisposable(IDbCommand com)
         {
             try
             {
@@ -717,8 +718,8 @@ namespace ORM_1_21_
                 }
             }
         }
-         
-         string ISession.ColumnName<T>(Expression<Func<T, object>> property)
+
+        string ISession.ColumnName<T>(Expression<Func<T, object>> property)
         {
             LambdaExpression lambda = property;
             MemberExpression memberExpression;
@@ -748,11 +749,11 @@ namespace ORM_1_21_
             throw new Exception($"Не могу определить поле таблицы для типа {typeof(T)}");
 
         }
-         
-         string ISession.GetSqlInsertCommand<T>(T t)
-         {
-             if (t == null) throw new ArgumentNullException(nameof(t));
-             switch (MyProviderName)
+
+        string ISession.GetSqlInsertCommand<T>(T t)
+        {
+            if (t == null) throw new ArgumentNullException(nameof(t));
+            switch (MyProviderName)
             {
                 case ProviderName.MsSql:
                     throw new Exception("не рализовано");
@@ -765,12 +766,12 @@ namespace ORM_1_21_
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-         }
-         
-         string ISession.GetSqlDeleteCommand<T>(T t)
-         {
-             if (t == null) throw new ArgumentNullException(nameof(t));
-             switch (MyProviderName)
+        }
+
+        string ISession.GetSqlDeleteCommand<T>(T t)
+        {
+            if (t == null) throw new ArgumentNullException(nameof(t));
+            switch (MyProviderName)
             {
                 case ProviderName.MsSql:
                     throw new Exception("не рализовано");
@@ -784,14 +785,14 @@ namespace ORM_1_21_
                     throw new ArgumentOutOfRangeException();
             }
             // 
-         }
-         
-         DataTable ISession.GetDataTable(string sql, int timeOut = 30, params object[] param)
+        }
+
+        DataTable ISession.GetDataTable(string sql, int timeOut, params object[] param)
         {
             if (sql == null) throw new ArgumentNullException(nameof(sql));
             if (string.IsNullOrEmpty(sql))
             {
-                throw new ArgumentException($"\"{nameof(sql)}\" не может быть неопределенным или пустым.", nameof(sql));
+                throw new ArgumentException($@"""{nameof(sql)}"" не может быть неопределенным или пустым.", nameof(sql));
             }
 
             if (param is null)
@@ -829,11 +830,11 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
         }
-         
-         T ISession.Clone<T>(T ob)
-         {
-             if (ob == null) throw new ArgumentNullException(nameof(ob));
-             try
+
+        T ISession.Clone<T>(T ob)
+        {
+            if (ob == null) throw new ArgumentNullException(nameof(ob));
+            try
             {
                 var str = JsonConvert.SerializeObject(ob);
                 return JsonConvert.DeserializeObject<T>(str);
@@ -845,12 +846,12 @@ namespace ORM_1_21_
                 throw;
 
             }
-         }
-         
-         string ISession.GetSqlForInsertBulk<T>(IEnumerable<T> list)
-         {
-             if (list == null) throw new ArgumentNullException(nameof(list));
-             switch (MyProviderName)
+        }
+
+        string ISession.GetSqlForInsertBulk<T>(IEnumerable<T> list)
+        {
+            if (list == null) throw new ArgumentNullException(nameof(list));
+            switch (MyProviderName)
             {
                 case ProviderName.MsSql:
                     return new UtilsBulkMsSql(ProviderName.MsSql).GetSql(list);
@@ -863,8 +864,8 @@ namespace ORM_1_21_
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-         }
-         
-       
+        }
+
+
     }
 }

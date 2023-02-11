@@ -1,7 +1,8 @@
-﻿using System;
+﻿using ORM_1_21_.Utils;
+using System;
 using System.Data;
 
-namespace ORM_1_21_.Attribute
+namespace ORM_1_21_
 {
     /// <summary>
     /// Атрибуты для класса слоя, определяют название  колонки в таблице
@@ -33,7 +34,7 @@ namespace ORM_1_21_.Attribute
         internal String ColumnNameForReader(ProviderName providerName)
         {
             
-            return Utils.ClearTrim(GetColumnName(providerName));
+            return UtilsCore.ClearTrim(GetColumnName(providerName));
         }
 
         internal DbType DbType()

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ORM_1_21_.Utils;
+using System;
 using System.Data;
 using System.Drawing;
 
@@ -114,7 +115,7 @@ namespace ORM_1_21_
             {
                 return ConvertFrom(type.GetGenericArguments()[0]);
             }
-            if (Utils.IsJsonType(type))
+            if (UtilsCore.IsJsonType(type))
             {
                 return DbType.String;
             }

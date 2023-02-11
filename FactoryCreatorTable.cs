@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ORM_1_21_.Utils;
+using System;
 
 namespace ORM_1_21_
 {
@@ -63,7 +64,7 @@ namespace ORM_1_21_
                 return "NULL";
             }
 
-            if (Utils.IsJsonType(type))
+            if (UtilsCore.IsJsonType(type))
             {
                 return "NULL";
             }

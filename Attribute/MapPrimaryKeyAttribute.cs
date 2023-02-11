@@ -1,7 +1,8 @@
-﻿using System;
+﻿using ORM_1_21_.Utils;
+using System;
 using System.Data;
 
-namespace ORM_1_21_.Attribute
+namespace ORM_1_21_
 {
     /// <summary>
     /// Атрибут для указания первичного ключа для таблицы ( составные ключи не работают)
@@ -12,7 +13,7 @@ namespace ORM_1_21_.Attribute
         readonly Generator _p;
 
         /// <summary>
-        /// Аттрибут первичного ключа
+        /// Атрибут первичного ключа
         /// </summary>
         /// <param name="columnName">Название поля</param>
         /// <param name="generator">Тип генерации зачернения на ключ, native-автоинкрементный,assigned-назначенный в рукопашную</param>
@@ -26,7 +27,7 @@ namespace ORM_1_21_.Attribute
         /// </summary>
         internal string ColumnNameForRider(ProviderName providerName)
         {
-          return  Utils.ClearTrim(GetColumnName(providerName));
+          return UtilsCore.ClearTrim(GetColumnName(providerName));
 
         }
 

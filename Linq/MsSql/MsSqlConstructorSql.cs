@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ORM_1_21_.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -173,7 +174,7 @@ namespace ORM_1_21_.Linq.MsSql
                     var matsup = new Regex(@"[aA-zZаА-яЯ\d[_]*]*\.[aA-zZаА-яЯ\d[_]*]*").Matches(str1);
                     foreach (var s in matsup)
                         eew = str1.Replace(s.ToString(),
-                            Utils.TanslycatorFieldParam1(s.ToString(), Utils.Table1AliasForJoin));
+                            UtilsCore.TanslycatorFieldParam1(s.ToString(), UtilsCore.Table1AliasForJoin));
                     whereSb.Append(eew + " AND ");
                 }
 
@@ -186,11 +187,11 @@ namespace ORM_1_21_.Linq.MsSql
                     if (str == _listOne.First(a => a.Operand == Evolution.OrderBy).Body)
                     {
                         orderBy.AppendFormat(" ORDER BY {0},",
-                            Utils.TanslycatorFieldParam1(str, Utils.Table1AliasForJoin));
+                            UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
                         continue;
                     }
 
-                    orderBy.AppendFormat(" {0},", Utils.TanslycatorFieldParam1(str, Utils.Table1AliasForJoin));
+                    orderBy.AppendFormat(" {0},", UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
                 }
 
 

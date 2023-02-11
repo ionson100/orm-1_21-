@@ -1,4 +1,5 @@
-﻿using ORM_1_21_.Attribute;
+﻿
+using ORM_1_21_.Utils;
 using System;
 using System.Drawing;
 using System.Text;
@@ -94,7 +95,7 @@ namespace ORM_1_21_
                 return v ? 0.ToString() : 1.ToString();
             }
 
-            if (Utils.IsJsonType(type)) return $"'{Utils.ObjectToJson(o)}'";
+            if (UtilsCore.IsJsonType(type)) return $"'{UtilsCore.ObjectToJson(o)}'";
             return $"{o.ToString().Replace("'", "''")}";
         }
 

@@ -1,4 +1,5 @@
 ﻿using ORM_1_21_.Transaction;
+using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -69,30 +70,41 @@ namespace ORM_1_21_
         private static void NotificAfter<T>(T item, ActionMode mode) where T : class
         {
             if (mode == ActionMode.None) return;
-            if (!(item is IActionDal<T>)) return;
-            if (mode == ActionMode.Insert)
-                ((IActionDal<T>)item).AfterInsert(item);
-            if (mode == ActionMode.Update)
-                ((IActionDal<T>)item).AfterUpdate(item);
-            if (mode == ActionMode.Delete)
-                ((IActionDal<T>)item).AfterDelete(item);
+            if (!(item is IActionDal<T> dal)) return;
+            switch (mode)
+            {
+                case ActionMode.Insert:
+                    dal.AfterInsert(item);
+                    break;
+                case ActionMode.Update:
+                    dal.AfterUpdate(item);
+                    break;
+                case ActionMode.Delete:
+                    dal.AfterDelete(item);
+                    break;
+            }
         }
 
         private static void NotificBefore<T>(T item, ActionMode mode) where T : class
         {
-
-            if (item is IValidateDal<T> && mode == ActionMode.Insert)
+            if (item is IValidateDal<T> dal && mode == ActionMode.Insert)
             {
-                ((IValidateDal<T>)item).Validate(item);
+                dal.Validate(item);
             }
             if (mode == ActionMode.None) return;
-            if (!(item is IActionDal<T>)) return;
-            if (mode == ActionMode.Insert)
-                ((IActionDal<T>)item).BeforeInsert(item);
-            if (mode == ActionMode.Update)
-                ((IActionDal<T>)item).BeforeUpdate(item);
-            if (mode == ActionMode.Delete)
-                ((IActionDal<T>)item).BeforeDelete(item);
+            if (!(item is IActionDal<T> actionDal)) return;
+            switch (mode)
+            {
+                case ActionMode.Insert:
+                    actionDal.BeforeInsert(item);
+                    break;
+                case ActionMode.Update:
+                    actionDal.BeforeUpdate(item);
+                    break;
+                case ActionMode.Delete:
+                    actionDal.BeforeDelete(item);
+                    break;
+            }
         }
 
 
@@ -143,11 +155,11 @@ namespace ORM_1_21_
         {
             if (obj == null) return;
             string sql = com.CommandText;
-            var ss = sql.Split(Utils.Prefparam(providerName).ToArray(), StringSplitOptions.RemoveEmptyEntries);
+            var ss = sql.Split(UtilsCore.Prefparam(providerName).ToArray(), StringSplitOptions.RemoveEmptyEntries);
             if (ss.Length - 1 != obj.Length)
                 throw new ArgumentException("не совпадает количество параметров");
 
-            var list = Regex.Matches(sql, @"\" + Utils.Prefparam(providerName) + @"\w+").Cast<Match>().Select(m => m.Value).ToList();
+            var list = Regex.Matches(sql, @"\" + UtilsCore.Prefparam(providerName) + @"\w+").Cast<Match>().Select(m => m.Value).ToList();
             if (list.Count != obj.Length)
             {
                 throw new Exception($"Количество параметров в sql запросе {list} не совпадает с количеством параметров переданных в метод {obj.Length}");
@@ -215,7 +227,7 @@ namespace ORM_1_21_
 
          private void InnerWriteLogFile(IDbCommand command)
          {
-            MySqlLogger.Info(Utils.GetStringSql(command));
+            MySqlLogger.Info(UtilsCore.GetStringSql(command));
 
         }
 
@@ -229,34 +241,22 @@ namespace ORM_1_21_
         
          bool ISession.IsPersistent<T>(T obj)
         {
-            return Utils.IsPersistent(obj);
+            return UtilsCore.IsPersistent(obj);
         }
          
          
          void ISession.ToPersistent<T>(T obj)
         {
-            Utils.SetPersisten(obj);
+            UtilsCore.SetPersisten(obj);
         }
 
-         private static void CloneItems<T>(T item, object o)
-        {
-
-            var rr = o.GetType().GetProperties();
-            foreach (var propertyInfo in item.GetType().GetProperties())
-            {
-                var value =
-                    rr.Single(a => a.Name == propertyInfo.Name && a.DeclaringType == propertyInfo.DeclaringType)
-                      .GetValue(o, null);
-                propertyInfo.SetValue(item, value, null);
-            }
-        }
 
       
          IEnumerable<TableColumn> ISession.GetTableColumns(string tableName)
          {
              var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
              com.Connection = _connect;
-             return ColumnsTableFactory.GeTableColumns(MyProviderName, com,Utils.ClearTrim(tableName.Trim()));
+             return ColumnsTableFactory.GeTableColumns(MyProviderName, com, UtilsCore.ClearTrim(tableName.Trim()));
 
 
          }

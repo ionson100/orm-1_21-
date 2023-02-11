@@ -1,6 +1,7 @@
-﻿using System;
+﻿using ORM_1_21_.Utils;
+using System;
 
-namespace ORM_1_21_.Attribute
+namespace ORM_1_21_
 {
     /// <summary>
     /// 
@@ -56,7 +57,7 @@ namespace ORM_1_21_.Attribute
         /// <param name="columnName"></param>
         protected BaseAttribute(string columnName)
         {
-            _columnName = Utils.ClearTrim(columnName);
+            _columnName = UtilsCore.ClearTrim(columnName);
         }
 
         internal string DefaultValue { get; set; }
