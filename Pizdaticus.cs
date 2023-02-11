@@ -14,11 +14,21 @@ namespace ORM_1_21_
     {
         public static IEnumerable<TObj> GetRiderToList<TObj>(IDataReader reader,ProviderName providerName)
         {
+            var isLegasy = AttributesOfClass<TObj>.IsUssageActivator(providerName);
             bool? fied = null;
             var res = new List<TObj>();
             while (reader.Read())
             {
-                var d = (TObj)FormatterServices.GetSafeUninitializedObject(typeof(TObj));
+                TObj d;
+                if (isLegasy)
+                {
+                    d=Activator.CreateInstance<TObj>();
+                }
+                else
+                {
+                    d = (TObj)FormatterServices.GetSafeUninitializedObject(typeof(TObj));
+                }
+               
                 foreach (var s in AttributesOfClass<TObj>.ListBaseAttrE(providerName))
                 {
                     try

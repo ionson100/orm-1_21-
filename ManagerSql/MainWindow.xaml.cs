@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ORM_1_21_;
+using System;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
@@ -8,8 +8,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media.Imaging;
-using Newtonsoft.Json;
-using ORM_1_21_;
 
 namespace ManagerSql
 {
@@ -40,14 +38,16 @@ namespace ManagerSql
 
         private void SaveToBase(object sender, CancelEventArgs es)
         {
-            List<ModelData> list = new List<ModelData>();
+            var res = new SqliteModel();
+            res.BaseName = ComboBoxTypeBase.SelectedIndex;
+            res.HashStr=Utils.GetHashStr(TextBoxConnectionString.Text);
             foreach (var item in TabControlToot.Items)
             {
                 TabItem i = (TabItem)item;
                 MyTabItem mi = (MyTabItem)i.Content;
                 ModelData data = mi.GetModelData();
                 if (data == null) continue;
-                list.Add(data);
+                res.list.Add(data);
             }
 
             using (var ses = Configure.GetSession<MyDataProvider>())
@@ -55,13 +55,9 @@ namespace ManagerSql
                 var t = ses.BeginTransaction(IsolationLevel.Serializable);
                 try
                 {
-                    ses.TruncateTable<SqliteModel>();
-                    if (list.Any())
-                    {
-                        var s = JsonConvert.SerializeObject(list);
-                        ses.Save(new SqliteModel { Join = s });
-                    }
-
+                   var e= ses.Querion<SqliteModel>().Delete(a=>a.BaseName==ComboBoxTypeBase.SelectedIndex&&a.HashStr== Utils.GetHashStr(TextBoxConnectionString.Text));
+                    var ee = ses.Querion<SqliteModel>().ToList();
+                    _ = ses.Save(res);
                     t.Commit();
                 }
                 catch (Exception e)
@@ -76,6 +72,9 @@ namespace ManagerSql
         void InitBase(int typeBase, string conStr, bool isStart = false)
         {
             if (string.IsNullOrWhiteSpace(conStr)) return;
+            if(isStart==false)
+             SaveToBase(null, null);
+            TabControlToot.Items.Clear();
             var listTable = InitConfigure.InitConfigureCore(typeBase, conStr);
             if (listTable == null) return;
             TreeViewTables.Items.Clear();
@@ -128,16 +127,19 @@ namespace ManagerSql
                 {
                     ses.TableCreate<SqliteModel>();
                 }
-                var m = ses.Querion<SqliteModel>().FirstOrDefault();
+                var m = ses.Querion<SqliteModel>().FirstOrDefault(a => a.BaseName == typeBase && a.HashStr == Utils.GetHashStr(conStr));
                 if (m == null) return;
-                var list = JsonConvert.DeserializeObject<List<ModelData>>(m.Join);
-                if (list != null)
-                    foreach (var sqliteModel in list)
+
+                if (m.list != null)
+                {
+                    foreach (var sqliteModel in m.list)
                     {
                         var ti = new MyTabItem();
                         ti.SetModelData(sqliteModel);
                         TabControlToot.Items.Add(ti.TabItem);
                     }
+                }
+                
 
                 if (TabControlToot.Items.Count > 0)
                 {
@@ -204,10 +206,10 @@ namespace ManagerSql
                     sql = $"SELECT * FROM \"{table}\" LIMIT 10";
                     break;
                 default:
-                {
-                    sql = $"SELECT  * FROM {table} LIMIT 10";
-                    break;
-                }
+                    {
+                        sql = $"SELECT  * FROM {table} LIMIT 10";
+                        break;
+                    }
             }
 
             TabControlToot.Items.Add(new MyTabItem(sql).TabItem);

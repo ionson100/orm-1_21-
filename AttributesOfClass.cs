@@ -66,6 +66,19 @@ namespace ORM_1_21_
                
             }
         }
+        public static bool IsUssageActivator(ProviderName provider)
+        {
+            Provider = provider;
+            return IsUssageActivatorInner.Value;
+        }
+
+        public static Lazy<bool> IsUssageActivatorInner = new Lazy<bool>(() =>
+        {
+            var t = typeof(T).GetCustomAttribute(typeof(MapUssageActivatorAttribute),true);
+            if(t != null) return true;
+            return false;
+                        
+        }, LazyThreadSafetyMode.PublicationOnly);
 
         private static readonly Lazy<Dictionary<string, string>> ColumnName = new Lazy<Dictionary<string, string>>(() =>
         {

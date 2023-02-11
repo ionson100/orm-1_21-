@@ -9,6 +9,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -223,7 +224,16 @@ namespace ORM_1_21_.Linq
             {
                 if (typeof(TS) != typeof(object) && typeof(TS).IsClass)
                 {
-                    object employee = Activator.CreateInstance<TS>();
+                    object employee;
+                    var isLegasy = AttributesOfClass<TS>.IsUssageActivator(_providerName);
+                    if (isLegasy)
+                    {
+                        employee = Activator.CreateInstance<TS>();
+                    }
+                    else
+                    {
+                        employee = (TS)FormatterServices.GetSafeUninitializedObject(typeof(TS));
+                    }
                     while (dataReader.Read())
                     {
                         for (var i = 0; i < dataReader.FieldCount; i++)
@@ -386,7 +396,16 @@ namespace ORM_1_21_.Linq
                     {
                         if (typeof(TS) != typeof(object) && typeof(TS).IsClass)
                         {
-                            object employee = Activator.CreateInstance<TS>();
+                            object employee;
+                            var isLegasy = AttributesOfClass<TS>.IsUssageActivator(_providerName);
+                            if (isLegasy)
+                            {
+                                employee = Activator.CreateInstance<TS>();
+                            }
+                            else
+                            {
+                                employee = (TS)FormatterServices.GetSafeUninitializedObject(typeof(TS));
+                            }
                             while (dataReader.Read())
                             {
                                 for (var i = 0; i < dataReader.FieldCount; i++)

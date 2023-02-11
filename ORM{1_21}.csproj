@@ -102,6 +102,7 @@
     <Compile Include="Attribute\MapIndexAttribute.cs" />
     <Compile Include="Attribute\MapTableNameAttribute.cs" />
     <Compile Include="Attribute\MapTypeMysqlTableAttribite.cs" />
+    <Compile Include="Attribute\MapUssageActivatorAttribute.cs" />
     <Compile Include="ColumnsTableFactory.cs" />
     <Compile Include="StorageOtherBaseFactory.cs" />
     <Compile Include="TableColumn.cs" />
