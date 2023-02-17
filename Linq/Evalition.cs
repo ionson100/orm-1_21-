@@ -11,7 +11,7 @@
         GroupBy,
         OrderBy,
         Select,
-        DistinctCastom,
+        DistinctCustom,
         SelectNew,
         Single,
         SingleOrDefault,

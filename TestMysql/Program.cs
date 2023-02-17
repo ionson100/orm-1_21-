@@ -13,26 +13,22 @@ namespace TestMysql
     {
         static async Task Main(string[] args)
         {
-            string s1 = "Server=localhost;Database=test;Uid=root;Pwd=12345;";
-            Starter.Run(s1, ProviderName.MySql);
-
-
-
-            var myClass = new MyClass
-            {
-                Age = 12,
-                Description = "simple",
-                MyEnum = MyEnum.First,
-                MyTest = new MyTest { Name = "ass" },
-                Test23 = { new MyTest(), new MyTest() }
-            };
-            ISession session = Configure.Session;
-            session.Save(myClass);
-            var ee = session.Querion<MyClass>().ToList();
-            Console.WriteLine(ee);
-            await Execute.RunExecute();
-
-            Console.ReadKey();
+           
+            Starter.Run("Server=localhost;Database=test;Uid=root;Pwd=12345;", ProviderName.MySql);
+            Execute.NewExe(ProviderName.MySql);
+            //var myClass = new MyClass
+            //{
+            //    Age = 12,
+            //    Name = "simpled ",
+            //    MyEnum = MyEnum.First,
+            //    // MyTest = new MyTest { Name = "ass" },
+            //    //Test23 =new List<MyTest>() { new MyTest(), new MyTest() }
+            //};
+            //ISession session = Configure.Session;
+            //session.Save(myClass);
+            //var ass = session.Querion<MyClass>().Count();
+            //var ee = session.Querion<MyClass>().Where(a => a.Name.TrimEnd('d',' ') == "simple").ToList();
+            // Execute.NewExe(ProviderName.MySql);
             Console.ReadKey();
 
 

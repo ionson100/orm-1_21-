@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using ORM_1_21_;
-using ORM_1_21_.Attribute;
+
 
 namespace ManagerSql
 {

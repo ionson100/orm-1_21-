@@ -1,10 +1,13 @@
 ﻿using ORM_1_21_;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ORM_1_21_.Linq;
+// ReSharper disable All
 
 namespace TestLibrary
 {
@@ -217,64 +220,240 @@ namespace TestLibrary
 
             using (var dataTable = ses1.GetDataTable($"select * from {ses1.TableName<MyClass>()} "))
             {
-                var coutn = dataTable.Rows.Count;
+                Console.WriteLine(dataTable.Rows.Count);
             }
+
+            var v1All = ses1.Querion<MyClass>().Where(a => a.Age == 13).Max(s=>s.Age);
+            Console.WriteLine($"Max age: {v1All}");
+
+            var v1Aq = ses1.Querion<MyClass>().Where(a => a.Age == 13);
+
+            // var Jq1 = ses1.Querion<MyClass>().Where(a => a.Age == 13).Cast<MyClassBase>();
+            // var v1Ae = ses1.Querion<MyClass>().Where(a => a.Age>0 )
+            //     .Join(Jq1,s=>s.Id,d=>d.Id,(s,d)=>s);
+            // var ss = v1Ae.ToList();
+
+            v1Aq.ForEach(a =>
+            {
+                Console.WriteLine(a.Id);
+            });
+
+
+            var v1Al = ses1.Querion<MyClass>().Where(a => a.Age == 13).ElementAtOrDefault(0);
+            if (v1Al != null) Console.WriteLine("ElementAtOrDefault id = " + v1Al.Id);
+            var v1A2 = ses1.Querion<MyClass>().Where(a => a.Age == 13).ElementAtOrDefault(1);
+            if (v1A2 != null) Console.WriteLine("ElementAtOrDefault id = " + v1A2.Id);
+            var v1A3 = ses1.Querion<MyClass>().Where(a => a.Age == 13).ElementAtOrDefault(2);
+            if (v1A3 != null) Console.WriteLine("ElementAtOrDefault id = " + v1A3.Id);
         }
 
-        static IEnumerable<T> TempSql<T>(T t)
+         private static IEnumerable<T> TempSql<T>(T t)
         {
             return Configure.Session.FreeSql<T>("select enum as enum1,age from my_class");
         }
+
+         private static void Running(int i)
+         {
+             while (true)
+             {
+                 using (var ses = Configure.Session)
+                 {
+                     var ts = ses.BeginTransaction(System.Data.IsolationLevel.Serializable);
+                     MyClass c = new MyClass();
+                     ses.Save(c);
+                     var s = Configure.Session.Querion<MyClass>().Count();
+                     Console.WriteLine($"{i} -- " + s);
+                     ts.Commit();
+                 }
+             }
+        }
         public static void RunThread()
         {
-            new Thread(async () =>
-            {
-                while (true)
-                {
-                    var ses = Configure.Session;
-                    var ts = ses.BeginTransaction(System.Data.IsolationLevel.Serializable);
-                    MyClass c = new MyClass();
-                    ses.Save(c);
+            Task.Factory.StartNew(() => { Running(1);}, TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(() => { Running(2); }, TaskCreationOptions.LongRunning);
+           // Task.Factory.StartNew(() => { Running(3); }, TaskCreationOptions.LongRunning);
+           // Task.Factory.StartNew(() => { Running(4); }, TaskCreationOptions.LongRunning);
 
-                    var s = Configure.Session.Querion<MyClass>().Count();
-                   
-                    Console.WriteLine("1 -- " + s);
-                    ts.Commit();
+        }
+
+        public static void NewExe(ProviderName name)
+        {
+            ISession session = Configure.Session;
+            var dt = DateTime.Now;
+            var myClass = new MyClass
+            {
+                DateTime = dt,
+                Age = 12,
+                Description = "simple",
+                Name = "name",
+                MyEnum = MyEnum.First,
+                MyTest = new MyTest { Name = "ass" },
+                Test23 = { new MyTest(), new MyTest() }
+            };
+            session.Save(myClass);
+            List<MyClass> res = null;
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.Year == dt.Year).ToList();
+            Console.WriteLine($"{1} {res.Count == 1}");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.Month == dt.Month).ToList();
+            Console.WriteLine($"{2} {res.Count == 1}");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.Hour == dt.Hour).ToList();
+            Console.WriteLine($"{3} {res.Count == 1}");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.Day == dt.Day).ToList();
+            Console.WriteLine($"{4} {res.Count == 1}");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.Minute == dt.Minute).ToList();
+            Console.WriteLine($"{5} {res.Count == 1} минуты могут не совпадать");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.Second == dt.Second).ToList();
+            Console.WriteLine($"{6} {res.Count == 1} секунды могут не совпадать");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.DayOfYear == dt.DayOfYear).ToList();
+            Console.WriteLine($"{7} {res.Count == 1}");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.DayOfWeek == dt.DayOfWeek).ToList();
+            Console.WriteLine($"{8} {res.Count == 1}");
+           
+
+
+
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.AddYears(1).Year == dt.Year + 1).ToList();
+            Console.WriteLine($"{9} {res.Count == 1}");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.AddMonths(1).Month == dt.Month + 1).ToList();
+            Console.WriteLine($"{10} {res.Count == 1}");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.AddHours(1).Hour == dt.Hour + 1).ToList();
+            Console.WriteLine($"{11} {res.Count == 1}");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.AddDays(1).Day == dt.Day + 1).ToList();
+            Console.WriteLine($"{12} {res.Count == 1}");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.AddMinutes(1).Minute == dt.Minute + 1).ToList();
+            Console.WriteLine($"{13} {res.Count == 1} минуты могут не совпадать" );
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.DateTime.AddSeconds(1).Second == dt.Second + 1).ToList();
+            Console.WriteLine($"{14} {res.Count == 1}  секунды могут не совпадать");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.Name.Concat("a").Concat("a") == "nameaa").ToList();
+            Console.WriteLine($"{15} {res.Count == 1}");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.Name.Substring(0) == "name").ToList();
+            Console.WriteLine($"{16} {res.Count == 1}");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.Name.Substring(0, 1) == "n").ToList();
+            Console.WriteLine($"{17} {res.Count == 1}");
+            res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.Name.Contains("ame")).ToList();
+            Console.WriteLine($"{18} {res.Count == 1}");
+          
+            if (name == ProviderName.MsSql)
+            {
+                MyClass my1 = session.Querion<MyClass>().FirstOrDefault(A => A.Age == 12);
+                my1.Name = " dnamed ";
+                session.Save(my1);
+                res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.Name.Trim() == "dnamed").ToList();
+                Console.WriteLine($"{19} {res.Count == 1}");
+                res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.Name.TrimStart() == "dnamed ").ToList();
+                Console.WriteLine($"{20} {res.Count == 1}");
+                var sss = session.Querion<MyClass>().Select(a => new { sdsd = a.Name.TrimEnd() }).ToList();
+                res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.Name.TrimEnd() == " dnamed").ToList();
+                Console.WriteLine($"{21} {res.Count == 1}");
+            }
+            else
+            {
+                MyClass my2 = session.Querion<MyClass>().FirstOrDefault(A => A.Age == 12);
+                my2.Name = "dnamed";
+                session.Save(my2);
+                res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.Name.Trim('4') == "dnamed").ToList();
+                Console.WriteLine($"{19} {res.Count == 1}");
+                res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.Name.TrimStart('d') == "named").ToList();
+                Console.WriteLine($"{20} {res.Count == 1}");
+                res = session.Querion<MyClass>().Where(a => a.Age == 12 && a.Name.TrimEnd('d') == "dname").ToList();
+                Console.WriteLine($"{21} {res.Count == 1}");
+            }
+            MyClass my3 = session.Querion<MyClass>().FirstOrDefault(A => A.Age == 12);
+            my3.Name = "name";
+            session.Save(my3);
+            var err = session.Querion<MyClass>().Select(a => new { sd = a.Name.Length }).ToList();
+            res =session.Querion<MyClass>().Where(a => a.Name.Length == "name".Length).ToList();
+            Console.WriteLine($"{22} {res.Count == 1}");
+            res=session.Querion<MyClass>().Where(a => a.Name.ToUpper() == "NAME".ToUpper().Trim()).ToList();
+            Console.WriteLine($"{23} {res.Count == 1}");
+            res= session.Querion<MyClass>().Where(a => a.Name.ToLower() == "NAME".ToLower().Trim()).ToList();
+            Console.WriteLine($"{24} {res.Count == 1}");
+         
+            List<MyClass> list = new List<MyClass>()
+            {
+                Starter.GetMyClass(10, "MyName1"),
+                Starter.GetMyClass(30, "MyName3"),
+                Starter.GetMyClass(20, "MyName2"),
+            };
+            var i=session.InsertBulk(list);
+            Console.WriteLine($"{24}/1 InsertBulk {i == 3}");
+
+            var count = session.Querion<MyClass>().Count();
+           
+            Console.WriteLine($"{25} {count == 4}");
+            var o = session.Querion<MyClass>().OrderBy(a=>a.Age).FirstOrDefault(); 
+           
+            Console.WriteLine($"{26} {o!=null&&o.Age==10}");
+            Console.WriteLine("Тест транзакции");
+            session.TruncateTable<MyClass>();
+            count = session.Querion<MyClass>().Count();
+            Console.WriteLine($"{27} {count == 0}");
+
+            IsolationLevel? level = null;
+            { 
+                var ses = Configure.Session;
+                try
+                {
+                    ses.Save(new MyClass());
+                    var tr = ses.BeginTransaction(level);
+                    ses.Save(new MyClass());
+                    ses.Save(new MyClass());
+                    ses.Save(new MyClass());
+                    tr.Rollback();
+                    ses.Save(new MyClass());
+                    tr = ses.BeginTransaction(level);
+                    ses.Save(new MyClass());
+                    ses.Save(new MyClass());
+                    ses.Save(new MyClass());
+                    tr.Rollback();
+                    ses.Save(new MyClass());
+
+                }
+                finally
+                {
+                    ses.Dispose();
 
                 }
 
-            }).Start();
-
-            new Thread(() =>
+                count = session.Querion<MyClass>().Count();
+                Console.WriteLine($"{28} {count == 3}");
+            }
+            session.TruncateTable<MyClass>();
             {
-                while (true)
+                var ses = Configure.Session;
+                try
                 {
-                    var ses = Configure.Session;
-                    var ts = ses.BeginTransaction(System.Data.IsolationLevel.Serializable);
-                    MyClass c = new MyClass();
-                    ses.Save(c);
+                    ses.Save(new MyClass());
+                    var tr = ses.BeginTransaction(level);
+                    ses.Save(new MyClass());
+                    ses.Save(new MyClass());
+                    ses.Save(new MyClass());
+                    tr.Commit();
+                    ses.Save(new MyClass());
+                    tr = ses.BeginTransaction(level);
+                    ses.Save(new MyClass());
+                    ses.Save(new MyClass());
+                    ses.Save(new MyClass());
+                    tr.Rollback();
+                    ses.Save(new MyClass());
 
-                    var s = Configure.Session.Querion<MyClass>().Count();
-                    Console.WriteLine("2 -- " + s);
-                    ts.Commit();
+                }
+                finally
+                {
+                    ses.Dispose();
+
                 }
 
-            }).Start();
-            new Thread(() =>
-            {
-                while (true)
-                {
-                    var ses = Configure.Session;
-                    var ts = ses.BeginTransaction(System.Data.IsolationLevel.Serializable);
-                    MyClass c = new MyClass();
-                    ses.Save(c);
+                count = session.Querion<MyClass>().Count();
+                Console.WriteLine($"{29} {count == 6}");
+                // var ss = session.Querion<MyClass>().Where(a => a.Name.Substring(1).Reverse() == "ema").ToList();
+                //var ss = session.Querion<MyClass>().Where(a => string.IsNullOrEmpty(a.Description.Replace("''", "'")) == true).ToList();
+            }
 
-                    var s = Configure.Session.Querion<MyClass>().Count();
-                    Console.WriteLine("3 -- " + s);
-                    ts.Commit();
-                }
 
-            }).Start();
+
+
+
         }
     }
 }

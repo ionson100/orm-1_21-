@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace ORM_1_21_
 {
@@ -42,6 +43,14 @@ namespace ORM_1_21_
         int Save<T>(T item) where T : class;
 
         /// <summary>
+        /// Асинхронное сохраненние объекта в базе
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        Task<int> SaveAsync<T>(T item) where T : class;
+
+        /// <summary>
         /// Удаление объекта из базы, возвращаете количество удаленных строк
         /// </summary>
         /// <typeparam name="T">Тип удаляемого объекта</typeparam>
@@ -57,7 +66,7 @@ namespace ORM_1_21_
         /// Получение объекта ITransaction с одновременно началом транзакции
         /// </summary>
         /// <param name="value">Параметр изоляции транзакции</param>
-        ITransaction BeginTransaction(IsolationLevel? value);
+        ITransaction BeginTransaction(IsolationLevel value);
 
         /// <summary>
         /// Получение объекта по первичному ключу

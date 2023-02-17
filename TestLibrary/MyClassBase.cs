@@ -17,7 +17,7 @@ namespace TestLibrary
 
 
 
-#if true
+#if false
         [MapPrimaryKey("id", Generator.Native)]
         public long Id { get; set; }
 #else
@@ -45,8 +45,7 @@ namespace TestLibrary
         public DateTime DateTime { get; set; } = DateTime.Now;
 
         [MapColumnName("test")]
-        public List<MyTest> Test23 { get; set; } = new List<MyTest>() { new MyTest() { Name = "simple" }
-        };
+        public List<MyTest> Test23 { get; set; } = new List<MyTest>() { new MyTest() { Name = "simple" } };
 
 
     }

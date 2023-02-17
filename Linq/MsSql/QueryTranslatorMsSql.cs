@@ -23,7 +23,7 @@ namespace ORM_1_21_.Linq.MsSql
     internal sealed class QueryTranslatorMsSql<T> : ExpressionVisitor, ITranslate
     {
         private Evolution _currentTypeCode;
-        private ProviderName _providerName;
+        private readonly ProviderName _providerName;
         private int _paramIndex;
 
         public QueryTranslatorMsSql(ProviderName name)
@@ -69,8 +69,8 @@ namespace ORM_1_21_.Linq.MsSql
                 ListOne.Add(new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() });
             }
 
-            if (ev == Evolution.DistinctCastom)
-                ListOne.Add(new OneComprosite { Operand = Evolution.DistinctCastom, Body = StringB.ToString() });
+            if (ev == Evolution.DistinctCustom)
+                ListOne.Add(new OneComprosite { Operand = Evolution.DistinctCustom, Body = StringB.ToString() });
 
             if (ev == Evolution.GroupBy)
                 ListOne.Add(new OneComprosite { Operand = Evolution.GroupBy, Body = StringB.ToString() });
@@ -366,6 +366,13 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(string) || m.Method.DeclaringType == typeof(Enumerable))
                 switch (m.Method.Name)
                 {
+                    case "Reverse":
+                    {
+                        StringB.Append(" REVERSE(");
+                        Visit(m.Arguments[0]);
+                        StringB.Append(") ");
+                        break;
+                    }
                     case "StartsWith":
                         StringB.Append("(");
                         Visit(m.Object);
@@ -439,6 +446,11 @@ namespace ORM_1_21_.Linq.MsSql
                             Visit(m.Arguments[1]);
                         }
 
+                        if (m.Arguments.Count == 1)
+                        {
+                            StringB.Append(", 1000000 ");
+                        }
+
                         StringB.Append(")");
                         return m;
                     case "Remove":
@@ -481,14 +493,90 @@ namespace ORM_1_21_.Linq.MsSql
 
                         StringB.Append(") - 1)");
                         return m;
+                    case "Trim":
+                        StringB.Append("RTRIM(");
+                        StringB.Append("LTRIM(");
+                        Visit(m.Object);
+                        if (m.Arguments.Count > 0)
+                        {
+                            var ee = (NewArrayExpression)m.Arguments[0];
+                            for (var i = 0; i < ee.Expressions.Count; i++)
+                            {
+                                if (i == 0)
+                                {
+                                    StringB.Append(", '");
+                                }
+
+                                StringB.Append(ee.Expressions[i]);
+                                if (i == ee.Expressions.Count - 1)
+                                {
+                                    StringB.Append("' ");
+                                }
+                            }
+                        }
+                        StringB.Append(")");
+                        if (m.Arguments.Count > 0)
+                        {
+                            var ee = (NewArrayExpression)m.Arguments[0];
+                            for (var i = 0; i < ee.Expressions.Count; i++)
+                            {
+                                if (i == 0)
+                                {
+                                    StringB.Append(", '");
+                                }
+
+                                StringB.Append(ee.Expressions[i]);
+                                if (i == ee.Expressions.Count - 1)
+                                {
+                                    StringB.Append("' ");
+                                }
+                            }
+                        }
+                        StringB.Append(")");
+                        return m;
                     case "TrimEnd":
                         StringB.Append("RTRIM(");
                         Visit(m.Object);
+                        if (m.Arguments.Count > 0)
+                        {
+                            var ee = (NewArrayExpression)m.Arguments[0];
+                            for (var i = 0; i < ee.Expressions.Count; i++)
+                            {
+                                if (i == 0)
+                                {
+                                    StringB.Append(", '");
+                                }
+
+                                StringB.Append(ee.Expressions[i]);
+                                if (i == ee.Expressions.Count - 1)
+                                {
+                                    StringB.Append("' ");
+                                }
+                            }
+                        }
                         StringB.Append(")");
                         return m;
                     case "TrimStart":
                         StringB.Append("LTRIM(");
+                    
                         Visit(m.Object);
+                        if (m.Arguments.Count > 0)
+                        {
+                            var ee = (NewArrayExpression)m.Arguments[0];
+                            for (var i = 0; i < ee.Expressions.Count; i++)
+                            {
+                                if (i == 0)
+                                {
+                                    StringB.Append(", '");
+                                }
+
+                                StringB.Append(ee.Expressions[i]);
+                                if (i == ee.Expressions.Count - 1)
+                                {
+                                    StringB.Append("' ");
+                                }
+                            }
+                        }
                         StringB.Append(")");
                         return m;
                 }
@@ -954,6 +1042,11 @@ namespace ORM_1_21_.Linq.MsSql
                     AddParameter(value);
                     return m;
                 }
+                if (m.Method.MemberType == MemberTypes.Method && m.Object != null)
+                {
+                    Visit(m.Object);
+                    return m;
+                }
 
 
                 if (m.Method.Name == "Querion") return m;
@@ -1147,6 +1240,60 @@ namespace ORM_1_21_.Linq.MsSql
                     case TypeCode.Boolean:
                         StringB.Append((bool)c.Value ? 1 : 0);
                         break;
+                    case TypeCode.Decimal:
+                    {
+                        StringB.Append(((decimal)c.Value));
+                        break;
+
+                    }
+                    case TypeCode.Int64:
+                    {
+                        StringB.Append((long)c.Value);
+                        break;
+
+                    }
+                    case TypeCode.Int32:
+                    {
+                        StringB.Append((int)c.Value);
+                        break;
+
+                    }
+                    case TypeCode.Int16:
+                    {
+                        StringB.Append((short)c.Value);
+                        break;
+
+                    }
+                    case TypeCode.UInt16:
+                    {
+                        StringB.Append((ushort)c.Value);
+                        break;
+
+                    }
+                    case TypeCode.UInt32:
+                    {
+                        StringB.Append((uint)c.Value);
+                        break;
+
+                    }
+                    case TypeCode.UInt64:
+                    {
+                        StringB.Append((ulong)c.Value);
+                        break;
+
+                    }
+                    case TypeCode.Single:
+                    {
+                        StringB.Append((float)c.Value);
+                        break;
+
+                    }
+                    case TypeCode.Double:
+                    {
+                        StringB.Append((double)c.Value);
+                        break;
+
+                    }
                     case TypeCode.String:
 
                         var p = ParamName;
@@ -1257,49 +1404,49 @@ namespace ORM_1_21_.Linq.MsSql
                 switch (m.Member.Name)
                 {
                     case "Day":
-                        StringB.Append("DAY(");
+                        StringB.Append("DATEPART(DAY,");
                         Visit(m.Expression);
                         StringB.Append(")");
                         return;
                     case "Month":
-                        StringB.Append("MONTH(");
+                        StringB.Append("DATEPART(MONTH, ");
                         Visit(m.Expression);
                         StringB.Append(")");
                         return;
                     case "Year":
-                        StringB.Append("YEAR(");
+                        StringB.Append("DATEPART(YEAR,");
                         Visit(m.Expression);
                         StringB.Append(")");
                         return;
                     case "Hour":
-                        StringB.Append("HOUR(");
-                        Visit(m.Expression);
+                        StringB.Append("DATEPART(HOUR,"); 
+                         Visit(m.Expression);
                         StringB.Append(")");
                         return;
                     case "Minute":
-                        StringB.Append("MINUTE(");
+                        StringB.Append("DATEPART(MINUTE,");
                         Visit(m.Expression);
                         StringB.Append(")");
                         return;
                     case "Second":
-                        StringB.Append("SECOND(");
+                        StringB.Append("DATEPART(SECOND,");
                         Visit(m.Expression);
                         StringB.Append(")");
                         return;
                     case "Millisecond":
-                        StringB.Append("(MICROSECOND(");
+                        StringB.Append("DATEPART(MICROSECOND,");
                         Visit(m.Expression);
                         StringB.Append(")/1000)");
                         return;
                     case "DayOfWeek":
-                        StringB.Append("(DAYOFWEEK(");
+                        StringB.Append("DATEPART(WEEKDAY,");
                         Visit(m.Expression);
-                        StringB.Append(") - 1)");
+                        StringB.Append(")");
                         return;
                     case "DayOfYear":
-                        StringB.Append("(DAYOFYEAR(");
+                        StringB.Append("DATEPART(DAYOFYEAR,");
                         Visit(m.Expression);
-                        StringB.Append(") - 1)");
+                        StringB.Append(")");
                         return;
                 }
 
@@ -1444,6 +1591,33 @@ namespace ORM_1_21_.Linq.MsSql
 
         protected override NewExpression VisitNew(NewExpression nex)
         {
+            if (nex.Type == typeof(Guid))
+            {
+                if (_providerName == ProviderName.Postgresql)
+                {
+                    string str = StringB.ToString().TrimEnd(' ', '=');
+                    StringB.Clear().Append(str);
+                    StringB.Append("::text = ");
+                    foreach (var nexArgument in nex.Arguments)
+                    {
+                        Visit(nexArgument);
+                    }
+                    StringB.Append(" ");
+
+                }
+                else
+                {
+                    foreach (var nexArgument in nex.Arguments)
+                    {
+                        Visit(nexArgument);
+                    }
+                }
+
+
+
+                return nex;
+
+            }
             IEnumerable<Expression> args = VisitExpressionList(nex.Arguments);
             if (args != nex.Arguments)
             {

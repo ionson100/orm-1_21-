@@ -29,5 +29,10 @@ namespace TestLibrary
                 }
             }
         }
+
+        public static MyClass GetMyClass(int age, string name)
+        {
+            return new MyClass { Age = age, Name = name };
+        }
     }
 }

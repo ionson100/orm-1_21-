@@ -19,7 +19,7 @@ namespace ORM_1_21_.Utils
             }
             else
             {
-                builder.AppendLine($" '{pk.GetColumnName(providerName)}'  {GetTypeColumn(pk.TypeColumn)} PRIMARY KEY,");
+                builder.AppendLine($" '{pk.GetColumnName(providerName)}'  BLOB PRIMARY KEY,");
             }
 
             foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))

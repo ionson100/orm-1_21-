@@ -16,6 +16,14 @@ namespace ORM_1_21_
     public static class Helper
     {
 
+        /// <summary>
+        ///  Перебор коллекции
+        /// </summary>
+        public static void  ForEach<T>(this IQueryable<T> coll, Action<T> action)
+        {
+            Query<T> res = (Query<T>)coll;
+            res.ForEach(action);
+        }
 
         /// <summary>
         /// </summary>
@@ -27,7 +35,7 @@ namespace ORM_1_21_
         public static IEnumerable<TR> DistinctCore<T, TR>(this IQueryable<T> coll, Expression<Func<T, TR>> exp)
         {
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCastom, TypeRetyrn = typeof(TR), ListDistict = new List<TR>() });
+            { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCustom, TypeRetyrn = typeof(TR), ListDistict = new List<TR>() });
             return coll.Provider.Execute<IEnumerable<TR>>(coll.Expression);
         }
 
@@ -232,8 +240,9 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(coll.ToString(), ex);
+                MySqlLogger.Info($" {Environment.NewLine}{coll}{Environment.NewLine}{ex}");
                 throw;
+              
             }
 
         }

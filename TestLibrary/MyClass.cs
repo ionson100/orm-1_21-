@@ -6,11 +6,11 @@ namespace TestLibrary
     [MapTableName("my_class")]
     public class MyClass : MyClassBase
     {
-        [MapColumnName("my_test")]
+        [MapColumnName("My_test")]
         public MyTest MyTest { get; set; }
     }
     [MapTableName("my_class")]
-    class MyClassMysql : MyClassBase
+   public class MyClassMysql : MyClassBase
     {
         [MapColumnName("my_test")]
         public MyTest MyTest { get; set; }

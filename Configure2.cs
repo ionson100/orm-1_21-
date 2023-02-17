@@ -6,17 +6,7 @@ namespace ORM_1_21_
     public sealed partial class Configure
     {
 
-        internal static void SendError(string sql, Exception exception)
-        {
-#if DEBUG
-            _configure.OnOnErrorOrm(new ErrorOrmEventArgs { ErrorMessage = exception.ToString(), Sql = sql, InnerException = exception.InnerException });
-#endif
-            _configure.OnOnErrorOrm(new ErrorOrmEventArgs { ErrorMessage = exception.Message, Sql = sql, InnerException = exception.InnerException });
-        }
-        /// <summary>
-        /// Событие возникновения ошибки в ОРМ, при подписке все исключения будут проходить через событие
-        /// </summary>
-        public event ErrorEvent OnErrorOrm;
+    
 
 
         /// <summary>

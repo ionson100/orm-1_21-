@@ -8,6 +8,8 @@ using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.Serialization;
+using System.Security.Policy;
+using System.Text;
 
 namespace ORM_1_21_
 {
@@ -52,9 +54,21 @@ namespace ORM_1_21_
                         else if (pr.PropertyType == typeof(Image))
                         {
                             AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,
-                                e == DBNull.Value ? null : UtilsCore.ImageFromByte((byte[])e));
+                                e == DBNull.Value ? null: UtilsCore.ImageFromByte((byte[])e));
                         }
                         else if (pr.PropertyType == typeof(bool))
+                        {
+                            if (e == DBNull.Value)
+                            {
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, false);
+                            }
+                            else
+                            {
+                                var b = Convert.ToBoolean(e);
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, b);
+                            }
+                        }
+                        else if (pr.PropertyType == typeof(bool?))
                         {
                             if (e == DBNull.Value)
                             {
@@ -97,13 +111,51 @@ namespace ORM_1_21_
                         }
                         else if (pr.PropertyType.BaseType == typeof(Enum))
                         {
-                            var ere = Enum.Parse(pr.PropertyType, e.ToString());
-                            AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : ere);
+                            if (e == DBNull.Value)
+                            {
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, -1);
+                            }
+                            else
+                            {
+                                var ere = Enum.Parse(pr.PropertyType, e.ToString());
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,  ere);
+                            }
+
+
+                           
                         }
                         else if (pr.PropertyType == typeof(Guid))
                         {
-                            var ere = new Guid(e.ToString());
-                            AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? Guid.Empty : ere);
+                            if (e == DBNull.Value)
+                            {
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,  Guid.Empty );
+                            }
+                            else
+                            {
+                                Guid guid = Guid.Empty;
+                                if (e is byte[])
+                                {
+                                    byte[] bytes = (byte[])e;
+                                    if (bytes.Length == 16)
+                                    {
+                                        guid = new Guid((byte[])e);
+                                    }
+                                    else
+                                    {
+                                        guid = new Guid(Encoding.ASCII.GetString(bytes));
+                                    }
+                                }
+                                else if (e is string)
+                                {
+                                    guid = new Guid(e.ToString());
+                                }
+                                else if (e is Guid)
+                                {
+                                    guid = (Guid)e;
+                                }
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,guid);
+                            }
+                              
                         }
                         else if (pr.PropertyType == typeof(Guid?))
                         {
@@ -113,8 +165,8 @@ namespace ORM_1_21_
                             }
                             else
                             {
-                                var resUuid = new Guid(e.ToString());
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, resUuid);
+                                var ere = new Guid(e.ToString());
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, ere);
                             }
                         }
                         else if (pr.PropertyType == typeof(float))
@@ -257,7 +309,8 @@ namespace ORM_1_21_
                     }
                     catch (Exception e)
                     {
-                        Configure.SendError("create item " + typeof(TObj), e);
+                        MySqlLogger.Info($" {Environment.NewLine}Create Item{Environment.NewLine}{e}");
+                        throw;
                     }
 
                 }

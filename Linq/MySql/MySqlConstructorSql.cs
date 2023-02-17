@@ -74,9 +74,9 @@ namespace ORM_1_21_.Linq.MySql
                     if (PingComposite(Evolution.Count)) sbb.Append(" COUNT(*) ");
                     if (PingComposite(Evolution.Any)) sbb.AppendFormat(" EXISTS ( " + StringConst.Select);
 
-                    if (PingComposite(Evolution.DistinctCastom))
+                    if (PingComposite(Evolution.DistinctCustom))
                     {
-                        string s = listOne.First(a => a.Operand == Evolution.DistinctCastom).Body;
+                        string s = listOne.First(a => a.Operand == Evolution.DistinctCustom).Body;
                         if (PingComposite(Evolution.SelectNew))
                         {
 
@@ -98,13 +98,13 @@ namespace ORM_1_21_.Linq.MySql
                                     sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
                                         AttributesOfClass<T>.TableName(providerName) + "." +
                                         AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName),
-                                        listOne.Any(a => a.Operand == Evolution.DistinctCastom &&
+                                        listOne.Any(a => a.Operand == Evolution.DistinctCustom &&
                                                          a.Body == AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
                                             ? " Distinct "
                                             : ""));
                                 sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
                                     AttributesOfClass<T>.TableName(providerName) + "." + i.GetColumnName(_providerName),
-                                    listOne.Any(a => a.Operand == Evolution.DistinctCastom && a.Body == i.GetColumnName(_providerName))
+                                    listOne.Any(a => a.Operand == Evolution.DistinctCustom && a.Body == i.GetColumnName(_providerName))
                                         ? " Distinct "
                                         : ""));
 
@@ -172,7 +172,7 @@ namespace ORM_1_21_.Linq.MySql
             if (PingComposite(Evolution.ElementAt))
             {
                 if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
-                    sbb.AppendFormat(" LIMIT {0}", listOne.First(a => a.Operand == Evolution.ElementAt).Body);
+                    sbb.AppendFormat(" LIMIT 1 OFFSET {0}", listOne.First(a => a.Operand == Evolution.ElementAt).Body);
                 else
                     sbb.AppendFormat(" LIMIT {0},1", listOne.First(a => a.Operand == Evolution.ElementAt).Body);
             }
@@ -180,7 +180,7 @@ namespace ORM_1_21_.Linq.MySql
             if (PingComposite(Evolution.ElementAtOrDefault))
             {
                 if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
-                    sbb.AppendFormat(" LIMIT {0} ", listOne.First(a => a.Operand == Evolution.ElementAtOrDefault).Body);
+                    sbb.AppendFormat(" LIMIT 1  OFFSET {0} ", listOne.First(a => a.Operand == Evolution.ElementAtOrDefault).Body);
                 else
                     sbb.AppendFormat(" LIMIT {0},1",
                         listOne.First(a => a.Operand == Evolution.ElementAtOrDefault).Body);
@@ -256,8 +256,9 @@ namespace ORM_1_21_.Linq.MySql
                 sbb = new StringBuilder(dfggf.Body + whereSb.ToString().Trim("AND ".ToArray()) +
                                         orderby.ToString().Trim(','));
             }
-
-            return sbb.ToString().Replace("  ", " ").Replace("''", "'").Trim(' ', ',').Replace("Average", "AVG")
+            // todo ion100 Replace("''", "'")
+            var ssd = sbb.ToString();
+            return sbb.ToString().Replace("  ", " ").Trim(' ', ',').Replace("Average", "AVG")
                 .Replace("LongCount", "Count");
         }
     }

@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,6 +11,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 
@@ -318,18 +318,9 @@ namespace ORM_1_21_.Utils
         {
             if (ob is DBNull)
             {
-                if (t.IsGenericType) return null;
-
-                if (!t.IsValueType) return null;
-                if (t == typeof(DateTime))
-                {
-                    object o = DateTime.MinValue;
-                    return o;
-                }
-
-                if (t == typeof(float))
-                    return 0.0f;
-                return 0.00;
+                
+               return Activator.CreateInstance(t);
+             
             }
 
             if (t == typeof(uint)) return Convert.ToUInt32(ob, CultureInfo.InvariantCulture);
@@ -432,7 +423,7 @@ namespace ORM_1_21_.Utils
             {
                 return false;
             }
-            if (type.GetInterface(typeof(ISerializableOrm).Name) != null || type.IsArray)
+            if (type.GetInterface(nameof(ISerializableOrm)) != null || type.IsArray)
             {
                 return true;
             }
@@ -446,13 +437,14 @@ namespace ORM_1_21_.Utils
 
         public static string ObjectToJson(object o)
         {
-            string json = JsonConvert.SerializeObject(o);
+            string json = JsonSerializer.Serialize(o);
             return json.Replace("'", "''");
         }
 
         public static object JsonToObject(string o, Type type)
         {
-            return JsonConvert.DeserializeObject(o, type);
+            if (string.IsNullOrWhiteSpace(o)) return  null;
+            return JsonSerializer.Deserialize(o, type);
         }
 
         public static string ClearTrim(string tableName)

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using ORM_1_21_.Utils;
 
 namespace ORM_1_21_
 {
@@ -81,7 +82,8 @@ namespace ORM_1_21_
                             }
                             catch (Exception e)
                             {
-                               SendError(string.Empty,e);
+                                MySqlLogger.Info($"{e.Message}{Environment.NewLine}{e}");
+                                throw;
                             }
                            
                         }
@@ -163,8 +165,9 @@ namespace ORM_1_21_
             {
                 if (_configure == null)
                 {
-                    SendError(null, new Exception("ISession GetInnerSession error _configure==null"));
-                    return null;
+                    MySqlLogger.Info($" {Environment.NewLine}\"ISession GetInnerSession error _configure==null\"{Environment.NewLine}");
+                    throw new Exception("ISession GetInnerSession error _configure==null");
+               
                 }
 
                 return _configure.GetInnerSession();
@@ -181,9 +184,10 @@ namespace ORM_1_21_
         {
             if (_configure == null)
             {
-                SendError(null, new Exception("ISession GetInnerSession error _configure==null"));
-                return null;
+                MySqlLogger.Info($" {Environment.NewLine}ISession GetInnerSession error _configure==null");
+                throw new Exception("ISession GetInnerSession error _configure==null");
             }
+
             Type type = typeof(TF);
             var any = type.GetInterfaces().Any(si => si == typeof(IOtherDataBaseFactory));
             if (any == false)
@@ -233,19 +237,7 @@ namespace ORM_1_21_
         }
 
 
-        private void OnOnErrorOrm(ErrorOrmEventArgs args)
-        { 
-            string errorMessage = args.ErrorMessage + Environment.NewLine + args.Sql;
-            if (OnErrorOrm == null)
-            {
-                MySqlLogger.Info($"OnOnErrorOrm: {errorMessage}");
-                throw new Exception(errorMessage);
-
-            }
-
-            OnErrorOrm.Invoke(this, args);
-
-        }
+       
         
 
     }

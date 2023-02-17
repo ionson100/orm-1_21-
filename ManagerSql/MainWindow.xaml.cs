@@ -127,18 +127,18 @@ namespace ManagerSql
                 {
                     ses.TableCreate<SqliteModel>();
                 }
-                var m = ses.Querion<SqliteModel>().FirstOrDefault(a => a.BaseName == typeBase && a.HashStr == Utils.GetHashStr(conStr));
+                var m = ses.Querion<SqliteModel>().Where(a => a.BaseName == typeBase && a.HashStr == Utils.GetHashStr(conStr)).ToList();
                 if (m == null) return;
 
-                if (m.list != null)
-                {
-                    foreach (var sqliteModel in m.list)
-                    {
-                        var ti = new MyTabItem();
-                        ti.SetModelData(sqliteModel);
-                        TabControlToot.Items.Add(ti.TabItem);
-                    }
-                }
+               // if (m != null)
+               // {
+               //     foreach (var sqliteModel in m.list)
+               //     {
+               //         var ti = new MyTabItem();
+               //         ti.SetModelData(sqliteModel);
+               //         TabControlToot.Items.Add(ti.TabItem);
+               //     }
+               // }
                 
 
                 if (TabControlToot.Items.Count > 0)

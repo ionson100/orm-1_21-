@@ -737,7 +737,8 @@ namespace ORM_1_21_
             }
 
             var ordrby = listOne.Where(a => a.Operand == Evolution.OrderBy);
-            foreach (var oneComprosite in ordrby) sbOrderBy.AppendFormat("{0},", oneComprosite.Body);
+            foreach (var oneComprosite in ordrby) 
+                sbOrderBy.AppendFormat("{0},", oneComprosite.Body);
             var ss = SimpleSqlSelect(providerName).Replace(StringConst.Select, "") + AddSqlWhere(sbwhere.ToString(), providerName);
             var mat4 = new Regex(@"AS[^,]*").Matches(doSql.Substring(0, doSql.IndexOf("FROM", StringComparison.Ordinal))
                                                          .Replace(StringConst.Select, "") + ",");
@@ -761,15 +762,25 @@ namespace ORM_1_21_
                     PrimaryKeyLazy.Value[typeof(T)].First().GetColumnName(providerName));
 
 
-            var ff = string.Format("SELECT {0} FROM (SELECT ROW_NUMBER() " +
-                                   "OVER(ORDER BY {3} ) AS rownum, {1} ) " +
-                                   "AS {2} WHERE rownum BETWEEN {4} AND {5}",
+            string ff = "";
+           
+            if (listOne.Any(a => a.Operand == Evolution.ElementAtOrDefault||a.Operand==Evolution.ElementAt))
+            {
+                start += 1;
+                count = start;
+            }
+            
+            ff = string.Format("SELECT {0} FROM (SELECT ROW_NUMBER() " +
+                               "OVER(ORDER BY {3} ) AS rownum, {1} ) " +
+                               "AS {2} WHERE rownum BETWEEN {4} AND {5}",
                 d.ToString().Trim(','),
                 ss,
                 table,
                 sbOrderBy.ToString().Trim(','),
                 start,
                 count);
+           
+
             return ff;
         }
 

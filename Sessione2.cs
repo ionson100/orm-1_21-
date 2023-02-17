@@ -55,17 +55,17 @@ namespace ORM_1_21_
             _connect = factory.GetDbProviderFactories().CreateConnection();
             if (_connect == null) throw new Exception("Не могу создать соединение к другой базе");
             _connect.ConnectionString = factory.GetConnectionString();
-            if(factory.GetProviderName() == ProviderName.Postgresql)
+            if (factory.GetProviderName() == ProviderName.Postgresql)
             {
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
             }
-            
+
         }
 
         private readonly IDbConnection _connect;
 
-      
+
 
         private static void NotificAfter<T>(T item, ActionMode mode) where T : class
         {
@@ -109,17 +109,26 @@ namespace ORM_1_21_
 
 
 
-         ITransaction ISession.BeginTransaction()
+        ITransaction ISession.BeginTransaction()
         {
-            Transactionale.IsOccupied = true;
+            if (Transactionale.MyStateTransaction == StateTransaction.Begin)
+            {
+                throw new Exception("Транзакция открыта ранее");
+            }
+            Transactionale.MyStateTransaction = StateTransaction.Begin;
+            Transactionale.IsolationLevel = null;
             Transactionale.Connection = _connect;
             return Transactionale;
         }
 
-        
-         ITransaction ISession.BeginTransaction(IsolationLevel value)
+
+        ITransaction ISession.BeginTransaction(IsolationLevel? value)
         {
-            Transactionale.IsOccupied = true;
+            if (Transactionale.MyStateTransaction == StateTransaction.Begin)
+            {
+                throw new Exception("Транзакция открыта ранее");
+            }
+            Transactionale.MyStateTransaction = StateTransaction.Begin;
             Transactionale.Connection = _connect;
             Transactionale.IsolationLevel = value;
             return Transactionale;
@@ -142,16 +151,32 @@ namespace ORM_1_21_
             if (com.Connection.State == ConnectionState.Closed)
             {
                 com.Connection.Open();
-                if (Transactionale.IsOccupied)
+                if (Transactionale.MyStateTransaction == StateTransaction.Begin)
                 {
-                    Transaction = _connect.BeginTransaction(Transactionale.IsolationLevel);
+
+                    if (Transactionale.IsolationLevel == null)
+                    {
+                        Transaction = _connect.BeginTransaction();
+                    }
+                    else
+                    {
+                        Transaction = _connect.BeginTransaction(Transactionale.IsolationLevel.Value);
+                    }
                     Transactionale.ListDispose.Add(com);
+                    com.Transaction = Transaction;
                 }
             }
-            com.Transaction = Transaction;
+            else
+            {
+                if (Transactionale.MyStateTransaction == StateTransaction.Begin)
+                {
+                    com.Transaction = Transaction;
+                }
+            }
+
         }
 
-        internal static void AddParam(IDbCommand com,ProviderName providerName, object[] obj)
+        internal static void AddParam(IDbCommand com, ProviderName providerName, object[] obj)
         {
             if (obj == null) return;
             string sql = com.CommandText;
@@ -175,7 +200,7 @@ namespace ORM_1_21_
                 com.Parameters.Add(dp);
             }
         }
-     
+
 
         bool ISession.IsDispose => _isDispose;
 
@@ -194,7 +219,14 @@ namespace ORM_1_21_
             if (_isDispose) return;
             try
             {
-                Transactionale.ListDispose.ForEach(a => a.Dispose());
+                if (Transactionale.Transaction != null)
+                {
+                    if (Transactionale.MyStateTransaction == StateTransaction.Begin)
+                    {
+                        Transactionale.Transaction.Rollback();
+                    }
+                }
+                Transactionale?.ListDispose.ForEach(a => a.Dispose());
                 if (_connect != null)
                     _connect.Dispose();
 
@@ -220,13 +252,13 @@ namespace ORM_1_21_
             InnerWriteLogFile($"WriteLogFile: {message}");
         }
 
-         private void InnerWriteLogFile(string message)
-         { 
-             MySqlLogger.Info(message);
-         }
+        private void InnerWriteLogFile(string message)
+        {
+            MySqlLogger.Info(message);
+        }
 
-         private void InnerWriteLogFile(IDbCommand command)
-         {
+        private void InnerWriteLogFile(IDbCommand command)
+        {
             MySqlLogger.Info(UtilsCore.GetStringSql(command));
 
         }
@@ -238,27 +270,27 @@ namespace ORM_1_21_
 
         }
 
-        
-         bool ISession.IsPersistent<T>(T obj)
+
+        bool ISession.IsPersistent<T>(T obj)
         {
             return UtilsCore.IsPersistent(obj);
         }
-         
-         
-         void ISession.ToPersistent<T>(T obj)
+
+
+        void ISession.ToPersistent<T>(T obj)
         {
             UtilsCore.SetPersisten(obj);
         }
 
 
-      
-         IEnumerable<TableColumn> ISession.GetTableColumns(string tableName)
-         {
-             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-             com.Connection = _connect;
-             return ColumnsTableFactory.GeTableColumns(MyProviderName, com, UtilsCore.ClearTrim(tableName.Trim()));
+
+        IEnumerable<TableColumn> ISession.GetTableColumns(string tableName)
+        {
+            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            return ColumnsTableFactory.GeTableColumns(MyProviderName, com, UtilsCore.ClearTrim(tableName.Trim()));
 
 
-         }
+        }
     }
 }

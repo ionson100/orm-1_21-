@@ -17,13 +17,18 @@ namespace ORM_1_21_
         {
             if (Interlocked.Read(ref _runner) == 1) Interlocked.Decrement(ref _runner);
             if(isFinish)
-            _sw.Dispose();
+                _sw.Dispose();
         }
 
         public static void Info(string message)
         {
             if (_isActive == false) return;
             _cq.Enqueue($"{message}");
+        }
+        public static void Error(string sql,Exception ex)
+        {
+            if (_isActive == false) return;
+            _cq.Enqueue($"{Environment.NewLine}{sql}{Environment.NewLine}{ex}");
         }
 
         public static async Task RunLogger(string file)

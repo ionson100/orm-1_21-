@@ -5,7 +5,7 @@ using System.Data.Common;
 
 namespace TestLibrary
 {
-    class MyDbMySql : IOtherDataBaseFactory
+  public  class MyDbMySql : IOtherDataBaseFactory
     {
         private static readonly Lazy<DbProviderFactory> dbProviderFactory = new Lazy<DbProviderFactory>(() =>
         {

@@ -16,7 +16,7 @@ using System.Text.RegularExpressions;
 
 namespace ORM_1_21_.Linq
 {
-    internal class DbQueryProvider<T> : QueryProvider, ISqlComposite
+    internal class DbQueryProvider<T> :  QueryProvider, ISqlComposite
     {
         private readonly Dictionary<string, object> _paramFree = new Dictionary<string, object>();
         private readonly List<ParameterStoredPr> _paramFreeStoredPr = new List<ParameterStoredPr>();
@@ -179,8 +179,8 @@ namespace ORM_1_21_.Linq
             }
             catch (Exception ex)
             {
-                Configure.SendError(_com.CommandText, ex);
-                return null;
+                MySqlLogger.Error(_com.CommandText, ex);
+                throw;
 
             }
             finally
@@ -479,12 +479,29 @@ namespace ORM_1_21_.Linq
                     return !isactive1 ? (object)lres : datasingl1;
                 }
 
-                if (PingComposite(Evolution.DistinctCastom))
+                if (PingComposite(Evolution.ElementAt))
+                {
+                    dataReader = _com.ExecuteReader();
+                    var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
+                    var enumerable = r as T[] ?? r.ToArray();
+                    if (enumerable.Any()) return enumerable.First();
+                    throw new Exception("Элемент отсутствует в выбоке.");
+                }
+                if (PingComposite(Evolution.ElementAtOrDefault))
+                {
+                    dataReader = _com.ExecuteReader();
+                    var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
+                    var enumerable = r as T[] ?? r.ToArray();
+                    if (enumerable.Any()) return enumerable.First();
+                    return null;
+                }
+
+                if (PingComposite(Evolution.DistinctCustom))
                 {
                     var tt = typeof(TS);
                     var tt3 = typeof(T);
-                    Type retType = this.ListCastExpression.Single(a => a.TypeRevalytion == Evolution.DistinctCastom).TypeRetyrn;
-                    IList resT = this.ListCastExpression.Single(a => a.TypeRevalytion == Evolution.DistinctCastom).ListDistict;
+                    Type retType = this.ListCastExpression.Single(a => a.TypeRevalytion == Evolution.DistinctCustom).TypeRetyrn;
+                    IList resT = this.ListCastExpression.Single(a => a.TypeRevalytion == Evolution.DistinctCustom).ListDistict;
                     dataReader = _com.ExecuteReader();
                     if (PingComposite(Evolution.SelectNew))
                     {
@@ -539,7 +556,6 @@ namespace ORM_1_21_.Linq
                 #endregion
 
                 ////////////////////////////////////////////////////////////////////////////////////////////////
-
                 dataReader = _com.ExecuteReader();
                 if (_listOne.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
                 {
@@ -557,8 +573,8 @@ namespace ORM_1_21_.Linq
 
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(_com), ex);
-                return null;
+                MySqlLogger.Error(UtilsCore.GetStringSql(_com), ex);
+                throw;
             }
 
             finally

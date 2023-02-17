@@ -1,5 +1,4 @@
 ﻿
-using Newtonsoft.Json;
 using ORM_1_21_.Linq;
 using ORM_1_21_.Utils;
 using System;
@@ -9,6 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.Json;
+using ORM_1_21_.Transaction;
 
 namespace ORM_1_21_
 {
@@ -46,8 +47,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
-                return 0;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
             }
             finally
             {
@@ -89,8 +90,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
-                return null;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
             }
             finally
             {
@@ -113,8 +114,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
-                return 0;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
             }
             finally
             {
@@ -145,8 +146,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
-                return 0;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
             }
             finally
             {
@@ -243,8 +244,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(com.CommandText, ex);
-                return null;
+                MySqlLogger.Error(com.CommandText, ex);
+                throw;
             }
             finally
             {
@@ -313,7 +314,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
             }
             finally
             {
@@ -364,8 +366,9 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(com.CommandText, ex);
-                return 0;
+                MySqlLogger.Error(com.CommandText, ex);
+                throw;
+              
             }
             finally
             {
@@ -406,8 +409,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
-                return -100;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
             }
             finally
             {
@@ -447,7 +450,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
+
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
                 return -100;
             }
             finally
@@ -473,8 +477,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
-                return null;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
             }
             finally
             {
@@ -500,8 +504,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
-                return null;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
             }
             finally
             {
@@ -526,8 +530,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
-                return 0;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
             }
             finally
             {
@@ -579,8 +583,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
-                return -1;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
             }
             finally
             {
@@ -605,8 +609,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
-                return -1;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
             }
             finally
             {
@@ -660,7 +664,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
             }
             finally
             {
@@ -672,7 +677,7 @@ namespace ORM_1_21_
 
         private T GetReal<T>(object id) where T : class
         {
-            var sqlAll = string.Format("{0} WHERE {1}.{2}='{3}'", AttributesOfClass<T>.SimpleSqlSelect(MyProviderName),
+            var sqlAll = string.Format("{0} WHERE {1}.{2} = '{3}'", AttributesOfClass<T>.SimpleSqlSelect(MyProviderName),
                 AttributesOfClass<T>.TableName(MyProviderName), AttributesOfClass<T>.PkAttribute(MyProviderName).GetColumnName(MyProviderName), id);
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
@@ -687,9 +692,9 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(UtilsCore.GetStringSql(com), ex);
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
 
-                return null;
             }
             finally
             {
@@ -706,7 +711,9 @@ namespace ORM_1_21_
             }
             finally
             {
-                if (Transactionale.IsOccupied == false)
+                if (Transactionale.MyStateTransaction == StateTransaction.None||
+                    Transactionale.MyStateTransaction == StateTransaction.Commit||
+                    Transactionale.MyStateTransaction == StateTransaction.Rollback)
                 {
                     com.Connection.Close();
 
@@ -822,8 +829,8 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                Configure.SendError(com.CommandText, ex);
-                return null;
+                MySqlLogger.Error(com.CommandText, ex);
+                throw;
             }
             finally
             {
@@ -836,13 +843,14 @@ namespace ORM_1_21_
             if (ob == null) throw new ArgumentNullException(nameof(ob));
             try
             {
-                var str = JsonConvert.SerializeObject(ob);
-                return JsonConvert.DeserializeObject<T>(str);
+
+                var str = JsonSerializer.Serialize(ob);
+                return JsonSerializer.Deserialize<T>(str);
 
             }
             catch (Exception ex)
             {
-                Configure.SendError("Clone", ex);
+                MySqlLogger.Error("Clone", ex);
                 throw;
 
             }
