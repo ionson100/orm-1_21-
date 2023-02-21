@@ -1413,7 +1413,8 @@ namespace ORM_1_21_.Linq.MySql
                             body.Body = body.Body + " DESC";
                         }
                     }
-                    ListOne.Last(a => a.Operand == Evolution.OrderBy).Body += " LIMIT 1";
+                    if(PingComposite(Evolution.Limit)==false)
+                     ListOne.Last(a => a.Operand == Evolution.OrderBy).Body += " LIMIT 1";
 
                 }
                 else

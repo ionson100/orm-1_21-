@@ -324,12 +324,12 @@ namespace ORM_1_21_
         }
 
 
-        public static List<T> GetListAnonymusObj<T>(IDataReader reader, object ss)
+        public static List<T> GetListAnonymousObj<T>(IDataReader reader, object ss)
         {
             try
             {
                 var ctor = ((NewExpression)ss).Constructor;
-                var lres = new List<T>();
+                var lRes = new List<T>();
                 var d = new object[reader.FieldCount]; 
                 while (reader.Read())
                 {
@@ -341,9 +341,9 @@ namespace ORM_1_21_
                         d[i] = res;
                     }
                     var ee = ctor.Invoke(d);
-                    lres.Add((T)ee);
+                    lRes.Add((T)ee);
                 }
-                return lres;
+                return lRes;
             }
             finally
             {
@@ -387,71 +387,68 @@ namespace ORM_1_21_
         {
             if (listOne == null) throw new ArgumentException("listOne == null ");
             var oneComprosites = listOne as OneComprosite[] ?? listOne.ToArray();
-            var resul = lResul as T[] ?? lResul.ToArray();
-            var enumerable = lResul as T[] ?? resul.ToArray();
+            var result = lResul as T[] ?? lResul.ToArray();
+            var enumerable = lResul as T[] ?? result.ToArray();
             if (oneComprosites.Any(a => a.Operand == Evolution.SingleOrDefault && a.IsAgregate))
             {
-                if (!enumerable.Any())
+                if (enumerable.Length == 1)
                 {
                     isActive = true;
-                    return default(T);
-                }
 
-                if (enumerable.Count() == 1)
-                {
-                    isActive = true;
                     return enumerable.First();
                 }
 
-                throw new Exception("Последовательност содержит больше чем одни элемент -" + enumerable.Count());
+                isActive = true;
+                return default;
+
             }
 
             if (oneComprosites.Any(a => a.Operand == Evolution.Single && a.IsAgregate))
             {
-                if (resul.Count() == 1)
+                if (result.Count() == 1)
                 {
                     isActive = true;
                     return enumerable.First();
                 }
-
-                throw new Exception("Последовательност содержит больше чем одни элемент или пустая count -" +
+             
+                throw new Exception("Последовательность содержит больше чем одни элемент или пустая count -" +
                                     enumerable.Count());
             }
 
             if (oneComprosites.Any(a => a.Operand == Evolution.First))
             {
                 isActive = true;
-                return resul.First();
+                return result.First();
             }
 
             if (oneComprosites.Any(a => a.Operand == Evolution.FirstOrDefault))
             {
                 isActive = true;
-                return !resul.Any() ? default : enumerable.First();
+                return !result.Any() ? default : enumerable.First();
             }
 
             if (oneComprosites.Any(a => a.Operand == Evolution.LastOrDefault))
             {
                 isActive = true;
-                return !resul.Any() ? default : enumerable.First();
+                return !result.Any() ? default : enumerable.First();
             }
 
             if (oneComprosites.Any(a => a.Operand == Evolution.Last))
             {
                 isActive = true;
-                return resul.Last();
+                return result.Last();
             }
 
             if (oneComprosites.Any(a => a.Operand == Evolution.ElementAt))
             {
                 isActive = true;
-                return resul.First();
+                return result.First();
             }
 
             if (oneComprosites.Any(a => a.Operand == Evolution.ElementAtOrDefault))
             {
                 isActive = true;
-                return resul.Any() ? enumerable.First() : default(T);
+                return result.Any() ? enumerable.First() : default(T);
             }
 
             isActive = false;

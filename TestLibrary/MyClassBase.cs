@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+
 namespace TestLibrary
 {
     [MapUssageActivator]
@@ -25,13 +27,14 @@ namespace TestLibrary
         public Guid Id { get; set; } = Guid.NewGuid();
 #endif
 
+        [MapColumnName("my_test")]
+        public MyTest MyTest { get; set; }
 
         [MapColumnName("name")]
         public string Name { get; set; }
 
 
         [MapColumnName("age")]
-        [MapIndex]
         public int Age { get; set; }
 
         [MapColumnName("desc")]

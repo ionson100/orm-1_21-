@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace ORM_1_21_
@@ -26,19 +27,21 @@ namespace ORM_1_21_
         }
 
         /// <summary>
+        /// Массив неповторяющизся значений, по выбранному полю
         /// </summary>
         /// <param name="coll"></param>
         /// <param name="exp"></param>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="TR"></typeparam>
         /// <returns></returns>
-        public static IEnumerable<TR> DistinctCore<T, TR>(this IQueryable<T> coll, Expression<Func<T, TR>> exp)
+        public static IEnumerable<TR> DistinctCore<T, TR>(this IQueryable<T> coll, Expression<Func<T, TR>> exp) where T : class
         {
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
             { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCustom, TypeRetyrn = typeof(TR), ListDistict = new List<TR>() });
             return coll.Provider.Execute<IEnumerable<TR>>(coll.Expression);
         }
 
+       
         /// <summary>
         /// Удаление объекта без вытаскивания данных на клиента
         /// </summary>
@@ -130,10 +133,8 @@ namespace ORM_1_21_
         /// <param name="coll"></param>
         /// <param name="param">Словарь поле - значение</param>
         /// <typeparam name="T">Тип проекции таблицы</typeparam>
-        /// <typeparam name="TKey">Свойство - поле</typeparam>
-        /// <typeparam name="TValue">Значение</typeparam>
         /// <returns></returns>
-        public static int Update<T, TKey, TValue>(this IQueryable<T> coll, Expression<Func<T, Dictionary<TKey, TValue>>> param) where T : class
+        public static int Update<T>(this IQueryable<T> coll, Expression<Func<T, Dictionary<object, object>>> param) where T : class
         {
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
             { CastomExpression = param, TypeRevalytion = Evolution.Update });

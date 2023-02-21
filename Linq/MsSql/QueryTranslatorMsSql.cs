@@ -409,10 +409,12 @@ namespace ORM_1_21_.Linq.MsSql
                         StringB.Append(")");
                         return m;
                     case "IsNullOrEmpty":
-                        StringB.Append("(");
+                        StringB.Append("( CONVERT(VARCHAR,");
                         Visit(m.Arguments[0]);
-                        StringB.Append(" IS NULL OR ");
+                        StringB.Append(") ");
+                        StringB.Append(" IS NULL OR CONVERT(VARCHAR,");
                         Visit(m.Arguments[0]);
+                        StringB.Append(") = '' ");
                         StringB.Append(")");
                         return m;
                     case "ToUpper":

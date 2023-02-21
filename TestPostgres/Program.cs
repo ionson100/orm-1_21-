@@ -4,15 +4,17 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using TestLibrary;
+using System.Drawing;
 
 namespace TestPostgres
 {
     internal class Program
     {
-        private static ProviderName _providerName = ProviderName.Sqlite;
+        private static ProviderName _providerName = ProviderName.Postgresql;
 
         static async Task Main(string[] args)
         {
@@ -38,10 +40,22 @@ namespace TestPostgres
             }
             //Execute.RunThread();
             //Console.ReadKey();
-            Execute.NewExe(_providerName);
+            Execute.TotalTest();
 
             ISession session = Configure.Session;
-          
+
+            if (session.TableExists<MyImage>() )
+            {
+                session.DropTable<MyImage>();
+              
+            } 
+            session.TableCreate<MyImage>();
+
+            MyImage sd = new MyImage();
+            sd.Image=Image.FromFile("1.png");
+            session.Save(sd);
+            var sdsd = session.Querion<MyImage>().ToList();
+            sdsd[0].Image.Save("assa.png");
 
 
             
@@ -55,39 +69,12 @@ namespace TestPostgres
             };
            
             session.Save(myClass);
-            var ss = session.Querion<MyClass>().Where(a => string.IsNullOrEmpty(a.Description.Replace("''","'"))==true).ToList();
-            // var so = session.Querion<MyClass>().OrderBy(a => a.Age).SingleOrDefault();
-            //
-            //
-            //
-            // List<MyClass> list = new List<MyClass>()
-            // {
-            //     Starter.GetMyClass(10, "MyName1"),
-            //     Starter.GetMyClass(30, "MyName3"),
-            //     Starter.GetMyClass(20, "MyName2"),
-            // };
-            // session.InsertBulk(list);
-            //
-            // var o = session.Querion<MyClass>().OrderBy(a => a.Age).FirstOrDefault();
-            //
-            // var asss = session.Querion<MyClass>().ToList();
-            // var single = session.Get<MyClass>(myClass.Id);
-            // string wass = myClass.Id.ToString();
-            // var asas = session.Querion<MyClass>().Where(a => a.Id == new Guid(myClass.Id.ToString())).ToList();
-            //
-            // var count = session.Querion<MyClass>().Count();
+            session.Save(new MyClass{Age = 10,Name = "name1"});
+            session.Save(new MyClass { Age = 10, Name = "name1" });
+            session.Save(new MyClass { Age = 10, Name = "name2" });
+            var count = session.Querion<MyClass>().Select(a => new { ass = a.Age, asss = string.Concat(a.Name,a.Age) }).ToList();
 
-            //var ass = session.Querion<MyClass>().Where(a => a.Name == new MyClass() { Name = "name" }.Name).ToList();
-            //var ee = session.Querion<MyClass>().Where(a => a.Name.ToLower()==myClass.Name.Trim()).ToList();
-            //
-            // var eeeClasses = session.Querion<MyClass>().Where(a => a.DateTime.AddMilliseconds(-1).Minute==10).ToList();
-            //
-            //
-            //Console.WriteLine(ee);
-            //await Execute.RunExecute();
-            //Execute.RunThread();
-
-
+           Image image= Configure.GetImageFromFile("");
 
             Console.ReadKey();
         }
@@ -98,5 +85,13 @@ namespace TestPostgres
 
 
     }
+    [MapTableName("image_my")]
+    class MyImage
+    {
+        [MapPrimaryKey("id",Generator.Assigned)]
+        public Guid Id { get; set; }=Guid.NewGuid();
+        [MapColumnName("image")]
+        public Image Image { get; set; }
 
+    }
 }

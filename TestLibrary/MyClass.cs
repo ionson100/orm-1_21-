@@ -3,22 +3,30 @@
 
 namespace TestLibrary
 {
-    [MapTableName("my_class")]
+    [MapTableName("my_class5")]
     public class MyClass : MyClassBase
     {
-        [MapColumnName("My_test")]
-        public MyTest MyTest { get; set; }
+       
     }
-    [MapTableName("my_class")]
+    [MapTableName("my_class5")]
    public class MyClassMysql : MyClassBase
     {
-        [MapColumnName("my_test")]
-        public MyTest MyTest { get; set; }
+       
     }
-    [MapTableName("my_class2")]
-    class MyClassMysql2 : MyClassBase
+    [MapTableName("my_class5")]
+    class MyClassPostgres : MyClassBase
     {
-        [MapColumnName("my_test")]
-        public MyTest MyTest { get; set; }
+    
+    }
+
+    [MapTableName("my_class5")]
+    class MyClassMsSql : MyClassBase
+    {
+
+    }
+    [MapTableName("my_class5")]
+    class MyClassSqlite : MyClassBase
+    {
+
     }
 }

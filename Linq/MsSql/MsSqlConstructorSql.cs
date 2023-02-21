@@ -200,7 +200,7 @@ namespace ORM_1_21_.Linq.MsSql
                                         orderBy.ToString().Trim(','));
             }
 
-            return sbb.ToString().Replace("  ", " ").Replace("''", "'").Trim(' ', ',').Replace("Average", "AVG")
+            return sbb.ToString().Replace("  ", " ").Trim(' ', ',').Replace("Average", "AVG")
                 .Replace("LongCount", "Count");
         }
     }

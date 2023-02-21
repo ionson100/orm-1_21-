@@ -462,7 +462,7 @@ namespace ORM_1_21_.Linq
                         while (dataReader.Read())
                             lres.Add((TS)dataReader[0]);
                     else
-                        lres = Pizdaticus.GetListAnonymusObj<TS>(dataReader, ss);
+                        lres = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss);
                     return lres;
                 }
 
@@ -532,7 +532,7 @@ namespace ORM_1_21_.Linq
                     dataReader = _com.ExecuteReader();
                     if (UtilsCore.IsAnonymousType(typeof(TS)))
                     {
-                        var lRes = Pizdaticus.GetListAnonymusObj<TS>(dataReader, ss);
+                        var lRes = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss);
                         bool isaActive1;
                         var dataSingl1 = Pizdaticus.SingleData(_listOne, lRes, out isaActive1);
                         var res = !isaActive1 ? (object)lRes : dataSingl1;
@@ -542,7 +542,7 @@ namespace ORM_1_21_.Linq
                     {
                         if (_listOne.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
                         {
-                            var lRes = Pizdaticus.GetListAnonymusObj<object>(dataReader, ss);
+                            var lRes = Pizdaticus.GetListAnonymousObj<object>(dataReader, ss);
                             bool isActive1;
                             var dataSingl1 = Pizdaticus.SingleData(_listOne, lRes, out isActive1);
                             var res = !isActive1 ? lRes : dataSingl1;

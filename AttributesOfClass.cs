@@ -916,7 +916,7 @@ namespace ORM_1_21_
                         object vall;
                         if (prcore.PropertyType == typeof(Image))
                             vall = UtilsCore.ImageToByte((Image)GetValue.Value[prcore.Name](obj));
-                        if (prcore.PropertyType.BaseType == typeof(Enum))
+                        else if (prcore.PropertyType.BaseType == typeof(Enum))
                         {
                             vall = (int)GetValue.Value[prcore.Name](obj);
                             isEnum = true;

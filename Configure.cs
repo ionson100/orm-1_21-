@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -154,6 +155,11 @@ namespace ORM_1_21_
         /// </summary>
         public static ProviderName Provider { get; private set; }
 
+        public static Image GetImageFromFile(string patch)
+        {
+            return Image.FromFile(patch);
+        }
+
         /// <summary>
         ///Получение сессии
         /// </summary>
@@ -180,7 +186,7 @@ namespace ORM_1_21_
         /// <typeparam name="TF">Тип который должен реализовать интерфейс IOtherDataBaseFactory и
         /// иметь конструктор по умолчанию</typeparam>
         /// <returns></returns>
-        public static ISession GetSession<TF>()
+        public static ISession GetSession<TF>() where TF : IOtherDataBaseFactory ,new()
         {
             if (_configure == null)
             {

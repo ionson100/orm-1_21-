@@ -7,10 +7,7 @@ namespace TestLibrary
 {
   public  class MyDbMySql : IOtherDataBaseFactory
     {
-        private static readonly Lazy<DbProviderFactory> dbProviderFactory = new Lazy<DbProviderFactory>(() =>
-        {
-            return new MySqlClientFactory();
-        });
+        private static readonly Lazy<DbProviderFactory> DbProviderFactory = new Lazy<DbProviderFactory>(() => new MySqlClientFactory());
         public ProviderName GetProviderName()
         {
             return ProviderName.MySql;
@@ -22,7 +19,58 @@ namespace TestLibrary
 
         public DbProviderFactory GetDbProviderFactories()
         {
-            return dbProviderFactory.Value;
+            return DbProviderFactory.Value;
         }
     }
+  public class MyDbPostgres : IOtherDataBaseFactory
+  {
+      private static readonly Lazy<DbProviderFactory> DbProviderFactory = new Lazy<DbProviderFactory>(() => Npgsql.NpgsqlFactory.Instance);
+      public ProviderName GetProviderName()
+      {
+          return ProviderName.Postgresql;
+      }
+      public string GetConnectionString()
+      {
+          return "Server=localhost;Port=5432;Database=testorm;User Id=postgres;Password=ion100312873;";
+      }
+
+      public DbProviderFactory GetDbProviderFactories()
+      {
+          return DbProviderFactory.Value;
+      }
+  }
+  public class MyDbMsSql : IOtherDataBaseFactory
+  {
+      private static readonly Lazy<DbProviderFactory> DbProviderFactory = new Lazy<DbProviderFactory>(() => System.Data.SqlClient.SqlClientFactory.Instance);
+      public ProviderName GetProviderName()
+      {
+          return ProviderName.MsSql;
+      }
+      public string GetConnectionString()
+      {
+          return "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=audi124;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+      }
+
+      public DbProviderFactory GetDbProviderFactories()
+      {
+          return DbProviderFactory.Value;
+      }
+  }
+  public class MyDbSqlite : IOtherDataBaseFactory
+  {
+      private static readonly Lazy<DbProviderFactory> DbProviderFactory = new Lazy<DbProviderFactory>(() => System.Data.SQLite.SQLiteFactory.Instance);
+      public ProviderName GetProviderName()
+      {
+          return ProviderName.Sqlite;
+      }
+      public string GetConnectionString()
+      {
+          return "Data Source=mydb.db;Version=3;BinaryGUID=False;";
+      }
+
+      public DbProviderFactory GetDbProviderFactories()
+      {
+          return DbProviderFactory.Value;
+      }
+  }
 }

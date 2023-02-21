@@ -130,11 +130,7 @@ namespace ORM_1_21_.Linq.MySql
                 sbb.Append(i.Body);
             }
 
-            //var sf = listOne.Where(a => a.Operand == Evolution.FindLikeContains);
-            //foreach (var i in sf)
-            //{
-            //    sbb.Append(string.Format(CultureInfo.CurrentCulture, " {0} ", i.Body));
-            //}
+          
             ii = 0;
 
             if (PingComposite(Evolution.GroupBy))
@@ -205,14 +201,7 @@ namespace ORM_1_21_.Linq.MySql
             }
 
             if (PingComposite(Evolution.Limit)) sbb.Append(listOne.First(a => a.Operand == Evolution.Limit).Body);
-            //var ss1 = listOne.Where(a => a.Operan == Evalution.Last);
-            //foreach (var i in ss1)
-            //{
-
-            //    sbb.Append(i.Body);
-
-            //}
-
+         
             if (PingComposite(Evolution.Any)) sbb.Append(" ) ");
 
             if (PingComposite(Evolution.All))
@@ -258,7 +247,7 @@ namespace ORM_1_21_.Linq.MySql
             }
             // todo ion100 Replace("''", "'")
             var ssd = sbb.ToString();
-            return sbb.ToString().Replace("  ", " ").Trim(' ', ',').Replace("Average", "AVG")
+            return sbb.ToString().Replace("  ", " ").Replace("Average", "AVG")
                 .Replace("LongCount", "Count");
         }
     }

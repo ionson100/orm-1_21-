@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 
 
 namespace ORM_1_21_
@@ -43,5 +44,7 @@ namespace ORM_1_21_
         /// Внутреннее исключение
         /// </summary>
         public Exception InnerException { get; set; }
+
+       
     }
 }
