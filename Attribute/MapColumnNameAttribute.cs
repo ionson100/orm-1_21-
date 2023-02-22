@@ -5,33 +5,27 @@ using System.Data;
 namespace ORM_1_21_
 {
     /// <summary>
-    /// Атрибуты для класса слоя, определяют название  колонки в таблице
+    /// Field name in the table
     /// </summary>
 
     public sealed class MapColumnNameAttribute : BaseAttribute
     {
-        /// <summary>
-        /// поле индексируется
-        /// </summary>
-        public bool IsIndex { get; set; }
+       
+        internal bool IsIndex { get; set; }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string TypeString { get; set; }
+        internal string TypeString { get; set; }
 
         /// <summary>
-        /// Конструктор
+        /// Ctor.
         /// </summary>
-        /// <param name="nameColumnTable">Название колонки в таблице  базы</param>
+        /// <param name="nameColumnTable">field name</param>
         public MapColumnNameAttribute(string nameColumnTable) : base(nameColumnTable)
         {
         }
 
         internal Type TypeColumn { get; set; }
 
-        internal String ColumnNameForReader(ProviderName providerName)
+        internal string ColumnNameForReader(ProviderName providerName)
         {
             
             return UtilsCore.ClearTrim(GetColumnName(providerName));
@@ -44,7 +38,7 @@ namespace ORM_1_21_
     }
 
     /// <summary>
-    /// значение по умолчанию при создании таблицы 
+    /// Table field default value (set by user)
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class MapDefaultValueAttribute : System.Attribute
@@ -57,15 +51,15 @@ namespace ORM_1_21_
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="valueAsString"></param>
-        public MapDefaultValueAttribute(string valueAsString)
+        /// <param name="value">value string</param>
+        public MapDefaultValueAttribute(string value)
         {
-            Value = valueAsString;
+            Value = value;
         }
     }
 
     /// <summary>
-    /// значение по умолчанию при создании таблицы 
+    /// Field type when creating a table (set by the user)
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class MapColumnTypeAttribute : System.Attribute

@@ -25,7 +25,7 @@ namespace ORM_1_21_
                 .SingleOrDefault(a => a.ToUpper().Contains("DATABASE"));
             if (r == null)
             {
-                throw new Exception("Не могу определить схему базы данных");
+                throw new Exception("Can't determine database schema");
             }
 
             var i = r.IndexOf("=", StringComparison.Ordinal);

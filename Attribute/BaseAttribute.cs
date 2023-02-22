@@ -12,7 +12,7 @@ namespace ORM_1_21_
         private string _columnName;
 
         /// <summary>
-        /// Название колонки в таблице  базы c учетом sql
+        /// Field name in the table  as sql
         /// </summary>
         public string GetColumnName(ProviderName providerName)
         {
@@ -37,7 +37,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// Название колонки в таблице  без учета sql
+        /// Field name in the table raw
         /// </summary>
         /// <returns></returns>
         public string GetColumnNameRaw()
@@ -45,11 +45,6 @@ namespace ORM_1_21_
             return _columnName;
         }
       
-
-        /// <summary>
-        /// Название свойства, которое соответствует данной
-        /// колонке в таблице, в классе сущности
-        /// </summary>
         internal string PropertyName { get; set; }
         /// <summary>
         /// 
@@ -57,6 +52,7 @@ namespace ORM_1_21_
         /// <param name="columnName"></param>
         protected BaseAttribute(string columnName)
         {
+            if (string.IsNullOrWhiteSpace(columnName)) throw new ArgumentException("column name zero");
             _columnName = UtilsCore.ClearTrim(columnName);
         }
 

@@ -18,17 +18,10 @@ using System.Text.RegularExpressions;
 
 namespace ORM_1_21_.Utils
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class GroupExpression<T>
+    
+    class GroupExpression<T>
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="lexp"></param>
-        /// <returns></returns>
+       
         public static Delegate Delegate(LambdaExpression lexp)
         {
             return Action(lexp, lexp.ReturnType);
@@ -78,9 +71,7 @@ namespace ORM_1_21_.Utils
 
         }
     }
-    /// <summary>
-    ///  Утилиты
-    /// </summary>
+    
     internal static class UtilsCore
     {
 
@@ -100,6 +91,7 @@ namespace ORM_1_21_.Utils
            typeof(float),
 
         };
+
         internal static bool IsNumericType(Type type)
         {
             return NumericTypes.Contains(type) ||
@@ -107,7 +99,7 @@ namespace ORM_1_21_.Utils
         }
 
         internal const string Bungalo = "____";
-        internal const string Base = "BASE", Error = "ERROR";
+        
 
         internal static string Pref(ProviderName providerName)
         {
@@ -128,7 +120,7 @@ namespace ORM_1_21_.Utils
 
         }
 
-        internal static string Prefparam(ProviderName providerName)
+        internal static string PrefParam(ProviderName providerName)
         {
 
             switch (providerName)
@@ -147,22 +139,9 @@ namespace ORM_1_21_.Utils
 
         }
 
-
-
-
-        internal static Assembly Assembler;
-
-        /// <summary>
-        /// </summary>
         internal static string Table1AliasForJoin = "tt1";
 
-
-        /// <summary>
-        ///     Определяем, является ли тип анонимным
-        /// </summary>
-        /// <param name="type">Тип для исследования</param>
-        /// <returns>bool</returns>
-        public static bool IsAnonymousType(Type type)
+        internal static bool IsAnonymousType(Type type)
         {
             return System.Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
                    && type.IsGenericType && type.Name.Contains("AnonymousType")
@@ -172,7 +151,7 @@ namespace ORM_1_21_.Utils
         }
 
         /// <summary>
-        ///     Сериализация  объекта
+        /// Сериализация  объекта
         /// </summary>
         /// <param name="obj">Объект</param>
         /// <returns>byte[]</returns>
@@ -188,12 +167,7 @@ namespace ORM_1_21_.Utils
             }
         }
 
-        /// <summary>
-        ///     Десерелизация
-        /// </summary>
-        /// <param name="arrBytes">byte[]</param>
-        /// <returns>Объект</returns>
-        public static object ByteArrayToObject(byte[] arrBytes)
+        internal static object ByteArrayToObject(byte[] arrBytes)
         {
             if (arrBytes == null) return null;
             using (var memStream = new MemoryStream())
@@ -212,30 +186,19 @@ namespace ORM_1_21_.Utils
                 .Trim().ToLower();
         }
 
-
-
-        /// <summary>
-        ///     Получение массива байт из Image
-        /// </summary>
-        /// <param name="img">Image</param>
-        /// <returns></returns>
-        public static byte[] ImageToByte(Image img)
+        internal static byte[] ImageToByte(Image img)
         {
             if (img == null) return null;
             var converter = new ImageConverter();
             return (byte[])converter.ConvertTo(img, typeof(byte[]));
         }
 
-        /// <summary>
-        ///     Получение Image из массива байт
-        /// </summary>
-        /// <param name="img"></param>
-        /// <returns></returns>
-        public static Image ImageFromByte(byte[] img)
+       
+        internal static Image ImageFromByte(byte[] bytes)
         {
-            if (img == null) return null;
+            if (bytes == null) return null;
             var converter = new ImageConverter();
-            return (Image)converter.ConvertFrom(img);
+            return (Image)converter.ConvertFrom(bytes);
         }
 
 
@@ -245,7 +208,7 @@ namespace ORM_1_21_.Utils
         }
 
 
-        internal static void SetPersisten(object obj)
+        internal static void SetPersistent(object obj)
         {
             TypeDescriptor.AddAttributes(obj, new PersistentAttribute());
         }
@@ -309,7 +272,7 @@ namespace ORM_1_21_.Utils
             //    return new Guid(ob.ToString());
             //}
 
-            string message = string.Format(CultureInfo.CurrentCulture, "не могу конвертировать тип {0} as {1}",
+            string message = string.Format(CultureInfo.CurrentCulture, "Can't convert type {0} as {1}",
                 ob.GetType().FullName, typeof(TR));
             throw new Exception(message);
         }
@@ -362,7 +325,7 @@ namespace ORM_1_21_.Utils
 
             if (t == typeof(byte[])) return ob;
             if (t == typeof(object)) return ob;
-            throw new Exception(string.Format(CultureInfo.CurrentCulture, "не могу конвертировать тип {0}",
+            throw new Exception(string.Format(CultureInfo.CurrentCulture, "Can't convert type {0}",
                 ob.GetType().FullName));
         }
 
@@ -404,7 +367,7 @@ namespace ORM_1_21_.Utils
                 return decimal.ToSByte((sbyte)val);
             if (typeColumn == typeof(float))
                 return decimal.ToSingle((sbyte)val);
-            throw new Exception($"Не могу найти тип для преобразования первичного ключа {typeColumn} {val}");
+            throw new Exception($"Can't find type to convert primary key {typeColumn} {val}");
         }
 
         internal static bool ColumnExists(IDataReader reader, string columnName)
@@ -467,7 +430,42 @@ namespace ORM_1_21_.Utils
         }
 
 
+        public static string[] MySplit(string str)
+        {
+            List<string> list = new List<string>();
+            str = str.Trim(' ', ',');
+            StringBuilder builder = new StringBuilder();
+            int stop = 0;
+            foreach (char c in str)
+            {
+                if (c == '(') stop = ++stop;
+                if (c == ')') stop = --stop;
+                if (stop>0)
+                {
+                    builder.Append(c);
+                    continue;
+                }
+                if (c != ',')
+                {
+                    builder.Append(c);
+                }
+                else
+                {
+                    list.Add(builder.ToString());
+                    builder.Clear();
+                }
+            }
 
+            if (builder.Length > 0)
+            {
+                list.Add(builder.ToString());
+            }
+
+            return list.ToArray();
+
+        }
+
+      
     }
 }
 

@@ -5,46 +5,32 @@ using System.Data;
 namespace ORM_1_21_
 {
     /// <summary>
-    /// Атрибут для указания первичного ключа для таблицы ( составные ключи не работают)
+    /// Table primary key attribute
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class MapPrimaryKeyAttribute : BaseAttribute
     {
-        readonly Generator _p;
-
         /// <summary>
-        /// Атрибут первичного ключа
+        /// Ctor.
         /// </summary>
-        /// <param name="columnName">Название поля</param>
-        /// <param name="generator">Тип генерации зачернения на ключ, native-автоинкрементный,assigned-назначенный в рукопашную</param>
+        /// <param name="columnName">Field name</param>
+        /// <param name="generator">Primary key type, native-autoincrement ,assigned-user assigned</param>
         public MapPrimaryKeyAttribute(string columnName, Generator generator) : base(columnName)
         {
-            _p = generator;
+            if (string.IsNullOrWhiteSpace(columnName)) throw new ArgumentException("column name zero");
+            Generator = generator;
         }
 
-        /// <summary>
-        /// Название колонки первичного 
-        /// </summary>
         internal string ColumnNameForRider(ProviderName providerName)
         {
           return UtilsCore.ClearTrim(GetColumnName(providerName));
 
         }
 
-
-        /// <summary>
-        /// Тип колонки первичного ключа
-        /// </summary>
         internal Type TypeColumn { get; set; }
 
-        /// <summary>
-        /// Тип генератора первичного ключа в базе
-        /// </summary>
-        internal Generator Generator => _p;
+        internal Generator Generator { get; }
 
-        /// <summary>
-        /// Тип поля в базе данных
-        /// </summary>
         internal DbType DbType()
         {
             return DbTypeConverter.ConvertFrom(TypeColumn);

@@ -1,27 +1,24 @@
 ﻿using System;
 using System.Data.Common;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using ORM_1_21_.Utils;
 
 namespace ORM_1_21_
 {
     /// <summary>
-    ///     Базовый класс для конфигурации
+    ///    Class Base Configure
     /// </summary>
     public sealed partial class Configure
     {
-        internal static DbProviderFactory _curFactory;
+        internal static DbProviderFactory CurFactory;
         //internal static bool UsageCache;
 
         internal static string ConnectionString;
-        private readonly bool _isSearchGac;
 
         /// <summary>
-        /// Строка соединения к базе данных
+        /// DataBase Connection string
         /// </summary>
         /// <returns></returns>
         public static string GetConnectionString()
@@ -33,7 +30,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// Название файла лога
+        /// Path to log file
         /// </summary>
         public static string LogFileName { get; private set; }
 
@@ -43,19 +40,18 @@ namespace ORM_1_21_
         private static readonly object Locker = new object();
 
         /// <summary>
-        /// Конструктор
+        /// Constructor
         /// </summary>
-        /// <param name="connectionString">Строка соединения с базой</param>
-        /// <param name="provider">Провайдер соединения с базой</param>
-        /// <param name="logFileName">Путь и название файла, куда будем писать логи, его отсутствие (null) отменяет запись в файл.</param>
-        /// <param name="isSearchGac"> true:Искать поставщика данных в хранилище GAC</param>
+        /// <param name="connectionString">Database connection string</param>
+        /// <param name="provider">Base connection providerй</param>
+        /// <param name="logFileName">Path to log file is  null - disable writing to log file.</param>
+        /// <param name="isSearchGac"> true:Search data provider in storage GAC, default - false</param>
         public Configure(string connectionString, ProviderName provider, string logFileName, bool isSearchGac=false)
         {
- 
             _configure = this;
-            _curFactory = null;
+            CurFactory = null;
             ConnectionString = connectionString;
-            _isSearchGac = isSearchGac;
+            var isSearchGac1 = isSearchGac;
             Provider = provider;
             LogFileName = logFileName;
             LogFileName = logFileName;
@@ -66,8 +62,8 @@ namespace ORM_1_21_
                     {
                         try
                         {
-                            if (!_isSearchGac) throw new Exception("Запрет на поиск в GAC");
-                            _curFactory = DbProviderFactories.GetFactory("Npgsql");
+                            if (!isSearchGac1) throw new Exception("disable usage GAC");
+                            CurFactory = DbProviderFactories.GetFactory("Npgsql");
 
                         }
                         catch 
@@ -77,7 +73,7 @@ namespace ORM_1_21_
                                 var a = AppDomain.CurrentDomain.Load("Npgsql");
                                 var b = a.GetType("Npgsql.NpgsqlFactory");
                                 var field1 = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
-                                _curFactory = (DbProviderFactory)field1.GetValue(null);
+                                CurFactory = (DbProviderFactory)field1.GetValue(null);
                                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                                 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
                             }
@@ -97,15 +93,15 @@ namespace ORM_1_21_
                     {
                         try
                         {
-                            if (!_isSearchGac) throw new Exception("Запрет на поиск в GAC");
-                            _curFactory = DbProviderFactories.GetFactory("MySql.Data.MySqlClient");
+                            if (!isSearchGac1) throw new Exception("Запрет на поиск в GAC");
+                            CurFactory = DbProviderFactories.GetFactory("MySql.Data.MySqlClient");
                         }
                         catch 
                         {
 
                             var a = AppDomain.CurrentDomain.Load("Mysql.Data");
                             var b = a.GetType("MySql.Data.MySqlClient.MySqlClientFactory");
-                            _curFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
+                            CurFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
                         }
                      
                         break;
@@ -114,15 +110,15 @@ namespace ORM_1_21_
                     {
                         try
                         {
-                            if (!_isSearchGac) throw new Exception("Запрет на поиск в GAC");
-                            _curFactory = DbProviderFactories.GetFactory("System.Data.SQLite.SQLiteFactory");
+                            if (!isSearchGac1) throw new Exception("Запрет на поиск в GAC");
+                            CurFactory = DbProviderFactories.GetFactory("System.Data.SQLite.SQLiteFactory");
                         }
                         catch
                         {
                             var a = AppDomain.CurrentDomain.Load("System.Data.SQLite");
                             var b = a.GetType("System.Data.SQLite.SQLiteFactory");
                             var field1 = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
-                            _curFactory = (DbProviderFactory)field1.GetValue(null);
+                            CurFactory = (DbProviderFactory)field1.GetValue(null);
                          
                         }
                         break;
@@ -132,14 +128,14 @@ namespace ORM_1_21_
                     {
                         try
                         {
-                            if (!_isSearchGac) throw new Exception("Запрет на поиск в GAC");
-                            _curFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
+                            if (!isSearchGac1) throw new Exception("Запрет на поиск в GAC");
+                            CurFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
                         }
                         catch 
                         {
                             var a = AppDomain.CurrentDomain.Load("System.Data.SqlClient");
                             var b = a.GetType("System.Data.SqlClient.SqlClientFactory");
-                            _curFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
+                            CurFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
                         }
                        
                         break;
@@ -151,17 +147,14 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// Провайдер, который использует орм в текущий момент
+        /// The provider that is currently using the orm
         /// </summary>
         public static ProviderName Provider { get; private set; }
 
-        public static Image GetImageFromFile(string patch)
-        {
-            return Image.FromFile(patch);
-        }
+       
 
         /// <summary>
-        ///Получение сессии
+        ///Getting default session
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
@@ -181,10 +174,10 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// Получение сессии к другой базе данных
+        /// Getting a session to work with another database
         /// </summary>
-        /// <typeparam name="TF">Тип который должен реализовать интерфейс IOtherDataBaseFactory и
-        /// иметь конструктор по умолчанию</typeparam>
+        /// <typeparam name="TF">The type that the interface must implement IOtherDataBaseFactory and
+        /// have a default constructor</typeparam>
         /// <returns></returns>
         public static ISession GetSession<TF>() where TF : IOtherDataBaseFactory ,new()
         {
@@ -198,12 +191,12 @@ namespace ORM_1_21_
             var any = type.GetInterfaces().Any(si => si == typeof(IOtherDataBaseFactory));
             if (any == false)
             {
-                throw new Exception($"Тип {type.Name} не реализует интерфейс IOtherDataBaseFactory");
+                throw new Exception($"Type {type.Name} does not implement an interface IOtherDataBaseFactory");
             }
             var isExistCtor = type.GetConstructor(Type.EmptyTypes);
             if (isExistCtor == null)
             {
-                throw new Exception($"Тип {type.Name} не имеет конструктора по умолчанию");
+                throw new Exception($"Type {type.Name} does not have a default constructor");
             }
 
             return _configure.GetInnerSession<TF>();

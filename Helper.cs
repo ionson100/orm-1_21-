@@ -2,23 +2,19 @@
 using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace ORM_1_21_
 {
-    /// <summary>
-    ///     Расширения для построения запроса
-    /// </summary>
+   
     public static class Helper
     {
 
         /// <summary>
-        ///  Перебор коллекции
+        ///  Iterating over a collection
         /// </summary>
         public static void  ForEach<T>(this IQueryable<T> coll, Action<T> action)
         {
@@ -27,13 +23,16 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// Массив неповторяющизся значений, по выбранному полю
+        ///Convert date to SQL format
         /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="exp"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TR"></typeparam>
-        /// <returns></returns>
+        public static string DataToString(this ISession ses, DateTime dateTime)
+        {
+            return Configure.Utils.DateToString(dateTime);
+        }
+
+        /// <summary>
+        /// Array of non-recurring values, by selected field
+        /// </summary>
         public static IEnumerable<TR> DistinctCore<T, TR>(this IQueryable<T> coll, Expression<Func<T, TR>> exp) where T : class
         {
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
@@ -41,14 +40,10 @@ namespace ORM_1_21_
             return coll.Provider.Execute<IEnumerable<TR>>(coll.Expression);
         }
 
-       
+
         /// <summary>
-        /// Удаление объекта без вытаскивания данных на клиента
+        /// Execution to delete a record from a table
         /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="exp">предикат на удаление</param>
-        /// <typeparam name="T">Тип проекции таблицы</typeparam>
-        /// <returns></returns>
         public static int Delete<T>(this IQueryable<T> coll, Expression<Func<T, bool>> exp = null) where T : class
         {
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
@@ -58,13 +53,12 @@ namespace ORM_1_21_
 
 
         /// <summary>
-        ///     LIMIT всегда ставится в конце предложения LIMIT ( начало позиции с учетом нуля, количество в выборке)
+        /// LIMIT is always placed at the end of the sentence
+        /// (the beginning of the position, taking into account zero, the number in the sample)
         /// </summary>
         /// <param name="coll"></param>
-        /// <param name="start">Начало позиции</param>
-        /// <param name="length">Количество записей</param>
-        /// <typeparam name="T">Тип проекции таблицы</typeparam>
-        /// <returns></returns>
+        /// <param name="start">Position start</param>
+        /// <param name="length">Record length</param>
         public static IQueryable<T> Limit<T>(this IQueryable<T> coll, int start, int length)
         {
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
@@ -73,24 +67,14 @@ namespace ORM_1_21_
         }
 
 
-        /// <summary>
-        ///     Преобразование массива байт в картинку
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <returns></returns>
-        public static Image GetImage(this byte[] coll)
+       
+        internal static Image GetImage(this byte[] coll)
         {
             return UtilsCore.ImageFromByte(coll);
         }
 
-        /// <summary>
-        ///     Разбиение на массивы
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="chunkLength">количество массивов</param>
-        /// <typeparam name="T">Тип проекции таблицы</typeparam>
-        /// <returns></returns>
-        public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> source, int chunkLength)
+      
+        internal static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> source, int chunkLength)
         {
             var enumerable = source as IList<T> ?? source.ToList();
             using (var enumerator = enumerable.GetEnumerator())
@@ -99,14 +83,8 @@ namespace ORM_1_21_
             }
         }
 
-        /// <summary>
-        ///разбиение на перечисления
-        /// </summary>
-        /// <param name="coll">исходное перечисление</param>
-        /// <param name="splitSize">количество перечислений на выходе</param>
-        /// <typeparam name="T">Тип проекции таблицы</typeparam>
-        /// <returns></returns>
-        public static IEnumerable<IEnumerable<T>> SplitQueryable<T>(this IQueryable<T> coll, int splitSize)
+        
+        internal static IEnumerable<IEnumerable<T>> SplitQueryable<T>(this IQueryable<T> coll, int splitSize)
         {
             var enumerable = coll;
             using (var enumerator = enumerable.GetEnumerator())
@@ -127,13 +105,11 @@ namespace ORM_1_21_
         }
 
 
-        /// <summary>
-        /// Обновление таблицы без вытаскивания данных на клиента
-        /// </summary>
-        /// <param name="coll"></param>
-        /// <param name="param">Словарь поле - значение</param>
-        /// <typeparam name="T">Тип проекции таблицы</typeparam>
-        /// <returns></returns>
+        ///  <summary>
+        /// Query to update table
+        ///  </summary>
+        ///  <param name="coll">IQueryable</param>
+        ///  <param name="param">field-value dictionary</param>
         public static int Update<T>(this IQueryable<T> coll, Expression<Func<T, Dictionary<object, object>>> param) where T : class
         {
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
@@ -142,12 +118,11 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        ///     Выполнение произвольного запроса с параметрами
+        ///     Executing an arbitrary query with parameters
         /// </summary>
         /// <param name="ses">ISession</param>
-        /// <param name="sql">Запрос</param>
-        /// <param name="par">Параметры запроса</param>
-        /// <typeparam name="TResult">Тип единицы Результата</typeparam>
+        /// <param name="sql">Request string</param>
+        /// <param name="par">Request parameters</param>
         /// <returns>IEnumerableTResult</returns>
         public static IEnumerable<TResult> FreeSql<TResult>(this ISession ses, string sql, params Parameter[] par)
         {
@@ -162,13 +137,11 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        ///     Выполнение асинхронно произвольного запроса с параметрами 
+        ///  Executing an asynchronously  request with parameters
         /// </summary>
         /// <param name="ses">ISession</param>
-        /// <param name="sql">Запрос</param>
-        /// <param name="par">Параметры запроса</param>
-        /// <typeparam name="TResult">Тип единицы Результата</typeparam>
-        /// <returns>IEnumerableTResult</returns>
+        /// <param name="sql">Request string</param>
+        /// <param name="par">Request parameters</param>
         public static Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params Parameter[] par)
         {
             var p = new V(sql);
@@ -180,26 +153,25 @@ namespace ORM_1_21_
             return Task.FromResult((IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).Execute<TResult>(callExpr));
         }
 
-        /// <summary>
-        /// произвольный запрос к чужой базе
-        /// </summary>
-        /// <param name="ses"></param>
-        /// <param name="dataReader"></param>
-        /// <typeparam name="TResult"></typeparam>
-        /// <returns></returns>
-        public static IEnumerable<TResult> FreeSqlMonster<TResult>(this ISession ses, IDataReader dataReader)
-        {
+        // /// <summary>
+        // /// произвольный запрос к чужой базе
+        // /// </summary>
+        // /// <param name="ses"></param>
+        // /// <param name="dataReader"></param>
+        // /// <typeparam name="TResult"></typeparam>
+        // /// <returns></returns>
+        // public static IEnumerable<TResult> FreeSqlMonster<TResult>(this ISession ses, IDataReader dataReader)
+        // {
+        //
+        //     return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteMonster<TResult>(dataReader);
+        // }
 
-            return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteMonster<TResult>(dataReader);
-        }
-
         /// <summary>
-        ///     Вызов хранимой процедуры
+        /// Calling a stored procedure
         /// </summary>
         /// <param name="ses">ISession</param>
-        /// <param name="sql">Текст запроса</param>
-        /// <typeparam name="TResult">Тип перечисления</typeparam>
-        /// <returns>IEnumerable(TResult)</returns>
+        /// <param name="sql">Request string</param>
+        /// <typeparam name="TResult">Return type enumerable</typeparam>
         public static IEnumerable<TResult> ProcedureCall<TResult>(this ISession ses, string sql)
         {
             var p = new V(sql);
@@ -209,13 +181,12 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        ///     Вызов хранимой процедуры с параметрами
+        /// Calling a stored procedure with parameters
         /// </summary>
         /// <param name="ses">ISession</param>
-        /// <param name="sql">Текст процедуры</param>
-        /// <param name="par">Параметры</param>
-        /// <typeparam name="TResult">Тип  перечисления</typeparam>
-        /// <returns>IEnumerable(TResult)</returns>
+        /// <param name="sql">Request string</param>
+        /// <param name="par">Request parameters</param>
+        /// <typeparam name="TResult">Return type enumerable</typeparam>
         public static IEnumerable<TResult> ProcedureCallParam<TResult>(this ISession ses, string sql, params ParameterStoredPr[] par)
         {
             var p = new V(sql);
@@ -225,11 +196,8 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// Асинхронное выполнение запроса
+        ///Asynchronous request execution
         /// </summary>
-        /// <param name="coll"></param>
-        /// <returns>Task&lt;TResult&gt;</returns>
-
         public static Task<List<TResult>> ToListAsync<TResult>(this IQueryable<TResult> coll)
         {
             try
@@ -249,7 +217,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// Set CommandTimeout new value
+        /// Set command timeout for one request 
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="coll"></param>

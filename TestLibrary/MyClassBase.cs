@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace TestLibrary
 {
-    [MapUssageActivator]
+    [MapUsageActivator]
     public class MyClassBase
     {
         public MyClassBase()
@@ -33,7 +33,7 @@ namespace TestLibrary
         [MapColumnName("name")]
         public string Name { get; set; }
 
-
+        [MapDefaultValue("NOT NULL DEFAULT '5'")]
         [MapColumnName("age")]
         public int Age { get; set; }
 

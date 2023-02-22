@@ -8,7 +8,6 @@ using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.Serialization;
-using System.Security.Policy;
 using System.Text;
 
 namespace ORM_1_21_
@@ -315,7 +314,7 @@ namespace ORM_1_21_
 
                 }
 
-                UtilsCore.SetPersisten(d);
+                UtilsCore.SetPersistent(d);
                 res.Add(d);
             }
 
@@ -562,7 +561,7 @@ namespace ORM_1_21_
                         }
                     }
 
-                    UtilsCore.SetPersisten(d);
+                    UtilsCore.SetPersistent(d);
                     yield return d;
                 }
             }

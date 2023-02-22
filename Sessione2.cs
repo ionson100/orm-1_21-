@@ -180,11 +180,11 @@ namespace ORM_1_21_
         {
             if (obj == null) return;
             string sql = com.CommandText;
-            var ss = sql.Split(UtilsCore.Prefparam(providerName).ToArray(), StringSplitOptions.RemoveEmptyEntries);
+            var ss = sql.Split(UtilsCore.PrefParam(providerName).ToArray(), StringSplitOptions.RemoveEmptyEntries);
             if (ss.Length - 1 != obj.Length)
                 throw new ArgumentException("не совпадает количество параметров");
 
-            var list = Regex.Matches(sql, @"\" + UtilsCore.Prefparam(providerName) + @"\w+").Cast<Match>().Select(m => m.Value).ToList();
+            var list = Regex.Matches(sql, @"\" + UtilsCore.PrefParam(providerName) + @"\w+").Cast<Match>().Select(m => m.Value).ToList();
             if (list.Count != obj.Length)
             {
                 throw new Exception($"Количество параметров в sql запросе {list} не совпадает с количеством параметров переданных в метод {obj.Length}");
@@ -279,7 +279,7 @@ namespace ORM_1_21_
 
         void ISession.ToPersistent<T>(T obj)
         {
-            UtilsCore.SetPersisten(obj);
+            UtilsCore.SetPersistent(obj);
         }
 
 

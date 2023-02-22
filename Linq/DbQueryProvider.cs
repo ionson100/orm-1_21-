@@ -485,7 +485,7 @@ namespace ORM_1_21_.Linq
                     var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                     var enumerable = r as T[] ?? r.ToArray();
                     if (enumerable.Any()) return enumerable.First();
-                    throw new Exception("Элемент отсутствует в выбоке.");
+                    throw new Exception("Element not in selection.");
                 }
                 if (PingComposite(Evolution.ElementAtOrDefault))
                 {
@@ -498,9 +498,7 @@ namespace ORM_1_21_.Linq
 
                 if (PingComposite(Evolution.DistinctCustom))
                 {
-                    var tt = typeof(TS);
-                    var tt3 = typeof(T);
-                    Type retType = this.ListCastExpression.Single(a => a.TypeRevalytion == Evolution.DistinctCustom).TypeRetyrn;
+                   
                     IList resT = this.ListCastExpression.Single(a => a.TypeRevalytion == Evolution.DistinctCustom).ListDistict;
                     dataReader = _com.ExecuteReader();
                     if (PingComposite(Evolution.SelectNew))
@@ -533,9 +531,8 @@ namespace ORM_1_21_.Linq
                     if (UtilsCore.IsAnonymousType(typeof(TS)))
                     {
                         var lRes = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss);
-                        bool isaActive1;
-                        var dataSingl1 = Pizdaticus.SingleData(_listOne, lRes, out isaActive1);
-                        var res = !isaActive1 ? (object)lRes : dataSingl1;
+                        var dataSing1 = Pizdaticus.SingleData(_listOne, lRes, out var isaActive1);
+                        var res = !isaActive1 ? (object)lRes : dataSing1;
                         return res;
                     }
                     else
@@ -549,7 +546,7 @@ namespace ORM_1_21_.Linq
                             return res;
                         }
 
-                        throw new Exception("Не реализовано");
+                        throw new Exception("Not implemented");
                     }
                 }
 

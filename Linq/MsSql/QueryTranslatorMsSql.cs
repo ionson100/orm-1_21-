@@ -32,7 +32,7 @@ namespace ORM_1_21_.Linq.MsSql
             Param = new Dictionary<string, object>();
         }
 
-        private string ParamName => string.Format("{0}{1}", string.Format("{1}{0}", ParamStringName, UtilsCore.Prefparam(_providerName)),
+        private string ParamName => string.Format("{0}{1}", string.Format("{1}{0}", ParamStringName, UtilsCore.PrefParam(_providerName)),
             ++_paramIndex);
 
         private Evolution CirrentEvalytion { get; set; }

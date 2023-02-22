@@ -118,13 +118,13 @@ namespace ORM_1_21_.Utils
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
-                   //if (o is Guid)
-                   //
-                   //   row.Append(GetValueHex((Guid)o)).Append(",");
-                   //else
-                       row.Append(GetValue(o, type)).Append(",");
-                  
-                    
+                    //if (o is Guid)
+                    //
+                    //   row.Append(GetValueHex((Guid)o)).Append(",");
+                    //else
+                    row.Append(GetValue(o, type)).Append(",");
+
+
                 }
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
                 {
@@ -144,14 +144,10 @@ namespace ORM_1_21_.Utils
             return res;
         }
 
-         public string GetValueHex(Guid guidData)
-         {
-             return $" HEX('{guidData}') ";
-             byte[] b= Encoding.UTF32.GetBytes(guidData.ToString());
-              var res= b.ToString();//=System.Text.Encoding.UTF8.GetString(b, 0, b.Length);
-              return res;
-         
-         }
+        public string GetValueHex(Guid guidData)
+        {
+            return $" HEX('{guidData}') ";
+        }
 
         public string GetValue(object o, Type type)
         {

@@ -17,10 +17,7 @@ namespace TestLibrary
     {
       
 
-         private static IEnumerable<T> TempSql<T>(T t)
-        {
-            return Configure.Session.FreeSql<T>("select enum as enum1,age from my_class");
-        }
+       
 
          private static void Running(int i)
          {
@@ -28,10 +25,10 @@ namespace TestLibrary
              {
                  using (var ses = Configure.Session)
                  {
-                     var ts = ses.BeginTransaction(System.Data.IsolationLevel.Serializable);
+                     var ts = ses.BeginTransaction();
                      MyClass c = new MyClass();
                      ses.Save(c);
-                     var s = Configure.Session.Querion<MyClass>().Count();
+                     var s = Configure.Session.Querion<MyClass>().ToList().Count();
                      Console.WriteLine($"{i} -- " + s);
                      ts.Commit();
                  }
@@ -303,23 +300,33 @@ namespace TestLibrary
                 o = session.Querion<T>().OrderByDescending(a => a.Age).First();
                 Console.WriteLine($"{39} {o.Age == 60}");
                 count =  session.Querion<T>().Where(a => a.Age < 100).OrderBy(ds => ds.Age).Limit(0,2).ToListAsync().Result.Sum(a=>a.Age);
-                Console.WriteLine($"{39} {count == 30}");
+                Console.WriteLine($"{40} {count == 30}");
                 var sCore = session.Querion<T>().Where(a=>a.Name.Contains("1")).DistinctCore(a => a.Name);
-                Console.WriteLine($"{40} {sCore.Count() == 1}");
+                Console.WriteLine($"{41} {sCore.Count() == 1}");
                 count = session.Querion<T>().Where(sw=>sw.Age==10).Update(d => new Dictionary<object, object>
                 {
-                    { d.Name,"ass"},
+                    { d.Name,string.Concat(d.Name,d.Age)},
                     { d.DateTime,DateTime.Now}
                 });
                
-                res = session.Querion<T>().Where(a => a.Name == "ass").ToList();
-                Console.WriteLine($"{41} {res.Count()==1}");
-                session.Querion<T>().Delete(a => a.Name == "ass");
-                res = session.Querion<T>().Where(a => a.Name == "ass").ToList();
-                Console.WriteLine($"{42} {res.Count() == 0}");
+                res = session.Querion<T>().Where(a => a.Name == "name10").ToList();
+                Console.WriteLine($"{42} {res.Count()==1}");
+                session.Querion<T>().Delete(a => a.Name == "name10");
+                res = session.Querion<T>().Where(a => a.Name == "name10").ToList();
+                Console.WriteLine($"{43} {res.Count() == 0}");
                 session.Querion<T>().Where(a => a.Age == 10).Delete();
                 count = session.Querion<T>().Where(a => a.Age == 10).Count();
-                Console.WriteLine($"{42} {count == 0}");
+                Console.WriteLine($"{44} {count == 0}");
+                res =session.FreeSql<T>($"select * from {session.TableName<T>()} where {session.ColumnName<T>(a=>a.Age)} = @1",
+                    new Parameter("@1",40)).ToList();
+                Console.WriteLine($"{45} {res.Count() == 1}");
+                dynamic di = session.FreeSql<dynamic>($"select age, name from {session.TableName<T>()}");
+                Console.WriteLine($"{46} {di.Count == 5}");
+                var anon = TempSql(new { age = 3, name = "" },session,session.TableName<T>());
+                Console.WriteLine($"{47} {anon.Count() == 5}");
+                anon = session.Querion<T>().Where(a => a.Age == 40).Select(d => new { age = d.Age, name = d.Name })
+                    .ToList();
+                Console.WriteLine($"{49} {anon.Count() == 1}");
 
 
 
@@ -327,11 +334,16 @@ namespace TestLibrary
 
 
             }
+           
 
 
 
 
 
+        }
+        private static IEnumerable<Ts> TempSql<Ts>(Ts t, ISession session,string tableName)
+        {
+            return session.FreeSql<Ts>($"select age as enum1,name from {tableName}");
         }
     }
 }

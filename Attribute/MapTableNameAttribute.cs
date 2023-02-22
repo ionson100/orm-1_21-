@@ -5,7 +5,7 @@ namespace ORM_1_21_
 {
 
     /// <summary>
-    /// Атрибут для навешивания названия таблицы на класс сущности.
+    ///Table names in the database.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class MapTableNameAttribute : System.Attribute
@@ -14,28 +14,27 @@ namespace ORM_1_21_
         private readonly string _sqlWhere;
 
         /// <summary>
-        /// Конструктор
+        /// Ctor.
         /// </summary>
-        /// <param name="tableName">Название таблицы в базе данных</param>
+        /// <param name="tableName">Table name</param>
         public MapTableNameAttribute(string tableName)
         {
+            if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentException("table name zero");
             _tableName = UtilsCore.ClearTrim(tableName);
         }
 
         ///<summary>
-        /// Определяет название таблицы, условие для всех выборок
+        /// Table names in the database.
         ///</summary>
-        ///<param name="tableName">Название таблицы в базе данных</param>
-        ///<param name="sqlWhere">добавление критерия запроса по where пример: "id='1'"</param>
+        ///<param name="tableName">table name</param>
+        ///<param name="sqlWhere">Adding a criterion (where) will be added to all requests. example- "id=2"</param>
         public MapTableNameAttribute(string tableName, string sqlWhere)
         {
+            if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentException("table name zero");
             _tableName = UtilsCore.ClearTrim(tableName);
             _sqlWhere = sqlWhere;
         }
 
-        /// <summary>
-        /// Название таблицы в базе данных
-        /// </summary>
         internal string TableName(ProviderName providerName)
         {
             switch (providerName)

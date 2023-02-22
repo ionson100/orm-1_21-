@@ -14,7 +14,7 @@ namespace TestPostgres
 {
     internal class Program
     {
-        private static ProviderName _providerName = ProviderName.Postgresql;
+        private static ProviderName _providerName = ProviderName.MsSql;
 
         static async Task Main(string[] args)
         {
@@ -38,8 +38,8 @@ namespace TestPostgres
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            //Execute.RunThread();
-            //Console.ReadKey();
+            Execute.RunThread();
+            Console.ReadKey();
             Execute.TotalTest();
 
             ISession session = Configure.Session;
@@ -50,6 +50,8 @@ namespace TestPostgres
               
             } 
             session.TableCreate<MyImage>();
+
+            string a = session.TableName<MyClass>();
 
             MyImage sd = new MyImage();
             sd.Image=Image.FromFile("1.png");
@@ -72,9 +74,11 @@ namespace TestPostgres
             session.Save(new MyClass{Age = 10,Name = "name1"});
             session.Save(new MyClass { Age = 10, Name = "name1" });
             session.Save(new MyClass { Age = 10, Name = "name2" });
-            var count = session.Querion<MyClass>().Select(a => new { ass = a.Age, asss = string.Concat(a.Name,a.Age) }).ToList();
-
-           Image image= Configure.GetImageFromFile("");
+            var err = session.Querion<MyClass>().Where(sw => sw.Age == 10).Update(d => new Dictionary<object, object>
+            {
+                { d.Name,string.Concat(d.Name,d.Age)},
+                { d.DateTime,DateTime.Now}
+            });
 
             Console.ReadKey();
         }

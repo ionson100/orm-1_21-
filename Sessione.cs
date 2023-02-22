@@ -61,45 +61,13 @@ namespace ORM_1_21_
         {
             return AttributesOfClass<T>.GetEnumerableObjects(reader, MyProviderName);
         }
-
+       
         int ISession.Save<T>(T item)
         {
-            if (item == null) throw new ArgumentException("Объект для сохранения равен Null");
+            if (item == null) throw new ArgumentException("The object to save is Null");
             return SaveNew(item);
         }
-
-        T ISession.Get<T>(object id)
-        {
-            if (id == null) throw new ArgumentException("Объект первичного ключа, равен равен Null");
-            return GetReal<T>(id);
-        }
-
-        IEnumerable<T> ISession.GetList<T>(string sqlWhere, params object[] param)
-        {
-            if (sqlWhere == null) sqlWhere = "";
-            var sqlAll = AttributesOfClass<T>.SimpleSqlSelect(MyProviderName) + AttributesOfClass<T>.AddSqlWhere(sqlWhere, MyProviderName);
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.CommandText = sqlAll;
-            AddParam(com, MyProviderName, param);
-            com.Connection = _connect;
-            IEnumerable<T> res;
-            try
-            {
-                OpenConnectAndTransaction(com);
-                res = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(), MyProviderName);
-            }
-            catch (Exception ex)
-            {
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
-            return res;
-        }
-
+       
         int ISession.TableCreate<T>()
         {
             var ss = new FactoryCreatorTable().SqlCreate<T>(MyProviderName);
@@ -658,7 +626,7 @@ namespace ORM_1_21_
                         AttributesOfClass<T>.RedefiningPrimaryKey(item, val, MyProviderName);
                         rez = 1;
                     }
-                    UtilsCore.SetPersisten(item);
+                    UtilsCore.SetPersistent(item);
                     NotificAfter(item, ActionMode.Insert);
                 }
             }

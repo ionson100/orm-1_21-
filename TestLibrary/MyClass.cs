@@ -3,6 +3,7 @@
 
 namespace TestLibrary
 {
+    
     [MapTableName("my_class5")]
     public class MyClass : MyClassBase
     {

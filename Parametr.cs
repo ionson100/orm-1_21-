@@ -3,24 +3,24 @@
 namespace ORM_1_21_
 {
     /// <summary>
-    /// Единица параметра, для запроса с параметрами
+    /// Parameter Container
     /// </summary>
     public sealed class Parameter
     {
         /// <summary>
-        /// Имя параметра
+        /// Parameter name
         /// </summary>
         public string Name { get; private set; }
         /// <summary>
-        /// Значение параметра
+        /// Parameter value
         /// </summary>
         public object Value { get; private set; }
 
         /// <summary>
-        /// Конструктор
+        /// Ctor
         /// </summary>
-        /// <param name="name">Имя параметра</param>
-        /// <param name="value">Имя параметра</param>
+        /// <param name="name">Parameter name</param>
+        /// <param name="value">Parameter value</param>
         public Parameter(string name, object value)
         {
             Name = name.Replace("?", string.Empty).Replace("@", string.Empty);
@@ -29,36 +29,30 @@ namespace ORM_1_21_
     }
 
     /// <summary>
-    /// Единица параметра, для запроса с параметрами
+    /// Parameter Container for store procedure
     /// </summary>
     public sealed class ParameterStoredPr
     {
-        //private readonly string _sourceColumn;
-
+       
         /// <summary>
-        /// Название колонки таблицы
-        /// </summary>
-       // public string SourceColumn { get; private set; }
-
-        /// <summary>
-        /// Имя параметра
+        /// Parameter name
         /// </summary>
         public string Name { get; private set; }
         /// <summary>
-        /// Значение параметра
+        /// Parameter value
         /// </summary>
         public object Value { get; set; }
 
         /// <summary>
-        /// Перечисление типа параметра
+        /// Parameter type
         /// </summary>
         public ParameterDirection Direction { get; set; }
 
         /// <summary>
-        /// Параметры хранимой процедуры
+        /// Stored Procedure Options
         /// </summary>
-        /// <param name="name">Имя параметра</param>
-        /// <param name="value">Имя параметра</param>
+        /// <param name="name">Parameter name</param>
+        /// <param name="value">Parameter value</param>
         /// <param name="direction">ParameterDirection </param>
 
         public ParameterStoredPr(string name, object value, ParameterDirection direction)

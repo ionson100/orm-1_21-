@@ -82,7 +82,7 @@ namespace ORM_1_21_
                 return $"'{o.ToString().Replace("'", "''")}'";
             }
             if (type == typeof(DateTime) || type == typeof(DateTime?))
-                return $"'{((DateTime)o).ToString("yyyy-MM-dd HH:mm:ss.fff")}'";
+                return $"'{((DateTime)o):yyyy-MM-dd HH:mm:ss.fff}'";
 
             if (type == typeof(Image)) return "null";
 
