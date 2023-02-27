@@ -54,7 +54,7 @@ namespace ORM_1_21_.Linq.MySql
             _currentEvalytion = 0;
             Visit(expression);
             ev = CurrentEvalytion;
-            var dd = new MySqlConstructorSql(_providerName).GetStringSql<T>(ListOne, _providerName);//,_joinCapital
+            var dd = new MySqlConstructorSql(_providerName).GetStringSql<T>(_listOne, _providerName);//,_joinCapital
             return dd;
         }
 
@@ -73,29 +73,29 @@ namespace ORM_1_21_.Linq.MySql
             }
             if (ev == Evolution.DistinctCustom)
             {
-                ListOne.Add(new OneComprosite { Operand = Evolution.DistinctCustom, Body = StringB.ToString() });
+                _listOne.Add(new OneComprosite { Operand = Evolution.DistinctCustom, Body = StringB.ToString() });
             }
 
             if (ev == Evolution.GroupBy)
             {
-                ListOne.Add(new OneComprosite { Operand = Evolution.GroupBy, Body = StringB.ToString() });
+                _listOne.Add(new OneComprosite { Operand = Evolution.GroupBy, Body = StringB.ToString() });
             }
             if (ev == Evolution.Limit)
             {
                 if (paramList != null && paramList.Count == 2)
                     if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
                     {
-                        ListOne.Add(new OneComprosite { Operand = Evolution.Limit, Body = string.Format(" Limit {1} OFFSET {0}", paramList[0], paramList[1]) });
+                        _listOne.Add(new OneComprosite { Operand = Evolution.Limit, Body = string.Format(" Limit {1} OFFSET {0}", paramList[0], paramList[1]) });
                     }
                     else
                     {
-                        ListOne.Add(new OneComprosite { Operand = Evolution.Limit, Body = string.Format(" Limit {0},{1}", paramList[0], paramList[1]) });
+                        _listOne.Add(new OneComprosite { Operand = Evolution.Limit, Body = string.Format(" Limit {0},{1}", paramList[0], paramList[1]) });
                     }
 
             }
             if (ev == Evolution.Update)
             {
-                ListOne.Add(new OneComprosite { Operand = Evolution.Update, Body = StringB.ToString() });
+                _listOne.Add(new OneComprosite { Operand = Evolution.Update, Body = StringB.ToString() });
             }
             //if (ev == Evolution.OverCache)
             //{
@@ -110,7 +110,7 @@ namespace ORM_1_21_.Linq.MySql
                         Param.Add(d.Key, d.Value);
                     }
 
-                    ListOne.Add(new OneComprosite { Operand = Evolution.Join, Body = paramList[1].ToString(), NewConstructor = paramList[2] });
+                    _listOne.Add(new OneComprosite { Operand = Evolution.Join, Body = paramList[1].ToString(), NewConstructor = paramList[2] });
                 }
                 else
                 {
@@ -123,6 +123,16 @@ namespace ORM_1_21_.Linq.MySql
 
 
             StringB.Length = 0;
+        }
+
+        public List<OneComprosite> GetListOne()
+        {
+            List<OneComprosite> list = new List<OneComprosite>();
+            foreach (var oneComprosite in _listOne)
+            {
+                list.Add(oneComprosite);
+            }
+            return list;
         }
 
         private static Expression StripQuotes(Expression e)
@@ -163,7 +173,7 @@ namespace ORM_1_21_.Linq.MySql
                     Operand = Evolution.ElementAt,
                     Body = StringB.ToString()
                 };
-                ListOne.Add(o);
+                _listOne.Add(o);
                 StringB.Clear();
 
 
@@ -178,7 +188,7 @@ namespace ORM_1_21_.Linq.MySql
                     Operand = Evolution.Contains,
 
                 };
-                ListOne.Add(o);
+                _listOne.Add(o);
                 Visit(m.Arguments[0]);
                 StringB.Clear();
                 Visit(m.Arguments[1]);
@@ -188,17 +198,17 @@ namespace ORM_1_21_.Linq.MySql
                     Operand = Evolution.Where,
                     Body = StringB.ToString()
                 };
-                ListOne.Add(o1);
+                _listOne.Add(o1);
                 var o2 = new OneComprosite
                 {
                     Operand = Evolution.Count,
                 };
-                ListOne.Add(o2);
+                _listOne.Add(o2);
                 var o3 = new OneComprosite
                 {
                     Operand = Evolution.All,
                 };
-                ListOne.Add(o3);
+                _listOne.Add(o3);
 
                 StringB.Clear();
                 return m;
@@ -218,7 +228,7 @@ namespace ORM_1_21_.Linq.MySql
                     Operand = Evolution.ElementAtOrDefault,
                     Body = StringB.ToString()
                 };
-                ListOne.Add(o);
+                _listOne.Add(o);
                 StringB.Clear();
 
 
@@ -1143,7 +1153,7 @@ namespace ORM_1_21_.Linq.MySql
 
                 Visit(lambda.Body);
                 o.Body = StringB.ToString();
-                ListOne.Add(o);
+                _listOne.Add(o);
                 StringB.Length = 0;
 
 
@@ -1164,7 +1174,7 @@ namespace ORM_1_21_.Linq.MySql
 
 
                 var typew = ((MemberExpression)lambda.Body).Expression.Type;
-                if (typew != typeof(T) && UtilsCore.IsAnonymousType(typew) && ListOne.Any(a => a.Operand == Evolution.SelectNew))
+                if (typew != typeof(T) && UtilsCore.IsAnonymousType(typew) && _listOne.Any(a => a.Operand == Evolution.SelectNew))
                 {
                   
                     tt = ((LambdaExpression)StripQuotes(m.Arguments[1])).Compile();
@@ -1188,7 +1198,7 @@ namespace ORM_1_21_.Linq.MySql
 
                 };
 
-                ListOne.Add(o);
+                _listOne.Add(o);
                 StringB.Length = 0;
 
                 return m;
@@ -1202,7 +1212,7 @@ namespace ORM_1_21_.Linq.MySql
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
                 var o = new OneComprosite { Operand = Evolution.OrderBy, Body = StringB.ToString().Trim(' ', ',') };
-                ListOne.Add(o);
+                _listOne.Add(o);
                 StringB.Length = 0;
                 return m;
             }
@@ -1212,12 +1222,12 @@ namespace ORM_1_21_.Linq.MySql
             {
                 Visit(m.Arguments[0]);
                 var sb = new StringBuilder();
-                if (ListOne.Any(a => a.Operand == Evolution.OrderBy))
+                if (_listOne.Any(a => a.Operand == Evolution.OrderBy))
                 {
-                    ListOne.Where(a => a.Operand == Evolution.OrderBy).ToList().ForEach(a =>
+                    _listOne.Where(a => a.Operand == Evolution.OrderBy).ToList().ForEach(a =>
                                                                                            {
                                                                                                sb.AppendFormat(" {0},", a.Body);
-                                                                                               ListOne.Remove(a);
+                                                                                               _listOne.Remove(a);
                                                                                            });
 
                 }
@@ -1229,7 +1239,7 @@ namespace ORM_1_21_.Linq.MySql
 
 
                 var o = new OneComprosite { Operand = Evolution.Reverse, Body = string.Format("ORDER BY {0} DESC ", sb.ToString().TrimEnd(',')) };
-                ListOne.Add(o);
+                _listOne.Add(o);
                 StringB.Length = 0;
                 return m;
             }
@@ -1247,7 +1257,7 @@ namespace ORM_1_21_.Linq.MySql
                 //    var tt = new List<T>().OrderByDescending((Func<T, object>)((LambdaExpression)StripQuotes(m.Arguments[1])).Compile());
                 //    var ree = m.Arguments[1];//.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
                 //}
-                ListOne.Add(o);
+                _listOne.Add(o);
                 StringB.Length = 0;
                 return m;
             }
@@ -1279,15 +1289,15 @@ namespace ORM_1_21_.Linq.MySql
                     Visit(lambda.Body);
 
                     var o1 = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
-                    ListOne.Add(o1);
+                    _listOne.Add(o1);
                     StringB.Length = 0;
                     var o2 = new OneComprosite { Operand = Evolution.First };
-                    ListOne.Add(o2);
+                    _listOne.Add(o2);
                     StringB.Length = 0;
                     return m;
                 }
                 var o = new OneComprosite { Operand = Evolution.First, Body = StringB.ToString() };
-                ListOne.Add(o);
+                _listOne.Add(o);
                 StringB.Length = 0;
 
                 return m;
@@ -1304,16 +1314,16 @@ namespace ORM_1_21_.Linq.MySql
                     Visit(lambda.Body);
 
                     var o1 = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
-                    ListOne.Add(o1);
+                    _listOne.Add(o1);
                     StringB.Length = 0;
                     var o2 = new OneComprosite { Operand = Evolution.FirstOrDefault };
-                    ListOne.Add(o2);
+                    _listOne.Add(o2);
                     StringB.Length = 0;
                     return m;
                 }
 
                 var o = new OneComprosite { Operand = Evolution.FirstOrDefault, Body = StringB.ToString() };
-                ListOne.Add(o);
+                _listOne.Add(o);
                 StringB.Length = 0;
 
                 return m;
@@ -1327,7 +1337,7 @@ namespace ORM_1_21_.Linq.MySql
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
                 var o1 = new OneComprosite { Operand = Evolution.All, Body = StringB.ToString() };
-                ListOne.Add(o1);
+                _listOne.Add(o1);
 
 
 
@@ -1346,16 +1356,16 @@ namespace ORM_1_21_.Linq.MySql
                     var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
                     var o1 = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
-                    ListOne.Add(o1);
+                    _listOne.Add(o1);
                     StringB.Length = 0;
                     var o2 = new OneComprosite { Operand = Evolution.Any };
-                    ListOne.Add(o2);
+                    _listOne.Add(o2);
                     StringB.Length = 0;
                     return m;
                 }
                 var o = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
-                ListOne.Add(o);
-                ListOne.Add(new OneComprosite { Operand = Evolution.Any, });
+                _listOne.Add(o);
+                _listOne.Add(new OneComprosite { Operand = Evolution.Any, });
                 StringB.Length = 0;
 
                 return m;
@@ -1376,13 +1386,13 @@ namespace ORM_1_21_.Linq.MySql
                         Operand = Evolution.Where,
                         Body = StringB.ToString()
                     };
-                    ListOne.Add(o1);
+                    _listOne.Add(o1);
                     StringB.Length = 0;
 
                 }
-                if (ListOne.Any(a => a.Operand == Evolution.OrderBy))
+                if (_listOne.Any(a => a.Operand == Evolution.OrderBy))
                 {
-                    foreach (var body in ListOne.Where(a => a.Operand == Evolution.OrderBy))
+                    foreach (var body in _listOne.Where(a => a.Operand == Evolution.OrderBy))
                     {
                         if (body.Body.IndexOf("DESC", StringComparison.Ordinal) != -1)
                         {
@@ -1394,7 +1404,7 @@ namespace ORM_1_21_.Linq.MySql
                         }
                     }
                     if(PingComposite(Evolution.Limit)==false)
-                     ListOne.Last(a => a.Operand == Evolution.OrderBy).Body += " LIMIT 1";
+                        _listOne.Last(a => a.Operand == Evolution.OrderBy).Body += " LIMIT 1";
 
                 }
                 else
@@ -1405,14 +1415,14 @@ namespace ORM_1_21_.Linq.MySql
                         Body = string.Format(" {0}.{1} DESC LIMIT 1", AttributesOfClass<T>.TableName(_providerName),
                             AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
                     };
-                    ListOne.Add(o);
+                    _listOne.Add(o);
                 }
                 var os = new OneComprosite
                 {
                     Operand = ee,
 
                 };
-                ListOne.Add(os);
+                _listOne.Add(os);
 
                 return m;
             }
@@ -1428,15 +1438,15 @@ namespace ORM_1_21_.Linq.MySql
                     var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
                     var o1 = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
-                    ListOne.Add(o1);
+                    _listOne.Add(o1);
                     StringB.Length = 0;
                     var o2 = new OneComprosite { Operand = Evolution.Count };
-                    ListOne.Add(o2);
+                    _listOne.Add(o2);
                     StringB.Length = 0;
                     return m;
                 }
                 var o = new OneComprosite { Operand = Evolution.Count, Body = StringB.ToString() };//|| m.Method.Name == "SingleOrDefault"
-                ListOne.Add(o);
+                _listOne.Add(o);
                 StringB.Length = 0;
                 return m;
             }
@@ -1445,7 +1455,7 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
               && m.Method.Name == "Single")
             {
-                ListOne.Add(new OneComprosite { Operand = Evolution.Single, Body = "", IsAggregate = true });
+                _listOne.Add(new OneComprosite { Operand = Evolution.Single, Body = "", IsAggregate = true });
 
                 Visit(m.Arguments[0]);
 
@@ -1456,12 +1466,12 @@ namespace ORM_1_21_.Linq.MySql
                     var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
                     o.Body = StringB.ToString();
-                    ListOne.Add(o);
+                    _listOne.Add(o);
                     StringB.Length = 0;
                 }
 
 
-                ListOne.Add(new OneComprosite { Operand = Evolution.First, Body = "" });
+                _listOne.Add(new OneComprosite { Operand = Evolution.First, Body = "" });
 
                 return m;
             }
@@ -1469,8 +1479,8 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
              && m.Method.Name == "SingleOrDefault")
             {
-                ListOne.Add(new OneComprosite { Operand = Evolution.SingleOrDefault, Body = "", IsAggregate = true });
-                ListOne.Add(new OneComprosite { Operand = Evolution.First, Body = "" });
+                _listOne.Add(new OneComprosite { Operand = Evolution.SingleOrDefault, Body = "", IsAggregate = true });
+                _listOne.Add(new OneComprosite { Operand = Evolution.First, Body = "" });
                 Visit(m.Arguments[0]);
 
                 if (m.Arguments.Count == 2)
@@ -1481,7 +1491,7 @@ namespace ORM_1_21_.Linq.MySql
                     var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
                     o.Body = StringB.ToString();
-                    ListOne.Add(o);
+                    _listOne.Add(o);
 
                     StringB.Length = 0;
                 }
@@ -1513,7 +1523,7 @@ namespace ORM_1_21_.Linq.MySql
                                 StringB.Append(mcs.Method.Name + "(");
                                 Visit(lambda.Body);
                                 StringB.Append(")");
-                                ListOne.Add(new OneComprosite { Operand = Evolution.Select, Body = StringB.ToString(), IsAggregate = true });
+                                _listOne.Add(new OneComprosite { Operand = Evolution.Select, Body = StringB.ToString(), IsAggregate = true });
 
                                 break;
                             }

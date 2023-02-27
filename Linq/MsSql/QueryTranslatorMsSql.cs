@@ -10,16 +10,6 @@ using System.Text;
 
 namespace ORM_1_21_.Linq.MsSql
 {
-    internal interface ITranslate
-    {
-        Dictionary<string, object> Param { get; set; }
-        List<OneComprosite> ListOne { get; }
-        string Translate(Expression expression, out Evolution ev1);
-        string Translate(Expression expression, out Evolution ev1, string par);
-        void Translate(Expression expression, Evolution ev, List<object> paramList);
-    }
-
-
     internal sealed class QueryTranslatorMsSql<T> : ExpressionVisitor, ITranslate
     {
        
@@ -112,6 +102,11 @@ namespace ORM_1_21_.Linq.MsSql
                 }
 
             StringB.Length = 0;
+        }
+
+        public List<OneComprosite> GetListOne()
+        {
+            return ListOne;
         }
 
 

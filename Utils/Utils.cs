@@ -314,9 +314,18 @@ namespace ORM_1_21_.Utils
         {
             if (ob is DBNull)
             {
-                
-               return Activator.CreateInstance(t);
-             
+                if (t.IsGenericType) return null;
+
+                if (!t.IsValueType) return null;
+                if (t == typeof(DateTime))
+                {
+                    object o = DateTime.MinValue;
+                    return o;
+                }
+
+                if (t == typeof(float))
+                    return 0.0f;
+                return 0.00;
             }
 
             if (t == typeof(uint)) return Convert.ToUInt32(ob, CultureInfo.InvariantCulture);

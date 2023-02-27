@@ -14,7 +14,7 @@ namespace TestPostgres
 {
     internal class Program
     {
-        private static ProviderName _providerName = ProviderName.MySql;
+        private static ProviderName _providerName = ProviderName.Sqlite;
 
         static async Task Main(string[] args)
         {
@@ -40,7 +40,7 @@ namespace TestPostgres
             }
             //Execute.RunThread();
             //Console.ReadKey();
-            Execute.TotalTest();
+            //Execute.TotalTest();
             
             ISession session = Configure.Session;
 
@@ -54,7 +54,7 @@ namespace TestPostgres
                 MyTest = new MyTest() { Name = "asas" }
             });
             session.Save(new MyClassSqlite());
-            var ew = session.Query<MyClass>().Where(s=>s.Age==22).Select(d=>new {ass=d.Age,name=d.Name}).ToList();
+            var anons = Execute.TempSql(new { age = 3, name = "asss" }, session, $"select getint32(age) as age,name from {session.TableName<MyClass>()}");
             var anon = Execute.TempSql(new { age = 3, name = "" }, session, session.TableName<MyClass>());
            
 

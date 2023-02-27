@@ -329,7 +329,7 @@ namespace TestLibrary
 
                 dynamic di = session.FreeSql<dynamic>($"select age, name from {session.TableName<T>()}");
                 Console.WriteLine($"{47} {di.Count == 5}");
-                var anon = TempSql(new { age = 3, name = "" },session,session.TableName<T>());
+                var anon = TempSql(new { age = 3, name = "asss" },session,$"select age,name from {session.TableName<T>()}");
                 Console.WriteLine($"{48} {anon.Count() == 5}");
                
 
@@ -346,9 +346,9 @@ namespace TestLibrary
 
 
         }
-        public static IEnumerable<Ts> TempSql<Ts>(Ts t, ISession session,string tableName)
+        public static IEnumerable<Ts> TempSql<Ts>(Ts t, ISession session,string sql)
         {
-            return session.FreeSql<Ts>($"select age as enum1,name from {tableName}");
+            return session.FreeSql<Ts>(sql);
         }
     }
 }

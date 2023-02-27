@@ -132,7 +132,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            if (par != null)
+            if (par != null&&par.Length>0)
             {
                 return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteParam<TResult>(callExpr, par);
             }
@@ -149,7 +149,7 @@ namespace ORM_1_21_
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            if (par != null)
+            if (par != null&&par.Length>0)
             {
                 return Task.FromResult((IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteParam<TResult>(callExpr, par));
             }
