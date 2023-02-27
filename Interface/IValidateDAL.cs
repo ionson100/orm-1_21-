@@ -1,16 +1,14 @@
 ﻿namespace ORM_1_21_
 {
     /// <summary>
-    ///Проверка вводимых данных, для проверки от наследуйте свой табличный класс от этого интерфейса
-    ///и проверяйте данные перед модификацией в таблице.
+    ///Validating data entered into the database
     /// </summary>
-    /// <typeparam name="T">Тип вашего табличного класса</typeparam>
     public interface IValidateDal<in T> where T : class
     {
-        /// <summary>
-        /// Проверка вводимых данных, для проверки от наследуйте свой табличный класс от этого интерфейса
-        /// </summary>
-        /// <param name="item">Проверяемый объект</param>
+      /// <summary>
+      /// Call before insert or update
+      /// </summary>
+      /// <param name="item"></param>
         void Validate(T item);
     }
 }

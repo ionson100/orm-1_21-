@@ -1,16 +1,16 @@
 ﻿namespace ORM_1_21_
 {
     /// <summary>
-    /// Транзакция
+    /// Transaction in the context of the session
     /// </summary>
     public interface ITransaction
     {
         /// <summary>
-        /// Завершить транзакцию
+        /// Commit transaction
         /// </summary>
         void Commit();
         /// <summary>
-        /// Откатить транзакцию
+        /// Rollback transaction
         /// </summary>
         void Rollback();
     }

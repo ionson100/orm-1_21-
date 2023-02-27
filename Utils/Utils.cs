@@ -74,7 +74,44 @@ namespace ORM_1_21_.Utils
     
     internal static class UtilsCore
     {
-
+        private static HashSet<Type> Hlam = new HashSet<Type>
+        {
+            typeof(uint),
+            typeof(ulong),
+            typeof(ushort),
+            typeof(bool),
+            typeof(byte),
+            typeof(char),
+            typeof(DateTime),
+            typeof(decimal),
+            typeof(double),
+            typeof(short),
+            typeof(int),
+            typeof(long),
+            typeof(sbyte),
+            typeof(float),
+            typeof(string),
+            typeof(uint?),
+            typeof(ulong?),
+            typeof(ushort?),
+            typeof(bool?),
+            typeof(byte?),
+            typeof(char?),
+            typeof(DateTime?),
+            typeof(decimal?),
+            typeof(double?),
+            typeof(short?),
+            typeof(int?),
+            typeof(long?),
+            typeof(sbyte?),
+            typeof(float?),
+            typeof(Guid?),
+            typeof(Guid),
+            typeof(Enum),
+            typeof(byte[]),
+         
+    };
+        private static Dictionary<Type, bool> SeralisableTypeDictionary = new Dictionary<Type, bool>();
         private static HashSet<Type> NumericTypes = new HashSet<Type>
         {
 
@@ -150,12 +187,8 @@ namespace ORM_1_21_.Utils
                    && (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
         }
 
-        /// <summary>
-        /// Сериализация  объекта
-        /// </summary>
-        /// <param name="obj">Объект</param>
-        /// <returns>byte[]</returns>
-        public static byte[] ObjectToByteArray(object obj)
+     
+        internal static byte[] ObjectToByteArray(object obj)
         {
             if (obj == null)
                 return null;
@@ -342,7 +375,7 @@ namespace ORM_1_21_.Utils
             return string.Format("{0}.{1}", table1, dd[1]);
         }
 
-        internal static object ConvertatorPrimaryKeyType(Type typeColumn, object val)
+        internal static object ConverterPrimaryKeyType(Type typeColumn, object val)
         {
             if (typeColumn == typeof(Guid))
                 return (Guid)val;
@@ -380,20 +413,29 @@ namespace ORM_1_21_.Utils
             return false;
         }
 
+        private static bool IsSerializable(Type type)
+        {
+            if (Hlam.Contains(type)) return false;
+            if (SeralisableTypeDictionary.ContainsKey(type) == false)
+            {
+                var t = type.GetCustomAttribute(typeof(MapSerializableAttribute));
+                SeralisableTypeDictionary.Add(type, t != null);
+            }
+
+            return SeralisableTypeDictionary[type];
+        }
+
         internal static bool IsJsonType(Type type)
         {
-            if (type == typeof(byte[]))
-            {
-                return false;
-            }
-            if (type.GetInterface(nameof(ISerializableOrm)) != null || type.IsArray)
-            {
-                return true;
-            }
+           
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)
                 || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)
                 || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(HashSet<>))
                 return true;
+            if (IsSerializable(type) || type.IsArray)
+            {
+                return true;
+            }
 
             return false;
         }
@@ -465,7 +507,12 @@ namespace ORM_1_21_.Utils
 
         }
 
-      
+
+        public static T Clone<T>(T ob) where T : class
+        {
+            var str = JsonSerializer.Serialize(ob);
+            return JsonSerializer.Deserialize<T>(str);
+        }
     }
 }
 

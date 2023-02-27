@@ -1,16 +1,16 @@
 ﻿namespace ORM_1_21_
 {
     /// <summary>
-    /// Тип генератора первичного ключа таблицы
+    /// Table primary key generator type
     /// </summary>
     public enum Generator
     {
         /// <summary>
-        /// автоинкрементный генератор в таблице
+        /// Database assignable as autoincrement field
         /// </summary>
         Native = 0,
         /// <summary>
-        /// Назначаемый пользователем
+        /// User assignable
         /// </summary>
         Assigned
     }

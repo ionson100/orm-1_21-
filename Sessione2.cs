@@ -37,23 +37,23 @@ namespace ORM_1_21_
 
 
         /// <summary>
-        /// Конструктор 
+        /// Ctor.
         /// </summary>
-        /// <param name="connectionString">Строка соединения с базой</param>
+        /// <param name="connectionString">Connection string</param>
         public Sessione(string connectionString)
         {
             _connect = ProviderFactories.GetConnect(null);
             _connect.ConnectionString = connectionString;
         }
         /// <summary>
-        /// Конструктор для подключения к другой базе
+        /// Constructor for connecting to another database
         /// </summary>
-        /// <param name="factory">Объект реализующий соединение к другой базе</param>
+        /// <param name="factory">Object implementing IOtherDataBaseFactory</param>
         public Sessione(IOtherDataBaseFactory factory)
         {
             _factory = factory;
             _connect = factory.GetDbProviderFactories().CreateConnection();
-            if (_connect == null) throw new Exception("Не могу создать соединение к другой базе");
+            if (_connect == null) throw new Exception("Can't connect to another database");
             _connect.ConnectionString = factory.GetConnectionString();
             if (factory.GetProviderName() == ProviderName.Postgresql)
             {
@@ -113,7 +113,7 @@ namespace ORM_1_21_
         {
             if (Transactionale.MyStateTransaction == StateTransaction.Begin)
             {
-                throw new Exception("Транзакция открыта ранее");
+                throw new Exception("Transaction opened earlier");
             }
             Transactionale.MyStateTransaction = StateTransaction.Begin;
             Transactionale.IsolationLevel = null;
@@ -126,7 +126,7 @@ namespace ORM_1_21_
         {
             if (Transactionale.MyStateTransaction == StateTransaction.Begin)
             {
-                throw new Exception("Транзакция открыта ранее");
+                throw new Exception("Transaction opened earlier");
             }
             Transactionale.MyStateTransaction = StateTransaction.Begin;
             Transactionale.Connection = _connect;
@@ -137,7 +137,7 @@ namespace ORM_1_21_
 
 
         ///<summary>
-        /// Освобождение ресурсов
+        /// Disposing
         ///</summary>
         public void Dispose()
         {
@@ -182,12 +182,12 @@ namespace ORM_1_21_
             string sql = com.CommandText;
             var ss = sql.Split(UtilsCore.PrefParam(providerName).ToArray(), StringSplitOptions.RemoveEmptyEntries);
             if (ss.Length - 1 != obj.Length)
-                throw new ArgumentException("не совпадает количество параметров");
+                throw new ArgumentException("the count of parameters does not match");
 
             var list = Regex.Matches(sql, @"\" + UtilsCore.PrefParam(providerName) + @"\w+").Cast<Match>().Select(m => m.Value).ToList();
             if (list.Count != obj.Length)
             {
-                throw new Exception($"Количество параметров в sql запросе {list} не совпадает с количеством параметров переданных в метод {obj.Length}");
+                throw new Exception($"Count of parameters in sql query {list} does not match the count of parameters passed to the method {obj.Length}");
             }
 
             for (var index = 0; index < obj.Length; index++)
@@ -204,9 +204,9 @@ namespace ORM_1_21_
 
         bool ISession.IsDispose => _isDispose;
 
+     
         /// <summary>
-        /// Позволяет объекту <see cref="T:System.Object"/> попытаться освободить ресурсы и выполнить другие операции очистки, перед тем как объект 
-        /// <see cref="T:System.Object"/> будет утилизирован в процессе сборки мусора.
+        /// finally call dispose
         /// </summary>
         ~Sessione()
         {

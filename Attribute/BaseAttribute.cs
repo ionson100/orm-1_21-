@@ -9,7 +9,7 @@ namespace ORM_1_21_
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public abstract class BaseAttribute : System.Attribute
     {
-        private string _columnName;
+        private readonly string _columnName;
 
         /// <summary>
         /// Field name in the table  as sql

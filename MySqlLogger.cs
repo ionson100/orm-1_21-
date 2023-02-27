@@ -13,10 +13,10 @@ namespace ORM_1_21_
         private static StreamWriter _sw;
         private static long _runner;
 
-        public static void StopLogger(bool isFinish=false)
+        public static void StopLogger(bool isFinish = false)
         {
             if (Interlocked.Read(ref _runner) == 1) Interlocked.Decrement(ref _runner);
-            if(isFinish)
+            if (isFinish)
                 _sw.Dispose();
         }
 
@@ -25,7 +25,7 @@ namespace ORM_1_21_
             if (_isActive == false) return;
             _cq.Enqueue($"{message}");
         }
-        public static void Error(string sql,Exception ex)
+        public static void Error(string sql, Exception ex)
         {
             if (_isActive == false) return;
             _cq.Enqueue($"{Environment.NewLine}{sql}{Environment.NewLine}{ex}");
@@ -50,7 +50,7 @@ namespace ORM_1_21_
 
             Info($"---------   Init Log : {DateTime.Now:s} ----------");
         }
-      
+
 
         private static async Task Action()
         {

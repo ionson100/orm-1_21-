@@ -36,45 +36,4 @@ namespace ORM_1_21_
             return DbTypeConverter.ConvertFrom(TypeColumn);
         }
     }
-
-    /// <summary>
-    /// Table field default value (set by user)
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
-    public sealed class MapDefaultValueAttribute : System.Attribute
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        internal string Value { get; private set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value">value string</param>
-        public MapDefaultValueAttribute(string value)
-        {
-            Value = value;
-        }
-    }
-
-    /// <summary>
-    /// Field type when creating a table (set by the user)
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
-    public sealed class MapColumnTypeAttribute : System.Attribute
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        internal string TypeString { get; private set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public MapColumnTypeAttribute(string typeColumn)
-        {
-            TypeString = typeColumn;
-        }
-    }
 }

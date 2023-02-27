@@ -22,7 +22,7 @@ namespace ORM_1_21_.Linq.MsSql
 
     internal sealed class QueryTranslatorMsSql<T> : ExpressionVisitor, ITranslate
     {
-        private Evolution _currentTypeCode;
+       
         private readonly ProviderName _providerName;
         private int _paramIndex;
 
@@ -108,7 +108,7 @@ namespace ORM_1_21_.Linq.MsSql
                     foreach (var d in (Dictionary<string, object>)paramList[0]) Param.Add(d.Key, d.Value);
 
                     ListOne.Add(new OneComprosite
-                    { Operand = Evolution.Join, Body = paramList[1].ToString(), NewConctructor = paramList[2] });
+                    { Operand = Evolution.Join, Body = paramList[1].ToString(), NewConstructor = paramList[2] });
                 }
 
             StringB.Length = 0;
@@ -730,7 +730,7 @@ namespace ORM_1_21_.Linq.MsSql
                 if (typew != typeof(T) && UtilsCore.IsAnonymousType(typew) &&
                     ListOne.Any(a => a.Operand == Evolution.SelectNew))
                 {
-                    throw new Exception("не реализовано");
+                    throw new Exception("Not implemented.");
                 }
                 tt = (Func<T, object>)((LambdaExpression)StripQuotes(m.Arguments[1])).Compile();
                 Visit(lambda.Body);
@@ -749,7 +749,6 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && (m.Method.Name == "OrderBy" || m.Method.Name == "ThenBy"))
             {
-                _currentTypeCode = Evolution.OrderBy;
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
@@ -762,7 +761,6 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "Reverse")
             {
-                _currentTypeCode = Evolution.Reverse;
                 Visit(m.Arguments[0]);
                 var sb = new StringBuilder();
                 if (ListOne.Any(a => a.Operand == Evolution.OrderBy))
@@ -787,7 +785,6 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "OrderByDescending" || m.Method.Name == "ThenByDescending")
             {
-                _currentTypeCode = Evolution.OrderBy;
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
@@ -801,7 +798,6 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "Select")
             {
-                _currentTypeCode = Evolution.Select;
 
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
@@ -918,7 +914,7 @@ namespace ORM_1_21_.Linq.MsSql
 
                 var o13 = new OneComprosite
                 {
-                    IsAgregate = true,
+                    IsAggregate = true,
                     Operand = pizda,
                     Body = "1"
                 };
@@ -956,7 +952,7 @@ namespace ORM_1_21_.Linq.MsSql
                 && m.Method.Name == "Single")
             {
                 Visit(m.Arguments[0]);
-                ListOne.Add(new OneComprosite { Operand = Evolution.Single, Body = "", IsAgregate = true });
+                ListOne.Add(new OneComprosite { Operand = Evolution.Single, Body = "", IsAggregate = true });
 
                 if (m.Arguments.Count == 2)
                 {
@@ -978,7 +974,7 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "SingleOrDefault")
             {
-                ListOne.Add(new OneComprosite { Operand = Evolution.SingleOrDefault, Body = "", IsAgregate = true });
+                ListOne.Add(new OneComprosite { Operand = Evolution.SingleOrDefault, Body = "", IsAggregate = true });
                 ListOne.Add(new OneComprosite { Operand = Evolution.First, Body = "" });
                 Visit(m.Arguments[0]);
 
@@ -1020,7 +1016,7 @@ namespace ORM_1_21_.Linq.MsSql
                                 Visit(lambda.Body);
                                 StringB.Append(")");
                                 ListOne.Add(new OneComprosite
-                                { Operand = Evolution.Select, Body = StringB.ToString(), IsAgregate = true });
+                                { Operand = Evolution.Select, Body = StringB.ToString(), IsAggregate = true });
 
                                 break;
                             }
@@ -1628,16 +1624,16 @@ namespace ORM_1_21_.Linq.MsSql
                     ListOne.Add(new OneComprosite
                     {
                         Operand = Evolution.SelectNew,
-                        NewConctructor = Expression.New(nex.Constructor, args, nex.Members)
+                        NewConstructor = Expression.New(nex.Constructor, args, nex.Members)
                     });
                     return Expression.New(nex.Constructor, args, nex.Members);
                 }
 
-                ListOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConctructor = nex });
+                ListOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConstructor = nex });
                 return Expression.New(nex.Constructor, args);
             }
             //todo ion100
-            ListOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConctructor = nex });
+            ListOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConstructor = nex });
             return nex;
         }
 

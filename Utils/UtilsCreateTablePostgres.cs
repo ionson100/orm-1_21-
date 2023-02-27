@@ -49,22 +49,55 @@ namespace ORM_1_21_.Utils
 
         private static string GetTypePg(Type type)
         {
-            if (type == typeof(long) || type == typeof(long?)) return "BIGINT";
-            if (type == typeof(int) || type.BaseType == typeof(Enum) || type == typeof(int?)) return "INTEGER";
-            if (type == typeof(bool) || type == typeof(bool?)) //real
+            if (type == typeof(long) ||
+                type == typeof(long?)|| 
+                type == typeof(ulong?)||
+                type == typeof(ulong)) 
+                return "BIGINT";
+            if (type == typeof(int) ||
+                type.BaseType == typeof(Enum) ||
+                type == typeof(Enum) ||
+                type == typeof(int?)||
+                type == typeof(uint?)||
+                type == typeof(uint)||
+                type == typeof(ushort?)|| 
+                type == typeof(ushort)||
+                type == typeof(short)||
+                type == typeof(short?)
+                ) return "INTEGER";
+            if (type == typeof(bool) || 
+                type == typeof(bool?)) //real
                 return "BOOLEAN";
-            if (type == typeof(decimal) || type == typeof(decimal?)) return "decimal";
-            if (type == typeof(float) || type == typeof(float?)) return "NUMERIC";
+            if (type == typeof(decimal)|| 
+                type == typeof(decimal?))
+                return "decimal";
+            if (type == typeof(float)||
+                type == typeof(float?))
+                return "NUMERIC";
 
-            if (type == typeof(double) || type == typeof(double?)) return "double precision";
+            if (type == typeof(double)||
+                type == typeof(double?))
+                return "double precision";
 
-            if (type == typeof(DateTime) || type == typeof(DateTime?)) return "TIMESTAMP";
+            if (type == typeof(DateTime)||
+                type == typeof(DateTime?)) 
+                return "TIMESTAMP";
 
-            if (type == typeof(Guid)) return "UUID";
+            if (type == typeof(Guid)|| type == typeof(Guid?)) 
+                return "UUID";
+            if (type == typeof(byte) || 
+                type == typeof(byte?)||
+                type == typeof(sbyte)|| 
+                type == typeof(sbyte?))
+                return "smallint";
+            if (type == typeof(char) || type == typeof(char?))
+                return "character(1)";
+            if (UtilsCore.IsJsonType(type)) 
+                return "TEXT";
 
-            if (UtilsCore.IsJsonType(type)) return "TEXT";
-
-            if (type == typeof(Image) || type == typeof(byte[])) return "BYTEA";
+            if (type == typeof(Image)
+                || type == typeof(byte[])) 
+                return "BYTEA";
 
 
             return "VARCHAR(256)";

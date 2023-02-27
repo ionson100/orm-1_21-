@@ -16,9 +16,6 @@
         Single,
         SingleOrDefault,
         SaveOrUpdate,
-        //FindLikeContains,
-        //FindLikeStartsWith,
-        //FindLikeEndsWith,
         Delete,
         FirstOrDefault,
         Join,
@@ -35,7 +32,10 @@
         JoinNew,
         //OverCache,
         Timeout,
-        FreeSql
+        FreeSql,
+        CacheUsage,
+        CacheOver,
+        CacheKey
     }
 
 }

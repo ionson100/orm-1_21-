@@ -19,7 +19,7 @@ namespace ORM_1_21_.Linq
     public sealed class Query<T> : IOrderedQueryable<T>, IGetTypeQuery, IInnerList
     {
         /// <summary>
-        /// Перебор коллекции
+        /// Collection iteration function
         /// </summary>
         public void ForEach(Action<T> action)
         {
@@ -33,8 +33,9 @@ namespace ORM_1_21_.Linq
         {
             return _provider.Execute<T>(_expression);
         }
+      
         /// <summary>
-        /// Провайдер
+        /// Provider
         /// </summary>
         public readonly QueryProvider _provider;
         private readonly Expression _expression;
@@ -46,7 +47,7 @@ namespace ORM_1_21_.Linq
         /// <exception cref="ArgumentNullException"></exception>
         internal Query(QueryProvider provider)
         {
-            _provider = provider ?? throw new ArgumentNullException("provider");
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
             _expression = Expression.Constant(this);
         }
 
@@ -55,24 +56,21 @@ namespace ORM_1_21_.Linq
         {
             if (expression == null)
             {
-                throw new ArgumentNullException("expression");
+                throw new ArgumentNullException(nameof(expression));
             }
             if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
             {
-                throw new ArgumentOutOfRangeException("expression");
+                throw new ArgumentOutOfRangeException(nameof(expression));
             }
 
-            _provider = provider ?? throw new ArgumentNullException("provider");
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
 
             _expression = expression;
         }
 
         
 
-        Expression IQueryable.Expression
-        {
-            get { return _expression; }
-        }
+        Expression IQueryable.Expression => _expression;
 
         Type IQueryable.ElementType => typeof(T);
 
@@ -95,7 +93,7 @@ namespace ORM_1_21_.Linq
 
         }
         /// <summary>
-        /// Текстовая интерпретация запроса к базе данных
+        /// Textual interpretation of a database query
         /// </summary>
         public override string ToString()
         {

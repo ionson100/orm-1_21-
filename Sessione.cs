@@ -428,14 +428,14 @@ namespace ORM_1_21_
             }
         }
 
-        object ISession.ExecuteScalar(string sql, params object[] obj)
+        object ISession.ExecuteScalar(string sql, params object[] param)
         {
             if (sql == null) throw new ArgumentNullException(nameof(sql));
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandType = CommandType.Text;
             com.CommandText = sql;
-            AddParam(com, MyProviderName, obj);
+            AddParam(com, MyProviderName, param);
 
             try
             {
@@ -507,7 +507,7 @@ namespace ORM_1_21_
             }
         }
 
-        Query<T> ISession.Querion<T>()
+        Query<T> ISession.Query<T>()
         {
             //AttributesOfClass<T>.CurProvider = _factory != null ? _factory.GetProviderName() : Configure.Provider;
             QueryProvider p = new DbQueryProvider<T>(this);
@@ -699,8 +699,7 @@ namespace ORM_1_21_
             LambdaExpression lambda = property;
             MemberExpression memberExpression;
 
-            var expression = lambda.Body as UnaryExpression;
-            if (expression != null)
+            if (lambda.Body is UnaryExpression expression)
             {
                 UnaryExpression unaryExpression = expression;
                 memberExpression = (MemberExpression)(unaryExpression.Operand);
@@ -749,13 +748,13 @@ namespace ORM_1_21_
             switch (MyProviderName)
             {
                 case ProviderName.MsSql:
-                    throw new Exception("не рализовано");
+                    throw new Exception("not implemented");
                 case ProviderName.MySql:
-                    throw new Exception("не рализовано");
+                    throw new Exception("not implemented");
                 case ProviderName.Postgresql:
                     return new CommandNativePostgres(ProviderName.Postgresql).GetDeleteSql(t);
                 case ProviderName.Sqlite:
-                    throw new Exception("не рализовано");
+                    throw new Exception("not implemented");
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -767,7 +766,7 @@ namespace ORM_1_21_
             if (sql == null) throw new ArgumentNullException(nameof(sql));
             if (string.IsNullOrEmpty(sql))
             {
-                throw new ArgumentException($@"""{nameof(sql)}"" не может быть неопределенным или пустым.", nameof(sql));
+                throw new ArgumentException($@"""{nameof(sql)}"" cannot be null or empty.", nameof(sql));
             }
 
             if (param is null)
@@ -812,8 +811,7 @@ namespace ORM_1_21_
             try
             {
 
-                var str = JsonSerializer.Serialize(ob);
-                return JsonSerializer.Deserialize<T>(str);
+               return UtilsCore.Clone(ob);
 
             }
             catch (Exception ex)

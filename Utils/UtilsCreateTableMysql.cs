@@ -19,9 +19,9 @@ namespace ORM_1_21_.Utils
             foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
             {
                 string typeColumn = map.TypeString ?? GetTypeMySql(map.TypeColumn);
-
-                builder.AppendLine(
-                    $" `{map.ColumnNameForReader(providerName)}` {typeColumn} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
+                string sd =
+                    $" `{map.ColumnNameForReader(providerName)}` {typeColumn} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,";
+                builder.AppendLine(sd);
             }
 
             string str2 = builder.ToString();
@@ -48,23 +48,44 @@ namespace ORM_1_21_.Utils
             {
                 return "VARCHAR(36)";
             }
-            if (type == typeof(long) || type == typeof(long?))
+            if (type == typeof(long) || type == typeof(long?))//)
             {
                 return "BIGINT";
             }
 
-            if (type == typeof(int) || type.BaseType == typeof(Enum) || type == typeof(int?) || type == typeof(uint) || type.BaseType == typeof(uint?))
+            if (type == typeof(UInt64) || type == typeof(UInt64?))
             {
-                return "INT(11)";
+                return "BIGINT UNSIGNED";
+            }
+
+            if (type == typeof(int) || type.BaseType == typeof(Enum))
+            {
+                return "MEDIUMINT";
+            }
+
+            if (type == typeof(uint) || type.BaseType == typeof(uint?))
+            {
+                return "MEDIUMINT UNSIGNED";
             }
             if (type == typeof(short) || type.BaseType == typeof(short?))
             {
                 return "SMALLINT";
             }
+
+            if (type == typeof(UInt16) || type == typeof(UInt16?))
+            {
+                return "SMALLINT UNSIGNED";
+            }
             if (type == typeof(bool) || type == typeof(bool?))
             {
                 return "TINYINT(1)";
             }
+
+            if (type==typeof(Byte)|| type == typeof(Byte?)|| type == typeof(SByte) || type == typeof(SByte?))
+            {
+                return "TINYINT(1)";
+            }
+          
             if (type == typeof(decimal) || type == typeof(decimal?))
             {
                 return "DECIMAL(10,2)";
@@ -72,6 +93,11 @@ namespace ORM_1_21_.Utils
             if (type == typeof(float) || type == typeof(float?))
             {
                 return "FLOAT";
+            }
+
+            if (type == typeof(char) || type == typeof(char?))
+            {
+                return "CHAR(1)";
             }
 
             if (type == typeof(double) || type == typeof(double?))
@@ -99,7 +125,7 @@ namespace ORM_1_21_.Utils
                 return "BLOB";
             }
 
-            return "TEXT";
+            return "VARCHAR(256)";
 
         }
     }

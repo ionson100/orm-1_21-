@@ -2,7 +2,8 @@
 
 namespace TestLibrary
 {
-    public class MyTest : ISerializableOrm
+    [MapSerializable]
+    public class MyTest 
     {
         public string Name { get; set; }
     }

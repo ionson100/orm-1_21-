@@ -9,7 +9,10 @@ using System.Threading.Tasks;
 
 namespace ORM_1_21_
 {
-   
+
+    /// <summary>
+    /// Extension ORM
+    /// </summary>
     public static class Helper
     {
 
@@ -153,18 +156,6 @@ namespace ORM_1_21_
             return Task.FromResult((IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).Execute<TResult>(callExpr));
         }
 
-        // /// <summary>
-        // /// произвольный запрос к чужой базе
-        // /// </summary>
-        // /// <param name="ses"></param>
-        // /// <param name="dataReader"></param>
-        // /// <typeparam name="TResult"></typeparam>
-        // /// <returns></returns>
-        // public static IEnumerable<TResult> FreeSqlMonster<TResult>(this ISession ses, IDataReader dataReader)
-        // {
-        //
-        //     return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteMonster<TResult>(dataReader);
-        // }
 
         /// <summary>
         /// Calling a stored procedure
@@ -228,6 +219,57 @@ namespace ORM_1_21_
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
             { Timeout = value, TypeRevalytion = Evolution.Timeout });
             return coll;
+        }
+
+        /// <summary>
+        /// Request using cache, if there is no cache, it will be created
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="coll"></param>
+        /// <returns></returns>
+        public static IQueryable<T> CacheUsage<T>(this IQueryable<T> coll)
+        {
+            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+                { TypeRevalytion = Evolution.CacheUsage });
+            return coll;
+        }
+        /// <summary>
+        /// Request with cache rewrite, if there is no cache, the cache will be created,
+        /// the old cache will be overwritten
+        /// </summary>
+        public static IQueryable<T> CacheOver<T>(this IQueryable<T> coll)
+        {
+            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+                { TypeRevalytion = Evolution.CacheOver });
+            return coll;
+        }
+        /// <summary>
+        /// Clears the cache for a type :T
+        /// </summary>
+        public static void CacheClear<T>(this ISession session)
+        {
+            MyCache<T>.Clear();
+        }
+
+        /// <summary>
+        /// Get key to get cache value
+        /// </summary>
+
+        public static int CacheGetKey<T>(this IQueryable<T> coll)
+        {
+            ISession ses = ((ISqlComposite)coll.Provider).Sessione;
+            var provider = new DbQueryProvider<T>((Sessione)ses);
+           provider.ListCastExpression.Add(new ContainerCastExpression
+                { TypeRevalytion = Evolution.CacheKey });
+            return (int)provider.Execute<int>(coll.Expression);
+
+        }
+        /// <summary>
+        /// Get value from cache by key
+        /// </summary>
+        public static object CacheGetValue<T>(this ISession session,int key)
+        {
+            return MyCache<T>.GetValue(key);
         }
 
     }

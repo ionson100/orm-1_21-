@@ -3,24 +3,24 @@
 namespace ORM_1_21_
 {
     /// <summary>
-    /// Элемент списка полей таблицы
+    /// Table field list element
     /// </summary>
     [MapTableName("notdata")]
     public class TableColumn
     {
         /// <summary>
-        /// Название  поля
+        /// Name field
         /// </summary>
         [MapColumnName("name")]
         public string ColumnName { get; set; }
         /// <summary>
-        /// Тип поля
+        /// Type field
         /// </summary>
         [MapColumnName("type")]
         
         public string ColumnType { get; set; }
         /// <summary>
-        /// Принадлежность к первичному ключу
+        /// Is primary key
         /// </summary>
         [MapColumnName("ispk")]
         public bool IsPk { get; set; }

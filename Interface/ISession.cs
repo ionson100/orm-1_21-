@@ -17,10 +17,10 @@ namespace ORM_1_21_
         /// </summary>
         bool IsDispose { get; }
 
-        
+
 
         /// <summary>
-        /// Запрос на выборку 
+        /// Request for selection from IDataReader
         /// </summary>
         /// <param name="reader">IDataReader</param>
         /// <typeparam name="T"></typeparam>
@@ -61,7 +61,6 @@ namespace ORM_1_21_
         /// <summary>
         /// Drop table
         /// </summary>
-        /// <typeparam name="T">Тип удаляемой таблицы</typeparam>
         int DropTable<T>() where T : class;
 
         /// <summary>
@@ -73,7 +72,7 @@ namespace ORM_1_21_
         ///  Getting ExecuteReader
         /// </summary>
         /// <param name="sql">request string</param>
-        /// <param name="param">parameter list</param>
+        /// <param name="param">parameters array</param>
         IDataReader ExecuteReader(string sql, params object[] param);
 
         /// <summary>
@@ -81,7 +80,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="sql">request string</param>
         /// <param name="timeOut">timeout connection</param>
-        /// <param name="param">parameter list</param>
+        /// <param name="param">parameters array</param>
         IDataReader ExecuteReaderT(string sql, int timeOut = 30, params object[] param);
 
         /// <summary>
@@ -96,7 +95,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="sql">sql text</param>
         /// <param name="timeout">timeout connection</param>
-        /// <param name="param">parameter list</param>
+        /// <param name="param">parameters array</param>
         DataTable GetDataTable(string sql, int timeout = 30, params object[] param);
 
         /// <summary>
@@ -120,20 +119,23 @@ namespace ORM_1_21_
         /// <param name="fileCsv">path to file</param>
         /// <param name="FIELDTERMINATOR">terminator, default - ;</param>
         /// <param name="timeOut">timeout connection</param>
-        /// <typeparam name="T">разделитель полей</typeparam>
         int InsertBulkFromFile<T>(string fileCsv, string FIELDTERMINATOR = ";", int timeOut = 30) where T : class;
 
+       
         /// <summary>
         /// Returns the first element of the request
         /// </summary>
-        object ExecuteScalar(string sql, params object[] obj);
+        /// <param name="sql">sql text</param>
+        /// <param name="param">parameters array</param>
+        /// <returns></returns>
+        object ExecuteScalar(string sql, params object[] param);
 
         /// <summary>
-        /// Возвращает первый элемент запроса с параметром Время ожидания выполнения команды
+        /// Returns the first element of the request 
         /// </summary>
-        /// <param name="sql">Строка запроса</param>
-        /// <param name="timeOut">Время ожидания выполнения команды (30 сек)</param>
-        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
+        /// <param name="sql">sql text</param>
+        /// <param name="timeOut">timeout connection</param>
+        /// <param name="param">parameter array</param>
         object ExecuteScalarT(string sql, int timeOut = 30, params object[] param);
 
         /// <summary>
@@ -145,7 +147,7 @@ namespace ORM_1_21_
         /// Main point  Linq to Sql
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        Query<T> Querion<T>() where T : class;
+        Query<T> Query<T>() where T : class;
 
         /// <summary>
         /// Determines if the object is received from the database, or was created on the client
@@ -158,9 +160,9 @@ namespace ORM_1_21_
         void ToPersistent<T>(T obj) where T : class;
 
         /// <summary>
-        /// Запись в лог, если запись в лог включена, при инициализации орм, можно записать текст сообщения пользователя
+        /// Write to log file
         /// </summary>
-        /// <param name="message">сообщение</param>
+        /// <param name="message">message</param>
         void WriteLogFile(string message);
 
         /// <summary>
@@ -185,25 +187,23 @@ namespace ORM_1_21_
         string GetConnectionString();
 
         /// <summary>
-        /// выполняет sql-выражение и возвращает количество измененных записей
+        /// executes the query and returns the number of records affected
         /// </summary>
-        /// <param name="sql">Строка запроса</param>
-        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
+        /// <param name="sql">sql text</param>
+        /// <param name="param">parameters array</param>
         int ExecuteNonQuery(string sql, params object[] param);
 
         /// <summary>
-        /// Выполняет sql-выражение и возвращает количество измененных записей
-        /// с параметром время ожидания выполнения команды
+        /// executes the query and returns the number of records affected
         /// </summary>
-        /// <param name="sql">Строка запроса</param>
-        /// <param name="timeOut">Время ожидания выполнения команды (30 сек)м</param>
-        /// <param name="param">Список параметров в той последовательности в которой они расположены в запросе.</param>
+        /// <param name="sql">sql text</param>
+        /// <param name="timeOut">timeout connection</param>
+        /// <param name="param">parameters array</param>
         int ExecuteNonQueryT(string sql, int timeOut = 30, params object[] param);
 
         /// <summary>
         /// Getting the name of the table to build an sql query.
         /// </summary>
-        /// <typeparam name="T">Тип таблицы</typeparam>
         string TableName<T>() where T : class;
 
         /// <summary>
@@ -214,7 +214,6 @@ namespace ORM_1_21_
         /// <summary>
         /// Getting string SQL for insert command
         /// </summary>
-        /// <typeparam name="T">Тип имеющий MapAttributes</typeparam>
         string GetSqlInsertCommand<T>(T t) where T : class;
 
         /// <summary>

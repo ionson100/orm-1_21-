@@ -51,13 +51,9 @@ namespace ORM_1_21_.Linq
             if (m.Expression != null
              && m.Expression.NodeType == ExpressionType.Constant)
             {
-
-                //  _alias = (string)m.Expression.GetType().GetProperty("Name").GetValue(m.Expression, null);
                 return m;
             }
             return m;
-            //throw new NotSupportedException(
-            //    string.Format("The member '{0}' is not supported", m.Member.Name));
         }
     }
 }

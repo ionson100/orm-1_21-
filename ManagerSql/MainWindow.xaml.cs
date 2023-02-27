@@ -55,8 +55,8 @@ namespace ManagerSql
                 var t = ses.BeginTransaction(IsolationLevel.Serializable);
                 try
                 {
-                   var e= ses.Querion<SqliteModel>().Delete(a=>a.BaseName==ComboBoxTypeBase.SelectedIndex&&a.HashStr== Utils.GetHashStr(TextBoxConnectionString.Text));
-                    var ee = ses.Querion<SqliteModel>().ToList();
+                   var e= ses.Query<SqliteModel>().Delete(a=>a.BaseName==ComboBoxTypeBase.SelectedIndex&&a.HashStr== Utils.GetHashStr(TextBoxConnectionString.Text));
+                    var ee = ses.Query<SqliteModel>().ToList();
                     _ = ses.Save(res);
                     t.Commit();
                 }
@@ -127,7 +127,7 @@ namespace ManagerSql
                 {
                     ses.TableCreate<SqliteModel>();
                 }
-                var m = ses.Querion<SqliteModel>().Where(a => a.BaseName == typeBase && a.HashStr == Utils.GetHashStr(conStr)).ToList();
+                var m = ses.Query<SqliteModel>().Where(a => a.BaseName == typeBase && a.HashStr == Utils.GetHashStr(conStr)).ToList();
                 if (m == null) return;
 
                // if (m != null)

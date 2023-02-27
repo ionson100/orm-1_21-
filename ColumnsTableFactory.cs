@@ -88,7 +88,7 @@ namespace ORM_1_21_
                     {
                         //ignored
                     }
-                   
+
                 }
                 else
                 {
@@ -96,7 +96,8 @@ namespace ORM_1_21_
                     {
                         TableColumn ssd = new TableColumn
                         {
-                            ColumnName = reader.GetString(1), ColumnType = reader.GetString(2)
+                            ColumnName = reader.GetString(1),
+                            ColumnType = reader.GetString(2)
                         };
                         if (providerName == ProviderName.MySql || providerName == ProviderName.MsSql)
                         {
@@ -135,25 +136,25 @@ namespace ORM_1_21_
             switch (providerName)
             {
                 case ProviderName.Postgresql:
-                {
-                    return ForPostgres(tableName, command, providerName);
-                }
+                    {
+                        return ForPostgres(tableName, command, providerName);
+                    }
                 case ProviderName.MySql:
-                {
-                    return ForMysql(tableName, command, providerName);
-                }
+                    {
+                        return ForMysql(tableName, command, providerName);
+                    }
                 case ProviderName.MsSql:
-                {
-                    return ForMsSql(tableName, command, providerName);
-                }
+                    {
+                        return ForMsSql(tableName, command, providerName);
+                    }
                 case ProviderName.Sqlite:
-                {
-                    return ForSqlite(tableName, command, providerName);
-                }
+                    {
+                        return ForSqlite(tableName, command, providerName);
+                    }
                 default:
                     throw new ArgumentOutOfRangeException(nameof(providerName), providerName, null);
             }
 
-           }
+        }
     }
 }

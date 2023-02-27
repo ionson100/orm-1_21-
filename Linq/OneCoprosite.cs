@@ -9,14 +9,14 @@ namespace ORM_1_21_.Linq
         internal Evolution Operand { get; set; }
         private string _body;
 
-        public object NewConctructor { get; set; }
+        public object NewConstructor { get; set; }
 
-        public bool IsAgregate { get; set; }
+        public bool IsAggregate { get; set; }
 
         public string Body
         {
-            get { return _body; }
-            set { _body = value.TrimEnd(','); }
+            get => _body;
+            set => _body = value.TrimEnd(',');
         }
         public Delegate ExpressionDelegate { get; set; }
     }

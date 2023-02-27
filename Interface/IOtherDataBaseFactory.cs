@@ -3,22 +3,22 @@
 namespace ORM_1_21_
 {
     /// <summary>
-    /// Интерфейс для  обращение к чужой базе данных
+    /// Interface for accessing a foreign database
     /// </summary>
     public interface IOtherDataBaseFactory
     {
         /// <summary>
-        /// Тип базы данных 
+        /// Type database
         /// </summary>
         ProviderName GetProviderName();
 
         /// <summary>
-        /// Получение Провайдера для выбранной базы данных
+        /// Getting the DbProviderFactory for the selected database
         /// </summary>
         DbProviderFactory GetDbProviderFactories();
 
         /// <summary>
-        /// Строка подключения к базе данных
+        /// Database connection string
         /// </summary>
         string GetConnectionString();
     }

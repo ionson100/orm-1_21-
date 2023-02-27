@@ -42,7 +42,7 @@ namespace ORM_1_21_.Linq
         }
 
         /// <summary>
-        ///Строка запроса
+        ///Query string
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
@@ -57,7 +57,7 @@ namespace ORM_1_21_.Linq
         public abstract object Execute<TS>(Expression expression);
 
         /// <summary>
-        /// Выполнение запрос к базе как к хранимой процедуре
+        /// Executing a database query as a stored procedure
         /// </summary>
         /// <param name="expression"></param>
         /// <typeparam name="TS"></typeparam>
@@ -65,7 +65,7 @@ namespace ORM_1_21_.Linq
         public abstract object ExecuteSPP<TS>(Expression expression);
 
         /// <summary>
-        /// Выполнение запрос к базе
+        /// Executing a database query
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>

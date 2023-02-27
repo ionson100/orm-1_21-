@@ -1,47 +1,39 @@
 ﻿namespace ORM_1_21_
 {
     /// <summary>
-    /// Сервисный интерфейс для обслуживания базы.Для своевременного действия, с работой  в базе
-    /// от наследуйте свой табличный тип от этого интерфейса, и можете контролировать в обработчиках
-    /// интерфейса, все этапы работы с базой
+    /// Operations control for working with the database
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface IActionDal<in T> where T : class
     {
         /// <summary>
-        /// Перед вставкой
+        /// Call before insert
         /// </summary>
-        /// <param name="item">объект вставки</param>
         void BeforeInsert(T item);
 
         /// <summary>
-        /// После вставки
+        /// Call after insert
         /// </summary>
-        /// <param name="item">объект вставки</param>
         void AfterInsert(T item);
 
         /// <summary>
-        /// Перед обновлением
+        /// Call before update
         /// </summary>
-        /// <param name="item">объект обновления</param>
         void BeforeUpdate(T item);
 
         /// <summary>
-        /// После обновления
+        /// Call after update
         /// </summary>
-        /// <param name="item">объект обновления</param>
         void AfterUpdate(T item);
 
         /// <summary>
-        /// Перед удалением
+        /// Call before delete
         /// </summary>
-        /// <param name="item"> объект удаления</param>
         void BeforeDelete(T item);
 
         /// <summary>
-        /// Полсле удаления
+        /// Call after delete
         /// </summary>
-        /// <param name="item">объект после удаления, фантом.</param>
         void AfterDelete(T item);
     }
 }

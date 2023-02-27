@@ -294,6 +294,20 @@ namespace ORM_1_21_
                             else
                                 AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToSByte(e));
                         }
+                        else if (pr.PropertyType == typeof(char?))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToChar(e));
+                        }
+                        else if (pr.PropertyType == typeof(char))
+                        {
+                            if (e == DBNull.Value)
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, '\0');
+                            else
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToChar(e));
+                        }
                         else
                         {
                             try
@@ -388,7 +402,7 @@ namespace ORM_1_21_
             var oneComprosites = listOne as OneComprosite[] ?? listOne.ToArray();
             var result = lResul as T[] ?? lResul.ToArray();
             var enumerable = lResul as T[] ?? result.ToArray();
-            if (oneComprosites.Any(a => a.Operand == Evolution.SingleOrDefault && a.IsAgregate))
+            if (oneComprosites.Any(a => a.Operand == Evolution.SingleOrDefault && a.IsAggregate))
             {
                 if (enumerable.Length == 1)
                 {
@@ -402,7 +416,7 @@ namespace ORM_1_21_
 
             }
 
-            if (oneComprosites.Any(a => a.Operand == Evolution.Single && a.IsAgregate))
+            if (oneComprosites.Any(a => a.Operand == Evolution.Single && a.IsAggregate))
             {
                 if (result.Count() == 1)
                 {
@@ -410,7 +424,7 @@ namespace ORM_1_21_
                     return enumerable.First();
                 }
              
-                throw new Exception("Последовательность содержит больше чем одни элемент или пустая count -" +
+                throw new Exception("Sequence contains more than one element or is empty count -" +
                                     enumerable.Count());
             }
 

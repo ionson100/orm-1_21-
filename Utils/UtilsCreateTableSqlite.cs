@@ -53,20 +53,37 @@ namespace ORM_1_21_.Utils
             }
             if (type == typeof(long) || type == typeof(long?))
             {
-                return "NUM";
+                return "NUMERIC";
             }
 
-            if (type == typeof(int) || type.BaseType == typeof(Enum) || type == typeof(int?) || type == typeof(uint) || type.BaseType == typeof(uint?))
+            if (type == typeof(int) || type.BaseType == typeof(Enum) || type == typeof(int?))
             {
-                return "INT";
+                return "INTEGER";
+            }
+
+            if (type == typeof(UInt16) || type == typeof(UInt16?) || type == typeof(UInt32) ||
+                type == typeof(UInt32?) ||
+                type == typeof(UInt64) || type == typeof(UInt64?)||type==typeof(UInt16)||type==typeof(Int16?))
+            {
+                return "INTEGER";
+            }
+
+            if (type == typeof(SByte) || type == typeof(SByte?) || type == typeof(Byte) || type == typeof(Byte?))
+            {
+                return "INTEGER";
+            }
+
+            if (type == typeof(char) || type == typeof(char?))
+            {
+                return "TEXT";
             }
             if (type == typeof(short) || type.BaseType == typeof(short?))
             {
-                return "INT";
+                return "INTEGER";
             }
             if (type == typeof(bool) || type == typeof(bool?))
             {
-                return "INT";
+                return "INTEGER";
             }
             if (type == typeof(decimal) || type == typeof(decimal?))
             {

@@ -67,6 +67,27 @@ namespace ORM_1_21_.Linq
             return TranslateString(expression, out _);
         }
 
+        private CacheState CacheState
+        {
+            get
+            {
+                if (ListCastExpression.Any(t => t.TypeRevalytion == Evolution.CacheUsage))
+                {
+                    return CacheState.CacheUsage;
+                }
+                if (ListCastExpression.Any(t => t.TypeRevalytion == Evolution.CacheOver))
+                {
+                    return CacheState.CacheOver;
+                }
+                if (ListCastExpression.Any(t => t.TypeRevalytion == Evolution.CacheKey))
+                {
+                    return CacheState.CacheKey;
+                }
+
+                return CacheState.NoCache;
+            }
+        }
+
         public override object Execute(Expression expression)
         {
             return null;
@@ -271,7 +292,51 @@ namespace ORM_1_21_.Linq
 
         public override object Execute<TS>(Expression expression)
         {
+            var asss = ListCastExpression.Count;
+            bool isCacheUsage = CacheState == CacheState.CacheUsage || CacheState == CacheState.CacheOver|| CacheState==CacheState.CacheKey;
             var services = (IServiceSessions)Sessione;
+            string sql=Translate(expression, out _).Replace("FROM", " FROM ");
+            /*usage cache*/
+
+            int hashCode = -1;
+            if (isCacheUsage)
+            {
+                var b = new StringBuilder(sql);
+                foreach (var p in _param)
+                {
+                    b.Append($" {p.Key} - {p.Value} ");
+                }
+                foreach (var p in _paramFree)
+                {
+                    b.Append($" {p.Key} - {p.Value} ");
+                }
+                foreach (var p in _paramFreeStoredPr)
+                {
+                    b.Append($" {p.Name} - {p.Value} -{p.Value} ");
+                }
+
+                var str = b.ToString();
+                hashCode = str.GetHashCode();
+                if (CacheState == CacheState.CacheKey)
+                {
+                    return hashCode;
+                }
+                if (CacheState == CacheState.CacheOver)
+                {
+                    var ri = MyCache<T>.DeleteKey(hashCode);
+                    MySqlLogger.Info($"Delete Cache key:{hashCode}");
+                }
+                var r = MyCache<T>.GetValue(hashCode);
+                if (r != null)
+                {
+                    MySqlLogger.Info($"CACHE: {str}");
+                    return r;
+                }
+
+
+            }
+            /*usage cache*/
+
             _com = services.CommandForLinq;
             if (GetTimeout() >= 0)
             {
@@ -282,7 +347,7 @@ namespace ORM_1_21_.Linq
             if (_isStoredPr)
                 _com.CommandType = CommandType.StoredProcedure;
 
-            _com.CommandText = Translate(expression, out _).Replace("FROM", " FROM ");
+            _com.CommandText = sql;
             var sb = new StringBuilder();
             if (_providerName == ProviderName.MsSql)
             {
@@ -335,6 +400,10 @@ namespace ORM_1_21_.Linq
                 {
                     var ee = _com.ExecuteScalar();
                     var res = ee.ToString() != "0";
+                    if (isCacheUsage)
+                    {
+                        MyCache<T>.Push(hashCode,res);
+                    }
                     return res;
                 }
 
@@ -342,18 +411,24 @@ namespace ORM_1_21_.Linq
                 {
                     var ee = _com.ExecuteScalar();
                     var res = Convert.ToInt32(ee, CultureInfo.CurrentCulture);
+                    if (isCacheUsage)
+                    {
+                        MyCache<T>.Push(hashCode, res);
+                    }
                     return res;
                 }
 
                 if (PingComposite(Evolution.Delete))
                 {
                     var ee = _com.ExecuteNonQuery();
+                    MyCache<T>.Clear();
                     return ee;
                 }
 
                 if (PingComposite(Evolution.Update))
                 {
                     var ee = _com.ExecuteNonQuery();
+                    MyCache<T>.Clear();
                     return ee;
                 }
 
@@ -361,6 +436,10 @@ namespace ORM_1_21_.Linq
                 {
                     var ee = _com.ExecuteScalar();
                     var res = Convert.ToInt32(ee, CultureInfo.CurrentCulture) != 0;
+                    if (isCacheUsage)
+                    {
+                        MyCache<T>.Push(hashCode, res);
+                    }
                     return res;
                 }
 
@@ -434,10 +513,14 @@ namespace ORM_1_21_.Linq
                             ((IDataParameter)par).Direction == ParameterDirection.Output ||
                             ((IDataParameter)par).Direction == ParameterDirection.ReturnValue)
                             _parOut.Add(((IDataParameter)par).ParameterName, ((IDataParameter)par).Value);
+                    if (isCacheUsage)
+                    {
+                        MyCache<T>.Push(hashCode, resDis);
+                    }
                     return resDis;
                 }
 
-                if (_listOne.Any(a => a.Operand == Evolution.Select && a.IsAgregate))
+                if (_listOne.Any(a => a.Operand == Evolution.Select && a.IsAggregate))
                 {
                     dataReader = _com.ExecuteReader();
                     object rObj = null;
@@ -450,6 +533,10 @@ namespace ORM_1_21_.Linq
 
                     dataReader.Dispose();
                     var res = UtilsCore.Convertor<TS>(rObj);
+                    if (isCacheUsage)
+                    {
+                        MyCache<T>.Push(hashCode, res);
+                    }
                     return res;
                 }
 
@@ -457,12 +544,17 @@ namespace ORM_1_21_.Linq
                 {
                     dataReader = _com.ExecuteReader();
                     var lres = new List<TS>();
-                    var ss = _listOne.Single(a => a.Operand == Evolution.Join).NewConctructor;
+                    var ss = _listOne.Single(a => a.Operand == Evolution.Join).NewConstructor;
                     if (ss == null)
                         while (dataReader.Read())
                             lres.Add((TS)dataReader[0]);
                     else
                         lres = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss);
+
+                    if (isCacheUsage)
+                    {
+                        MyCache<T>.Push(hashCode, lres);
+                    }
                     return lres;
                 }
 
@@ -476,7 +568,12 @@ namespace ORM_1_21_.Linq
                     dataReader.Dispose();
                     bool isactive1;
                     var datasingl1 = Pizdaticus.SingleData(_listOne, lres, out isactive1);
-                    return !isactive1 ? (object)lres : datasingl1;
+                    var res=!isactive1 ? (object)lres : datasingl1;
+                    if (isCacheUsage)
+                    {
+                        MyCache<T>.Push(hashCode, res);
+                    }
+                    return res;
                 }
 
                 if (PingComposite(Evolution.ElementAt))
@@ -484,7 +581,15 @@ namespace ORM_1_21_.Linq
                     dataReader = _com.ExecuteReader();
                     var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                     var enumerable = r as T[] ?? r.ToArray();
-                    if (enumerable.Any()) return enumerable.First();
+                    if (enumerable.Any())
+                    {
+                        var res=enumerable.First();
+                        if (isCacheUsage)
+                        {
+                            MyCache<T>.Push(hashCode, res);
+                        }
+                        return res;
+                    }
                     throw new Exception("Element not in selection.");
                 }
                 if (PingComposite(Evolution.ElementAtOrDefault))
@@ -492,8 +597,21 @@ namespace ORM_1_21_.Linq
                     dataReader = _com.ExecuteReader();
                     var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                     var enumerable = r as T[] ?? r.ToArray();
-                    if (enumerable.Any()) return enumerable.First();
-                    return null;
+
+                    if (enumerable.Any())
+                    {
+                        if (isCacheUsage)
+                        {
+                            MyCache<T>.Push(hashCode, enumerable.First());
+                        }
+                        return enumerable.First();
+                    }
+                    if (isCacheUsage)
+                    {
+                        MyCache<T>.Push(hashCode,null);
+                    }
+                    return enumerable.First();
+
                 }
 
                 if (PingComposite(Evolution.DistinctCustom))
@@ -503,7 +621,7 @@ namespace ORM_1_21_.Linq
                     dataReader = _com.ExecuteReader();
                     if (PingComposite(Evolution.SelectNew))
                     {
-                        var ss = _listOne.Single(a => a.Operand == Evolution.SelectNew).NewConctructor;
+                        var ss = _listOne.Single(a => a.Operand == Evolution.SelectNew).NewConstructor;
                         Pizdaticus.GetListAnonymusObjDistinct(dataReader, ss, resT);
                         return resT;
 
@@ -517,6 +635,10 @@ namespace ORM_1_21_.Linq
                         }
 
                         dataReader.Dispose();
+                        if (isCacheUsage)
+                        {
+                            MyCache<T>.Push(hashCode, resDis);
+                        }
                         return resDis;
                     }
 
@@ -525,7 +647,7 @@ namespace ORM_1_21_.Linq
                 if (PingComposite(Evolution.SelectNew))
                 {
                     //todo ion100
-                    var ss = _listOne.Single(a => a.Operand == Evolution.SelectNew).NewConctructor;
+                    var ss = _listOne.Single(a => a.Operand == Evolution.SelectNew).NewConstructor;
                     _com.CommandText = _com.CommandText.Replace(",?p", "?p");
                     dataReader = _com.ExecuteReader();
                     if (UtilsCore.IsAnonymousType(typeof(TS)))
@@ -533,6 +655,10 @@ namespace ORM_1_21_.Linq
                         var lRes = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss);
                         var dataSing1 = Pizdaticus.SingleData(_listOne, lRes, out var isaActive1);
                         var res = !isaActive1 ? (object)lRes : dataSing1;
+                        if (isCacheUsage)
+                        {
+                            MyCache<T>.Push(hashCode, res);
+                        }
                         return res;
                     }
                     else
@@ -543,6 +669,10 @@ namespace ORM_1_21_.Linq
                             bool isActive1;
                             var dataSingl1 = Pizdaticus.SingleData(_listOne, lRes, out isActive1);
                             var res = !isActive1 ? lRes : dataSingl1;
+                            if (isCacheUsage)
+                            {
+                                MyCache<T>.Push(hashCode, res);
+                            }
                             return res;
                         }
 
@@ -558,6 +688,10 @@ namespace ORM_1_21_.Linq
                 {
                     var lResult = AttributesOfClass<TS>.GetEnumerableObjectsGroupBy<T>(dataReader,
                         _listOne.First(a => a.Operand == Evolution.GroupBy).ExpressionDelegate, _providerName);
+                    if (isCacheUsage)
+                    {
+                        MyCache<T>.Push(hashCode, lResult);
+                    }
                     return lResult;
                 }
 
@@ -565,6 +699,10 @@ namespace ORM_1_21_.Linq
                 bool isActive;
                 var dataSingl = Pizdaticus.SingleData(_listOne, resd, out isActive);
                 var ress2 = !isActive ? (object)resd : dataSingl;
+                if (isCacheUsage)
+                {
+                    MyCache<T>.Push(hashCode, ress2);
+                }
                 return ress2;
             }
 

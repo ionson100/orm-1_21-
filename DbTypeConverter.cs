@@ -14,7 +14,7 @@ namespace ORM_1_21_
         {
 
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             if (type == typeof(Char[]))
             {

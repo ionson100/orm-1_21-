@@ -26,7 +26,7 @@ namespace TestLibrary
 
     }
     [MapTableName("my_class5")]
-    class MyClassSqlite : MyClassBase
+    public class MyClassSqlite : MyClassBase
     {
 
     }

@@ -1,24 +1,24 @@
 ﻿namespace ORM_1_21_
 {
     /// <summary>
-    /// Type providers for databаse
+    /// Type providers for database
     /// </summary>
     public enum ProviderName
     {
         ///<summary>
-        ///MsSql
+        ///MsSql database
         ///</summary>
         MsSql = 0,
         ///<summary>
-        ///MySql
+        ///MySql database
         ///</summary>
         MySql,
         /// <summary>
-        /// Postgresql
+        ///  PostgreSql database
         /// </summary>
         Postgresql,
         /// <summary>
-        /// Sqlite
+        /// Sqlite database
         /// </summary>
         Sqlite
     }

@@ -62,6 +62,35 @@ namespace ORM_1_21_.Utils
             {
                 return "[INT]";
             }
+
+            if (type == typeof(UInt32) || type == typeof(UInt32?))
+            {
+                return "[INT]";
+            }
+            if (type == typeof(Int16) || type == typeof(Int16?))
+            {
+                return "[SMALLINT]";
+            }
+
+            if (type == typeof(UInt16) || type == typeof(UInt16?))
+            {
+                return "[SMALLINT]";
+            }
+
+            if (type == typeof(UInt64) || type == typeof(UInt64?))
+            {
+                return "[bigint]";
+            }
+
+            if (type == typeof(Byte) || type == typeof(Byte?) || type == typeof(SByte) || type == typeof(SByte?))
+            {
+                return "[TINYINT]";
+            }
+
+            if (type == typeof(char) || type == typeof(char?))
+            {
+                return "[char](1)";
+            }
             if (type == typeof(bool) || type == typeof(bool?))//real
             {
                 return "[BIT]";
@@ -84,6 +113,7 @@ namespace ORM_1_21_.Utils
             {
                 return "[DATETIME]";
             }
+
 
             if (type == typeof(Guid))
             {

@@ -4,10 +4,7 @@ using System.Data;
 
 namespace ORM_1_21_.Transaction
 {
-    /// <summary>
-    /// Тип контейнер,содержит данные для транзакции,
-    /// занятость транзакции, фабрику для транзакций
-    /// </summary>
+   
     internal class Transactionale : ITransaction
     {
         IDbConnection _connection;

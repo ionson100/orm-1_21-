@@ -110,11 +110,11 @@ namespace ORM_1_21_.Linq.MySql
                         Param.Add(d.Key, d.Value);
                     }
 
-                    ListOne.Add(new OneComprosite { Operand = Evolution.Join, Body = paramList[1].ToString(), NewConctructor = paramList[2] });
+                    ListOne.Add(new OneComprosite { Operand = Evolution.Join, Body = paramList[1].ToString(), NewConstructor = paramList[2] });
                 }
                 else
                 {
-                    throw new Exception("paramList pizda");
+                    throw new Exception("paramList bad");
                 }
             }
 
@@ -1166,9 +1166,7 @@ namespace ORM_1_21_.Linq.MySql
                 var typew = ((MemberExpression)lambda.Body).Expression.Type;
                 if (typew != typeof(T) && UtilsCore.IsAnonymousType(typew) && ListOne.Any(a => a.Operand == Evolution.SelectNew))
                 {
-                    //var trtyetr= typeof (T);
-                    // throw new Exception("не реализовано");
-                    //tt = Pizdaticus.GetDelegateForGroupBy((LambdaExpression)StripQuotes(m.Arguments[1]));
+                  
                     tt = ((LambdaExpression)StripQuotes(m.Arguments[1])).Compile();
                 }
                 else
@@ -1176,25 +1174,7 @@ namespace ORM_1_21_.Linq.MySql
                     Expression exp = StripQuotes(m.Arguments[1]);
                     LambdaExpression lexp = (LambdaExpression)exp;
                     tt = GroupExpression<T>.Delegate(lexp);
-                    // if (lexp.ReturnType == typeof(Guid))
-                    // {
-                    //     tt = (Func<T, Guid>)(lexp).Compile();
-                    // }
-                    // else if (lexp.ReturnType == typeof(DateTime))
-                    // {
-                    //     tt = (Func<T, DateTime>)(lexp).Compile();
-                    // }
-                    ////else if (lexp.ReturnType.BaseType == typeof(Enum))
-                    ////{
-                    ////    tt = (Func<T, Enum>)(lexp).Compile();
-                    ////}
-                    // else
-                    // {
-                    //     tt = (Func<T, object>)(lexp).Compile();
-                    //
-                    // }
-
-
+                  
                 }
                 Visit(lambda.Body);
 
@@ -1465,7 +1445,7 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
               && m.Method.Name == "Single")
             {
-                ListOne.Add(new OneComprosite { Operand = Evolution.Single, Body = "", IsAgregate = true });
+                ListOne.Add(new OneComprosite { Operand = Evolution.Single, Body = "", IsAggregate = true });
 
                 Visit(m.Arguments[0]);
 
@@ -1489,7 +1469,7 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
              && m.Method.Name == "SingleOrDefault")
             {
-                ListOne.Add(new OneComprosite { Operand = Evolution.SingleOrDefault, Body = "", IsAgregate = true });
+                ListOne.Add(new OneComprosite { Operand = Evolution.SingleOrDefault, Body = "", IsAggregate = true });
                 ListOne.Add(new OneComprosite { Operand = Evolution.First, Body = "" });
                 Visit(m.Arguments[0]);
 
@@ -1533,7 +1513,7 @@ namespace ORM_1_21_.Linq.MySql
                                 StringB.Append(mcs.Method.Name + "(");
                                 Visit(lambda.Body);
                                 StringB.Append(")");
-                                ListOne.Add(new OneComprosite { Operand = Evolution.Select, Body = StringB.ToString(), IsAgregate = true });
+                                ListOne.Add(new OneComprosite { Operand = Evolution.Select, Body = StringB.ToString(), IsAggregate = true });
 
                                 break;
                             }
@@ -2173,20 +2153,17 @@ namespace ORM_1_21_.Linq.MySql
                         {
                             case ProviderName.Postgresql:
                                 {
-                                    throw new Exception("Не реализовано");
-                                    // StringB.Append("extract(MICROSECOND from ");
-                                    // Visit(m.Expression);
-                                    // StringB.Append(")");
-                                    break;
+                                    throw new Exception("not implemented");
+                                  
                                 }
                             case ProviderName.Sqlite:
                                 {
-                                    throw new Exception("Не реализовано");
-                                    break;
+                                    throw new Exception("not implemented");
+                                
                                 }
                             default:
                                 {
-                                    throw new Exception("Не реализовано");
+                                    throw new Exception("not implemented");
                                 }
                         }
 
@@ -2407,25 +2384,25 @@ namespace ORM_1_21_.Linq.MySql
 
                 if (nex.Members != null)
                 {
-                    _listOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConctructor = Expression.New(nex.Constructor, args, nex.Members) });
+                    _listOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConstructor = Expression.New(nex.Constructor, args, nex.Members) });
                     return Expression.New(nex.Constructor, args, nex.Members);
                 }
 
                 else
                 {
-                    _listOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConctructor = nex });
+                    _listOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConstructor = nex });
                     return Expression.New(nex.Constructor, args);
                 }
 
             }
             //todo ion100
-            _listOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConctructor = nex });
+            _listOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConstructor = nex });
             return nex;
         }
 
         private Expression BindSelectMany(Expression exp, Expression source, LambdaExpression collectionSelector, LambdaExpression resultSelector)
         {
-            throw new Exception("Не реализовано");
+            throw new Exception("not implemented");
         }
 
         public string Translate(Expression expression, out Evolution ev1, string par)

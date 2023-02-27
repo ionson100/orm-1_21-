@@ -93,7 +93,7 @@ namespace ORM_1_21_
                     {
                         try
                         {
-                            if (!isSearchGac1) throw new Exception("Запрет на поиск в GAC");
+                            if (!isSearchGac1) throw new Exception("Search ban GAC");
                             CurFactory = DbProviderFactories.GetFactory("MySql.Data.MySqlClient");
                         }
                         catch 
@@ -110,7 +110,7 @@ namespace ORM_1_21_
                     {
                         try
                         {
-                            if (!isSearchGac1) throw new Exception("Запрет на поиск в GAC");
+                            if (!isSearchGac1) throw new Exception("Search ban  GAC");
                             CurFactory = DbProviderFactories.GetFactory("System.Data.SQLite.SQLiteFactory");
                         }
                         catch
@@ -128,7 +128,7 @@ namespace ORM_1_21_
                     {
                         try
                         {
-                            if (!isSearchGac1) throw new Exception("Запрет на поиск в GAC");
+                            if (!isSearchGac1) throw new Exception("Search ban GAC");
                             CurFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
                         }
                         catch 

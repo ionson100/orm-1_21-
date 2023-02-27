@@ -15,7 +15,7 @@ namespace ORM_1_21_
             _providerName = providerName;
         }
 
-        public  string GetInsertSql<T>(T t)
+        public string GetInsertSql<T>(T t)
         {
             StringBuilder builder = new StringBuilder();
             builder.Append($"INSERT INTO {AttributesOfClass<T>.TableName(_providerName)} (");
@@ -36,7 +36,7 @@ namespace ORM_1_21_
             builder.Append(" VALUES (");
             if (pk.Generator == Generator.Assigned)
             {
-                var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName,t);
+                var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, t);
                 Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
                 builder.Append(GetValue(o, type)).Append(",");
 
@@ -44,7 +44,7 @@ namespace ORM_1_21_
 
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
             {
-                var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName,t);
+                var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, t);
                 var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
                 if (type == typeof(Image) || type == typeof(byte[])) continue;
                 var str = GetValue(o, type);
@@ -55,7 +55,7 @@ namespace ORM_1_21_
 
         }
 
-        private  string GetValue(object o, Type type)
+        private string GetValue(object o, Type type)
         {
             if (o == null) return "null";
 
@@ -99,9 +99,9 @@ namespace ORM_1_21_
             return $"{o.ToString().Replace("'", "''")}";
         }
 
-        public  string GetDeleteSql<T>(T t)
+        public string GetDeleteSql<T>(T t)
         {
-            var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName,t);
+            var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, t);
             Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
             return
                 $"Delete from {AttributesOfClass<T>.TableName(_providerName)} where " +

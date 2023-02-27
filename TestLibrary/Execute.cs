@@ -28,7 +28,7 @@ namespace TestLibrary
                      var ts = ses.BeginTransaction();
                      MyClass c = new MyClass();
                      ses.Save(c);
-                     var s = Configure.Session.Querion<MyClass>().ToList().Count();
+                     var s = Configure.Session.Query<MyClass>().ToList().Count();
                      Console.WriteLine($"{i} -- " + s);
                      ts.Commit();
                  }
@@ -80,89 +80,89 @@ namespace TestLibrary
             };
             session.Save(myClass);
             List<T> res = null;
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.Year == dt.Year).ToList();
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Year == dt.Year).ToList();
             Console.WriteLine($"{1} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.Month == dt.Month).ToList();
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Month == dt.Month).ToList();
             Console.WriteLine($"{2} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.Hour == dt.Hour).ToList();
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Hour == dt.Hour).ToList();
             Console.WriteLine($"{3} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.Day == dt.Day).ToList();
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Day == dt.Day).ToList();
             Console.WriteLine($"{4} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.Minute == dt.Minute).ToList();
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Minute == dt.Minute).ToList();
             Console.WriteLine($"{5} {res.Count == 1} минуты могут не совпадать");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.Second == dt.Second).ToList();
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Second == dt.Second).ToList();
             Console.WriteLine($"{6} {res.Count == 1} секунды могут не совпадать");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.DayOfYear == dt.DayOfYear).ToList();
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.DayOfYear == dt.DayOfYear).ToList();
             Console.WriteLine($"{7} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.DayOfWeek == dt.DayOfWeek).ToList();
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.DayOfWeek == dt.DayOfWeek).ToList();
             Console.WriteLine($"{8} {res.Count == 1}");
 
 
 
 
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.AddYears(1).Year == dt.Year + 1)
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddYears(1).Year == dt.Year + 1)
                 .ToList();
             Console.WriteLine($"{9} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.AddMonths(1).Month == dt.Month + 1)
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddMonths(1).Month == dt.Month + 1)
                 .ToList();
             Console.WriteLine($"{10} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.AddHours(1).Hour == dt.Hour + 1)
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddHours(1).Hour == dt.Hour + 1)
                 .ToList();
             Console.WriteLine($"{11} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.AddDays(1).Day == dt.Day + 1)
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddDays(1).Day == dt.Day + 1)
                 .ToList();
             Console.WriteLine($"{12} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.AddMinutes(1).Minute == dt.Minute + 1)
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddMinutes(1).Minute == dt.Minute + 1)
                 .ToList();
             Console.WriteLine($"{13} {res.Count == 1} минуты могут не совпадать");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.DateTime.AddSeconds(1).Second == dt.Second + 1)
+            res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddSeconds(1).Second == dt.Second + 1)
                 .ToList();
             Console.WriteLine($"{14} {res.Count == 1}  секунды могут не совпадать");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.Name.Concat("a").Concat("a") == "nameaa")
+            res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Concat("a").Concat("a") == "nameaa")
                 .ToList();
             Console.WriteLine($"{15} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.Name.Substring(0) == "name").ToList();
+            res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Substring(0) == "name").ToList();
             Console.WriteLine($"{16} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.Name.Substring(0, 1) == "n").ToList();
+            res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Substring(0, 1) == "n").ToList();
             Console.WriteLine($"{17} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Age == 12 && a.Name.Contains("ame")).ToList();
+            res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Contains("ame")).ToList();
             Console.WriteLine($"{18} {res.Count == 1}");
 
             if (s.GetProviderName() == ProviderName.MsSql)
             {
-                T my1 = session.Querion<T>().FirstOrDefault(A => A.Age == 12);
+                T my1 = session.Query<T>().FirstOrDefault(A => A.Age == 12);
                 my1.Name = " dnamed ";
                 session.Save(my1);
-                res = session.Querion<T>().Where(a => a.Age == 12 && a.Name.Trim() == "dnamed").ToList();
+                res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Trim() == "dnamed").ToList();
                 Console.WriteLine($"{19} {res.Count == 1}");
-                res = session.Querion<T>().Where(a => a.Age == 12 && a.Name.TrimStart() == "dnamed ").ToList();
+                res = session.Query<T>().Where(a => a.Age == 12 && a.Name.TrimStart() == "dnamed ").ToList();
                 Console.WriteLine($"{20} {res.Count == 1}");
-                var sss = session.Querion<T>().Select(a => new { sdsd = a.Name.TrimEnd() }).ToList();
-                res = session.Querion<T>().Where(a => a.Age == 12 && a.Name.TrimEnd() == " dnamed").ToList();
+                var sss = session.Query<T>().Select(a => new { sdsd = a.Name.TrimEnd() }).ToList();
+                res = session.Query<T>().Where(a => a.Age == 12 && a.Name.TrimEnd() == " dnamed").ToList();
                 Console.WriteLine($"{21} {res.Count == 1}");
             }
             else
             {
-                T my2 = session.Querion<T>().FirstOrDefault(A => A.Age == 12);
+                T my2 = session.Query<T>().FirstOrDefault(A => A.Age == 12);
                 my2.Name = "dnamed";
                 session.Save(my2);
-                res = session.Querion<T>().Where(a => a.Age == 12 && a.Name.Trim('4') == "dnamed").ToList();
+                res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Trim('4') == "dnamed").ToList();
                 Console.WriteLine($"{19} {res.Count == 1}");
-                res = session.Querion<T>().Where(a => a.Age == 12 && a.Name.TrimStart('d') == "named").ToList();
+                res = session.Query<T>().Where(a => a.Age == 12 && a.Name.TrimStart('d') == "named").ToList();
                 Console.WriteLine($"{20} {res.Count == 1}");
-                res = session.Querion<T>().Where(a => a.Age == 12 && a.Name.TrimEnd('d') == "dname").ToList();
+                res = session.Query<T>().Where(a => a.Age == 12 && a.Name.TrimEnd('d') == "dname").ToList();
                 Console.WriteLine($"{21} {res.Count == 1}");
             }
 
-            T my3 = session.Querion<T>().FirstOrDefault(A => A.Age == 12);
+            T my3 = session.Query<T>().FirstOrDefault(A => A.Age == 12);
             my3.Name = "name";
             session.Save(my3);
-            var err = session.Querion<T>().Select(a => new { sd = a.Name.Length }).ToList();
-            res = session.Querion<T>().Where(a => a.Name.Length == "name".Length).ToList();
+            var err = session.Query<T>().Select(a => new { sd = a.Name.Length }).ToList();
+            res = session.Query<T>().Where(a => a.Name.Length == "name".Length).ToList();
             Console.WriteLine($"{22} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Name.ToUpper() == "NAME".ToUpper().Trim()).ToList();
+            res = session.Query<T>().Where(a => a.Name.ToUpper() == "NAME".ToUpper().Trim()).ToList();
             Console.WriteLine($"{23} {res.Count == 1}");
-            res = session.Querion<T>().Where(a => a.Name.ToLower() == "NAME".ToLower().Trim()).ToList();
+            res = session.Query<T>().Where(a => a.Name.ToLower() == "NAME".ToLower().Trim()).ToList();
             Console.WriteLine($"{24} {res.Count == 1}");
 
             List<T> list = new List<T>()
@@ -174,15 +174,15 @@ namespace TestLibrary
             var i = session.InsertBulk(list);
             Console.WriteLine($"{24}/1 InsertBulk {i == 3}");
 
-            var count = session.Querion<T>().Count();
+            var count = session.Query<T>().Count();
 
             Console.WriteLine($"{25} {count == 4}");
-            var o = session.Querion<T>().OrderBy(a => a.Age).FirstOrDefault();
+            var o = session.Query<T>().OrderBy(a => a.Age).FirstOrDefault();
 
             Console.WriteLine($"{26} {o != null && o.Age == 10}");
             Console.WriteLine("Тест транзакции");
             session.TruncateTable<T>();
-            count = session.Querion<T>().Count();
+            count = session.Query<T>().Count();
             Console.WriteLine($"{27} {count == 0}");
 
             IsolationLevel? level = null;
@@ -211,7 +211,7 @@ namespace TestLibrary
 
                 }
 
-                count = session.Querion<T>().Count();
+                count = session.Query<T>().Count();
                 Console.WriteLine($"{28} {count == 3}");
             }
             session.TruncateTable<T>();
@@ -240,7 +240,7 @@ namespace TestLibrary
 
                 }
 
-                count = session.Querion<T>().Count();
+                count = session.Query<T>().Count();
                 Console.WriteLine($"{29} {count == 6}");
                 session.TruncateTable<T>();
                 session.Save(new T
@@ -248,15 +248,15 @@ namespace TestLibrary
                     Name = "name",
                     Age = 12
                 });
-                res = session.Querion<T>().Where(a => a.Name.Substring(1).Reverse() == "ema").ToList();
+                res = session.Query<T>().Where(a => a.Name.Substring(1).Reverse() == "ema").ToList();
                 Console.WriteLine($"{30} {res.Count == 1}");
-                res = session.Querion<T>().Where(a => string.IsNullOrEmpty(a.Description)).ToList();
+                res = session.Query<T>().Where(a => string.IsNullOrEmpty(a.Description)).ToList();
                 Console.WriteLine($"{31} {res.Count == 1}");
-                o = session.Querion<T>().Where(a => a.Age == 12).Single();
+                o = session.Query<T>().Where(a => a.Age == 12).Single();
                 Console.WriteLine($"{31} {o != null}");
                 try
                 {
-                    o = session.Querion<T>().Where(a => a.Age == 14).Single();
+                    o = session.Query<T>().Where(a => a.Age == 14).Single();
                     Console.WriteLine($"{32} {false}");
                 }
                 catch (Exception e)
@@ -264,11 +264,11 @@ namespace TestLibrary
                     Console.WriteLine($"{32} {true} {e.Message}");
                 }
 
-                o = session.Querion<T>().Where(a => a.Age == 14).SingleOrDefault();
+                o = session.Query<T>().Where(a => a.Age == 14).SingleOrDefault();
                 Console.WriteLine($"{33} {o == null}");
                 try
                 {
-                    o = session.Querion<T>().Where(a => a.Age == 14).First();
+                    o = session.Query<T>().Where(a => a.Age == 14).First();
                     Console.WriteLine($"{34} {false}");
                 }
                 catch (Exception e)
@@ -276,7 +276,7 @@ namespace TestLibrary
                     Console.WriteLine($"{34} {true} {e.Message}");
                 }
 
-                o = session.Querion<T>().Where(a => a.Age == 14).FirstOrDefault();
+                o = session.Query<T>().Where(a => a.Age == 14).FirstOrDefault();
                 Console.WriteLine($"{34} {o == null}");
                 session.TruncateTable<T>();
                 session.InsertBulk(new List<T>()
@@ -288,45 +288,50 @@ namespace TestLibrary
                     new T() { Age = 60, Name = "name" },
                     new T() { Age = 10, Name = "name" },
                 });
-                var ob=session.Querion<T>().Select(a => new { ass = a.Age, asss = string.Concat(a.Name, a.Age) }).ToList();
+                var ob=session.Query<T>().Select(a => new { ass = a.Age, asss = string.Concat(a.Name, a.Age) }).ToList();
                 Console.WriteLine($"{35} {ob.Count()==6}");
-                count = session.Querion<T>().Where(a => a.Name == "name").OrderBy(r => r.Age).ToList().Sum(a => a.Age);
+                count = session.Query<T>().Where(a => a.Name == "name").OrderBy(r => r.Age).ToList().Sum(a => a.Age);
                 Console.WriteLine($"{36} {count == 110}");
-                var groupList = session.Querion<T>().GroupBy(r => r.Name).ToList();
+                var groupList = session.Query<T>().GroupBy(r => r.Name).ToList();
                 Console.WriteLine($"{37} {groupList.Count()==2&&groupList[0].Count()==3&&groupList[1].Count()==3}");
 
-                o = session.Querion<T>().OrderBy(a => a.Age).First();
+                o = session.Query<T>().OrderBy(a => a.Age).First();
                 Console.WriteLine($"{38} {o.Age==10}");
-                o = session.Querion<T>().OrderByDescending(a => a.Age).First();
+                o = session.Query<T>().OrderByDescending(a => a.Age).First();
                 Console.WriteLine($"{39} {o.Age == 60}");
-                count =  session.Querion<T>().Where(a => a.Age < 100).OrderBy(ds => ds.Age).Limit(0,2).ToListAsync().Result.Sum(a=>a.Age);
+                count =  session.Query<T>().Where(a => a.Age < 100).OrderBy(ds => ds.Age).Limit(0,2).ToListAsync().Result.Sum(a=>a.Age);
                 Console.WriteLine($"{40} {count == 30}");
-                var sCore = session.Querion<T>().Where(a=>a.Name.Contains("1")).DistinctCore(a => a.Name);
+                var sCore = session.Query<T>().Where(a=>a.Name.Contains("1")).DistinctCore(a => a.Name);
                 Console.WriteLine($"{41} {sCore.Count() == 1}");
-                count = session.Querion<T>().Where(sw=>sw.Age==10).Update(d => new Dictionary<object, object>
+                count = session.Query<T>().Where(sw=>sw.Age==10).Update(d => new Dictionary<object, object>
                 {
                     { d.Name,string.Concat(d.Name,d.Age)},
                     { d.DateTime,DateTime.Now}
                 });
                
-                res = session.Querion<T>().Where(a => a.Name == "name10").ToList();
+                res = session.Query<T>().Where(a => a.Name == "name10").ToList();
                 Console.WriteLine($"{42} {res.Count()==1}");
-                session.Querion<T>().Delete(a => a.Name == "name10");
-                res = session.Querion<T>().Where(a => a.Name == "name10").ToList();
+                session.Query<T>().Delete(a => a.Name == "name10");
+                res = session.Query<T>().Where(a => a.Name == "name10").ToList();
                 Console.WriteLine($"{43} {res.Count() == 0}");
-                session.Querion<T>().Where(a => a.Age == 10).Delete();
-                count = session.Querion<T>().Where(a => a.Age == 10).Count();
+                session.Query<T>().Where(a => a.Age == 10).Delete();
+                count = session.Query<T>().Where(a => a.Age == 10).Count();
                 Console.WriteLine($"{44} {count == 0}");
                 res =session.FreeSql<T>($"select * from {session.TableName<T>()} where {session.ColumnName<T>(a=>a.Age)} = @1",
                     new Parameter("@1",40)).ToList();
                 Console.WriteLine($"{45} {res.Count() == 1}");
-                dynamic di = session.FreeSql<dynamic>($"select age, name from {session.TableName<T>()}");
-                Console.WriteLine($"{46} {di.Count == 5}");
-                var anon = TempSql(new { age = 3, name = "" },session,session.TableName<T>());
-                Console.WriteLine($"{47} {anon.Count() == 5}");
-                anon = session.Querion<T>().Where(a => a.Age == 40).Select(d => new { age = d.Age, name = d.Name })
+
+
+                 var anon1 = session.Query<T>().Where(a => a.Age == 40).Select(d => new { age = d.Age, name = d.Name })
                     .ToList();
-                Console.WriteLine($"{49} {anon.Count() == 1}");
+                Console.WriteLine($"{46} {anon1.Count() == 1}");
+
+
+                dynamic di = session.FreeSql<dynamic>($"select age, name from {session.TableName<T>()}");
+                Console.WriteLine($"{47} {di.Count == 5}");
+                var anon = TempSql(new { age = 3, name = "" },session,session.TableName<T>());
+                Console.WriteLine($"{48} {anon.Count() == 5}");
+               
 
 
 
@@ -341,7 +346,7 @@ namespace TestLibrary
 
 
         }
-        private static IEnumerable<Ts> TempSql<Ts>(Ts t, ISession session,string tableName)
+        public static IEnumerable<Ts> TempSql<Ts>(Ts t, ISession session,string tableName)
         {
             return session.FreeSql<Ts>($"select age as enum1,name from {tableName}");
         }

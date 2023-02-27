@@ -53,6 +53,7 @@
     <DocumentationFile>bin\Debug\ORM{1_21}.XML</DocumentationFile>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -121,11 +122,16 @@
     <Compile Include="ActionMode.cs" />
     <Compile Include="AttributesOfClass.cs" />
     <Compile Include="Attribute\BaseAttribute.cs" />
+    <Compile Include="Attribute\MapColumnTypeAttribute.cs" />
+    <Compile Include="Attribute\MapDefaultValueAttribute.cs" />
     <Compile Include="Attribute\MapIndexAttribute.cs" />
+    <Compile Include="Attribute\MapSerializableAttribute.cs" />
     <Compile Include="Attribute\MapTableNameAttribute.cs" />
     <Compile Include="Attribute\MapTypeMysqlTableAttribute.cs" />
     <Compile Include="Attribute\MapUsageActivatorAttribute.cs" />
+    <Compile Include="CacheState.cs" />
     <Compile Include="ColumnsTableFactory.cs" />
+    <Compile Include="MyCache.cs" />
     <Compile Include="StorageOtherBaseFactory.cs" />
     <Compile Include="TableColumn.cs" />
     <Compile Include="CallExp.cs" />
@@ -135,7 +141,6 @@
     <Compile Include="Configure2.cs" />
     <Compile Include="FactoryCreatorTable.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Interface\ISerializableOrm.cs" />
     <Compile Include="Linq\MsSql\MsSqlConstructorSql.cs" />
     <Compile Include="Linq\MsSql\QueryTranslatorMsSql.cs" />
     <Compile Include="Linq\StringConst.cs" />
@@ -166,7 +171,7 @@
     <Compile Include="Linq\QueryProvider.cs" />
     <Compile Include="Linq\MySql\QueryTranslator.cs" />
     <Compile Include="Linq\TypeSystem.cs" />
-    <Compile Include="PersistentAttribute.cs" />
+    <Compile Include="Attribute\PersistentAttribute.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

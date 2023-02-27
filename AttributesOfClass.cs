@@ -55,6 +55,14 @@ namespace ORM_1_21_
             return IsUssageActivatorInner.Value;
         }
 
+        public static Lazy<bool> IsSerializableObject = new Lazy<bool>(() =>
+        {
+            var t = typeof(T).GetCustomAttribute(typeof(MapSerializableAttribute));
+            if (t != null) return true;
+            return false;
+
+        }, LazyThreadSafetyMode.PublicationOnly);
+
         public static Lazy<bool> IsUssageActivatorInner = new Lazy<bool>(() =>
         {
             var t = typeof(T).GetCustomAttribute(typeof(MapUsageActivatorAttribute),true);
@@ -250,7 +258,7 @@ namespace ORM_1_21_
         private static Dictionary<Type, string> ActivateTableNameAll()
         {
             ProviderName providerName = CurProviderName;
-
+            var ee = typeof(T);
             var dictionary = new Dictionary<Type, string>
             {
                 {
@@ -420,7 +428,7 @@ namespace ORM_1_21_
             if (reader == null) return null;
             var rr = typeof(T).GetGenericArguments();
             var r = Pizdaticus.GetRiderToList<TT>(reader, providerName);
-            var res = CallExp<T, TT>.GetTrechForGroupBy(r, expDelegate, rr[0]);
+            var res = CallExp<T, TT>.GetTreeForGroupBy(r, expDelegate, rr[0]);
             return res;
         }
 
@@ -826,7 +834,7 @@ namespace ORM_1_21_
             Provider = providerName;
             var e = PrimaryKeyLazy.Value[typeof(T)].First();
             if (e.Generator != Generator.Native) return;
-            var valCore = UtilsCore.ConvertatorPrimaryKeyType(e.TypeColumn, Convert.ToDecimal(val));
+            var valCore = UtilsCore.ConverterPrimaryKeyType(e.TypeColumn, Convert.ToDecimal(val));
             item.GetType().GetProperty(e.PropertyName).SetValue(item, valCore, null);
         }
 

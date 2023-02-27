@@ -8,8 +8,8 @@ namespace ORM_1_21_.Linq
     {
         internal static Type GetElementType(Type seqType)
         {
-            var ienum = FindIEnumerable(seqType);
-            return ienum == null ? seqType : ienum.GetGenericArguments()[0];
+            var iEnum = FindIEnumerable(seqType);
+            return iEnum == null ? seqType : iEnum.GetGenericArguments()[0];
         }
 
         private static Type FindIEnumerable(Type seqType)
@@ -20,17 +20,17 @@ namespace ORM_1_21_.Linq
                 return typeof(IEnumerable<>).MakeGenericType(seqType.GetElementType());
             if (seqType.IsGenericType)
             {
-                foreach (var ienum in seqType.GetGenericArguments().Select(arg => typeof(IEnumerable<>).MakeGenericType(arg)).Where(ienum => ienum.IsAssignableFrom(seqType)))
+                foreach (var type in seqType.GetGenericArguments().Select(arg => typeof(IEnumerable<>).MakeGenericType(arg)).Where(im => im.IsAssignableFrom(seqType)))
                 {
-                    return ienum;
+                    return type;
                 }
             }
-            var ifaces = seqType.GetInterfaces();
-            if (ifaces.Length > 0)
+            var iFaces = seqType.GetInterfaces();
+            if (iFaces.Length > 0)
             {
-                foreach (var ienum in ifaces.Select(FindIEnumerable).Where(ienum => ienum != null))
+                foreach (var type in iFaces.Select(FindIEnumerable).Where(im => im != null))
                 {
-                    return ienum;
+                    return type;
                 }
             }
             if (seqType.BaseType != null && seqType.BaseType != typeof(object))

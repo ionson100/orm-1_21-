@@ -3,9 +3,7 @@ using System;
 
 namespace ORM_1_21_
 {
-    /// <summary>
-    /// 
-    /// </summary>
+   
     internal class FactoryCreatorTable
     {
         public string SqlCreate<T>(ProviderName providerName)
@@ -58,10 +56,14 @@ namespace ORM_1_21_
             {
                 return "NULL";
             }
+            if (type == typeof(char))
+            {
+                return $"NOT NULL DEFAULT  '\0'";
+            }
 
             if (type == typeof(Guid))
             {
-                return "NULL";
+                return $"NOT NULL DEFAULT '{Guid.Empty}'";
             }
 
             if (UtilsCore.IsJsonType(type))

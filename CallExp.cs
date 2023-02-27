@@ -7,7 +7,7 @@ namespace ORM_1_21_
 {
     internal static class CallExp<TRes, TElement>
     {
-        public static IEnumerable<TRes> GetTrechForGroupBy(IEnumerable<TElement> list, Delegate @delegate, Type type)
+        public static IEnumerable<TRes> GetTreeForGroupBy(IEnumerable<TElement> list, Delegate @delegate, Type type)
         {
             if (type == typeof(Guid)) return (IEnumerable<TRes>)list.GroupBy((Func<TElement, Guid>)@delegate);
             if (type == typeof(uint)) return (IEnumerable<TRes>)list.GroupBy((Func<TElement, uint>)@delegate);
@@ -42,7 +42,7 @@ namespace ORM_1_21_
             if (type == typeof(float?)) return (IEnumerable<TRes>)list.GroupBy((Func<TElement, float?>)@delegate);
             if (type == typeof(byte[])) return (IEnumerable<TRes>)list.GroupBy((Func<TElement, byte?>)@delegate);
             if (type == typeof(object)) return (IEnumerable<TRes>)list.GroupBy((Func<TElement, object>)@delegate);
-            throw new Exception(string.Format(CultureInfo.CurrentCulture, "не могу конвертировать тип {0} as {1}",
+            throw new Exception(string.Format(CultureInfo.CurrentCulture, "can't convert type {0} as {1}",
                 type.FullName));
         }
     }
