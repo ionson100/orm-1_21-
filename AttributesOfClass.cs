@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using ORM_1_21_.Extensions;
 
 namespace ORM_1_21_
 {
@@ -246,7 +247,26 @@ namespace ORM_1_21_
             return SimpleSelect(providerName);
         }
 
-        public static bool IsValid => typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), true).Any();
+        private static readonly Lazy<bool> _isValid = new Lazy<bool>(() =>
+        {
+           return typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), true).Any();
+        }, LazyThreadSafetyMode.PublicationOnly);
+
+        public static bool IsValid => _isValid.Value ;
+
+
+
+
+        private static readonly Lazy<bool> _isReceiverFreeSql = new Lazy<bool>(() =>
+        {
+            return typeof(T).GetCustomAttributes(typeof(MapReceiverFreeSqlAttribute), true).Any();
+        }, LazyThreadSafetyMode.PublicationOnly);
+
+        public static bool IsReceiverFreeSql => _isReceiverFreeSql.Value;
+
+
+
+
         private static ProviderName? ProviderName { get; set; }
 
         private static Dictionary<Type, List<MapColumnNameAttribute>> ActivateDallAll()

@@ -1,13 +1,14 @@
-﻿using ORM_1_21_.Linq;
-using ORM_1_21_.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
+using ORM_1_21_.Linq;
+using ORM_1_21_.Utils;
 
-namespace ORM_1_21_
+namespace ORM_1_21_.Extensions
 {
 
     /// <summary>
@@ -36,12 +37,14 @@ namespace ORM_1_21_
         /// <summary>
         /// Array of non-recurring values, by selected field
         /// </summary>
-        public static IEnumerable<TR> DistinctCore<T, TR>(this IQueryable<T> coll, Expression<Func<T, TR>> exp) where T : class
+        public static IEnumerable<TR> Distinct<T, TR>(this IQueryable<T> coll, Expression<Func<T, TR>> exp) where T : class
         {
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCustom, TypeRetyrn = typeof(TR), ListDistict = new List<TR>() });
+            { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCore, TypeRetyrn = typeof(TR), ListDistict = new List<TR>() });
             return coll.Provider.Execute<IEnumerable<TR>>(coll.Expression);
         }
+
+        
 
 
         /// <summary>
@@ -186,23 +189,97 @@ namespace ORM_1_21_
             return new DbQueryProvider<TResult>((Sessione)ses).ExecuteCallParam<TResult>(callExpr, par);
         }
 
+       // /// <summary>
+       // ///Asynchronous request execution for groupBy
+       // /// </summary>
+        // public static Task<List<IGrouping<string, TResult>>> ToListAsync<TResult>(this IQueryable<IGrouping<string, TResult>> coll) 
+        // {
+        //
+        //     try
+        //     {
+        //         return Task.FromResult(ActionCoreGroupBy());
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         MySqlLogger.Info($" {Environment.NewLine}{coll}{Environment.NewLine}{ex}");
+        //         throw;
+        //     }
+        //     List<IGrouping<string, TResult>> ActionCoreGroupBy()
+        //     {
+        //         List<IGrouping<string, TResult>> resList = new List<IGrouping<string, TResult>>();
+        //         ISession ses = ((ISqlComposite)coll.Provider).Sessione;
+        //         var provider = new DbQueryProvider<TResult>((Sessione)ses);
+        //         foreach (var o in (IEnumerable<object>)provider.Execute<IGrouping<string, TResult>>(coll.Expression))
+        //         {
+        //             resList.Add((IGrouping<string, TResult>)o);
+        //         }
+        //         return resList;
+        //     }
+        //
+        // }
         /// <summary>
-        ///Asynchronous request execution
+        ///Asynchronous request execution for groupBy
         /// </summary>
-        public static Task<List<TResult>> ToListAsync<TResult>(this IQueryable<TResult> coll)
+        public static Task<List<IGrouping<string, TResult>>> ToLisAsync<TResult>(this IQueryable<IGrouping<string, TResult>> coll,
+            CancellationToken cancellationToken=default)
         {
+
             try
             {
-                var tre = typeof(TResult);
-                IInnerList d = (IInnerList)coll;
-                var list = d.GetInnerList();
-                return Task.FromResult((List<TResult>)list);
+                ISession ses = ((ISqlComposite)coll.Provider).Sessione;
+                return new DbQueryProvider<TResult>((Sessione)ses).ToListGroupByAsync<TResult>(coll.Expression,  default);
             }
             catch (Exception ex)
             {
                 MySqlLogger.Info($" {Environment.NewLine}{coll}{Environment.NewLine}{ex}");
                 throw;
-              
+            }
+
+        }
+
+
+
+        /// <summary>
+        /// Asynchronous request execution
+        /// </summary>
+        public static Task<List<TResult>> ToListAsync<TResult>(this IQueryable<TResult> coll, CancellationToken cancellationToken = default)
+        {
+
+            try
+            {
+                ISession ses = ((ISqlComposite)coll.Provider).Sessione;
+               return new DbQueryProvider<TResult>((Sessione)ses).ToListAsync<TResult>(coll.Expression,cancellationToken); 
+            }
+            catch (Exception ex)
+            {
+                MySqlLogger.Info($" {Environment.NewLine}{coll}{Environment.NewLine}{ex}");
+                throw;
+            }
+       
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="coll"></param>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns></returns>
+        public static List<TResult> ToList<TResult>(this IQueryable<TResult> coll) where TResult: IEnumerable<IGrouping<string, object>>
+        {
+            var sas = typeof(TResult);
+            var d = (IInnerList)coll;
+            var list = d.GetInnerList();
+            var s = list.GetType();
+            try
+            {
+             
+                return (List<TResult>)list;
+            }
+            catch (Exception ex)
+            {
+                MySqlLogger.Info($" {Environment.NewLine}{coll}{Environment.NewLine}{ex}");
+                throw;
+
             }
 
         }

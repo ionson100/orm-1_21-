@@ -125,6 +125,7 @@
     <Compile Include="Attribute\MapColumnTypeAttribute.cs" />
     <Compile Include="Attribute\MapDefaultValueAttribute.cs" />
     <Compile Include="Attribute\MapIndexAttribute.cs" />
+    <Compile Include="Attribute\MapReceiverFreeSqlAttribute.cs" />
     <Compile Include="Attribute\MapSerializableAttribute.cs" />
     <Compile Include="Attribute\MapTableNameAttribute.cs" />
     <Compile Include="Attribute\MapTypeMysqlTableAttribute.cs" />
@@ -154,7 +155,7 @@
     <Compile Include="Interface\IServiceSessions.cs" />
     <Compile Include="Linq\ContainerCastExpression.cs" />
     <Compile Include="Linq\Evalition.cs" />
-    <Compile Include="Helper.cs" />
+    <Compile Include="Extensions\Helper.cs" />
     <Compile Include="Generator.cs" />
     <Compile Include="Attribute\MapPrimaryKeyAttribute.cs" />
     <Compile Include="Attribute\MapColumnNameAttribute.cs" />

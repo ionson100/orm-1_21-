@@ -59,8 +59,8 @@ namespace ORM_1_21_.Linq.MsSql
                 ListOne.Add(new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() });
             }
 
-            if (ev == Evolution.DistinctCustom)
-                ListOne.Add(new OneComprosite { Operand = Evolution.DistinctCustom, Body = StringB.ToString() });
+            if (ev == Evolution.DistinctCore)
+                ListOne.Add(new OneComprosite { Operand = Evolution.DistinctCore, Body = StringB.ToString() });
 
             if (ev == Evolution.GroupBy)
                 ListOne.Add(new OneComprosite { Operand = Evolution.GroupBy, Body = StringB.ToString() });
@@ -1635,7 +1635,7 @@ namespace ORM_1_21_.Linq.MsSql
         private static Expression BindSelectMany(Expression exp, Expression source, LambdaExpression collectionSelector,
             LambdaExpression resultSelector)
         {
-            throw new Exception("Не реализовано");
+            throw new Exception("Not implemented");
         }
     }
 }

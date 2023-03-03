@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ORM_1_21_.Linq
 {
@@ -40,6 +42,18 @@ namespace ORM_1_21_.Linq
         {
             return Execute(expression);
         }
+
+        /// <summary>
+        /// Query Async
+        /// </summary>
+        public abstract Task<List<TResult>> ToListAsync<TResult>(Expression expression, CancellationToken cancellationToken);
+
+
+        /// <summary>
+        /// Query Async for group by
+        /// </summary>
+        public abstract Task<List<IGrouping<string, TResult>>> ToListGroupByAsync<TResult>(Expression expression,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         ///Query string

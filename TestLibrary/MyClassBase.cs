@@ -19,13 +19,10 @@ namespace TestLibrary
 
 
 
-#if false
-        [MapPrimaryKey("id", Generator.Native)]
-        public long Id { get; set; }
-#else
+
         [MapPrimaryKey("id", Generator.Assigned)]
         public Guid Id { get; set; } = Guid.NewGuid();
-#endif
+
 
         [MapColumnName("my_test")]
         public MyTest MyTest { get; set; }
@@ -49,6 +46,20 @@ namespace TestLibrary
 
         [MapColumnName("test")]
         public List<MyTest> Test23 { get; set; } = new List<MyTest>() { new MyTest() { Name = "simple" } };
+        [MapColumnName("test1")]
+        public int? ValInt { get; set; }
+        [MapColumnName("test3")]
+        public bool? Valbool { get; set; }
+        [MapColumnName("test4")]
+        public double? Valdouble{ get; set; }
+        [MapColumnName("test5")]
+        public decimal? Valdecimal { get; set; }
+        [MapColumnName("test6")]
+        public float? Valfloat { get; set; }
+        [MapColumnName("test7")]
+        public Int16? ValInt16 { get; set; }
+        [MapColumnName("test8")]
+        public Int64? ValInt4 { get; set; }
 
 
     }

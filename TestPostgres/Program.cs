@@ -1,20 +1,19 @@
-﻿using ORM_1_21_;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
+using System.Drawing;
 using System.Linq;
-using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using ORM_1_21_;
+using ORM_1_21_.Extensions;
 using TestLibrary;
-using System.Drawing;
+
 
 namespace TestPostgres
 {
     internal class Program
     {
-        private static ProviderName _providerName = ProviderName.Sqlite;
+        private static ProviderName _providerName = ProviderName.Postgresql;
 
         static async Task Main(string[] args)
         {
@@ -40,98 +39,26 @@ namespace TestPostgres
             }
             //Execute.RunThread();
             //Console.ReadKey();
-            //Execute.TotalTest();
+            Execute.TotalTest();
             
             ISession session = Configure.Session;
-
-            session.Save(new MyClass()
-            {
-                Age = 22,
-                MyTest = new MyTest() { Name = "asas" }
-            });
-            session.Save(new MyClass()
-            {
-                MyTest = new MyTest() { Name = "asas" }
-            });
-            session.Save(new MyClassSqlite());
-            var anons = Execute.TempSql(new { age = 3, name = "asss" }, session, $"select getint32(age) as age,name from {session.TableName<MyClass>()}");
-            var anon = Execute.TempSql(new { age = 3, name = "" }, session, session.TableName<MyClass>());
            
-
-            
-            session.Save(new MyClass()
+            List<MyClass> list22 = new List<MyClass>();
+            for (int i = 0; i < 500; i++)
             {
-                MyTest = new MyTest(){Name = "asas"}
-            });
-            session.Save(new MyClass()
-            {
-                MyTest = new MyTest() { Name = "asas" }
-            });
-            session.Save(new MyClass()
-            {
-                MyTest = new MyTest() { Name = "asas" }
-            });
+                list22.Add(new MyClass() { Age = 30, Name = "name1", MyTest = new MyTest { Name = "simple" } });
+                list22.Add(new MyClass() { Age = 10, Name = "name2", MyTest = new MyTest { Name = "simple" } });
+            }
 
-            // if (session.TableExists<MyClassNull>() )
-            // {
-            //     session.DropTable<MyClassNull>();
-            //   
-            // } 
-            // session.TableCreate<MyClassNull>();
-            // MyClassNull @null = new MyClassNull()
-            // {
-            //    // V5 = true
-            // };
-            // session.Save(@null);
-            var ss = session.Query<MyClassNull>().ToList();
-            var iis = session.Query<MyClass>().Where(a => a.Age<1000).CacheUsage().ToList();
-             iis = session.Query<MyClass>().Where(a => a.Age < 1000).CacheUsage().ToList();
-             var sasskey = session.Query<MyClass>().Where(a => a.Age < 1000).CacheGetKey();
-             iis = (List<MyClass>)session.CacheGetValue<MyClass>(sasskey);
+          
+            var inter = session.InsertBulk(list22);
 
-            //var asas = session.Query<MyClass>().Where(a => a.Age == 12).CacheUsage().ToList();
-            //asas = session.Query<MyClass>().Where(a => a.Age == 12).CacheUsage().ToList();
+            List<IGrouping<string, MyClass>> list = await Configure.Session.Query<MyClass>().GroupBy(a => a.Name)
+                .ToLisAsync();
+            var asss = session.Query<MyClass>().Where(s => s.Name != null).ToListAsync().Result;
 
-            //tring a = session.TableName<MyClass>();
-            //
-            //   MyImage sd = new MyImage();
-            //   sd.Image = Image.FromFile("1.png");
-            //   session.Save(sd);
-            //
-            //
-            //   MyImage sd = new MyImage();
-            //   sd.Image = Image.FromFile("1.png");
-            //   session.Save(sd);
-            //
-            //
-            //
-            //ar sdsd = session.Querion<MyImage>().ToList();
-            //dsd[0].Image.Save("assa.png");
-            //
-            //
-            //
-            //ar myClass = new MyClass
-            //
-            //   Age = 12,
-            //   Name = "name",
-            //   MyEnum = MyEnum.First,
-            //   MyTest = new MyTest { Name = "ass" },
-            //   Test23 =new List<MyTest>() { new MyTest(), new MyTest() }
-            //;
-            //
-            //ession.Save(myClass);
-            session.Save(new MyClass{Age = 10,Name = "name1"});
-            session.Save(new MyClass { Age = 10, Name = "name1" });
-            session.Save(new MyClass { Age = 10, Name = "name2" });
-            var erer=session.ProcedureCall<object>("getList");
-            var ass=
-            
-            //ar err = session.Querion<MyClass>().Where(sw => sw.Age == 10).Update(d => new Dictionary<object, object>
-            //
-            //   { d.Name,string.Concat(d.Name,d.Age)},
-            //   { d.DateTime,DateTime.Now}
-            //);
-            //ar ss = session.Querion<MyClass>().ToList();
+
+
 
             Console.ReadKey();
         }

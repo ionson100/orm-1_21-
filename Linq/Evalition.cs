@@ -11,7 +11,7 @@
         GroupBy,
         OrderBy,
         Select,
-        DistinctCustom,
+        DistinctCore,
         SelectNew,
         Single,
         SingleOrDefault,
@@ -35,7 +35,8 @@
         FreeSql,
         CacheUsage,
         CacheOver,
-        CacheKey
+        CacheKey,
+       
     }
 
 }

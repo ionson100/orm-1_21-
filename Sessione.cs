@@ -9,6 +9,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using ORM_1_21_.Transaction;
 
 namespace ORM_1_21_
@@ -352,7 +354,6 @@ namespace ORM_1_21_
             switch (MyProviderName)
             {
                 case ProviderName.MsSql:
-
                     com.CommandText = new UtilsBulkMsSql(ProviderName.MsSql).GetSql(list);
                     break;
                 case ProviderName.MySql:
@@ -385,6 +386,8 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
         }
+
+      
 
         int ISession.InsertBulkFromFile<T>(string fileCsv, string fieldterminator, int timeOut)
         {

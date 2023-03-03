@@ -73,9 +73,9 @@ namespace ORM_1_21_.Linq.MsSql
                     }
 
 
-                    if (PingComposite(Evolution.DistinctCustom))
+                    if (PingComposite(Evolution.DistinctCore))
                     {
-                        string s = listOne.First(a => a.Operand == Evolution.DistinctCustom).Body;
+                        string s = listOne.First(a => a.Operand == Evolution.DistinctCore).Body;
                         if (PingComposite(Evolution.SelectNew))
                         {
 

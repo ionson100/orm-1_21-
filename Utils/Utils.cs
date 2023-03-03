@@ -310,66 +310,7 @@ namespace ORM_1_21_.Utils
             throw new Exception(message);
         }
 
-        internal static object Convertor(Type t, object ob)
-        {
-            if (ob is DBNull)
-            {
-                if (t.IsGenericType) return null;
-
-                if (!t.IsValueType) return null;
-                if (t == typeof(DateTime))
-                {
-                    object o = DateTime.MinValue;
-                    return o;
-                }
-
-                if (t == typeof(float))
-                    return 0.0f;
-                return 0.00;
-            }
-
-            if (t == typeof(uint)) return Convert.ToUInt32(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(ulong)) return Convert.ToUInt64(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(ushort)) return Convert.ToUInt16(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(bool)) return Convert.ToBoolean(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(byte)) return Convert.ToByte(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(char)) return Convert.ToChar(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(DateTime)) return Convert.ToDateTime(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(decimal)) return Convert.ToDecimal(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(double)) return Convert.ToDouble(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(short)) return Convert.ToInt16(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(int)) return Convert.ToInt32(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(long)) return Convert.ToInt64(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(sbyte)) return Convert.ToSByte(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(float)) return Convert.ToSingle(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(string)) return Convert.ToString(ob, CultureInfo.InvariantCulture);
-            ////
-            if (t == typeof(uint?)) return Convert.ToUInt32(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(ulong?)) return Convert.ToUInt64(ob, CultureInfo.InvariantCulture);
-
-            if (t == typeof(ushort?)) return Convert.ToUInt16(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(bool?)) return Convert.ToBoolean(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(byte?)) return Convert.ToByte(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(char?)) return Convert.ToChar(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(DateTime?)) return Convert.ToDateTime(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(decimal?)) return Convert.ToDecimal(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(double?)) return Convert.ToDouble(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(short?)) return Convert.ToInt16(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(int?)) return Convert.ToInt32(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(long?)) return Convert.ToInt64(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(sbyte?)) return Convert.ToSByte(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(float?)) return Convert.ToSingle(ob, CultureInfo.InvariantCulture);
-            if (t == typeof(Guid))
-            {
-                return new Guid(ob.ToString());
-            }
-
-
-            if (t == typeof(byte[])) return ob;
-            if (t == typeof(object)) return ob;
-            throw new Exception(string.Format(CultureInfo.CurrentCulture, "Can't convert type {0}",
-                ob.GetType().FullName));
-        }
+       
 
 
 

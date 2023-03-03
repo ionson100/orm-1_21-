@@ -71,9 +71,9 @@ namespace ORM_1_21_.Linq.MySql
                 _listOne.Add(new OneComprosite { Operand = Evolution.Delete });
                 _listOne.Add(new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() });
             }
-            if (ev == Evolution.DistinctCustom)
+            if (ev == Evolution.DistinctCore)
             {
-                _listOne.Add(new OneComprosite { Operand = Evolution.DistinctCustom, Body = StringB.ToString() });
+                _listOne.Add(new OneComprosite { Operand = Evolution.DistinctCore, Body = StringB.ToString() });
             }
 
             if (ev == Evolution.GroupBy)
@@ -83,13 +83,26 @@ namespace ORM_1_21_.Linq.MySql
             if (ev == Evolution.Limit)
             {
                 if (paramList != null && paramList.Count == 2)
-                    if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
+                    switch (_providerName)
                     {
-                        _listOne.Add(new OneComprosite { Operand = Evolution.Limit, Body = string.Format(" Limit {1} OFFSET {0}", paramList[0], paramList[1]) });
-                    }
-                    else
-                    {
-                        _listOne.Add(new OneComprosite { Operand = Evolution.Limit, Body = string.Format(" Limit {0},{1}", paramList[0], paramList[1]) });
+                        case ProviderName.MsSql:
+                            {
+
+                            }
+                            break;
+                        case ProviderName.MySql:
+                            {
+                                _listOne.Add(new OneComprosite { Operand = Evolution.Limit, Body = string.Format(" Limit {0},{1}", paramList[0], paramList[1]) });
+                            }
+                            break;
+                        case ProviderName.Postgresql:
+                        case ProviderName.Sqlite:
+                            {
+                                _listOne.Add(new OneComprosite { Operand = Evolution.Limit, Body = string.Format(" Limit {1} OFFSET {0}", paramList[0], paramList[1]) });
+                            }
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
 
             }
@@ -97,10 +110,7 @@ namespace ORM_1_21_.Linq.MySql
             {
                 _listOne.Add(new OneComprosite { Operand = Evolution.Update, Body = StringB.ToString() });
             }
-            //if (ev == Evolution.OverCache)
-            //{
-            //    ListOne.Add(new OneComprosite { Operand = Evolution.OverCache });
-            //}
+           
             if (ev == Evolution.Join)
             {
                 if (paramList != null)
@@ -128,9 +138,9 @@ namespace ORM_1_21_.Linq.MySql
         public List<OneComprosite> GetListOne()
         {
             List<OneComprosite> list = new List<OneComprosite>();
-            foreach (var oneComprosite in _listOne)
+            foreach (var item in _listOne)
             {
-                list.Add(oneComprosite);
+                list.Add(item);
             }
             return list;
         }
@@ -150,8 +160,6 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(V)
                 && m.Method.Name == "FreeSql")
             {
-                // CurrentEvalytion = Evolution.FreeSql;
-
                 var constantExpression = (ConstantExpression)m.Object;
                 if (constantExpression == null) return m;
                 var val = m.Method.Invoke(constantExpression.Value, null);
@@ -164,7 +172,6 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
                    && m.Method.Name == "ElementAt")
             {
-                //  CurrentEvalytion = Evolution.ElementAt;
                 Visit(m.Arguments[0]);
                 StringB.Clear();
                 Visit(m.Arguments[1]);
@@ -175,8 +182,6 @@ namespace ORM_1_21_.Linq.MySql
                 };
                 _listOne.Add(o);
                 StringB.Clear();
-
-
                 return m;
             }
 
@@ -186,7 +191,6 @@ namespace ORM_1_21_.Linq.MySql
                 var o = new OneComprosite
                 {
                     Operand = Evolution.Contains,
-
                 };
                 _listOne.Add(o);
                 Visit(m.Arguments[0]);
@@ -219,7 +223,6 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
                  && m.Method.Name == "ElementAtOrDefault")
             {
-                //  CurrentEvalytion = Evolution.ElementAtOrDefault;
                 Visit(m.Arguments[0]);
                 StringB.Clear();
                 Visit(m.Arguments[1]);
@@ -251,9 +254,7 @@ namespace ORM_1_21_.Linq.MySql
             if ((m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "Join") ||
                 (m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "GroupJoin"))
             {
-                // _currentTypeCode = Evolution.Join;
-                //   _joinCapital.Join= VisitorJoin.LeftJoin;
-
+               
                 for (var i = 0; i < m.Arguments.Count; i++)
                 {
                     StringB.Length = 0;
@@ -269,13 +270,11 @@ namespace ORM_1_21_.Linq.MySql
 
                     if (i == 2)
                     {
-
                         StringB.Length = 0;
                         Visit(m.Arguments[2]);
                     }
                     if (i == 3)
                     {
-
                         StringB.Length = 0;
                         Visit(m.Arguments[3]);
                     }
@@ -328,15 +327,20 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" YEAR')");
                                     break;
                                 }
-                            default:
-                                {
-                                    StringB.Append("DATE_ADD(");
-                                    Visit(m.Object);
-                                    StringB.Append(", INTERVAL ");
-                                    Visit(m.Arguments[0]);
-                                    StringB.Append(" YEAR)");
-                                    break;
-                                }
+                            case ProviderName.MySql:
+                            {
+                                StringB.Append("DATE_ADD(");
+                                Visit(m.Object);
+                                StringB.Append(", INTERVAL ");
+                                Visit(m.Arguments[0]);
+                                StringB.Append(" YEAR)");
+                                break;
+                            }
+                            case ProviderName.MsSql:
+                            {
+                                break;
+                            }
+                            
                         }
 
                         return m;
@@ -362,7 +366,7 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" MONTH')");
                                     break;
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("DATE_ADD(");
                                     Visit(m.Object);
@@ -371,6 +375,10 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" MONTH)");
                                     break;
                                 }
+                            case ProviderName.MsSql:
+                            {
+                                break;
+                            }
                         }
 
                         return m;
@@ -1176,7 +1184,7 @@ namespace ORM_1_21_.Linq.MySql
                 var typew = ((MemberExpression)lambda.Body).Expression.Type;
                 if (typew != typeof(T) && UtilsCore.IsAnonymousType(typew) && _listOne.Any(a => a.Operand == Evolution.SelectNew))
                 {
-                  
+
                     tt = ((LambdaExpression)StripQuotes(m.Arguments[1])).Compile();
                 }
                 else
@@ -1184,7 +1192,7 @@ namespace ORM_1_21_.Linq.MySql
                     Expression exp = StripQuotes(m.Arguments[1]);
                     LambdaExpression lexp = (LambdaExpression)exp;
                     tt = GroupExpression<T>.Delegate(lexp);
-                  
+
                 }
                 Visit(lambda.Body);
 
@@ -1403,7 +1411,7 @@ namespace ORM_1_21_.Linq.MySql
                             body.Body = body.Body + " DESC";
                         }
                     }
-                    if(PingComposite(Evolution.Limit)==false)
+                    if (PingComposite(Evolution.Limit) == false)
                         _listOne.Last(a => a.Operand == Evolution.OrderBy).Body += " LIMIT 1";
 
                 }
@@ -1780,7 +1788,7 @@ namespace ORM_1_21_.Linq.MySql
             }
             else
             {
-               // var gg = Type.GetTypeCode(c.Value.GetType());
+                // var gg = Type.GetTypeCode(c.Value.GetType());
                 switch (Type.GetTypeCode(c.Value.GetType()))
                 {
                     case TypeCode.Boolean:
@@ -2164,12 +2172,12 @@ namespace ORM_1_21_.Linq.MySql
                             case ProviderName.Postgresql:
                                 {
                                     throw new Exception("not implemented");
-                                  
+
                                 }
                             case ProviderName.Sqlite:
                                 {
                                     throw new Exception("not implemented");
-                                
+
                                 }
                             default:
                                 {

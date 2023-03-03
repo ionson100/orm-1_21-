@@ -74,9 +74,9 @@ namespace ORM_1_21_.Linq.MySql
                     if (PingComposite(Evolution.Count)) sbb.Append(" COUNT(*) ");
                     if (PingComposite(Evolution.Any)) sbb.AppendFormat(" EXISTS ( " + StringConst.Select);
 
-                    if (PingComposite(Evolution.DistinctCustom))
+                    if (PingComposite(Evolution.DistinctCore))
                     {
-                        string s = listOne.First(a => a.Operand == Evolution.DistinctCustom).Body;
+                        string s = listOne.First(a => a.Operand == Evolution.DistinctCore).Body;
                         if (PingComposite(Evolution.SelectNew))
                         {
 
@@ -98,13 +98,13 @@ namespace ORM_1_21_.Linq.MySql
                                     sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
                                         AttributesOfClass<T>.TableName(providerName) + "." +
                                         AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName),
-                                        listOne.Any(a => a.Operand == Evolution.DistinctCustom &&
+                                        listOne.Any(a => a.Operand == Evolution.DistinctCore &&
                                                          a.Body == AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
                                             ? " Distinct "
                                             : ""));
                                 sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
                                     AttributesOfClass<T>.TableName(providerName) + "." + i.GetColumnName(_providerName),
-                                    listOne.Any(a => a.Operand == Evolution.DistinctCustom && a.Body == i.GetColumnName(_providerName))
+                                    listOne.Any(a => a.Operand == Evolution.DistinctCore && a.Body == i.GetColumnName(_providerName))
                                         ? " Distinct "
                                         : ""));
 

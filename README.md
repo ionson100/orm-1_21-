@@ -1,20 +1,13 @@
 #### ORM-1_21
 ОРМ ( MySql,PostgreSQL,MSSQL,Sqlite)\
-Допускает обращение к разным базам данных (MSSQL,Postgresql,MySQL,Sqlite) из одного контекста приложения.\
-Реализация в стиле HiberNate;\
-###### Ограничения.
-Все базы перед употреблением должны быть созданы, за исключением Sqlite, если файл отсутствует, ОРМ создаст его\
-при первом обращении.\
-По умолчанию, все типы мапов, создаются без вызова конструктора и инициализатора.\
-Никакая логика в конструкторе и свойства полей по умолчанию  вызываться не будет. Ибо имхо.\
-Если Вам нужна логика , можете пометить тип атрибутом ```MapUssageActivatorAttribute```.\
-Что в общем итоге скажется на быстродействии, при создании перечислений.
-
-
-
-При старте, инициализируем Configure,базой по умолчанию, проверяем создание таблиц (CodeFirst)\
-Потом из любого места обращаемся к базе.\
-Инициализация:
+Allows access to different databases (MSSQL,Postgresql,MySQL,Sqlite) from one application context.\
+CodeFirst, Linq to sql,Query caching.
+###### Restrictions.
+All bases must be created before use, with the exception of Sqlite,\
+ if the file does not exist, the ORM will create it.\
+Write to log file=debug mode only.\
+install database provider from NuGet (Npgsql,Mysql.Data,System.Data.SQLite,System.Data.SqlClient)
+###### Quick start
 ```C#
 string path = null;
 #if DEBUG
@@ -31,35 +24,32 @@ _ = new Configure("ConnectionString",ProviderName.Postgresql, path);
        {
          ses.TableCreate<MyClass>();
        }
-    }     
+    } 
+   ISession session = Configure.Session;
+   ssion.InsertBulk(new List<MyClass>()
+     new MyClass() { Age = 40, Name = "name" ,MyTest = new MyTest{Name = "simple"}},
+     new MyClass() { Age = 20, Name = "name1",MyTest = new MyTest{Name = "simple"}},
+     new MyClass() { Age = 30, Name = "name2",MyTest = new MyTest{Name = "simple"}},
+     new MyClass() { Age = 50, Name = "name3",MyTest = new MyTest{Name = "simple"}},
+     new MyClass() { Age = 60, Name = "name4",MyTest = new MyTest{Name = "simple"}},
+     new MyClass() { Age = 10, Name = "name5",MyTest = new MyTest{Name = "simple"}},
+   ); 
+   session.Query<MyClass>().Where(a=>a.Age<50).ForEach(s =>
+   {
+       Console.WriteLine($@"{s.Name} - {s.Age}");
+   });
+   session.Dispose();   
 ```
-В режиме отладки создается файл лога:SqlLog.txt\
-Внимание: Файл не лимитирован по длине!\
-Куда пишутся запросы к базе, и информация о ошибках.
-```sql
-INSERT INTO "my_class" ("name", "age", "desc", "enum", "date", "test")VALUES (@p1,@p2,@p3,@p4,@p5,@p6) RETURNING "id"; params:  @p1 - ion100  @p2 - 11  @p3 - simple  @p4 - 1  @p5 - 21.01.2023 11:39:42  @p6 - [{"Name":"simple"}] 
-INSERT INTO "my_class" ( "name","age","desc","enum","date","test") VALUES('ion100',12,'simple',1,'2023-01-21 11:39:42.703','[{"Name":"simple"}]'),
-('ion100',13,'simple',1,'2023-01-21 11:39:42.703','[{"Name":"simple"}]')
-SELECT "my_class"."age"  FROM  "my_class" WHERE ((("my_class"."age" > @p1) or ("my_class"."name" LIKE CONCAT(@p2,'%'))) and ("my_class"."name" LIKE CONCAT('%',@p3,'%'))) ORDER BY "my_class"."age" Limit 2 OFFSET 0 params:  @p1 - 5  @p2 - ion100  @p3 - 100 
-SELECT "my_class"."id", "my_class"."name", "my_class"."age", "my_class"."desc", "my_class"."enum", "my_class"."date", "my_class"."test"  FROM  "my_class" WHERE ("my_class"."name" is not null) LIMIT 1
-```
-Первый параметр - строка подключения: [ConnectionString](https://www.connectionstrings.com)\
-Выбор типа базы по умолчанию, осуществляется вторым параметром конструктора.\
-Третий параметр путь к файлу лога, null - логирование отключено.\
-Четвертый параметр - булева величина, определяет, искать ли в начале, поставщика работы с базой данных\
-в хранилище GAC, по умолчанию - false: Искать в директории приложения.\
-ОРМ предполагает позднее связывание, исходя их этого, требуется добавлении пакетов провайдера для\
-выбранной базы данных, через NuGet (Npgsql,Mysql.Data,System.Data.SQLite,System.Data.SqlClient),\
-если четвертый параметр равен false;
 
-**Внимание: Ограничения для PostgreSQL.**\
-Хранение даты осуществляется в старом режиме.\
-Корректировку:
+
+**Please note: Restrictions for PostgreSQL.**\
+The date is stored in the olden mode.\
+Correction:
 ```C#
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
 ```
-ОРМ добавляет сама.
+ORM adds itself.
 ###### Мапинг таблиц.
 ```C#
  [MapTableName("my_class")]
@@ -72,11 +62,12 @@ AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
      public string Name { get; set; }
 
      [MapColumnName("age")] 
-     [MapIndex] 
+     [MapIndex]
+     [MapDefaultValue("NOT NULL DEFAULT '5'")] 
       public int Age { get; set; }
 
      [MapColumnName("desc")]
-     [MapColumnType("TEXT NULL")]
+     [MapColumnType("TEXT")]
       public string Description { get; set; }
 
      [MapColumnName("enum")] 
@@ -87,48 +78,36 @@ AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
 
      [MapColumnName("test")] 
       public List<MyTest> Test23 { get; set; } = new List<MyTest>() { new MyTest() { Name = "simple" }
- };
+      
+     [MapColumnName("my_test")]
+      public MyTest MyTest { get; set; }
+ }
+
+ [MapSerializable]
+ class MyTest 
+ {
+     public string Name { get; set; }
+ }
 ```
-Внимание! Свойство типа ```List<> Dictionary<,> HashSet<> ISerializableOrm``` ,\
-проецируются в базу как Text. И сохраняются как Json,\
-что естественно сказывается низкой производительностью.\
-Свойства не отмеченные атрибутом, в таблицу не проецируются.\
-Свойства помеченные индексом встают в таблицу простым индексом,\
-если нужно другой индекс - нужно строить отделенный запрос и выполнять его после создания таблицы.\
-Наличие свойства первичного ключа - обязательно, и только одно.\
-Генератор первичного ключа: Generator.Native, создает автоинкрементное поле в таблице.\
-Минимальная длина (int)\
-Для типа базы SQLite,первичный ключ: тип - numeric, генератор  - Generator.Native.\
-Данный тип мапится в PosgreSql  в виде:
-```sql
-CREATE TABLE IF NOT EXISTS "my_class" (
- "id" UUID  PRIMARY KEY,
- "name" VARCHAR(256) NULL ,
- "age" INTEGER NOT NULL DEFAULT '0' ,
- "desc" TEXT NULL ,
- "enum" INTEGER NOT NULL DEFAULT '0' ,
- "date" TIMESTAMP NULL ,
- "test" TEXT NULL );
-CREATE INDEX IF NOT EXISTS INDEX_my_class_age ON "my_class" ("age");
-```
+
 ###### Ling To SQL.
 Отложенное выполнение или запрос по требованию.\
 Внимание! Не все конструкции реализованы в Визиторе, особенно для SQlite
 Пример запроса:
 ```C#
- var list = Configure.Session.Querion<MyClass>().
- Where(a => (a.Age > 5||a.Name.StartsWith("ion100"))&&a.Name.Contains("100")).
- OrderBy(d=>d.Age).
- Select(f=>new {age=f.Age}).
- Limit(0,2).
- ToList(); 
+var list = Configure.Session.Query<MyClass>().
+Where(a => (a.Age > 5 || a.Name.StartsWith("nam")) && a.Name.Contains("1")).
+OrderBy(d => d.Age).
+Select(f => new { age = f.Age }).
+Limit(0, 2).
+ToList();
 ```
 real sql:
 ```sql
-SELECT "my_class"."age"  FROM  "my_class" 
-WHERE ((("my_class"."age" > @p1) or ("my_class"."name" LIKE CONCAT(@p2,'%'))) and ("my_class"."name" LIKE CONCAT('%',@p3,'%'))) 
-ORDER BY "my_class"."age" Limit 2 OFFSET 0 
-params:  @p1 - 5  @p2 - ion100  @p3 - 100 
+SELECT "my_class5"."age" FROM "my_class5" WHERE ((("my_class5"."age" > 5) 
+or ("my_class5"."name" LIKE CONCAT(@p1,'%'))) and 
+("my_class5"."name" LIKE CONCAT('%',@p2,'%'))) ORDER BY "my_class5"."age" Limit 2 OFFSET 0;
+params:  @p1 - nam  @p2 - 1 
 ```
 ###### native sql.
 ```C#

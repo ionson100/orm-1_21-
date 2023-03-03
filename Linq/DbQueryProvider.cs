@@ -14,6 +14,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ORM_1_21_.Linq
 {
@@ -63,6 +64,8 @@ namespace ORM_1_21_.Linq
             return list.Any(a => a.Operand == eval);
         }
 
+
+      
 
         public override string GetQueryText(Expression expression)
         {
@@ -216,7 +219,30 @@ namespace ORM_1_21_.Linq
             }
         }
 
-        
+        public override Task<List<TResult>> ToListAsync<TResult>(Expression exception,CancellationToken cancellationToken)
+        {
+           return Task.FromResult((List < TResult >)Execute<TResult>(exception));
+        }
+
+        public override Task<List<IGrouping<string, TResult>>> ToListGroupByAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(ActionCoreGroupBy<TResult>(expression));
+        }
+
+        List<IGrouping<string, TResult>> ActionCoreGroupBy<TResult>(Expression expression)
+        {
+            List<IGrouping<string, TResult>> resList = new List<IGrouping<string, TResult>>();
+           
+            foreach (var o in (IEnumerable<object>)Execute<IGrouping<string, TResult>>(expression))
+            {
+                resList.Add((IGrouping<string, TResult>)o);
+            }
+            return resList;
+        }
+
+
+
+
 
         public object ExecuteMonster<TS>(IDataReader dataReader)
         {
@@ -293,7 +319,7 @@ namespace ORM_1_21_.Linq
 
         public override object Execute<TS>(Expression expression)
         {
-            var asss = ListCastExpression.Count;
+           
             bool isCacheUsage = CacheState == CacheState.CacheUsage || CacheState == CacheState.CacheOver|| CacheState==CacheState.CacheKey;
             var services = (IServiceSessions)Sessione;
             var re = TranslateE(expression);
@@ -457,24 +483,62 @@ namespace ORM_1_21_.Linq
                     var count = dataReader.FieldCount;
                     var list = new List<Type>();
                     for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
-                    var ci = typeof(TS).GetConstructor(list.ToArray());
+                    var ctor = typeof(TS).GetConstructors();
                     var resDis = new List<TS>();
-                    var tt = typeof(TS);
-                    var sas = typeof(T);
-                    if (ci != null)
+                    var ewe = typeof(TS);
+                    if (UtilsCore.IsAnonymousType(typeof(TS)))
                     {
+                        var ci = typeof(TS).GetConstructor(list.ToArray());
+                        
+                       
+                            while (dataReader.Read())
+                            {
+                                var par = new List<object>();
+                                for (var i = 0; i < count; i++)
+                                {
+                                    var val = Pizdaticus.MethodFree(_providerName, list[i], dataReader[i]);
+                                    par.Add(dataReader[i] == DBNull.Value ? null : val);
+                                }
+                                var e = ci.Invoke(par.ToArray());
+                                resDis.Add((TS)e);
+                            }
+                       
+                    }else if (AttributesOfClass<TS>.IsReceiverFreeSql)
+                    {
+                        var c = typeof(TS).GetConstructors();
+                        if (c.Length == 0)
+                        {
+                            throw new Exception(
+                                $"The type {typeof(TS)} is marked with an attribute but does not have a constructor");
+                        }
+                        if (c.Length >1)
+                        {
+                            throw new Exception(
+                                $"The type {typeof(TS)} is marked with an attribute. Must have only one constructor");
+                        }
+
+                        var ci = c[0];
+
+                        if (ci.GetParameters().Length != list.Count)
+                        {
+                            throw new Exception(
+                                $"The number of parameters of the constructor method:{ci.GetParameters().Length}  is not equal to the number of" +
+                                $" fields retrieved from the database: {list.Count}, check sql the query");
+                        }
                         while (dataReader.Read())
                         {
                             var par = new List<object>();
                             for (var i = 0; i < count; i++)
                             {
-                                var val = UtilsCore.Convertor(list[i], dataReader[i]);
+                               var val = Pizdaticus.MethodFree(_providerName, ci.GetParameters()[i].ParameterType, dataReader[i]);
                                 par.Add(dataReader[i] == DBNull.Value ? null : val);
                             }
                             var e = ci.Invoke(par.ToArray());
                             resDis.Add((TS)e);
                         }
+
                     }
+
                     else if (count == 1 && typeof(TS).IsValueType || typeof(TS) == typeof(string) ||
                              typeof(TS).GetInterface("IEnumerable") != null || typeof(TS).IsGenericTypeDefinition)
                     {
@@ -558,7 +622,7 @@ namespace ORM_1_21_.Linq
                         while (dataReader.Read())
                             lres.Add((TS)dataReader[0]);
                     else
-                        lres = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss);
+                        lres = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss,_providerName);
 
                     if (isCacheUsage)
                     {
@@ -623,15 +687,16 @@ namespace ORM_1_21_.Linq
 
                 }
 
-                if (PingCompositeE(Evolution.DistinctCustom, listCore))
+                if (PingCompositeE(Evolution.DistinctCore, listCore))
                 {
-                   
-                    IList resT = this.ListCastExpression.Single(a => a.TypeRevalytion == Evolution.DistinctCustom).ListDistict;
+
+                    var sas = this.ListCastExpression.Single(a => a.TypeRevalytion == Evolution.DistinctCore);
+                    IList resT = sas.ListDistict;
                     dataReader = _com.ExecuteReader();
                     if (PingCompositeE(Evolution.SelectNew, listCore))
                     {
                         var ss = listCore.Single(a => a.Operand == Evolution.SelectNew).NewConstructor;
-                        Pizdaticus.GetListAnonymusObjDistinct(dataReader, ss, resT);
+                        Pizdaticus.GetListAnonymousObjDistinct(dataReader, ss, resT,_providerName);
                         return resT;
 
                     }
@@ -640,7 +705,8 @@ namespace ORM_1_21_.Linq
                         var resDis = resT;
                         while (dataReader.Read())
                         {
-                            resDis.Add(dataReader[0]);
+                           var val= Pizdaticus.MethodFree(_providerName, sas.TypeRetyrn, dataReader[0]);
+                            resDis.Add(val);
                         }
 
                         dataReader.Dispose();
@@ -661,7 +727,7 @@ namespace ORM_1_21_.Linq
                     dataReader = _com.ExecuteReader();
                     if (UtilsCore.IsAnonymousType(typeof(TS)))
                     {
-                        var lRes = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss);
+                        var lRes = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss,_providerName);
                         var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
                         var res = !isaActive1 ? (object)lRes : dataSing1;
                         if (isCacheUsage)
@@ -674,7 +740,7 @@ namespace ORM_1_21_.Linq
                     {
                         if (listCore.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
                         {
-                            var lRes = Pizdaticus.GetListAnonymousObj<object>(dataReader, ss);
+                            var lRes = Pizdaticus.GetListAnonymousObj<object>(dataReader, ss,_providerName);
                             bool isActive1;
                             var dataSingl1 = Pizdaticus.SingleData(listCore, lRes, out isActive1);
                             var res = !isActive1 ? lRes : dataSingl1;
@@ -705,8 +771,7 @@ namespace ORM_1_21_.Linq
                 }
 
                 var resd = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
-                bool isActive;
-                var dataSingl = Pizdaticus.SingleData(listCore, resd, out isActive);
+                var dataSingl = Pizdaticus.SingleData(listCore, resd, out var isActive);
                 var ress2 = !isActive ? (object)resd : dataSingl;
                 if (isCacheUsage)
                 {

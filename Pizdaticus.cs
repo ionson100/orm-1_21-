@@ -7,6 +7,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -39,286 +40,9 @@ namespace ORM_1_21_
                             field = UtilsCore.ColumnExists(reader, s.ColumnNameAlias);
 
                         var e = field == true ? reader[s.ColumnNameAlias] : reader[UtilsCore.ClearTrim(s.GetColumnName(providerName))];
-
                         var pr = AttributesOfClass<TObj>.PropertyInfoList.Value[s.PropertyName];
-
-
-                        if (UtilsCore.IsJsonType(pr.PropertyType))
-                        {
-                            var o = UtilsCore.JsonToObject(e.ToString(), pr.PropertyType);
-                            AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,
-                                e == DBNull.Value ? null : o);
-                        }
-
-                        else if (pr.PropertyType == typeof(Image))
-                        {
-                            AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,
-                                e == DBNull.Value ? null: UtilsCore.ImageFromByte((byte[])e));
-                        }
-                        else if (pr.PropertyType == typeof(bool))
-                        {
-                            if (e == DBNull.Value)
-                            {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, false);
-                            }
-                            else
-                            {
-                                var b = Convert.ToBoolean(e);
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, b);
-                            }
-                        }
-                        else if (pr.PropertyType == typeof(bool?))
-                        {
-                            if (e == DBNull.Value)
-                            {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                            }
-                            else
-                            {
-                                var b = Convert.ToBoolean(e);
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, b);
-                            }
-                        }
-                        else if (pr.PropertyType == typeof(DateTime))
-                        {
-                            if (providerName == ProviderName.Sqlite)
-                            {
-                                DateTime dateTime = DateTime.Parse(e.ToString());
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, dateTime);
-                            }
-                            else
-                            {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e);
-                            }
-                        }
-                        else if (pr.PropertyType == typeof(DateTime?))
-                        {
-                            if (providerName == ProviderName.Sqlite)
-                            {
-                                DateTime? dateTime = null;
-                                if (e != DBNull.Value)
-                                {
-                                    dateTime = DateTime.Parse(e.ToString());
-                                }
-
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, dateTime);
-                            }
-                            else
-                            {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : e);
-                            }
-                        }
-                        else if (pr.PropertyType.BaseType == typeof(Enum))
-                        {
-                            if (e == DBNull.Value)
-                            {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, -1);
-                            }
-                            else
-                            {
-                                var ere = Enum.Parse(pr.PropertyType, e.ToString());
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,  ere);
-                            }
-
-
-                           
-                        }
-                        else if (pr.PropertyType == typeof(Guid))
-                        {
-                            if (e == DBNull.Value)
-                            {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,  Guid.Empty );
-                            }
-                            else
-                            {
-                                Guid guid = Guid.Empty;
-                                if (e is byte[])
-                                {
-                                    byte[] bytes = (byte[])e;
-                                    if (bytes.Length == 16)
-                                    {
-                                        guid = new Guid((byte[])e);
-                                    }
-                                    else
-                                    {
-                                        guid = new Guid(Encoding.ASCII.GetString(bytes));
-                                    }
-                                }
-                                else if (e is string)
-                                {
-                                    guid = new Guid(e.ToString());
-                                }
-                                else if (e is Guid)
-                                {
-                                    guid = (Guid)e;
-                                }
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,guid);
-                            }
-                              
-                        }
-                        else if (pr.PropertyType == typeof(Guid?))
-                        {
-                            if (e == DBNull.Value)
-                            {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                            }
-                            else
-                            {
-                                var ere = new Guid(e.ToString());
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, ere);
-                            }
-                        }
-                        else if (pr.PropertyType == typeof(float))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0f);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToSingle(e));
-                        }
-                        else if (pr.PropertyType == typeof(float?))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToSingle(e));
-                        }
-                        else if (pr.PropertyType == typeof(double))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToDouble(e));
-                        }
-                        else if (pr.PropertyType == typeof(double?))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToDouble(e));
-                        }
-                        else if (pr.PropertyType == typeof(decimal))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToDecimal(e));
-                        }
-                        else if (pr.PropertyType == typeof(decimal?))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToDecimal(e));
-                        }
-                        else if (pr.PropertyType == typeof(int))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToInt32(e));
-                        }
-                        else if (pr.PropertyType == typeof(int?))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToInt32(e));
-                        }
-                        else if (pr.PropertyType == typeof(uint))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToUInt32(e));
-                        }
-                        else if (pr.PropertyType == typeof(uint?))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToUInt32(e));
-                        }
-                        else if (pr.PropertyType == typeof(ushort))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToUInt16(e));
-                        }
-                        else if (pr.PropertyType == typeof(ushort?))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToUInt16(e));
-                        }
-                        else if (pr.PropertyType == typeof(ulong))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToUInt64(e));
-                        }
-                        else if (pr.PropertyType == typeof(ulong?))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToUInt64(e));
-                        }
-                        else if (pr.PropertyType == typeof(byte))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToByte(e));
-                        }
-                        else if (pr.PropertyType == typeof(byte?))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToByte(e));
-                        }
-                        else if (pr.PropertyType == typeof(sbyte))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, 0);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToSByte(e));
-                        }
-                        else if (pr.PropertyType == typeof(sbyte?))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToSByte(e));
-                        }
-                        else if (pr.PropertyType == typeof(char?))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToChar(e));
-                        }
-                        else if (pr.PropertyType == typeof(char))
-                        {
-                            if (e == DBNull.Value)
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, '\0');
-                            else
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, Convert.ToChar(e));
-                        }
-                        else
-                        {
-                            try
-                            {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : e);
-                            }
-                            catch (Exception exception)
-                            {
-                                Console.WriteLine(exception);
-                            }
-                        }
+                        var resCore = MethodFree(providerName, pr.PropertyType, e);
+                        AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, resCore);
                     }
                     catch (Exception e)
                     {
@@ -337,7 +61,7 @@ namespace ORM_1_21_
         }
 
 
-        public static List<T> GetListAnonymousObj<T>(IDataReader reader, object ss)
+        public static List<T> GetListAnonymousObj<T>(IDataReader reader, object ss, ProviderName providerName)
         {
             try
             {
@@ -348,10 +72,9 @@ namespace ORM_1_21_
                 {
                     for (var i = 0; i < reader.FieldCount; i++)
                     {
-                        var o = reader[i];
                         var t = ((NewExpression)ss).Arguments[i].Type;
-                        var res = UtilsCore.Convertor(t, o);
-                        d[i] = res;
+                        var val = MethodFree(providerName, t, reader[i]);
+                        d[i] = val;
                     }
                     var ee = ctor.Invoke(d);
                     lRes.Add((T)ee);
@@ -365,7 +88,7 @@ namespace ORM_1_21_
 
         }
 
-        public static void GetListAnonymusObjDistinct(IDataReader reader, object ss, IList list)
+        public static void GetListAnonymousObjDistinct(IDataReader reader, object ss, IList list,ProviderName providerName)
         {
             try
             {
@@ -375,10 +98,9 @@ namespace ORM_1_21_
                 {
                     for (var i = 0; i < reader.FieldCount; i++)
                     {
-                        var o = reader[i];
                         var t = ((NewExpression)ss).Arguments[i].Type;
-                        var res = UtilsCore.Convertor(t, o);
-                        d[i] = res;
+                        var val = MethodFree(providerName, t, reader[i]);
+                        d[i] = val;
                     }
                     var ee = ctor.Invoke(d);
                     list.Add(ee);
@@ -468,42 +190,7 @@ namespace ORM_1_21_
             return default(T);
         }
 
-        public static object Carding(Type type)
-        {
-            if (type == typeof(uint)) return (uint)1;
-            if (type == typeof(ulong)) return (ulong)1;
-            if (type == typeof(ushort)) return (ushort)1;
-            if (type == typeof(bool)) return true;
-            if (type == typeof(byte)) return (byte)1;
-
-            if (type == typeof(char)) return (char)1;
-            if (type == typeof(DateTime)) return DateTime.Now;
-            if (type == typeof(decimal)) return (decimal)1;
-            if (type == typeof(double)) return (double)1;
-            if (type == typeof(short)) return (short)1;
-            if (type == typeof(int)) return 1;
-            if (type == typeof(long)) return (long)1;
-            if (type == typeof(sbyte)) return (sbyte)1;
-            if (type == typeof(float)) return (float)1;
-            if (type == typeof(string)) return string.Empty;
-            ////
-            if (type == typeof(uint?)) return (uint?)1;
-            if (type == typeof(ulong?)) return (ulong?)1;
-            if (type == typeof(ushort?)) return (ushort?)2;
-            if (type == typeof(bool?)) return true;
-            if (type == typeof(byte?)) return (byte?)1;
-            if (type == typeof(char?)) return (char?)1;
-            if (type == typeof(DateTime?)) return null;
-            if (type == typeof(decimal?)) return (decimal?)1;
-            if (type == typeof(double?)) return (double?)1;
-            if (type == typeof(short?)) return (short?)1;
-            if (type == typeof(int?)) return 1;
-
-            if (type == typeof(long?)) return (long?)1;
-            if (type == typeof(sbyte?)) return (sbyte?)1;
-            if (type == typeof(float?)) return (float?)1;
-            return null;
-        }
+      
 
         public static IEnumerable<TObj> GetRiderToList2<TObj>(IDataReader reader,ProviderName providerName)
         {
@@ -580,5 +267,181 @@ namespace ORM_1_21_
                 }
             }
         }
+
+        public static object MethodFree(ProviderName providerName, Type type, object e)
+        {
+            if (UtilsCore.IsJsonType(type))
+            {
+                if (e == DBNull.Value) return null;
+                return UtilsCore.JsonToObject(e.ToString(), type);
+            }
+
+            if (type == typeof(Image))
+            {
+               
+                return  e == DBNull.Value ? null : UtilsCore.ImageFromByte((byte[])e);
+            }
+
+            if (type == typeof(bool))
+            {
+                if (e == DBNull.Value)
+                {
+                    return false;
+                }
+                else
+                {
+                    return  Convert.ToBoolean(e);
+                    
+                }
+            }
+
+            if (type == typeof(bool?))
+            {
+                if (e == DBNull.Value)
+                {
+                    return null;
+                }
+                else
+                {
+                    var b = Convert.ToBoolean(e);
+                }
+            }
+            else if (type == typeof(DateTime))
+            {
+                return providerName == ProviderName.Sqlite ? DateTime.Parse(e.ToString()) : e;
+            }
+            else if (type == typeof(DateTime?))
+            {
+                if (providerName == ProviderName.Sqlite)
+                {
+                    DateTime? dateTime = null;
+                    if (e != DBNull.Value)
+                    {
+                        dateTime = DateTime.Parse(e.ToString());
+                    }
+
+                    return dateTime;
+                }
+
+                return e;
+            }
+            else if (type.BaseType == typeof(Enum))
+            {
+                if (e == DBNull.Value)
+                {
+                    return -1;
+                }
+
+                return Enum.Parse(type, Convert.ToInt32(e).ToString());
+            }
+            else if (type == typeof(Guid))
+            {
+                if (e == DBNull.Value)
+                {
+                    return Guid.Empty;
+                }
+
+                if (e is Guid) return e;
+
+                Guid guid = Guid.Empty;
+                if (e is byte[] bytes)
+                {
+                    return bytes.Length == 16 ? new Guid(bytes) : new Guid(Encoding.ASCII.GetString(bytes));
+                }
+
+                return e is string ? new Guid(e.ToString()) : guid;
+            }
+            else if (type == typeof(Guid?))
+            {
+                return e == DBNull.Value ? (object)null : new Guid(e.ToString());
+            }
+            else if (type == typeof(float))
+            {
+                return e == DBNull.Value ? 0f : Convert.ToSingle(e);
+            }
+            else if (type == typeof(float?))
+            {
+                return e == DBNull.Value ? (object)null : Convert.ToSingle(e);
+            }
+            else if (type == typeof(double))
+            {
+                return e == DBNull.Value ? 0 : Convert.ToDouble(e);
+            }
+            else if (type == typeof(double?))
+            {
+                return e == DBNull.Value ? (object)null : Convert.ToDouble(e);
+            }
+            else if (type == typeof(decimal))
+            {
+                return e == DBNull.Value ? 0 : Convert.ToDecimal(e);
+            }
+            else if (type == typeof(decimal?))
+            {
+                return e == DBNull.Value ? (object)null : Convert.ToDecimal(e);
+            }
+            else if (type == typeof(int))
+            {
+                return e == DBNull.Value ? 0 : Convert.ToInt32(e);
+            }
+            else if (type == typeof(int?))
+            {
+                return e == DBNull.Value ? (object)null : Convert.ToInt32(e);
+            }
+            else if (type == typeof(uint))
+            {
+                return e == DBNull.Value ? 0 : Convert.ToUInt32(e);
+            }
+            else if (type == typeof(uint?))
+            {
+                return e == DBNull.Value ? (object)null : Convert.ToUInt32(e);
+            }
+            else if (type == typeof(ushort))
+            {
+                return e == DBNull.Value ? 0 : Convert.ToUInt16(e);
+            }
+            else if (type == typeof(ushort?))
+            {
+                return e == DBNull.Value ? (object)null : Convert.ToUInt16(e);
+            }
+            else if (type == typeof(ulong))
+            {
+                return e == DBNull.Value ? 0 : Convert.ToUInt64(e);
+            }
+            else if (type == typeof(ulong?))
+            {
+                return e == DBNull.Value ? (object)null : Convert.ToUInt64(e);
+            }
+            else if (type == typeof(byte))
+            {
+                return e == DBNull.Value ? 0 : Convert.ToByte(e);
+            }
+            else if (type == typeof(byte?))
+            {
+                return e == DBNull.Value ? (object)null : Convert.ToByte(e);
+            }
+            else if (type == typeof(sbyte))
+            {
+                return e == DBNull.Value ? 0 : Convert.ToSByte(e);
+            }
+            else if (type == typeof(sbyte?))
+            {
+                return e == DBNull.Value ? (object)null : Convert.ToSByte(e);
+            }
+            else if (type == typeof(char?))
+            {
+                return e == DBNull.Value ? (object)null : Convert.ToChar(e);
+            }
+            else if (type == typeof(char))
+            {
+                return e == DBNull.Value ? '\0' : Convert.ToChar(e);
+            }
+            else
+            {
+                return e == DBNull.Value ? null : e;
+            }
+
+            return e;
+        }
+
     }
 }

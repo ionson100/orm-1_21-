@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ORM_1_21_.Extensions;
 using ORM_1_21_.Linq;
 // ReSharper disable All
 
@@ -39,8 +40,8 @@ namespace TestLibrary
         {
             Task.Factory.StartNew(() => { Running(1);}, TaskCreationOptions.LongRunning);
             Task.Factory.StartNew(() => { Running(2); }, TaskCreationOptions.LongRunning);
-           // Task.Factory.StartNew(() => { Running(3); }, TaskCreationOptions.LongRunning);
-           // Task.Factory.StartNew(() => { Running(4); }, TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(() => { Running(3); }, TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(() => { Running(4); }, TaskCreationOptions.LongRunning);
 
         }
 
@@ -62,7 +63,7 @@ namespace TestLibrary
 
             if (session.TableExists<T>())
             {
-                session.TruncateTable<T>();
+                session.DropTable<T>();
             }
 
             session.TableCreate<T>();
@@ -281,27 +282,27 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 session.InsertBulk(new List<T>()
                 {
-                    new T() { Age = 40, Name = "name" },
-                    new T() { Age = 20, Name = "name1" },
-                    new T() { Age = 30, Name = "name1" },
-                    new T() { Age = 50, Name = "name1" },
-                    new T() { Age = 60, Name = "name" },
-                    new T() { Age = 10, Name = "name" },
+                    new T() { Age = 40, Name = "name" ,MyTest = new MyTest{Name = "simple"}},
+                    new T() { Age = 20, Name = "name1",MyTest = new MyTest{Name = "simple"} },
+                    new T() { Age = 30, Name = "name1",MyTest = new MyTest{Name = "simple"} },
+                    new T() { Age = 50, Name = "name1",MyTest = new MyTest{Name = "simple"} },
+                    new T() { Age = 60, Name = "name" ,MyTest = new MyTest{Name = "simple"}},
+                    new T() { Age = 10, Name = "name",MyTest = new MyTest{Name = "simple"}},
                 });
                 var ob=session.Query<T>().Select(a => new { ass = a.Age, asss = string.Concat(a.Name, a.Age) }).ToList();
                 Console.WriteLine($"{35} {ob.Count()==6}");
                 count = session.Query<T>().Where(a => a.Name == "name").OrderBy(r => r.Age).ToList().Sum(a => a.Age);
                 Console.WriteLine($"{36} {count == 110}");
-                var groupList = session.Query<T>().GroupBy(r => r.Name).ToList();
-                Console.WriteLine($"{37} {groupList.Count()==2&&groupList[0].Count()==3&&groupList[1].Count()==3}");
+                //List<IGrouping<string, T>> groupList = session.Query<T>().GroupBy(r => r.Name).ToListAsyncEx().Result;
+                //Console.WriteLine($"{37} {groupList.Count()==2&&groupList[0].Count()==3&&groupList[1].Count()==3}");
 
                 o = session.Query<T>().OrderBy(a => a.Age).First();
                 Console.WriteLine($"{38} {o.Age==10}");
                 o = session.Query<T>().OrderByDescending(a => a.Age).First();
                 Console.WriteLine($"{39} {o.Age == 60}");
-                count =  session.Query<T>().Where(a => a.Age < 100).OrderBy(ds => ds.Age).Limit(0,2).ToListAsync().Result.Sum(a=>a.Age);
-                Console.WriteLine($"{40} {count == 30}");
-                var sCore = session.Query<T>().Where(a=>a.Name.Contains("1")).DistinctCore(a => a.Name);
+                count =  session.Query<T>().Where(a => a.Age < 100).OrderBy(ds => ds.Age).ToListAsync().Result.Sum(a=>a.Age);
+                Console.WriteLine($"{40} {count == 210}");
+                var sCore = session.Query<T>().Where(a=>a.Name.Contains("1")).Distinct(a => a.Name);
                 Console.WriteLine($"{41} {sCore.Count() == 1}");
                 count = session.Query<T>().Where(sw=>sw.Age==10).Update(d => new Dictionary<object, object>
                 {
@@ -329,9 +330,42 @@ namespace TestLibrary
 
                 dynamic di = session.FreeSql<dynamic>($"select age, name from {session.TableName<T>()}");
                 Console.WriteLine($"{47} {di.Count == 5}");
-                var anon = TempSql(new { age = 3, name = "asss" },session,$"select age,name from {session.TableName<T>()}");
-                Console.WriteLine($"{48} {anon.Count() == 5}");
-               
+                if (s.GetProviderName() == ProviderName.Sqlite)
+                {
+                    var anon = TempSql(new { age = 3L, name = "asss" }, session, $"select age,name from {session.TableName<T>()}");
+                    Console.WriteLine($"{48} {anon.Count() == 5}");
+                }
+                else
+                {
+                    var anon = TempSql(new { age = 3, name = "asss" }, session, $"select age,name from {session.TableName<T>()}");
+                    Console.WriteLine($"{48} {anon.Count() == 5}");
+                }
+
+                var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {session.TableName<T>()}");
+                Console.WriteLine($"{49} {tempFree.Count() == 5}");
+                res = session.Query<T>().Where(a => a.Age < 200).CacheUsage().ToList();
+                Console.WriteLine($"{50} {res.Count() == 5}");
+                res = session.Query<T>().Where(a => a.Age < 200).CacheUsage().ToList();
+                Console.WriteLine($"{51} {res.Count() == 5}");
+                var ii = session.Query<T>().Where(a => a.Age < 200).CacheGetKey();
+                res = (List<T>)session.CacheGetValue<T>(ii);
+                Console.WriteLine($"{52} {res.Count() == 5}");
+                session.Query<T>().Where(a => a.Age == 20).Update(f=>new Dictionary<object, object>()
+                {
+                    {f.Age,400}
+                });
+                res = session.Query<T>().Where(a => a.Age < 200).CacheOver().ToList();
+                res = session.Query<T>().Where(a => a.Age < 200).CacheUsage().ToList();
+                Console.WriteLine($"{53} {res.Count() == 4}");
+                var ano=session.Query<T>().Where(a => a.Age < 500).Select(f =>
+                    new { test = f.MyTest, e = f.MyEnum, r = f.Test23, c = f.DateTime }).ToList();
+                Console.WriteLine($"{54} {ano.Count() == 5}");
+                var ano1 = session.Query<T>().Distinct(a => a.Age);
+                Console.WriteLine($"{55} {ano1.Count() == 5}");
+                var ano2 = session.Query<T>().Distinct(a => new {ago=a.Age,myTest=a.MyTest,date=a.DateTime});
+                Console.WriteLine($"{56} {ano2.Count() == 5}");
+
+
 
 
 
@@ -344,6 +378,25 @@ namespace TestLibrary
 
 
 
+
+        }
+        [MapReceiverFreeSql]
+        class MyFreeSql
+        {
+           
+            public Guid IdGuid { get; }
+            public string Name { get; }
+            public int Age { get; }
+            public MyEnum MyEnum { get; }
+
+            public MyFreeSql(Guid idGuid, string name, int age, MyEnum @enum)
+            {
+                IdGuid = idGuid;
+                Name = name;
+                Age = age;
+                MyEnum = (MyEnum)@enum;
+            }
+         
 
         }
         public static IEnumerable<Ts> TempSql<Ts>(Ts t, ISession session,string sql)

@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ORM_1_21_
 {
@@ -112,6 +114,8 @@ namespace ORM_1_21_
         /// Insert bulk from list
         /// </summary>
         int InsertBulk<T>(IEnumerable<T> list, int timeOut = 30) where T : class;
+
+        
 
         /// <summary>
         /// Insert bulk to database from file
