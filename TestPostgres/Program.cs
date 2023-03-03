@@ -39,7 +39,7 @@ namespace TestPostgres
             }
             //Execute.RunThread();
             //Console.ReadKey();
-            Execute.TotalTest();
+            //Execute.TotalTest();
             
             ISession session = Configure.Session;
            

@@ -110,7 +110,7 @@ namespace ORM_1_21_.Linq.MySql
             {
                 _listOne.Add(new OneComprosite { Operand = Evolution.Update, Body = StringB.ToString() });
             }
-           
+
             if (ev == Evolution.Join)
             {
                 if (paramList != null)
@@ -254,7 +254,7 @@ namespace ORM_1_21_.Linq.MySql
             if ((m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "Join") ||
                 (m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "GroupJoin"))
             {
-               
+
                 for (var i = 0; i < m.Arguments.Count; i++)
                 {
                     StringB.Length = 0;
@@ -328,19 +328,19 @@ namespace ORM_1_21_.Linq.MySql
                                     break;
                                 }
                             case ProviderName.MySql:
-                            {
-                                StringB.Append("DATE_ADD(");
-                                Visit(m.Object);
-                                StringB.Append(", INTERVAL ");
-                                Visit(m.Arguments[0]);
-                                StringB.Append(" YEAR)");
-                                break;
-                            }
+                                {
+                                    StringB.Append("DATE_ADD(");
+                                    Visit(m.Object);
+                                    StringB.Append(", INTERVAL ");
+                                    Visit(m.Arguments[0]);
+                                    StringB.Append(" YEAR)");
+                                    break;
+                                }
                             case ProviderName.MsSql:
-                            {
-                                break;
-                            }
-                            
+                                {
+                                    break;
+                                }
+
                         }
 
                         return m;
@@ -376,9 +376,9 @@ namespace ORM_1_21_.Linq.MySql
                                     break;
                                 }
                             case ProviderName.MsSql:
-                            {
-                                break;
-                            }
+                                {
+                                    break;
+                                }
                         }
 
                         return m;
@@ -404,13 +404,18 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" DAY')");
                                     break;
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("DATE_ADD(");
                                     Visit(m.Object);
                                     StringB.Append(", INTERVAL ");
                                     Visit(m.Arguments[0]);
                                     StringB.Append(" DAY)");
+                                    break;
+                                }
+                            case ProviderName.MsSql:
+                                {
+
                                     break;
                                 }
                         }
@@ -438,7 +443,7 @@ namespace ORM_1_21_.Linq.MySql
                                     break;
 
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("DATE_ADD(");
                                     Visit(m.Object);
@@ -447,6 +452,11 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" HOUR)");
                                     break;
                                 }
+                            case ProviderName.MsSql:
+                                {
+                                    break;
+                                }
+
                         }
 
                         return m;
@@ -472,13 +482,17 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" minutes')");
                                     break;
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("DATE_ADD(");
                                     Visit(m.Object);
                                     StringB.Append(", INTERVAL ");
                                     Visit(m.Arguments[0]);
                                     StringB.Append(" MINUTE)");
+                                    break;
+                                }
+                            case ProviderName.MsSql:
+                                {
                                     break;
                                 }
                         }
@@ -506,13 +520,17 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" SECOND')");
                                     break;
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("DATE_ADD(");
                                     Visit(m.Object);
                                     StringB.Append(", INTERVAL ");
                                     Visit(m.Arguments[0]);
                                     StringB.Append(" SECOND)");
+                                    break;
+                                }
+                            case ProviderName.MsSql:
+                                {
                                     break;
                                 }
                         }
@@ -541,7 +559,7 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" MICROSECOND')");
                                     break;
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("DATE_ADD(");
                                     Visit(m.Object);
@@ -550,6 +568,11 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append("* 1000) MICROSECOND)");
                                     break;
                                 }
+                            case ProviderName.MsSql:
+                                {
+                                    break;
+                                }
+
                         }
 
 
@@ -575,28 +598,37 @@ namespace ORM_1_21_.Linq.MySql
                         {
                             StringB.Append("(");
                             Visit(m.Object);
-                            if (_providerName == ProviderName.Sqlite)
+                            switch (_providerName)
                             {
-                                StringB.AppendFormat(" {0} ", StringConst.Like);
-                                int x = StringB.Length;
-                                Visit(m.Arguments[0]);
+                                case ProviderName.Sqlite:
+                                    {
+                                        StringB.AppendFormat(" {0} ", StringConst.Like);
+                                        int x = StringB.Length;
+                                        Visit(m.Arguments[0]);
+                                        string s = StringB.ToString().Substring(x);
+                                        var p = Param[s];
+                                        if (p != null)
+                                        {
+                                            Param[s] = $"{p}%";
+                                        }
+                                        StringB.Append(")");
+                                        break;
+                                    }
+                                case ProviderName.MySql:
+                                case ProviderName.Postgresql:
+                                    {
+                                        StringB.AppendFormat(" {0} CONCAT(", StringConst.Like);
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append(",'%'))");
+                                        break;
+                                    }
 
-                                string s = StringB.ToString().Substring(x);
-                                var p = Param[s];
-                                if (p != null)
-                                {
-                                    Param[s] = $"{p}%";
-                                }
-                                StringB.Append(")");
-                            }
-                            else
-                            {
-                                StringB.AppendFormat(" {0} CONCAT(", StringConst.Like);
-                                Visit(m.Arguments[0]);
-                                StringB.Append(",'%'))");
+                                case ProviderName.MsSql:
+                                    {
+                                        break;
+                                    }
                             }
                             return m;
-
                         }
                     case "LikeSql":
                         {
@@ -604,108 +636,180 @@ namespace ORM_1_21_.Linq.MySql
                         }
                     case "EndsWith":
                         {
-                            if (_providerName == ProviderName.Sqlite)
+                            switch (_providerName)
                             {
-                                StringB.Append("(");
-                                Visit(m.Object);
-                                StringB.AppendFormat(" {0} ", StringConst.Like);
-                                int x = StringB.Length;
-                                Visit(m.Arguments[0]);
-                                string s = StringB.ToString().Substring(x);
-                                StringB.Append(")");
-                                var p = Param[s];
-                                if (p != null)
-                                {
-                                    Param[s] = $"%{p}";
-                                }
-                            }
-                            else
-                            {
-                                StringB.Append("(");
-                                Visit(m.Object);
-                                StringB.AppendFormat(" {0} CONCAT('%',", StringConst.Like);
-                                Visit(m.Arguments[0]);
-                                StringB.Append("))");
+                                case ProviderName.Sqlite:
+                                    {
+                                        StringB.Append("(");
+                                        Visit(m.Object);
+                                        StringB.AppendFormat(" {0} ", StringConst.Like);
+                                        int x = StringB.Length;
+                                        Visit(m.Arguments[0]);
+                                        string s = StringB.ToString().Substring(x);
+                                        StringB.Append(")");
+                                        var p = Param[s];
+                                        if (p != null)
+                                        {
+                                            Param[s] = $"%{p}";
+                                        }
+                                        break;
+                                    }
+                                case ProviderName.MySql:
+                                case ProviderName.Postgresql:
+                                    {
+                                        StringB.Append("(");
+                                        Visit(m.Object);
+                                        StringB.AppendFormat(" {0} CONCAT('%',", StringConst.Like);
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append("))");
+                                        break;
+                                    }
+                                case ProviderName.MsSql:
+                                    {
+                                        break;
+                                    }
+
                             }
                             return m;
                         }
                     case "Contains":
                         {
-                            if (_providerName == ProviderName.Sqlite)
+                            switch (_providerName)
                             {
-                                StringB.Append("(");
-                                Visit(m.Object);
-                                StringB.AppendFormat(" {0} ", StringConst.Like);
-                                int x = StringB.Length;
-                                Visit(m.Arguments[0]);
-                                string s = StringB.ToString().Substring(x);
-                                StringB.Append(")");
-                                var p = Param[s];
-                                if (p != null)
-                                {
-                                    Param[s] = $"%{p}%";
-                                }
-                            }
-                            else
-                            {
-                                StringB.Append("(");
-                                Visit(m.Object);
-                                StringB.AppendFormat(" {0} CONCAT('%',", StringConst.Like);
-                                Visit(m.Arguments[0]);
-                                StringB.Append(",'%'))");
+                                case ProviderName.MsSql:
+                                    break;
+                                case ProviderName.MySql:
+                                    {
+                                        StringB.Append("(");
+                                        Visit(m.Object);
+                                        StringB.AppendFormat(" {0} CONCAT('%',", StringConst.Like);
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append(",'%'))");
+                                        break;
+                                    }
+                                case ProviderName.Postgresql:
+                                    {
+                                        StringB.Append("(");
+                                        Visit(m.Object);
+                                        StringB.AppendFormat(" {0} CONCAT('%',", StringConst.Like);
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append(",'%'))");
+                                        break;
+                                    }
+                                case ProviderName.Sqlite:
+                                    {
+                                        StringB.Append("(");
+                                        Visit(m.Object);
+                                        StringB.AppendFormat(" {0} ", StringConst.Like);
+                                        int x = StringB.Length;
+                                        Visit(m.Arguments[0]);
+                                        string s = StringB.ToString().Substring(x);
+                                        StringB.Append(")");
+                                        var p = Param[s];
+                                        if (p != null)
+                                        {
+                                            Param[s] = $"%{p}%";
+                                        }
+                                        break;
+                                    }
+
                             }
                             return m;
                         }
                     case "Concat":
                         {
-                            if (_providerName == ProviderName.Sqlite)
+                            switch (_providerName)
                             {
-                                IList<Expression> args = m.Arguments;
-                                if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit)
-                                {
-                                    args = ((NewArrayExpression)args[0]).Expressions;
-                                }
-                                StringB.Append("(");
-                                for (int i = 0, n = args.Count; i < n; i++)
-                                {
-                                    if (i > 0) StringB.Append(" || ");
-                                    Visit(args[i]);
-                                }
-                                StringB.Append(")");
-                            }
-                            else
-                            {
-                                IList<Expression> args = m.Arguments;
-                                if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit)
-                                {
-                                    args = ((NewArrayExpression)args[0]).Expressions;
-                                }
-                                StringB.Append("CONCAT(");
-                                for (int i = 0, n = args.Count; i < n; i++)
-                                {
-                                    if (i > 0) StringB.Append(", ");
-                                    Visit(args[i]);
-                                }
-                                StringB.Append(")");
+                                case ProviderName.Postgresql:
+                                    {
+                                        IList<Expression> args = m.Arguments;
+                                        if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit)
+                                        {
+                                            args = ((NewArrayExpression)args[0]).Expressions;
+                                        }
+                                        StringB.Append("CONCAT(");
+                                        for (int i = 0, n = args.Count; i < n; i++)
+                                        {
+                                            if (i > 0) StringB.Append(", ");
+                                            Visit(args[i]);
+                                        }
+                                        StringB.Append(")");
+                                        break;
+                                    }
+                                case ProviderName.MySql:
+                                    {
+                                        IList<Expression> args = m.Arguments;
+                                        if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit)
+                                        {
+                                            args = ((NewArrayExpression)args[0]).Expressions;
+                                        }
+                                        StringB.Append("CONCAT(");
+                                        for (int i = 0, n = args.Count; i < n; i++)
+                                        {
+                                            if (i > 0) StringB.Append(", ");
+                                            Visit(args[i]);
+                                        }
+                                        StringB.Append(")");
+                                        break;
+                                    }
+                                case ProviderName.Sqlite:
+                                    {
+                                        IList<Expression> args = m.Arguments;
+                                        if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit)
+                                        {
+                                            args = ((NewArrayExpression)args[0]).Expressions;
+                                        }
+                                        StringB.Append("(");
+                                        for (int i = 0, n = args.Count; i < n; i++)
+                                        {
+                                            if (i > 0) StringB.Append(" || ");
+                                            Visit(args[i]);
+                                        }
+                                        StringB.Append(")");
+                                        break;
+
+                                    }
+                                case ProviderName.MsSql:
+                                    {
+                                        break;
+                                    }
                             }
                             return m;
                         }
                     case "IsNullOrEmpty":
                         {
-                            if (_providerName == ProviderName.Postgresql)
+                            switch (_providerName)
                             {
-                                StringB.Append("(");
-                                Visit(m.Arguments[0]);
-                                StringB.Append(" = '') IS NOT FALSE ");
+                                case ProviderName.Postgresql:
+                                    {
+                                        StringB.Append("(");
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append(" = '') IS NOT FALSE ");
+                                        break;
+                                    }
+                                case ProviderName.MySql:
+                                    {
+                                        StringB.Append("(");
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append(" IS NULL OR ");
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append(" = '')");
+                                        break;
+                                    }
+                                case ProviderName.Sqlite:
+                                    {
+                                        StringB.Append("(");
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append(" IS NULL OR ");
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append(" = '')");
+                                        break;
 
-                            }
-                            else
-                            {
-                                StringB.Append("(");
-                                Visit(m.Arguments[0]);
-                                StringB.Append(" IS NULL OR ");
-                                Visit(m.Arguments[0]);
-                                StringB.Append(" = '')");
+                                    }
+                                case ProviderName.MsSql:
+                                    {
+                                        break;
+                                    }
                             }
                             return m;
                         }
@@ -819,9 +923,26 @@ namespace ORM_1_21_.Linq.MySql
                                                 }
                                             }
                                         }
-
-
                                         StringB.Append(")");
+                                        break;
+                                    }
+                                case ProviderName.MySql:
+                                    {
+                                        if (m.Arguments.Count == 0)
+                                        {
+                                            StringB.Append("TRIM(");
+                                            Visit(m.Object);
+                                            StringB.Append(")");
+                                        }
+                                        else if (m.Arguments.Count == 1)
+                                        {
+                                            StringB.Append("TRIM(LEADING ");
+                                            Visit(m.Arguments[0]);
+                                            StringB = StringB.Replace(",", "");
+                                            StringB.Append(" FROM ");
+                                            Visit(m.Object);
+                                            StringB.Append(")");
+                                        }
                                         break;
                                     }
                                 case ProviderName.Sqlite:
@@ -847,29 +968,14 @@ namespace ORM_1_21_.Linq.MySql
                                         }
                                         StringB.Append(")");
                                         break;
+
                                     }
-                                default:
+                                case ProviderName.MsSql:
                                     {
-                                        if (m.Arguments.Count == 0)
-                                        {
-                                            StringB.Append("TRIM(");
-                                            Visit(m.Object);
-                                            StringB.Append(")");
-                                        }
-                                        else if (m.Arguments.Count == 1)
-                                        {
-                                            StringB.Append("TRIM(LEADING ");
-                                            Visit(m.Arguments[0]);
-                                            StringB = StringB.Replace(",", "");
-                                            StringB.Append(" FROM ");
-                                            Visit(m.Object);
-                                            StringB.Append(")");
-                                        }
                                         break;
                                     }
                             }
                             return m;
-
                         }
 
                     case "TrimEnd":
@@ -898,31 +1004,7 @@ namespace ORM_1_21_.Linq.MySql
                                         StringB.Append(")");
                                         break;
                                     }
-                                case ProviderName.Sqlite:
-                                    {
-                                        StringB.Append("RTRIM(");
-                                        Visit(m.Object);
-                                        if (m.Arguments.Count > 0)
-                                        {
-                                            var ee = (NewArrayExpression)m.Arguments[0];
-                                            for (var i = 0; i < ee.Expressions.Count; i++)
-                                            {
-                                                if (i == 0)
-                                                {
-                                                    StringB.Append(", '");
-                                                }
-
-                                                StringB.Append(ee.Expressions[i]);
-                                                if (i == ee.Expressions.Count - 1)
-                                                {
-                                                    StringB.Append("'");
-                                                }
-                                            }
-                                        }
-                                        StringB.Append(")");
-                                        break;
-                                    }
-                                default:
+                                case ProviderName.MySql:
                                     {
                                         StringB.Append("TRIM(TRAILING  ");
 
@@ -947,7 +1029,37 @@ namespace ORM_1_21_.Linq.MySql
                                         StringB.Append(")");
                                         break;
                                     }
+                                case ProviderName.Sqlite:
+                                    {
+                                        StringB.Append("RTRIM(");
+                                        Visit(m.Object);
+                                        if (m.Arguments.Count > 0)
+                                        {
+                                            var ee = (NewArrayExpression)m.Arguments[0];
+                                            for (var i = 0; i < ee.Expressions.Count; i++)
+                                            {
+                                                if (i == 0)
+                                                {
+                                                    StringB.Append(", '");
+                                                }
+
+                                                StringB.Append(ee.Expressions[i]);
+                                                if (i == ee.Expressions.Count - 1)
+                                                {
+                                                    StringB.Append("'");
+                                                }
+                                            }
+                                        }
+                                        StringB.Append(")");
+                                        break;
+
+                                    }
+                                case ProviderName.MsSql:
+                                    {
+                                        break;
+                                    }
                             }
+
                             return m;
                         }
                     case "TrimStart":
@@ -972,6 +1084,31 @@ namespace ORM_1_21_.Linq.MySql
                                                 StringB.Append("'");
                                             }
                                         }
+
+                                        StringB.Append(")");
+                                        break;
+                                    }
+                                case ProviderName.MySql:
+                                    {
+                                        StringB.Append("TRIM(LEADING   ");
+
+                                        var ee = (NewArrayExpression)m.Arguments[0];
+                                        for (var i = 0; i < ee.Expressions.Count; i++)
+                                        {
+                                            if (i == 0)
+                                            {
+                                                StringB.Append(" '");
+                                            }
+
+                                            StringB.Append(ee.Expressions[i]);
+                                            if (i == ee.Expressions.Count - 1)
+                                            {
+                                                StringB.Append("'");
+                                            }
+                                        }
+
+                                        StringB.Append(" FROM ");
+                                        Visit(m.Object);
 
                                         StringB.Append(")");
                                         break;
@@ -1001,33 +1138,12 @@ namespace ORM_1_21_.Linq.MySql
                                         break;
 
                                     }
-                                default:
+                                case ProviderName.MsSql:
                                     {
-                                        StringB.Append("TRIM(LEADING   ");
-
-                                        var ee = (NewArrayExpression)m.Arguments[0];
-                                        for (var i = 0; i < ee.Expressions.Count; i++)
-                                        {
-                                            if (i == 0)
-                                            {
-                                                StringB.Append(" '");
-                                            }
-
-                                            StringB.Append(ee.Expressions[i]);
-                                            if (i == ee.Expressions.Count - 1)
-                                            {
-                                                StringB.Append("'");
-                                            }
-                                        }
-
-                                        StringB.Append(" FROM ");
-                                        Visit(m.Object);
-
-                                        StringB.Append(")");
                                         break;
-
                                     }
                             }
+
                             return m;
 
                         }
@@ -1289,7 +1405,7 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "First")
             {
-                // CurrentEvalytion = (Evolution)Enum.Parse(typeof(Evolution), m.Method.Name);
+
                 Visit(m.Arguments[0]);
                 if (m.Arguments.Count == 2)
                 {
@@ -1314,7 +1430,7 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "FirstOrDefault")
             {
-                //CurrentEvalytion = (Evolution)Enum.Parse(typeof(Evolution), m.Method.Name);
+
                 Visit(m.Arguments[0]);
                 if (m.Arguments.Count == 2)
                 {
@@ -1340,24 +1456,19 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && (m.Method.Name == "All"))
             {
-                //CurrentEvalytion = Evolution.All;
+
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
                 var o1 = new OneComprosite { Operand = Evolution.All, Body = StringB.ToString() };
                 _listOne.Add(o1);
-
-
-
                 return m;
-
             }
 
 
             if (m.Method.DeclaringType == typeof(Queryable)
                 && (m.Method.Name == "Any"))
             {
-                //CurrentEvalytion = Evolution.Any;
                 Visit(m.Arguments[0]);
                 if (m.Arguments.Count == 2)
                 {
@@ -1438,8 +1549,7 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && (m.Method.Name == "Count" || m.Method.Name == "LongCount"))
             {
-                //  var dd = m.Arguments[0];
-                //CurrentEvalytion = Evolution.Count;
+
                 Visit(m.Arguments[0]);
                 if (m.Arguments.Count == 2)
                 {
@@ -1493,20 +1603,15 @@ namespace ORM_1_21_.Linq.MySql
 
                 if (m.Arguments.Count == 2)
                 {
-
                     var o = new OneComprosite { Operand = Evolution.Where };
-
                     var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
                     o.Body = StringB.ToString();
                     _listOne.Add(o);
-
                     StringB.Length = 0;
                 }
                 return m;
             }
-
-
 
             if (m.Method.MemberType == MemberTypes.Method)
             {
@@ -1514,7 +1619,6 @@ namespace ORM_1_21_.Linq.MySql
                 if (mcs.Method.DeclaringType == typeof(Queryable)
                     || mcs.Method.DeclaringType == typeof(Enumerable))
                 {
-
                     switch (mcs.Method.Name)
                     {
                         case "Count":
@@ -1532,7 +1636,6 @@ namespace ORM_1_21_.Linq.MySql
                                 Visit(lambda.Body);
                                 StringB.Append(")");
                                 _listOne.Add(new OneComprosite { Operand = Evolution.Select, Body = StringB.ToString(), IsAggregate = true });
-
                                 break;
                             }
                     }
@@ -1541,19 +1644,17 @@ namespace ORM_1_21_.Linq.MySql
 
                 if (m.Method.MemberType == MemberTypes.Field)
                 {
-
                     var df = m.Arguments.Select(a => a.GetType().GetProperty("Value").GetValue(a, null));
                     var values = m.Method.Invoke(m, df.ToArray());
-                    AddParametr(values);
+                    AddParameter(values);
                     return m;
                 }
 
                 if (m.Method.MemberType == MemberTypes.Property)
                 {
-
                     var df = m.Arguments.Select(a => a.GetType().GetProperty("Value").GetValue(a, null));
                     var value = m.Method.Invoke(m, df.ToArray());
-                    AddParametr(value);
+                    AddParameter(value);
                     return m;
                 }
 
@@ -1575,7 +1676,7 @@ namespace ORM_1_21_.Linq.MySql
                         var value = Expression.Lambda<Func<object>>(m.Object).Compile()();
                         var dddd = m.Arguments[0].GetType().GetProperty("Value").GetValue(m.Arguments[0], null);
                         var tt = m.Method.Invoke(value, new[] { dddd });
-                        AddParametr(tt);
+                        AddParameter(tt);
                     }
                     return m;
                 }
@@ -1593,14 +1694,12 @@ namespace ORM_1_21_.Linq.MySql
                     else
                     {
                         la.Add(i.GetType().GetProperty("Value").GetValue(i, null));
-
                     }
                 }
 
                 var value3 = m.Method.Invoke(m, la.ToArray());
-                AddParametr(value3);
+                AddParameter(value3);
                 return m;
-
             }
 
             throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture,
@@ -1659,7 +1758,6 @@ namespace ORM_1_21_.Linq.MySql
                 case ExpressionType.Or:
                     StringB.Append(" or ");
                     break;
-
                 case ExpressionType.Add:
                     StringB.Append("+");
                     break;
@@ -1667,12 +1765,7 @@ namespace ORM_1_21_.Linq.MySql
                 case ExpressionType.OrElse:
                     StringB.Append(" or ");
                     break;
-
-
-
                 case ExpressionType.Equal:
-
-
                     if (b.Right.ToString() == "null")
                     {
                         StringB.Append(" is ");
@@ -1723,8 +1816,6 @@ namespace ORM_1_21_.Linq.MySql
                         StringB.Append(" is not  ");
                         break;
                     }
-
-
                     StringB.Append(" <> ");
                     break;
                 case ExpressionType.LessThan:
@@ -1754,7 +1845,6 @@ namespace ORM_1_21_.Linq.MySql
                 case ExpressionType.RightShift:
                     StringB.Append(">>");
                     break;
-
                 case ExpressionType.Subtract:
                 case ExpressionType.SubtractChecked:
                     StringB.Append("-");
@@ -1788,7 +1878,6 @@ namespace ORM_1_21_.Linq.MySql
             }
             else
             {
-                // var gg = Type.GetTypeCode(c.Value.GetType());
                 switch (Type.GetTypeCode(c.Value.GetType()))
                 {
                     case TypeCode.Boolean:
@@ -1801,68 +1890,57 @@ namespace ORM_1_21_.Linq.MySql
                             StringB.Append(((bool)c.Value) ? 1 : 0);
 
                         }
-
                         break;
                     case TypeCode.Decimal:
                         {
                             StringB.Append(((decimal)c.Value));
                             break;
-
                         }
                     case TypeCode.Int64:
                         {
                             StringB.Append((long)c.Value);
                             break;
-
                         }
                     case TypeCode.Int32:
                         {
                             StringB.Append((int)c.Value);
                             break;
-
                         }
                     case TypeCode.Int16:
                         {
                             StringB.Append((short)c.Value);
                             break;
-
                         }
                     case TypeCode.UInt16:
                         {
                             StringB.Append((ushort)c.Value);
                             break;
-
                         }
                     case TypeCode.UInt32:
                         {
                             StringB.Append((uint)c.Value);
                             break;
-
                         }
                     case TypeCode.UInt64:
                         {
                             StringB.Append((ulong)c.Value);
                             break;
-
                         }
                     case TypeCode.Single:
                         {
                             StringB.Append((float)c.Value);
                             break;
-
                         }
                     case TypeCode.Double:
                         {
                             StringB.Append((double)c.Value);
                             break;
-
                         }
                     case TypeCode.String:
 
                         var p = ParamName;
                         StringB.Append(p);
                         Param.Add(p, c.Value);
-
                         break;
                     case TypeCode.Object:
                         {
@@ -1876,13 +1954,12 @@ namespace ORM_1_21_.Linq.MySql
                                 StringB.Append(string.Format("({0}.{1} = '{2}')", tablenane, key, value));
                                 break;
                             }
-
                             throw new NotSupportedException(
                                 string.Format(CultureInfo.CurrentCulture,
                                     "The constant for '{0}' is not supported", c.Value));
                         }
                     default:
-                        AddParametr(c.Value);
+                        AddParameter(c.Value);
                         break;
                 }
             }
@@ -1891,12 +1968,9 @@ namespace ORM_1_21_.Linq.MySql
 
         protected override Expression VisitMemberAccess(MemberExpression m)
         {
-
             if (m.Expression != null
                 && m.Expression.NodeType == ExpressionType.Parameter)
             {
-
-
                 if (m.Expression.Type != typeof(T))
                 {
                     if (UtilsCore.IsAnonymousType(m.Expression.Type))
@@ -1908,15 +1982,11 @@ namespace ORM_1_21_.Linq.MySql
                 {
                     StringB.Append(GetColumnName(m.Member.Name, m.Expression.Type));
                 }
-
-
-
                 return m;
             }
             if (m.Expression != null
                 && m.Expression.NodeType == ExpressionType.New)
             {
-                //var alias = m.Expression.GetType().GetProperty("Name").GetValue(m.Expression, null);
                 StringB.Append(GetColumnName(m.Member.Name, m.Expression.Type));
                 return m;
             }
@@ -1944,30 +2014,30 @@ namespace ORM_1_21_.Linq.MySql
                 if (m.Type == typeof(int))
                 {
                     var value = Expression.Lambda<Func<int>>(m).Compile()();
-                    AddParametr(value);
+                    AddParameter(value);
                     return m;
                 }
 
                 if (m.Type == typeof(long))
                 {
                     var value = Expression.Lambda<Func<long>>(m).Compile()();
-                    AddParametr(value);
+                    AddParameter(value);
                     return m;
                 }
                 if (m.Member.ReflectedType == typeof(DateTime))
                 {
                     var value = Expression.Lambda<Func<DateTime>>(m).Compile()();
-                    AddParametr(value);
+                    AddParameter(value);
                     return m;
                 }
                 if (m.Type == typeof(Guid))
                 {
                     var value = Expression.Lambda<Func<Guid>>(m).Compile()();
-                    AddParametr(value);
+                    AddParameter(value);
                     return m;
                 }
                 var str = Expression.Lambda<Func<object>>(m).Compile().Invoke();
-                AddParametr(str);
+                AddParameter(str);
                 return m;
             }
 
@@ -1984,16 +2054,30 @@ namespace ORM_1_21_.Linq.MySql
                 {
                     case "Length":
 
-                        if (_providerName == ProviderName.Sqlite)
+                        switch (_providerName)
                         {
-                            StringB.Append("LENGTH(");
-                        }
-                        else
-                        {
-                            StringB.Append("CHAR_LENGTH(");
+                            case ProviderName.Postgresql:
+                                {
+                                    StringB.Append("CHAR_LENGTH(");
+                                    break;
+                                }
+                            case ProviderName.Sqlite:
+                                {
+                                    StringB.Append("LENGTH(");
+                                    break;
 
-                        }
+                                }
+                            case ProviderName.MySql:
+                                {
+                                    StringB.Append("CHAR_LENGTH(");
+                                    break;
+                                }
 
+                            case ProviderName.MsSql:
+                                {
+                                    break;
+                                }
+                        }
                         Visit(m.Expression);
                         StringB.Append(")");
                         return;
@@ -2002,7 +2086,6 @@ namespace ORM_1_21_.Linq.MySql
 
             if (m.Member.ReflectedType == typeof(DateTime))
             {
-
                 if (m.Member.DeclaringType == typeof(DateTimeOffset))
                 {
                     throw new Exception("m.Member.DeclaringType == typeof(DateTimeOffset)");
@@ -2026,12 +2109,18 @@ namespace ORM_1_21_.Linq.MySql
                                     Visit(m.Expression);
                                     StringB.Append(") as INTEGER)");
                                     break;
+
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("DAY(");
                                     Visit(m.Expression);
                                     StringB.Append(")");
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
                                     break;
                                 }
                         }
@@ -2052,12 +2141,18 @@ namespace ORM_1_21_.Linq.MySql
                                     Visit(m.Expression);
                                     StringB.Append(") as INTEGER)");
                                     break;
+
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("MONTH(");
                                     Visit(m.Expression);
                                     StringB.Append(")");
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
                                     break;
                                 }
                         }
@@ -2078,12 +2173,18 @@ namespace ORM_1_21_.Linq.MySql
                                     Visit(m.Expression);
                                     StringB.Append(") as INTEGER)");
                                     break;
+
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("YEAR(");
                                     Visit(m.Expression);
                                     StringB.Append(")");
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
                                     break;
                                 }
                         }
@@ -2104,12 +2205,18 @@ namespace ORM_1_21_.Linq.MySql
                                     Visit(m.Expression);
                                     StringB.Append(") as INTEGER)");
                                     break;
+
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("HOUR(");
                                     Visit(m.Expression);
                                     StringB.Append(")");
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
                                     break;
                                 }
                         }
@@ -2130,12 +2237,18 @@ namespace ORM_1_21_.Linq.MySql
                                     Visit(m.Expression);
                                     StringB.Append(") as INTEGER)");
                                     break;
+
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("MINUTE(");
                                     Visit(m.Expression);
                                     StringB.Append(")");
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
                                     break;
                                 }
                         }
@@ -2156,12 +2269,18 @@ namespace ORM_1_21_.Linq.MySql
                                     Visit(m.Expression);
                                     StringB.Append(") as INTEGER)");
                                     break;
+
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("SECOND(");
                                     Visit(m.Expression);
                                     StringB.Append(")");
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
                                     break;
                                 }
                         }
@@ -2172,18 +2291,24 @@ namespace ORM_1_21_.Linq.MySql
                             case ProviderName.Postgresql:
                                 {
                                     throw new Exception("not implemented");
-
                                 }
                             case ProviderName.Sqlite:
                                 {
                                     throw new Exception("not implemented");
 
                                 }
-                            default:
+                            case ProviderName.MySql:
+                                {
+                                    throw new Exception("not implemented");
+                                }
+
+                            case ProviderName.MsSql:
                                 {
                                     throw new Exception("not implemented");
                                 }
                         }
+                        break;
+
 
                     case "DayOfWeek":
                         switch (_providerName)
@@ -2201,12 +2326,18 @@ namespace ORM_1_21_.Linq.MySql
                                     Visit(m.Expression);
                                     StringB.Append(") as INTEGER)");
                                     break;
+
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("(DAYOFWEEK(");
                                     Visit(m.Expression);
                                     StringB.Append(") - 1)");
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
                                     break;
                                 }
                         }
@@ -2227,12 +2358,18 @@ namespace ORM_1_21_.Linq.MySql
                                     Visit(m.Expression);
                                     StringB.Append(") as INTEGER)");
                                     break;
+
                                 }
-                            default:
+                            case ProviderName.MySql:
                                 {
                                     StringB.Append("(DAYOFYEAR(");
                                     Visit(m.Expression);
                                     StringB.Append(") - 1)");
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
                                     break;
                                 }
                         }
@@ -2241,7 +2378,7 @@ namespace ORM_1_21_.Linq.MySql
                 var str1 = Expression.Lambda<Func<DateTime>>(m.Expression).Compile()();
                 var ss = str1.GetType().GetProperty(m.Member.Name);
                 value = ss.GetValue(str1, null);
-                AddParametr(value);
+                AddParameter(value);
                 return;
             }
 
@@ -2268,10 +2405,10 @@ namespace ORM_1_21_.Linq.MySql
                 var ass = str.GetType().GetProperty(m.Member.Name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
                 value = ass.GetValue(str, null);
             }
-            AddParametr(value);
+            AddParameter(value);
         }
 
-        private void AddParametr(object value)
+        private void AddParameter(object value)
         {
             var p1 = ParamName;
             StringB.Append(p1);
@@ -2406,11 +2543,8 @@ namespace ORM_1_21_.Linq.MySql
                     return Expression.New(nex.Constructor, args, nex.Members);
                 }
 
-                else
-                {
-                    _listOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConstructor = nex });
-                    return Expression.New(nex.Constructor, args);
-                }
+                _listOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConstructor = nex });
+                return Expression.New(nex.Constructor, args);
 
             }
             //todo ion100
