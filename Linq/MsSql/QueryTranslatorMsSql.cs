@@ -167,8 +167,8 @@ namespace ORM_1_21_.Linq.MsSql
                 }
                 else
                 {
-                    ListOne.Add(new OneComprosite
-                    {
+                   ListOne.Add(new OneComprosite
+                    { 
                         Operand = Evolution.Limit,
                         Body = string.Format(" LIMIT {0},1", StringB)
                     });
@@ -221,7 +221,6 @@ namespace ORM_1_21_.Linq.MsSql
             {
                 Visit(m.Arguments[0]);
                 StringB.Clear();
-
                 var o = new OneComprosite
                 {
                     Operand = Evolution.ElementAtOrDefault
@@ -400,7 +399,6 @@ namespace ORM_1_21_.Linq.MsSql
                             if (i > 0) StringB.Append(", ");
                             Visit(args[i]);
                         }
-
                         StringB.Append(")");
                         return m;
                     case "IsNullOrEmpty":

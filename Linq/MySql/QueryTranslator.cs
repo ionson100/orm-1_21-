@@ -9,7 +9,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ORM_1_21_.Linq.MySql
 {
@@ -56,8 +55,17 @@ namespace ORM_1_21_.Linq.MySql
             _currentEvalytion = 0;
             Visit(expression);
             ev = CurrentEvalytion;
-            var dd = new MySqlConstructorSql(_providerName).GetStringSql<T>(_listOne, _providerName);//,_joinCapital
-            return dd;
+            if (_providerName == ProviderName.MsSql)
+            {
+                var dd = new MsSqlConstructorSql().GetStringSql<T>(_listOne, _providerName);
+                return dd;
+            }
+            else
+            {
+                var dd = new MySqlConstructorSql(_providerName).GetStringSql<T>(_listOne, _providerName);//,_joinCapital
+                return dd;
+            }
+           
         }
 
         public void Translate(Expression expression, Evolution ev, List<object> paramList)
@@ -89,6 +97,12 @@ namespace ORM_1_21_.Linq.MySql
                     {
                         case ProviderName.MsSql:
                             {
+                                ListOne.Add(new OneComprosite
+                                {
+                                    Operand = Evolution.Limit,
+                                    Body =
+                                        $"LIMIT {paramList[0]},{paramList[1]}"
+                                });
 
                             }
                             break;
@@ -177,12 +191,24 @@ namespace ORM_1_21_.Linq.MySql
                 Visit(m.Arguments[0]);
                 StringB.Clear();
                 Visit(m.Arguments[1]);
-                var o = new OneComprosite
+                if (_providerName == ProviderName.MsSql)
                 {
-                    Operand = Evolution.ElementAt,
-                    Body = StringB.ToString()
-                };
-                _listOne.Add(o);
+                    ListOne.Add(new OneComprosite
+                    {
+                        Operand = Evolution.Limit,
+                        Body = string.Format(" LIMIT {0},1", StringB)
+                    });
+                }
+                else
+                {
+                    var o = new OneComprosite
+                    {
+                        Operand = Evolution.ElementAt,
+                        Body = StringB.ToString()
+                    };
+                    _listOne.Add(o);
+                }
+
                 StringB.Clear();
                 return m;
             }
@@ -225,16 +251,38 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
                  && m.Method.Name == "ElementAtOrDefault")
             {
-                Visit(m.Arguments[0]);
-                StringB.Clear();
-                Visit(m.Arguments[1]);
-                var o = new OneComprosite
+                if (_providerName == ProviderName.MsSql)
                 {
-                    Operand = Evolution.ElementAtOrDefault,
-                    Body = StringB.ToString()
-                };
-                _listOne.Add(o);
-                StringB.Clear();
+                    Visit(m.Arguments[0]);
+                    StringB.Clear();
+                    var o = new OneComprosite
+                    {
+                        Operand = Evolution.ElementAtOrDefault
+                    };
+                    ListOne.Add(o);
+                    Visit(m.Arguments[1]);
+                    ListOne.Add(new OneComprosite
+                    {
+                        Operand = Evolution.Limit,
+                        Body = $" LIMIT {StringB},1"
+                    });
+                    StringB.Clear();
+                    return m;
+                }
+                else
+                {
+                    Visit(m.Arguments[0]);
+                    StringB.Clear();
+                    Visit(m.Arguments[1]);
+                    var o = new OneComprosite
+                    {
+                        Operand = Evolution.ElementAtOrDefault,
+                        Body = StringB.ToString()
+                    };
+                    _listOne.Add(o);
+                    StringB.Clear();
+                }
+
 
 
                 return m;
@@ -340,6 +388,11 @@ namespace ORM_1_21_.Linq.MySql
                                 }
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEADD(YEAR,");
+                                    Visit(m.Arguments[0]);
+                                    StringB.Append(", ");
+                                    Visit(m.Object);
+                                    StringB.Append(" )");
                                     break;
                                 }
 
@@ -379,6 +432,11 @@ namespace ORM_1_21_.Linq.MySql
                                 }
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEADD(MONTH,");
+                                    Visit(m.Arguments[0]);
+                                    StringB.Append(", ");
+                                    Visit(m.Object);
+                                    StringB.Append(" )");
                                     break;
                                 }
                         }
@@ -417,6 +475,11 @@ namespace ORM_1_21_.Linq.MySql
                                 }
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEADD(DAY,");
+                                    Visit(m.Arguments[0]);
+                                    StringB.Append(", ");
+                                    Visit(m.Object);
+                                    StringB.Append(" )");
 
                                     break;
                                 }
@@ -456,6 +519,11 @@ namespace ORM_1_21_.Linq.MySql
                                 }
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEADD(HOUR,");
+                                    Visit(m.Arguments[0]);
+                                    StringB.Append(", ");
+                                    Visit(m.Object);
+                                    StringB.Append(" )");
                                     break;
                                 }
 
@@ -495,6 +563,11 @@ namespace ORM_1_21_.Linq.MySql
                                 }
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEADD(MINUTE,");
+                                    Visit(m.Arguments[0]);
+                                    StringB.Append(", ");
+                                    Visit(m.Object);
+                                    StringB.Append(" )");
                                     break;
                                 }
                         }
@@ -533,6 +606,11 @@ namespace ORM_1_21_.Linq.MySql
                                 }
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEADD(SECOND,");
+                                    Visit(m.Arguments[0]);
+                                    StringB.Append(", ");
+                                    Visit(m.Object);
+                                    StringB.Append(" )");
                                     break;
                                 }
                         }
@@ -572,6 +650,11 @@ namespace ORM_1_21_.Linq.MySql
                                 }
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEADD(MICROSECOND,");
+                                    Visit(m.Arguments[0]);
+                                    StringB.Append(", ");
+                                    Visit(m.Object);
+                                    StringB.Append(" )");
                                     break;
                                 }
 
@@ -627,6 +710,11 @@ namespace ORM_1_21_.Linq.MySql
 
                                 case ProviderName.MsSql:
                                     {
+                                        StringB.Append("(");
+                                        Visit(m.Object);
+                                        StringB.AppendFormat(" {0} CONCAT(", StringConst.Like);
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append(",'%'))");
                                         break;
                                     }
                             }
@@ -668,6 +756,11 @@ namespace ORM_1_21_.Linq.MySql
                                     }
                                 case ProviderName.MsSql:
                                     {
+                                        StringB.Append("(");
+                                        Visit(m.Object);
+                                        StringB.AppendFormat(" {0} CONCAT('%',", StringConst.Like);
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append("))");
                                         break;
                                     }
 
@@ -679,6 +772,11 @@ namespace ORM_1_21_.Linq.MySql
                             switch (_providerName)
                             {
                                 case ProviderName.MsSql:
+                                    StringB.Append("(");
+                                    Visit(m.Object);
+                                    StringB.AppendFormat(" {0} CONCAT('%',", StringConst.Like);
+                                    Visit(m.Arguments[0]);
+                                    StringB.Append(",'%'))");
                                     break;
                                 case ProviderName.MySql:
                                     {
@@ -773,6 +871,16 @@ namespace ORM_1_21_.Linq.MySql
                                     }
                                 case ProviderName.MsSql:
                                     {
+                                        IList<Expression> args = m.Arguments;
+                                        if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit)
+                                            args = ((NewArrayExpression)args[0]).Expressions;
+                                        StringB.Append("CONCAT(");
+                                        for (int i = 0, n = args.Count; i < n; i++)
+                                        {
+                                            if (i > 0) StringB.Append(", ");
+                                            Visit(args[i]);
+                                        }
+                                        StringB.Append(")");
                                         break;
                                     }
                             }
@@ -810,6 +918,13 @@ namespace ORM_1_21_.Linq.MySql
                                     }
                                 case ProviderName.MsSql:
                                     {
+                                        StringB.Append("( CONVERT(VARCHAR,");
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append(") ");
+                                        StringB.Append(" IS NULL OR CONVERT(VARCHAR,");
+                                        Visit(m.Arguments[0]);
+                                        StringB.Append(") = '' ");
+                                        StringB.Append(")");
                                         break;
                                     }
                             }
@@ -844,18 +959,41 @@ namespace ORM_1_21_.Linq.MySql
                         }
                     case "Substring":
                         {
-                            StringB.Append("SUBSTRING(");
-                            Visit(m.Object);
-                            StringB.Append(", ");
-                            Visit(m.Arguments[0]);
-                            StringB.Append(" + 1");
-                            if (m.Arguments.Count == 2)
+                            if (_providerName == ProviderName.MsSql)
                             {
+                                StringB.Append("SUBSTRING(");
+                                Visit(m.Object);
                                 StringB.Append(", ");
-                                Visit(m.Arguments[1]);
+                                Visit(m.Arguments[0]);
+                                StringB.Append(" + 1");
+                                if (m.Arguments.Count == 2)
+                                {
+                                    StringB.Append(", ");
+                                    Visit(m.Arguments[1]);
+                                }
+                                if (m.Arguments.Count == 1)
+                                {
+                                    StringB.Append(", 1000000 ");
+                                }
+                                StringB.Append(")");
+                                return m;
                             }
-                            StringB.Append(")");
-                            return m;
+                            else
+                            {
+                                StringB.Append("SUBSTRING(");
+                                Visit(m.Object);
+                                StringB.Append(", ");
+                                Visit(m.Arguments[0]);
+                                StringB.Append(" + 1");
+                                if (m.Arguments.Count == 2)
+                                {
+                                    StringB.Append(", ");
+                                    Visit(m.Arguments[1]);
+                                }
+                                StringB.Append(")");
+                                return m;
+                            }
+
 
                         }
                     case "Remove":
@@ -887,18 +1025,38 @@ namespace ORM_1_21_.Linq.MySql
                         }
                     case "IndexOf":
                         {
-                            StringB.Append("(LOCATE(");
-                            Visit(m.Arguments[0]);
-                            StringB.Append(", ");
-                            Visit(m.Object);
-                            if (m.Arguments.Count == 2 && m.Arguments[1].Type == typeof(int))
+                            if (_providerName == ProviderName.MsSql)
                             {
+                                StringB.Append("(CHARINDEX(");
+                                Visit(m.Arguments[0]);
                                 StringB.Append(", ");
-                                Visit(m.Arguments[1]);
-                                StringB.Append(" + 1");
+                                Visit(m.Object);
+                                if (m.Arguments.Count == 2 && m.Arguments[1].Type == typeof(int))
+                                {
+                                    StringB.Append(", ");
+                                    Visit(m.Arguments[1]);
+                                    StringB.Append(" + 1");
+                                }
+
+                                StringB.Append(") - 1)");
+                                return m;
                             }
-                            StringB.Append(") - 1)");
-                            return m;
+                            else
+                            {
+                                StringB.Append("(LOCATE(");
+                                Visit(m.Arguments[0]);
+                                StringB.Append(", ");
+                                Visit(m.Object);
+                                if (m.Arguments.Count == 2 && m.Arguments[1].Type == typeof(int))
+                                {
+                                    StringB.Append(", ");
+                                    Visit(m.Arguments[1]);
+                                    StringB.Append(" + 1");
+                                }
+                                StringB.Append(") - 1)");
+                                return m;
+                            }
+
                         }
                     case "Trim":
                         {
@@ -974,6 +1132,45 @@ namespace ORM_1_21_.Linq.MySql
                                     }
                                 case ProviderName.MsSql:
                                     {
+                                        StringB.Append("RTRIM(");
+                                        StringB.Append("LTRIM(");
+                                        Visit(m.Object);
+                                        if (m.Arguments.Count > 0)
+                                        {
+                                            var ee = (NewArrayExpression)m.Arguments[0];
+                                            for (var i = 0; i < ee.Expressions.Count; i++)
+                                            {
+                                                if (i == 0)
+                                                {
+                                                    StringB.Append(", '");
+                                                }
+
+                                                StringB.Append(ee.Expressions[i]);
+                                                if (i == ee.Expressions.Count - 1)
+                                                {
+                                                    StringB.Append("' ");
+                                                }
+                                            }
+                                        }
+                                        StringB.Append(")");
+                                        if (m.Arguments.Count > 0)
+                                        {
+                                            var ee = (NewArrayExpression)m.Arguments[0];
+                                            for (var i = 0; i < ee.Expressions.Count; i++)
+                                            {
+                                                if (i == 0)
+                                                {
+                                                    StringB.Append(", '");
+                                                }
+
+                                                StringB.Append(ee.Expressions[i]);
+                                                if (i == ee.Expressions.Count - 1)
+                                                {
+                                                    StringB.Append("' ");
+                                                }
+                                            }
+                                        }
+                                        StringB.Append(")");
                                         break;
                                     }
                             }
@@ -1058,6 +1255,26 @@ namespace ORM_1_21_.Linq.MySql
                                     }
                                 case ProviderName.MsSql:
                                     {
+                                        StringB.Append("RTRIM(");
+                                        Visit(m.Object);
+                                        if (m.Arguments.Count > 0)
+                                        {
+                                            var ee = (NewArrayExpression)m.Arguments[0];
+                                            for (var i = 0; i < ee.Expressions.Count; i++)
+                                            {
+                                                if (i == 0)
+                                                {
+                                                    StringB.Append(", '");
+                                                }
+
+                                                StringB.Append(ee.Expressions[i]);
+                                                if (i == ee.Expressions.Count - 1)
+                                                {
+                                                    StringB.Append("' ");
+                                                }
+                                            }
+                                        }
+                                        StringB.Append(")");
                                         break;
                                     }
                             }
@@ -1142,6 +1359,26 @@ namespace ORM_1_21_.Linq.MySql
                                     }
                                 case ProviderName.MsSql:
                                     {
+                                        StringB.Append("LTRIM(");
+                                        Visit(m.Object);
+                                        if (m.Arguments.Count > 0)
+                                        {
+                                            var ee = (NewArrayExpression)m.Arguments[0];
+                                            for (var i = 0; i < ee.Expressions.Count; i++)
+                                            {
+                                                if (i == 0)
+                                                {
+                                                    StringB.Append(", '");
+                                                }
+
+                                                StringB.Append(ee.Expressions[i]);
+                                                if (i == ee.Expressions.Count - 1)
+                                                {
+                                                    StringB.Append("' ");
+                                                }
+                                            }
+                                        }
+                                        StringB.Append(")");
                                         break;
                                     }
                             }
@@ -1271,8 +1508,6 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "Where")
             {
-                //if(_currentTypeCode!= Evolution.Join)
-                //_currentTypeCode= Evolution.Where;
                 var o = new OneComprosite { Operand = Evolution.Where };
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
@@ -1291,13 +1526,7 @@ namespace ORM_1_21_.Linq.MySql
             {
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-                //var type = ((MemberExpression)lambda.Body).Expression.Type;
                 Delegate tt;
-
-
-
-
-
 
                 var typew = ((MemberExpression)lambda.Body).Expression.Type;
                 if (typew != typeof(T) && UtilsCore.IsAnonymousType(typew) && _listOne.Any(a => a.Operand == Evolution.SelectNew))
@@ -1350,11 +1579,13 @@ namespace ORM_1_21_.Linq.MySql
                 var sb = new StringBuilder();
                 if (_listOne.Any(a => a.Operand == Evolution.OrderBy))
                 {
-                    _listOne.Where(a => a.Operand == Evolution.OrderBy).ToList().ForEach(a =>
-                                                                                           {
-                                                                                               sb.AppendFormat(" {0},", a.Body);
-                                                                                               _listOne.Remove(a);
-                                                                                           });
+                    _listOne.Where(a => a.Operand == Evolution.OrderBy).
+                        ToList().ForEach(a =>
+
+                         {
+                             sb.AppendFormat(" {0},", a.Body);
+                             _listOne.Remove(a);
+                         });
 
                 }
                 else
@@ -1377,12 +1608,7 @@ namespace ORM_1_21_.Linq.MySql
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
                 var o = new OneComprosite { Operand = Evolution.OrderBy, Body = StringB.ToString().Trim(' ', ',') + " DESC " };
-                //if (m.Method.Name == "OrderByDescending" && m.Arguments.Count == 3)
-                //{
-                //    //var tt = Expression.Lambda<Func<T, int>>(m.Arguments[1], true, m.Arguments[1]).Compile(); ;
-                //    var tt = new List<T>().OrderByDescending((Func<T, object>)((LambdaExpression)StripQuotes(m.Arguments[1])).Compile());
-                //    var ree = m.Arguments[1];//.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
-                //}
+
                 _listOne.Add(o);
                 StringB.Length = 0;
                 return m;
@@ -2077,6 +2303,7 @@ namespace ORM_1_21_.Linq.MySql
 
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("LEN(");
                                     break;
                                 }
                         }
@@ -2084,17 +2311,17 @@ namespace ORM_1_21_.Linq.MySql
                         StringB.Append(")");
                         return;
                 }
-                 
+
             }
             //if(m.Member.==)
-            if (m.Member.MemberType == MemberTypes.Field&&UtilsCore.IsJsonType(((FieldInfo)m.Member).FieldType)) 
+            if (m.Member.MemberType == MemberTypes.Field && UtilsCore.IsJsonType(((FieldInfo)m.Member).FieldType))
             {
                 var o = Expression.Lambda<Func<object>>(m).Compile()();
                 var v = JsonSerializer.Serialize(o);
                 AddParameter(v);
                 return;
             }
-            
+
             if (m.Member.ReflectedType == typeof(DateTime))
             {
                 if (m.Member.DeclaringType == typeof(DateTimeOffset))
@@ -2132,6 +2359,9 @@ namespace ORM_1_21_.Linq.MySql
 
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEPART(DAY,");
+                                    Visit(m.Expression);
+                                    StringB.Append(")");
                                     break;
                                 }
                         }
@@ -2164,6 +2394,9 @@ namespace ORM_1_21_.Linq.MySql
 
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEPART(MONTH, ");
+                                    Visit(m.Expression);
+                                    StringB.Append(")");
                                     break;
                                 }
                         }
@@ -2196,6 +2429,9 @@ namespace ORM_1_21_.Linq.MySql
 
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEPART(YEAR,");
+                                    Visit(m.Expression);
+                                    StringB.Append(")");
                                     break;
                                 }
                         }
@@ -2228,6 +2464,9 @@ namespace ORM_1_21_.Linq.MySql
 
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEPART(HOUR,");
+                                    Visit(m.Expression);
+                                    StringB.Append(")");
                                     break;
                                 }
                         }
@@ -2260,6 +2499,9 @@ namespace ORM_1_21_.Linq.MySql
 
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEPART(MINUTE,");
+                                    Visit(m.Expression);
+                                    StringB.Append(")");
                                     break;
                                 }
                         }
@@ -2292,6 +2534,9 @@ namespace ORM_1_21_.Linq.MySql
 
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEPART(SECOND,");
+                                    Visit(m.Expression);
+                                    StringB.Append(")");
                                     break;
                                 }
                         }
@@ -2349,6 +2594,9 @@ namespace ORM_1_21_.Linq.MySql
 
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEPART(WEEKDAY,");
+                                    Visit(m.Expression);
+                                    StringB.Append(")");
                                     break;
                                 }
                         }
@@ -2381,6 +2629,9 @@ namespace ORM_1_21_.Linq.MySql
 
                             case ProviderName.MsSql:
                                 {
+                                    StringB.Append("DATEPART(DAYOFYEAR,");
+                                    Visit(m.Expression);
+                                    StringB.Append(")");
                                     break;
                                 }
                         }
@@ -2396,8 +2647,9 @@ namespace ORM_1_21_.Linq.MySql
             var strs = new JoinAlias().GetAlias(m.Expression);
             if (strs != null && strs.IndexOf("TransparentIdentifier", StringComparison.Ordinal) != -1)
             {
-                var eee = m.Expression.GetType().GetProperty("Member").GetValue(m.Expression, null);
-                var name = eee.GetType().GetProperty("Name").GetValue(eee, null);
+
+                //var eee = m.Expression.GetType().GetProperty("Member").GetValue(m.Expression, null);
+                //var name = eee.GetType().GetProperty("Name").GetValue(eee, null);
                 StringB.Append(GetColumnName(m.Member.Name, m.Expression.Type));
                 return;
             }
@@ -2412,13 +2664,13 @@ namespace ORM_1_21_.Linq.MySql
                     var ty = fieldInfo.FieldType;
                     if (UtilsCore.IsJsonType(ty))
                     {
-                        value=  JsonSerializer.Serialize(str);
+                        value = JsonSerializer.Serialize(str);
                     }
                     else
                     {
                         value = fieldInfo.GetValue(str);
                     }
-                    
+
                 }
             }
             if (m.Member.MemberType == MemberTypes.Property)
@@ -2431,9 +2683,26 @@ namespace ORM_1_21_.Linq.MySql
 
         private void AddParameter(object value)
         {
-            var p1 = ParamName;
-            StringB.Append(p1);
-            Param.Add(p1, value);
+            if (_providerName == ProviderName.MsSql)
+            {
+                if (PingComposite(Evolution.ElementAt) || PingComposite(Evolution.ElementAtOrDefault))
+            {
+                StringB.Append(uint.Parse(value.ToString()));
+            }
+            else
+            {
+                var p1 = ParamName;
+                StringB.Append(p1);
+                Param.Add(p1, value);
+            }
+            }
+            else
+            {
+                var p1 = ParamName;
+                StringB.Append(p1);
+                Param.Add(p1, value);
+            }
+           
         }
 
         private Expression VisitValue(Expression expr)
@@ -2543,17 +2812,26 @@ namespace ORM_1_21_.Linq.MySql
 
                 return nex;
             }
-            
+            if (nex.Type == typeof(DateTime))
+            {
+                var str = Expression.Lambda<Func<DateTime>>(nex).Compile()();
+                var p = ParamName;
+                StringB.Append(p);
+                Param.Add(p, str);
+                return nex;
+            }
 
-           // if (UtilsCore.IsJsonType(nex.Type))
-           // {
-           //     var str = Expression.Lambda<Func<object>>(nex).Compile()();
-           //     var p = ParamName;
-           //     StringB.Append(p);
-           //     var value = JsonSerializer.Serialize(str);
-           //     Param.Add(p, value);
-           //     return nex;
-           // }
+
+
+            // if (UtilsCore.IsJsonType(nex.Type))
+            // {
+            //     var str = Expression.Lambda<Func<object>>(nex).Compile()();
+            //     var p = ParamName;
+            //     StringB.Append(p);
+            //     var value = JsonSerializer.Serialize(str);
+            //     Param.Add(p, value);
+            //     return nex;
+            // }
 
             IEnumerable<Expression> args = VisitExpressionList(nex.Arguments);
             if (args != nex.Arguments)

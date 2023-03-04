@@ -308,13 +308,13 @@ namespace ORM_1_21_.Linq
         }
 
 
-        private int? GetTimeout()
+        private int GetTimeout()
         {
             foreach (var t in ListCastExpression)
             {
                 if (t.TypeRevalytion == Evolution.Timeout && t.Timeout >= 0) { return t.Timeout; }
             }
-            return null;
+            return 0;
         }
 
         public override object Execute<TS>(Expression expression)
@@ -353,7 +353,7 @@ namespace ORM_1_21_.Linq
                 }
                 if (CacheState == CacheState.CacheOver)
                 {
-                    var ri = MyCache<T>.DeleteKey(hashCode);
+                    MyCache<T>.DeleteKey(hashCode);
                     MySqlLogger.Info($"Delete Cache key:{hashCode}");
                 }
                 var r = MyCache<T>.GetValue(hashCode);
@@ -368,9 +368,10 @@ namespace ORM_1_21_.Linq
             /*usage cache*/
 
             _com = services.CommandForLinq;
-            if (GetTimeout() >= 0)
+            var to = GetTimeout();
+            if (to >= 0)
             {
-                _com.CommandTimeout = GetTimeout().Value;
+                _com.CommandTimeout = to;
             }
 
 
@@ -483,9 +484,7 @@ namespace ORM_1_21_.Linq
                     var count = dataReader.FieldCount;
                     var list = new List<Type>();
                     for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
-                    var ctor = typeof(TS).GetConstructors();
                     var resDis = new List<TS>();
-                    var ewe = typeof(TS);
                     if (UtilsCore.IsAnonymousType(typeof(TS)))
                     {
                         var ci = typeof(TS).GetConstructor(list.ToArray());
@@ -757,6 +756,7 @@ namespace ORM_1_21_.Linq
 
                 #endregion
 
+
                 ////////////////////////////////////////////////////////////////////////////////////////////////
                 dataReader = _com.ExecuteReader();
                 if (listCore.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
@@ -801,6 +801,7 @@ namespace ORM_1_21_.Linq
 
         private (string,List<OneComprosite>) TranslateE(Expression expression)
         {
+            //QueryTranslatorMsSql
             ITranslate sq;
             switch (_providerName)
             {
@@ -808,7 +809,7 @@ namespace ORM_1_21_.Linq
                     sq = new QueryTranslator<T>(_providerName);
                     break;
                 case ProviderName.MsSql:
-                    sq = new QueryTranslatorMsSql<T>(_providerName);
+                    sq = new QueryTranslator<T>(_providerName);
                     break;
                 case ProviderName.Postgresql:
                     sq = new QueryTranslator<T>(_providerName);
@@ -835,6 +836,7 @@ namespace ORM_1_21_.Linq
 
         private string TranslateString(Expression expression, out Evolution ev1)
         {
+            //QueryTranslatorMsSql
             ITranslate sq;
             switch (_providerName)
             {
@@ -842,7 +844,7 @@ namespace ORM_1_21_.Linq
                     sq = new QueryTranslator<T>(_providerName);
                     break;
                 case ProviderName.MsSql:
-                    sq = new QueryTranslatorMsSql<T>(_providerName);
+                    sq = new QueryTranslator<T>(_providerName);
                     break;
                 case ProviderName.Postgresql:
                     sq = new QueryTranslator<T>(_providerName);

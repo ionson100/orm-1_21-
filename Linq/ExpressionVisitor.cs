@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq.Expressions;
+using ORM_1_21_.Utils;
 
 namespace ORM_1_21_.Linq
 {
@@ -324,6 +325,7 @@ namespace ORM_1_21_.Linq
 
         private Expression VisitMemberInit(MemberInitExpression init)
         {
+            
             var n = VisitNew(init.NewExpression);
             var bindings = VisitBindingList(init.Bindings);
             if (n != init.NewExpression || bindings != init.Bindings)
