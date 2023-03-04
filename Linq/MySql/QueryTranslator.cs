@@ -8,6 +8,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Xml.Linq;
 
 namespace ORM_1_21_.Linq.MySql
 {
@@ -2082,8 +2084,17 @@ namespace ORM_1_21_.Linq.MySql
                         StringB.Append(")");
                         return;
                 }
+                 
             }
-
+            //if(m.Member.==)
+            if (m.Member.MemberType == MemberTypes.Field&&UtilsCore.IsJsonType(((FieldInfo)m.Member).FieldType)) 
+            {
+                var o = Expression.Lambda<Func<object>>(m).Compile()();
+                var v = JsonSerializer.Serialize(o);
+                AddParameter(v);
+                return;
+            }
+            
             if (m.Member.ReflectedType == typeof(DateTime))
             {
                 if (m.Member.DeclaringType == typeof(DateTimeOffset))
@@ -2397,8 +2408,18 @@ namespace ORM_1_21_.Linq.MySql
             {
                 var fieldInfo = str.GetType().GetField(m.Member.Name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
                 if (fieldInfo != null)
-
-                    value = fieldInfo.GetValue(str);
+                {
+                    var ty = fieldInfo.FieldType;
+                    if (UtilsCore.IsJsonType(ty))
+                    {
+                        value=  JsonSerializer.Serialize(str);
+                    }
+                    else
+                    {
+                        value = fieldInfo.GetValue(str);
+                    }
+                    
+                }
             }
             if (m.Member.MemberType == MemberTypes.Property)
             {
@@ -2505,21 +2526,11 @@ namespace ORM_1_21_.Linq.MySql
             {
                 if (_providerName == ProviderName.Postgresql)
                 {
-
-                    var keyCollection = Param.Keys;
-                    foreach (var nexArgument in nex.Arguments)
-                    {
-                        Visit(nexArgument);
-                    }
-                    foreach (KeyValuePair<string, object> pair in Param)
-                    {
-                        if (keyCollection.Contains(pair.Key)) continue;
-                        if (pair.Value is Guid) continue;
-                        if (pair.Value is string && Guid.TryParse(pair.Value.ToString(), out var s))
-                        {
-                            Param[pair.Key] = s;
-                        }
-                    }
+                    var str = Expression.Lambda<Func<Guid>>(nex).Compile()();
+                    var p = ParamName;
+                    StringB.Append(p);
+                    Param.Add(p, str);
+                    return nex;
 
                 }
                 else
@@ -2532,6 +2543,17 @@ namespace ORM_1_21_.Linq.MySql
 
                 return nex;
             }
+            
+
+           // if (UtilsCore.IsJsonType(nex.Type))
+           // {
+           //     var str = Expression.Lambda<Func<object>>(nex).Compile()();
+           //     var p = ParamName;
+           //     StringB.Append(p);
+           //     var value = JsonSerializer.Serialize(str);
+           //     Param.Add(p, value);
+           //     return nex;
+           // }
 
             IEnumerable<Expression> args = VisitExpressionList(nex.Arguments);
             if (args != nex.Arguments)

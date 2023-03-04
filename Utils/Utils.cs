@@ -378,9 +378,7 @@ namespace ORM_1_21_.Utils
         internal static bool IsJsonType(Type type)
         {
            
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)
-                || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)
-                || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(HashSet<>))
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
                 return true;
             if (IsSerializable(type) || type.IsArray)
             {

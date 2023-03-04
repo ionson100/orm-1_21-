@@ -60,7 +60,8 @@ namespace TestLibrary
         public Int16? ValInt16 { get; set; }
         [MapColumnName("test8")]
         public Int64? ValInt4 { get; set; }
-
+        [MapColumnName("test9")]
+        public Guid? ValGuid { get; set; }
 
     }
 }

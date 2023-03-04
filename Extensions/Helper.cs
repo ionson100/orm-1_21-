@@ -118,6 +118,7 @@ namespace ORM_1_21_.Extensions
         ///  <param name="param">field-value dictionary</param>
         public static int Update<T>(this IQueryable<T> coll, Expression<Func<T, Dictionary<object, object>>> param) where T : class
         {
+           
             ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
             { CastomExpression = param, TypeRevalytion = Evolution.Update });
             return coll.Provider.Execute<int>(coll.Expression);

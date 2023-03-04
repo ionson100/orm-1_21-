@@ -23,7 +23,7 @@ namespace TestPostgres
             switch (_providerName)
             {
                 case ProviderName.MsSql:
-                    Starter.Run(s1, _providerName);
+                    Starter.Run(s2, _providerName);
                     break;
                 case ProviderName.MySql:
                     Starter.Run("Server=localhost;Database=test;Uid=root;Pwd=12345;", _providerName);
@@ -44,7 +44,7 @@ namespace TestPostgres
             ISession session = Configure.Session;
            
             List<MyClass> list22 = new List<MyClass>();
-            for (int i = 0; i < 500; i++)
+            for (int i = 0; i < 10; i++)
             {
                 list22.Add(new MyClass() { Age = 30, Name = "name1", MyTest = new MyTest { Name = "simple" } });
                 list22.Add(new MyClass() { Age = 10, Name = "name2", MyTest = new MyTest { Name = "simple" } });
@@ -53,8 +53,18 @@ namespace TestPostgres
           
             var inter = session.InsertBulk(list22);
 
-            List<IGrouping<string, MyClass>> list = await Configure.Session.Query<MyClass>().GroupBy(a => a.Name)
-                .ToLisAsync();
+           // List<IGrouping<string, MyClass>> list = await Configure.Session.Query<MyClass>().GroupBy(a => a.Name)
+            //    .ToLisAsync();
+            var d = new MyTest(){Name ="simple"};
+            //var dd=new Dictionary<object, object>();
+            var g = new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e");
+
+
+           session.Query<MyClass>().Update(a => new Dictionary<object, object>()
+           {
+               { a.ValGuid, new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e") }
+           });
+           session.Query<MyClass>().Delete(a => a.ValGuid == new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e"));
             var asss = session.Query<MyClass>().Where(s => s.Name != null).ToListAsync().Result;
 
 
