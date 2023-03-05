@@ -367,13 +367,89 @@ namespace TestLibrary
 
 
 
+                List<T> list22 = new List<T>();
+                for (int iz = 0; iz < 2; iz++)
+                {
+                    list22.Add(new T() { Age = 30, Name = "name1", MyTest = new MyTest { Name = "simple" } });
+                    list22.Add(new T() { Age = 10, Name = "name2", MyTest = new MyTest { Name = "simple" } });
+                }
+                var myTest = new MyTest() { Name = "simple" };
+                var guid = new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e");
+                var data = new DateTime(2023, 3, 4);
+
+                session.InsertBulk(list22);
+                session.Query<T>().Update(a => new Dictionary<object, object>()
+                {
+                    { a.Age,  new int()}
+                });
+                session.Query<T>().Delete(a => a.Age == new int());
+                res = session.Query<T>().ToListAsync().Result;
+                Console.WriteLine($"{57} {res.Count() == 0}");
+                /*--------------mytest-------------*/
+                session.InsertBulk(list22);
+                session.Query<T>().Update(a => new Dictionary<object, object>()
+                {
+                    { a.MyTest,  myTest}
+                });
+                session.Query<T>().Delete(a => a.MyTest == myTest);
+                res = session.Query<T>().ToListAsync().Result;
+                Console.WriteLine($"{58} {res.Count() == 0}");
+
+                session.InsertBulk(list22);
+                session.Query<T>().Update(a => new Dictionary<object, object>()
+                {
+                    { a.MyTest,  new MyTest()}
+                });
+                session.Query<T>().Delete(a => a.MyTest == new MyTest());
+                res = session.Query<T>().ToListAsync().Result;
+                Console.WriteLine($"{59} {res.Count() == 0}");
+                /*--------------guid-------------*/
+                session.InsertBulk(list22);
+                session.Query<T>().Update(a => new Dictionary<object, object>()
+                {
+                    { a.ValGuid,  guid}
+                });
+                session.Query<T>().Delete(a => a.ValGuid == guid);
+                res = session.Query<T>().ToListAsync().Result;
+                Console.WriteLine($"{60} {res.Count() == 0}");
+
+                session.InsertBulk(list22);
+                session.Query<T>().Update(a => new Dictionary<object, object>()
+                {
+                    { a.ValGuid,  new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e")}
+                });
+                session.Query<T>().Delete(a => a.ValGuid == new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e"));
+                res = session.Query<T>().ToListAsync().Result;
+                Console.WriteLine($"{61} {res.Count() == 0}");
+                /*--------------date-------------*/
+                session.InsertBulk(list22);
+                session.Query<T>().Update(a => new Dictionary<object, object>()
+                {
+                    { a.DateTime,  data}
+                });
+                session.Query<T>().Delete(a => a.DateTime == data);
+                res = session.Query<T>().ToListAsync().Result;
+                Console.WriteLine($"{62} {res.Count() == 0}");
+
+                session.InsertBulk(list22);
+                session.Query<T>().Update(a => new Dictionary<object, object>()
+                {
+                    { a.DateTime,  new DateTime(2023, 3, 4)}
+                });
+                session.Query<T>().Delete(a => a.DateTime == new DateTime(2023, 3, 4));
+                res = session.Query<T>().ToListAsync().Result;
+                Console.WriteLine($"{63} {res.Count() == 0}");
+
+
+
+
 
 
 
 
 
             }
-           
+
 
 
 

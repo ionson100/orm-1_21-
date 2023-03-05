@@ -13,7 +13,7 @@ namespace TestPostgres
 {
     internal class Program
     {
-        private static ProviderName _providerName = ProviderName.Sqlite;
+        private static ProviderName _providerName = ProviderName.Postgresql;
 
         static async Task Main(string[] args)
         {
@@ -39,7 +39,7 @@ namespace TestPostgres
             }
             //Execute.RunThread();
             //Console.ReadKey();
-            //Execute.TotalTest();
+            Execute.TotalTest();
             
             ISession session = Configure.Session;
             
@@ -48,7 +48,7 @@ namespace TestPostgres
             var g = new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e");
             var data = new DateTime(2023, 3, 4);
             List<MyClass> list22 = new List<MyClass>();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 2; i++)
             {
                 list22.Add(new MyClass() { Age = 30, Name = "name1", MyTest = new MyTest { Name = "simple" } });
                 list22.Add(new MyClass() { Age = 10, Name = "name2", MyTest = new MyTest { Name = "simple" } });
@@ -60,77 +60,8 @@ namespace TestPostgres
             var asss = session.Query<MyClass>().ToListAsync().Result;
 
 
-           //session.InsertBulk(list22);
-           session.Query<MyClass>().Update(a => new Dictionary<object, object>()
-           {
-               { a.Age,  new int()}
-           });
-           session.Query<MyClass>().Delete(a => a.Age == new int()); 
-            asss = session.Query<MyClass>().ToListAsync().Result;
-            ////////////////////////////
-           // session.InsertBulk(list22);
-           // session.Query<MyClass>().Update(a => new Dictionary<object, object>()
-           // {
-           //     { a.MyTest,  new MyTest() { Name = "simple" }}
-           // });
-           // session.Query<MyClass>().Delete(a => a.MyTest == new MyTest() { Name = "simple" });
-           //  asss = session.Query<MyClass>().ToListAsync().Result;
-           // ////////////////////////////
-            session.InsertBulk(list22);
+            session.Query<MyClass>().Delete(a => a.MyTest == new MyTest());
 
-            session.Query<MyClass>().Update(a => new Dictionary<object, object>()
-            {
-                { a.MyTest,  d}
-            });
-            session.Query<MyClass>().Delete(a => a.MyTest == d);
-             asss = session.Query<MyClass>().ToListAsync().Result;
-////////////////////////////
-            session.InsertBulk(list22);
-
-            session.Query<MyClass>().Update(a => new Dictionary<object, object>()
-            {
-                { a.ValGuid,  g}
-            });
-            session.Query<MyClass>().Delete(a => a.ValGuid == g); 
-            asss = session.Query<MyClass>().ToListAsync().Result;
-            /////////////////////
-            session.InsertBulk(list22);
-
-            session.Query<MyClass>().Update(a => new Dictionary<object, object>()
-            {
-                { a.ValGuid,  new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e")}
-            });
-            session.Query<MyClass>().Delete(a => a.ValGuid == new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e"));
-            asss = session.Query<MyClass>().ToListAsync().Result;
-            /////////////////////
-            session.InsertBulk(list22);
-
-            session.Query<MyClass>().Update(a => new Dictionary<object, object>()
-            {
-                { a.ValGuid,  g}
-            });
-            session.Query<MyClass>().Delete(a => a.ValGuid == g);
-            asss = session.Query<MyClass>().ToListAsync().Result;
-            /////////////////////
-            session.InsertBulk(list22);
-
-            session.Query<MyClass>().Update(a => new Dictionary<object, object>()
-            {
-                { a.DateTime,  data}
-            });
-            asss = session.Query<MyClass>().Where(a => a.DateTime == data).ToList();
-            session.Query<MyClass>().Delete(a => a.DateTime == data);
-            asss = session.Query<MyClass>().ToListAsync().Result;
-            /////////////////////
-            session.InsertBulk(list22);
-
-            session.Query<MyClass>().Update(a => new Dictionary<object, object>()
-            {
-                { a.DateTime,   new DateTime(2023, 3, 4)}
-            });
-            session.Query<MyClass>().Delete(a => a.DateTime == new DateTime(2023, 3, 4));
-            asss = session.Query<MyClass>().ToListAsync().Result;
-            /////////////////////
 
 
 

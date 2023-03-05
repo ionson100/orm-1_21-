@@ -2823,15 +2823,15 @@ namespace ORM_1_21_.Linq.MySql
 
 
 
-            // if (UtilsCore.IsJsonType(nex.Type))
-            // {
-            //     var str = Expression.Lambda<Func<object>>(nex).Compile()();
-            //     var p = ParamName;
-            //     StringB.Append(p);
-            //     var value = JsonSerializer.Serialize(str);
-            //     Param.Add(p, value);
-            //     return nex;
-            // }
+            if (UtilsCore.IsJsonType(nex.Type))
+            {
+                var str = Expression.Lambda<Func<object>>(nex).Compile()();
+                var p = ParamName;
+                StringB.Append(p);
+                var value = JsonSerializer.Serialize(str);
+                Param.Add(p, value);
+                return nex;
+            }
 
             IEnumerable<Expression> args = VisitExpressionList(nex.Arguments);
             if (args != nex.Arguments)
