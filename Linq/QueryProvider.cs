@@ -38,22 +38,21 @@ namespace ORM_1_21_.Linq
             return (TS)Execute<TS>(expression);
         }
 
+        /// <summary>
+        /// Query async
+        /// </summary>
+        public  abstract Task<List<TS>> ExecuteAsync<TS>(Expression expression);
+       
+
         object IQueryProvider.Execute(Expression expression)
         {
             return Execute(expression);
         }
 
-        /// <summary>
-        /// Query Async
-        /// </summary>
-        public abstract Task<List<TResult>> ToListAsync<TResult>(Expression expression, CancellationToken cancellationToken);
+        
 
 
-        /// <summary>
-        /// Query Async for group by
-        /// </summary>
-        public abstract Task<List<IGrouping<string, TResult>>> ToListGroupByAsync<TResult>(Expression expression,
-            CancellationToken cancellationToken = default);
+        
 
         /// <summary>
         ///Query string

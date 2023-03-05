@@ -90,9 +90,9 @@ namespace TestLibrary
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Day == dt.Day).ToList();
             Console.WriteLine($"{4} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Minute == dt.Minute).ToList();
-            Console.WriteLine($"{5} {res.Count == 1} минуты могут не совпадать");
+            Console.WriteLine($"{5} {res.Count == 1} minutes may not match");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Second == dt.Second).ToList();
-            Console.WriteLine($"{6} {res.Count == 1} секунды могут не совпадать");
+            Console.WriteLine($"{6} {res.Count == 1} seconds may not match");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.DayOfYear == dt.DayOfYear).ToList();
             Console.WriteLine($"{7} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.DayOfWeek == dt.DayOfWeek).ToList();
@@ -115,10 +115,10 @@ namespace TestLibrary
             Console.WriteLine($"{12} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddMinutes(1).Minute == dt.Minute + 1)
                 .ToList();
-            Console.WriteLine($"{13} {res.Count == 1} минуты могут не совпадать");
+            Console.WriteLine($"{13} {res.Count == 1} minutes may not match");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddSeconds(1).Second == dt.Second + 1)
                 .ToList();
-            Console.WriteLine($"{14} {res.Count == 1}  секунды могут не совпадать");
+            Console.WriteLine($"{14} {res.Count == 1}  seconds may not match");
             res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Concat("a").Concat("a") == "nameaa")
                 .ToList();
             Console.WriteLine($"{15} {res.Count == 1}");
@@ -181,7 +181,7 @@ namespace TestLibrary
             var o = session.Query<T>().OrderBy(a => a.Age).FirstOrDefault();
 
             Console.WriteLine($"{26} {o != null && o.Age == 10}");
-            Console.WriteLine("Тест транзакции");
+            Console.WriteLine("Test transaction");
             session.TruncateTable<T>();
             count = session.Query<T>().Count();
             Console.WriteLine($"{27} {count == 0}");
@@ -278,7 +278,7 @@ namespace TestLibrary
                 }
 
                 o = session.Query<T>().Where(a => a.Age == 14).FirstOrDefault();
-                Console.WriteLine($"{34} {o == null}");
+                Console.WriteLine($"{34/1} {o == null}");
                 session.TruncateTable<T>();
                 session.InsertBulk(new List<T>()
                 {
@@ -293,8 +293,8 @@ namespace TestLibrary
                 Console.WriteLine($"{35} {ob.Count()==6}");
                 count = session.Query<T>().Where(a => a.Name == "name").OrderBy(r => r.Age).ToList().Sum(a => a.Age);
                 Console.WriteLine($"{36} {count == 110}");
-                //List<IGrouping<string, T>> groupList = session.Query<T>().GroupBy(r => r.Name).ToListAsyncEx().Result;
-                //Console.WriteLine($"{37} {groupList.Count()==2&&groupList[0].Count()==3&&groupList[1].Count()==3}");
+                var groupList = session.Query<T>().GroupBy(r => r.Name).ToListAsync().Result;
+                Console.WriteLine($"{37} {groupList.Count()==2&&groupList[0].Count()==3&&groupList[1].Count()==3}");
 
                 o = session.Query<T>().OrderBy(a => a.Age).First();
                 Console.WriteLine($"{38} {o.Age==10}");
@@ -439,6 +439,25 @@ namespace TestLibrary
                 session.Query<T>().Delete(a => a.DateTime == new DateTime(2023, 3, 4));
                 res = session.Query<T>().ToListAsync().Result;
                 Console.WriteLine($"{63} {res.Count() == 0}");
+                session.TruncateTable<T>();
+                list22.Clear();
+                for (int j = 0; j < 10; j++)
+                {
+                    list22.Add(new T() { Age = j*10, Name = "name1", MyTest = new MyTest { Name = "simple" } });
+                }
+
+                session.InsertBulk(list22);
+                var rBases = session.Query<T>().OrderBy(ss=>ss.Age).Select(a=>a.Age).ToList();
+                res = session.Query<T>().OrderBy(a => a.Age).Limit(2, 2).ToList();
+                count=res.Sum(a => a.Age);
+                Console.WriteLine($"{64} {count == 50}");
+                
+                rBases = session.Query<T>().OrderByDescending(ss => ss.Age).Select(a => a.Age).ToList();
+                res = session.Query<T>().OrderByDescending(a => a.Age).Limit(2, 2).ToList();
+                count = res.Sum(a => a.Age);
+                Console.WriteLine($"{65} {count == 130}");
+
+
 
 
 

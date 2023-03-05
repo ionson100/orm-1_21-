@@ -44,7 +44,11 @@ namespace ORM_1_21_.Utils
             if (type == typeof(long)) { return (Func<T, long>)lexp.Compile(); }
             if (type == typeof(sbyte)) { return (Func<T, sbyte>)lexp.Compile(); }
             if (type == typeof(float)) { return (Func<T, float>)lexp.Compile(); }
-            if (type == typeof(string)) { return (Func<T, string>)lexp.Compile(); }
+
+            if (type == typeof(string))
+            {
+                return (Func<T, string>)lexp.Compile();
+            }
             if (type == typeof(object)) { return (Func<T, object>)lexp.Compile(); }
 
 

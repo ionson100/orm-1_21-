@@ -54,13 +54,10 @@ namespace TestPostgres
                 list22.Add(new MyClass() { Age = 10, Name = "name2", MyTest = new MyTest { Name = "simple" } });
             }
             session.InsertBulk(list22);
-            var err = session.Query<MyClass>().Select(a => new { sd = a.Name.Length }).ToList();
 
-            var yee = new decimal(100);
-            var asss = session.Query<MyClass>().ToListAsync().Result;
-
-
-            session.Query<MyClass>().Delete(a => a.MyTest == new MyTest());
+            var ass = session.Query<MyClass>().Select(a => a.Age).ToListAsync().Result;
+            
+            var groupList = session.Query<MyClass>().GroupBy(r => r.Name).ToListAsync().Result;
 
 
 

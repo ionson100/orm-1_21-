@@ -33,8 +33,16 @@ namespace ORM_1_21_.Linq
         private bool _isStoredPr;
        
         private Dictionary<string, object> _param;
-        
 
+        public Type GetSourceType()
+        {
+            return typeof(T);
+        }
+
+        public DbQueryProvider<T> GetDbQueryProvider()
+        {
+            return this;
+        }
         public DbQueryProvider(Sessione ses)
         {
             _sessione = ses;
@@ -92,6 +100,28 @@ namespace ORM_1_21_.Linq
                 return CacheState.NoCache;
             }
         }
+
+        public override Task<List<TS>> ExecuteAsync<TS>(Expression expression)
+        {
+            var isGroup = typeof(TS).Name.StartsWith("IGrouping");
+            if (isGroup)
+            {
+                return Task.FromResult(ActionCoreGroupBy<TS>(expression));
+            }
+            return Task.FromResult((List<TS>)Execute<TS>(expression));
+        }
+        List<TResult> ActionCoreGroupBy<TResult>(Expression expression)
+        {
+            List< TResult > resList = new List<TResult>();
+            var res = Execute<TResult>(expression);
+            foreach (var o in (IEnumerable<object>)res)
+            {
+                resList.Add((TResult)o);
+            }
+            return resList;
+        }
+
+
 
         public override object Execute(Expression expression)
         {
@@ -219,26 +249,11 @@ namespace ORM_1_21_.Linq
             }
         }
 
-        public override Task<List<TResult>> ToListAsync<TResult>(Expression exception,CancellationToken cancellationToken)
-        {
-           return Task.FromResult((List < TResult >)Execute<TResult>(exception));
-        }
+       
 
-        public override Task<List<IGrouping<string, TResult>>> ToListGroupByAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(ActionCoreGroupBy<TResult>(expression));
-        }
+       
 
-        List<IGrouping<string, TResult>> ActionCoreGroupBy<TResult>(Expression expression)
-        {
-            List<IGrouping<string, TResult>> resList = new List<IGrouping<string, TResult>>();
-           
-            foreach (var o in (IEnumerable<object>)Execute<IGrouping<string, TResult>>(expression))
-            {
-                resList.Add((IGrouping<string, TResult>)o);
-            }
-            return resList;
-        }
+        
 
 
 
@@ -319,7 +334,8 @@ namespace ORM_1_21_.Linq
 
         public override object Execute<TS>(Expression expression)
         {
-           
+            var t1 = typeof(T);
+            var t2 = typeof(TS);
             bool isCacheUsage = CacheState == CacheState.CacheUsage || CacheState == CacheState.CacheOver|| CacheState==CacheState.CacheKey;
             var services = (IServiceSessions)Sessione;
             var re = TranslateE(expression);
