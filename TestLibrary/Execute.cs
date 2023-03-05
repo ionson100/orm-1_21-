@@ -29,7 +29,7 @@ namespace TestLibrary
                      var ts = ses.BeginTransaction();
                      MyClass c = new MyClass();
                      ses.Save(c);
-                     var s = Configure.Session.Query<MyClass>().ToList().Count();
+                     var s = Configure.Session.Query<MyClass>().Count();
                      Console.WriteLine($"{i} -- " + s);
                      ts.Commit();
                  }

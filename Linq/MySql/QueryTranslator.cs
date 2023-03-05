@@ -65,7 +65,7 @@ namespace ORM_1_21_.Linq.MySql
                 var dd = new MySqlConstructorSql(_providerName).GetStringSql<T>(_listOne, _providerName);//,_joinCapital
                 return dd;
             }
-           
+
         }
 
         public void Translate(Expression expression, Evolution ev, List<object> paramList)
@@ -2686,8 +2686,15 @@ namespace ORM_1_21_.Linq.MySql
             if (_providerName == ProviderName.MsSql)
             {
                 if (PingComposite(Evolution.ElementAt) || PingComposite(Evolution.ElementAtOrDefault))
-            {
-                StringB.Append(uint.Parse(value.ToString()));
+                {
+                    StringB.Append(uint.Parse(value.ToString()));
+                }
+                else
+                {
+                    var p1 = ParamName;
+                    StringB.Append(p1);
+                    Param.Add(p1, value);
+                }
             }
             else
             {
@@ -2695,14 +2702,7 @@ namespace ORM_1_21_.Linq.MySql
                 StringB.Append(p1);
                 Param.Add(p1, value);
             }
-            }
-            else
-            {
-                var p1 = ParamName;
-                StringB.Append(p1);
-                Param.Add(p1, value);
-            }
-           
+
         }
 
         private Expression VisitValue(Expression expr)

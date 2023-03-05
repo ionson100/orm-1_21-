@@ -39,7 +39,8 @@ namespace TestPostgres
             }
             //Execute.RunThread();
             //Console.ReadKey();
-            Execute.TotalTest();
+            //Console.ReadKey();
+            //Execute.TotalTest();
             
             ISession session = Configure.Session;
             
@@ -50,12 +51,12 @@ namespace TestPostgres
             List<MyClass> list22 = new List<MyClass>();
             for (int i = 0; i < 2; i++)
             {
-                list22.Add(new MyClass() { Age = 30, Name = "name1", MyTest = new MyTest { Name = "simple" } });
-                list22.Add(new MyClass() { Age = 10, Name = "name2", MyTest = new MyTest { Name = "simple" } });
+                list22.Add(new MyClass() { Age = 30, Name = "nam'as'@ %e1", MyTest = new MyTest { Name = "nam'as'@ %e1" } });
+                list22.Add(new MyClass() { Age = 10, Name = "name2", MyTest = new MyTest { Name = "nam'as'@ %e1" } });
             }
             session.InsertBulk(list22);
 
-            var ass = session.Query<MyClass>().Select(a => a.Age).ToListAsync().Result;
+            //var ass = session.Query<MyClass>().Select(a => a.Age).ToListAsync().Result;
             
             var groupList = session.Query<MyClass>().GroupBy(r => r.Name).ToListAsync().Result;
 

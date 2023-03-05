@@ -818,27 +818,8 @@ namespace ORM_1_21_.Linq
         private (string,List<OneComprosite>) TranslateE(Expression expression)
         {
             //QueryTranslatorMsSql
-            ITranslate sq;
-            switch (_providerName)
-            {
-                case ProviderName.MySql:
-                    sq = new QueryTranslator<T>(_providerName);
-                    break;
-                case ProviderName.MsSql:
-                    sq = new QueryTranslator<T>(_providerName);
-                    break;
-                case ProviderName.Postgresql:
-                    sq = new QueryTranslator<T>(_providerName);
-                    break;
-                case ProviderName.Sqlite:
-                    sq = new QueryTranslator<T>(_providerName);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-
-           
+            ITranslate sq=new QueryTranslator<T>(_providerName);
+            
             _param = sq.Param;
             ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
             string res = sq.Translate(expression, out _);
@@ -853,26 +834,8 @@ namespace ORM_1_21_.Linq
         private string TranslateString(Expression expression, out Evolution ev1)
         {
             //QueryTranslatorMsSql
-            ITranslate sq;
-            switch (_providerName)
-            {
-                case ProviderName.MySql:
-                    sq = new QueryTranslator<T>(_providerName);
-                    break;
-                case ProviderName.MsSql:
-                    sq = new QueryTranslator<T>(_providerName);
-                    break;
-                case ProviderName.Postgresql:
-                    sq = new QueryTranslator<T>(_providerName);
-                    break;
-                case ProviderName.Sqlite:
-                    sq = new QueryTranslator<T>(_providerName);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-           
+            ITranslate sq = new QueryTranslator<T>(_providerName);
+            
             _param = sq.Param;
             ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
             string res = sq.Translate(expression, out ev1);
@@ -881,46 +844,7 @@ namespace ORM_1_21_.Linq
             return res;
         }
 
-       //private string TranslateString(Expression expression, List<OneComprosite> comprosites,
-       //    IDictionary<string, object> dictionary, string parstr)
-       //{
-       //    ITranslate sq;
-       //    switch (_providerName)
-       //    {
-       //        case ProviderName.MySql:
-       //            sq = new QueryTranslator<T>(_providerName);
-       //            break;
-       //        case ProviderName.MsSql:
-       //            sq = new QueryTranslatorMsSql<T>(_providerName);
-       //            break;
-       //        case ProviderName.Postgresql:
-       //            sq = new QueryTranslator<T>(_providerName);
-       //            break;
-       //        case ProviderName.Sqlite:
-       //            sq = new QueryTranslator<T>(_providerName);
-       //            break;
-       //        default:
-       //            throw new ArgumentOutOfRangeException();
-       //    }
-       //
-       //
-       //    _listOne = sq.ListOne;
-       //    _param = sq.Param;
-       //    ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
-       //
-       //    var eee = sq.Translate(expression, out _, parstr);
-       //    comprosites.AddRange(_listOne);
-       //    if (_param != null && _param.Any())
-       //        foreach (var d in _param)
-       //            dictionary.Add(d.Key, d.Value);
-       //    return eee;
-       //}
-
-       //internal override string GetQueryTextForJoin(Expression expression, List<OneComprosite> comprosite,
-       //    Dictionary<string, object> dictionary, string parStr)
-       //{
-       //    return TranslateString(expression, comprosite, dictionary, parStr);
-       //}
+       
 
         public IEnumerable<TS> ExecuteCall<TS>(Expression callExpr)
         {
