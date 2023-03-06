@@ -8,11 +8,11 @@ namespace ORM_1_21_.Utils
 {
     internal class UtilsBulkPostgres
     {
-        private ProviderName providername;
+        private readonly ProviderName _providerName;
 
-        public UtilsBulkPostgres(ProviderName providername)
+        public UtilsBulkPostgres(ProviderName providerName)
         {
-            this.providername = providername;
+            this._providerName = providerName;
         }
 
         public string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
@@ -30,9 +30,9 @@ namespace ORM_1_21_.Utils
         {
             var sql = new StringBuilder();
 
-            sql.Append($"COPY {AttributesOfClass<T>.TableName(providername)} FROM '{fileCsv}' DELIMITER '{fieldterminator}';");
+            sql.Append($"COPY {AttributesOfClass<T>.TableName(_providerName)} FROM '{fileCsv}' DELIMITER '{fieldterminator}';");
             var builder = new StringBuilder();
-            var isAddPk = AttributesOfClass<T>.PkAttribute(providername).Generator != Generator.Native;
+            var isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator != Generator.Native;
 
 
 
@@ -41,15 +41,15 @@ namespace ORM_1_21_.Utils
                 var row = new StringBuilder();
                 if (isAddPk)
                 {
-                    var o = AttributesOfClass<T>.GetValueE(providername, AttributesOfClass<T>.PkAttribute(providername).PropertyName, ob);
+                    var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList
-                        .Value[AttributesOfClass<T>.PkAttribute(providername).PropertyName].PropertyType;
+                        .Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
                     row.Append(GetValueE(o, type)).Append($"{fieldterminator}");
                 }
 
-                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(providername))
+                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
                 {
-                    var o = AttributesOfClass<T>.GetValueE(providername, map.PropertyName, ob);
+                    var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
                     var str = GetValueE(o, type);
                     row.Append(str).Append($"{fieldterminator}");
@@ -68,18 +68,18 @@ namespace ORM_1_21_.Utils
 
         private string SqlSimple<T>(IEnumerable<T> list)
         {
-            var builder = new StringBuilder($"INSERT INTO {AttributesOfClass<T>.TableName(providername)}");
+            var builder = new StringBuilder($"INSERT INTO {AttributesOfClass<T>.TableName(_providerName)}");
             builder.Append(" ( ");
 
-            var isAddPk = AttributesOfClass<T>.PkAttribute(providername).Generator != Generator.Native;
+            var isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator != Generator.Native;
 
             var rowHead = new StringBuilder();
             if (isAddPk)
-                rowHead.Append($"\"{UtilsCore.ClearTrim(AttributesOfClass<T>.PkAttribute(providername).GetColumnName(providername))}\"").Append(",");
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(providername))
+                rowHead.Append($"\"{UtilsCore.ClearTrim(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))}\"").Append(",");
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
             {
                 if (map.TypeColumn == typeof(Image) || map.TypeColumn == typeof(byte[])) continue;
-                rowHead.Append($"\"{UtilsCore.ClearTrim(map.GetColumnName(providername))}\"").Append(",");
+                rowHead.Append($"\"{UtilsCore.ClearTrim(map.GetColumnName(_providerName))}\"").Append(",");
             }
 
             builder.Append(rowHead.ToString()
@@ -89,18 +89,18 @@ namespace ORM_1_21_.Utils
                 var row = new StringBuilder("(");
                 if (isAddPk)
                 {
-                    var o = AttributesOfClass<T>.GetValueE(providername, AttributesOfClass<T>.PkAttribute(providername).PropertyName, ob);
+                    var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList
-                        .Value[AttributesOfClass<T>.PkAttribute(providername).PropertyName].PropertyType;
-                    row.Append(new UtilsBulkMySql(providername).GetValue(o, type)).Append(",");
+                        .Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
+                    row.Append(new UtilsBulkMySql(_providerName).GetValue(o, type)).Append(",");
                 }
 
-                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(providername))
+                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
                 {
-                    var o = AttributesOfClass<T>.GetValueE(providername, map.PropertyName, ob);
+                    var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
                     if (type == typeof(Image) || type == typeof(byte[])) continue;
-                    var str = new UtilsBulkMySql(providername).GetValue(o, type);
+                    var str = new UtilsBulkMySql(_providerName).GetValue(o, type);
                     row.Append(str).Append(",");
                 }
 
@@ -143,12 +143,21 @@ namespace ORM_1_21_.Utils
 
             if (type == typeof(bool?) || type == typeof(bool))
             {
-                if (providername == ProviderName.Postgresql) return o.ToString();
+                if (_providerName == ProviderName.Postgresql) return o.ToString();
                 var v = Convert.ToBoolean(o);
                 return v ? 0.ToString() : 1.ToString();
             }
 
-            if (UtilsCore.IsJsonType(type)) return $"'{UtilsCore.ObjectToJson(o)}'";
+            var st = UtilsCore.GetSerializeType(type);
+            if (st == SerializeType.Self)
+            {
+                return $"'{UtilsCore.ObjectToJson(o)}'";
+            }
+
+            if (st == SerializeType.User)
+            {
+                return $"'{((IMapSerializable)o).Serialize()}'";
+            } 
             return $"{o}";
         }
 

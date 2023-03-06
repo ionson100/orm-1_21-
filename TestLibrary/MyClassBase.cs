@@ -62,6 +62,8 @@ namespace TestLibrary
         public Int64? ValInt4 { get; set; }
         [MapColumnName("test9")]
         public Guid? ValGuid { get; set; }
+        [MapColumnName("testuser")]
+        public TestUser TestUser { get; set; } = new TestUser { Id = 23, Name = "23" };
 
     }
 }

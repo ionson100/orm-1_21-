@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -78,7 +79,7 @@ namespace ORM_1_21_.Utils
     
     internal static class UtilsCore
     {
-        private static HashSet<Type> Hlam = new HashSet<Type>
+        private static readonly HashSet<Type> Hlam = new HashSet<Type>
         {
             typeof(uint),
             typeof(ulong),
@@ -115,8 +116,8 @@ namespace ORM_1_21_.Utils
             typeof(byte[]),
          
     };
-        private static Dictionary<Type, bool> SeralisableTypeDictionary = new Dictionary<Type, bool>();
-        private static HashSet<Type> NumericTypes = new HashSet<Type>
+        private static readonly Dictionary<Type, bool> SerializableTypeDictionary = new Dictionary<Type, bool>();
+        private static readonly HashSet<Type> NumericTypes = new HashSet<Type>
         {
 
            typeof(byte),
@@ -367,16 +368,17 @@ namespace ORM_1_21_.Utils
             return false;
         }
 
+        private static readonly Dictionary<Type, SerializeType> SerializeTypes = new Dictionary<Type, SerializeType>();
         private static bool IsSerializable(Type type)
         {
             if (Hlam.Contains(type)) return false;
-            if (SeralisableTypeDictionary.ContainsKey(type) == false)
+            if (SerializableTypeDictionary.ContainsKey(type) == false)
             {
                 var t = type.GetCustomAttribute(typeof(MapSerializableAttribute));
-                SeralisableTypeDictionary.Add(type, t != null);
+                SerializableTypeDictionary.Add(type, t != null);
             }
 
-            return SeralisableTypeDictionary[type];
+            return SerializableTypeDictionary[type];
         }
 
         internal static bool IsJsonType(Type type)
@@ -384,12 +386,40 @@ namespace ORM_1_21_.Utils
            
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
                 return true;
-            if (IsSerializable(type) || type.IsArray)
+            if (IsSerializable(type))
             {
                 return true;
             }
-
+       
             return false;
+        }
+
+        internal static SerializeType GetSerializeType(Type type)
+        {
+            if (Hlam.Contains(type))
+                return SerializeType.None;
+            if (SerializeTypes.ContainsKey(type) == false)
+            {
+                var t = type.GetCustomAttribute(typeof(MapSerializableAttribute));
+                if (t != null)
+                {
+                    SerializeTypes.Add(type,SerializeType.Self);
+                } else if (type.GetInterfaces().Contains(typeof(IMapSerializable)))
+                {
+                    SerializeTypes.Add(type, SerializeType.User);
+                }else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    SerializeTypes.Add(type, SerializeType.Self);
+                }
+                else
+                {
+                    SerializeTypes.Add(type, SerializeType.None);
+                }
+               
+                
+            }
+
+            return SerializeTypes[type];
         }
 
         public static string ObjectToJson(object o)
@@ -465,6 +495,11 @@ namespace ORM_1_21_.Utils
             var str = JsonSerializer.Serialize(ob);
             return JsonSerializer.Deserialize<T>(str);
         }
+    }
+
+    internal enum SerializeType
+    {
+        None,Self,User
     }
 }
 

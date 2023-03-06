@@ -105,7 +105,7 @@ namespace ORM_1_21_
             return ListBaseAttr.Value;
         }
 
-        private static Lazy<List<BaseAttribute>> ListBaseAttr = new Lazy<List<BaseAttribute>>(() =>
+        private static readonly Lazy<List<BaseAttribute>> ListBaseAttr = new Lazy<List<BaseAttribute>>(() =>
         {
             var l = new List<BaseAttribute>();
             AttributeDall.Value.ToList().ForEach(a => l.AddRange(a.Value));
@@ -278,7 +278,6 @@ namespace ORM_1_21_
         private static Dictionary<Type, string> ActivateTableNameAll()
         {
             ProviderName providerName = CurProviderName;
-            var ee = typeof(T);
             var dictionary = new Dictionary<Type, string>
             {
                 {
@@ -534,10 +533,13 @@ namespace ORM_1_21_
                     pr.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
                     var prcore = item.GetType().GetProperties().First(a => a.Name == pra.PropertyName);
                     object vall;
+                    var st = UtilsCore.GetSerializeType(prcore.PropertyType);
                     if (prcore.PropertyType == typeof(Image))
                         vall = UtilsCore.ImageToByte((Image)GetValue.Value[prcore.Name](item));
-                    else if (UtilsCore.IsJsonType(prcore.PropertyType))
+                    else if (st==SerializeType.Self)
                         vall = UtilsCore.ObjectToJson(GetValue.Value[prcore.Name](item));
+                    else if (st == SerializeType.User)
+                        vall = ((IMapSerializable)GetValue.Value[prcore.Name](item)).Serialize();
                     else if (prcore.PropertyType.BaseType == typeof(Enum))
                         vall = (int)GetValue.Value[prcore.Name](item);
                     else
@@ -588,6 +590,7 @@ namespace ORM_1_21_
 
             command.CommandText = allSql.ToString();
         }
+        
 
         public static void CreateUpdateCommandPostgres(IDbCommand command, T item, ProviderName providerName)
         {
@@ -616,11 +619,14 @@ namespace ORM_1_21_
                             .GetProperties()
                             .First(a => a.Name == pra.PropertyName);
                     object val;
+                    var st = UtilsCore.GetSerializeType(prCore.PropertyType);
                     if (prCore.PropertyType == typeof(Image))
                         val = UtilsCore.ImageToByte((Image)GetValue.Value[prCore.Name](item));
 
-                    else if (UtilsCore.IsJsonType(prCore.PropertyType))
+                    else if (st==SerializeType.Self)
                         val = UtilsCore.ObjectToJson(GetValue.Value[prCore.Name](item));
+                    else if (st == SerializeType.User)
+                        val = ((IMapSerializable)GetValue.Value[prCore.Name](item)).Serialize();
                     else if (prCore.PropertyType.BaseType == typeof(Enum))
                         val = (int)GetValue.Value[prCore.Name](item);
                     else
@@ -929,6 +935,7 @@ namespace ORM_1_21_
                         pr.ParameterName = $"{UtilsCore.PrefParam(providerName)}{par}{i}";
                         var prCore = obj.GetType().GetProperty(rtp.PropertyName);
                         object val;
+                        var st = UtilsCore.GetSerializeType(prCore.PropertyType);
                         if (prCore.PropertyType == typeof(Image))
                             val = UtilsCore.ImageToByte((Image)GetValue.Value[prCore.Name](obj));
                         else if (prCore.PropertyType.BaseType == typeof(Enum))
@@ -936,8 +943,10 @@ namespace ORM_1_21_
                             val = (int)GetValue.Value[prCore.Name](obj);
                             isEnum = true;
                         }
-                        else if (UtilsCore.IsJsonType(prCore.PropertyType))
+                        else if (st==SerializeType.Self)
                             val = UtilsCore.ObjectToJson(GetValue.Value[prCore.Name](obj));
+                        else if (st == SerializeType.User)
+                            val = ((IMapSerializable)GetValue.Value[prCore.Name](obj)).Serialize();
                         else
                             val = GetValue.Value[prCore.Name](obj);
 
@@ -1021,5 +1030,12 @@ namespace ORM_1_21_
             Provider = providerName;
             return TableNameAllLazy.Value[type] + "." + ColumnName.Value[member];
         }
+
+        //private static readonly Lazy<bool> _isUserSerialization = new Lazy<bool>(() =>
+        //{
+        //   return typeof(IMapSerializable).IsAssignableFrom(typeof(T));
+        //}, LazyThreadSafetyMode.PublicationOnly);
+        //
+        //public static bool IsUserSerialization = _isUserSerialization.Value;
     }
 }

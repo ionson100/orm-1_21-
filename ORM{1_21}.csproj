@@ -132,6 +132,7 @@
     <Compile Include="Attribute\MapUsageActivatorAttribute.cs" />
     <Compile Include="CacheState.cs" />
     <Compile Include="ColumnsTableFactory.cs" />
+    <Compile Include="Interface\IMapSerializable.cs" />
     <Compile Include="Linq\MsSql\ITranslate.cs" />
     <Compile Include="MyCache.cs" />
     <Compile Include="StorageOtherBaseFactory.cs" />

@@ -1747,7 +1747,7 @@ namespace ORM_1_21_.Linq.MySql
                         }
                         else
                         {
-                            body.Body = body.Body + " DESC";
+                            body.Body += " DESC";
                         }
                     }
                     if (PingComposite(Evolution.Limit) == false)
@@ -2039,7 +2039,7 @@ namespace ORM_1_21_.Linq.MySql
                         StringB.Append(" is not  ");
                         break;
                     }
-                    if (b.Right is UnaryExpression && ((UnaryExpression)b.Right).Operand.ToString() == "null")
+                    if (b.Right is UnaryExpression unaryExpression && unaryExpression.Operand.ToString() == "null")
                     {
                         StringB.Append(" is not  ");
                         break;
@@ -2314,12 +2314,27 @@ namespace ORM_1_21_.Linq.MySql
 
             }
             //if(m.Member.==)
-            if (m.Member.MemberType == MemberTypes.Field && UtilsCore.IsJsonType(((FieldInfo)m.Member).FieldType))
+
+            if (m.Member.MemberType == MemberTypes.Field)
             {
-                var o = Expression.Lambda<Func<object>>(m).Compile()();
-                var v = JsonSerializer.Serialize(o);
-                AddParameter(v);
-                return;
+                var st = UtilsCore.GetSerializeType(((FieldInfo)m.Member).FieldType);
+                if (st == SerializeType.Self)
+                {
+
+                    var o = Expression.Lambda<Func<object>>(m).Compile()();
+                    var v = JsonSerializer.Serialize(o);
+                    AddParameter(v);
+                    return;
+                }
+
+                if (st == SerializeType.User)
+                {
+                    var o = Expression.Lambda<Func<object>>(m).Compile()();
+                    var v = ((IMapSerializable)o).Serialize();
+                    AddParameter(v);
+                    return;
+                }
+
             }
 
             if (m.Member.ReflectedType == typeof(DateTime))
@@ -2644,12 +2659,9 @@ namespace ORM_1_21_.Linq.MySql
                 return;
             }
 
-            var strs = new JoinAlias().GetAlias(m.Expression);
-            if (strs != null && strs.IndexOf("TransparentIdentifier", StringComparison.Ordinal) != -1)
+            var strS = new JoinAlias().GetAlias(m.Expression);
+            if (strS != null && strS.IndexOf("TransparentIdentifier", StringComparison.Ordinal) != -1)
             {
-
-                //var eee = m.Expression.GetType().GetProperty("Member").GetValue(m.Expression, null);
-                //var name = eee.GetType().GetProperty("Name").GetValue(eee, null);
                 StringB.Append(GetColumnName(m.Member.Name, m.Expression.Type));
                 return;
             }
@@ -2802,14 +2814,10 @@ namespace ORM_1_21_.Linq.MySql
                     return nex;
 
                 }
-                else
+                foreach (var nexArgument in nex.Arguments)
                 {
-                    foreach (var nexArgument in nex.Arguments)
-                    {
-                        Visit(nexArgument);
-                    }
+                    Visit(nexArgument);
                 }
-
                 return nex;
             }
             if (nex.Type == typeof(DateTime))

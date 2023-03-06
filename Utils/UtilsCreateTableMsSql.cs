@@ -119,8 +119,8 @@ namespace ORM_1_21_.Utils
             {
                 return "[uniqueidentifier]";
             }
-
-            if (UtilsCore.IsJsonType(type))
+            var st = UtilsCore.GetSerializeType(type);
+            if (st==SerializeType.Self||st==SerializeType.User)
             {
                 return "[nvarchar] (max)";
             }

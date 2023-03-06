@@ -92,7 +92,8 @@ namespace ORM_1_21_.Utils
                 return "smallint";
             if (type == typeof(char) || type == typeof(char?))
                 return "character(1)";
-            if (UtilsCore.IsJsonType(type)) 
+            var st = UtilsCore.GetSerializeType(type);
+            if (st==SerializeType.Self||st==SerializeType.User) 
                 return "TEXT";
 
             if (type == typeof(Image)

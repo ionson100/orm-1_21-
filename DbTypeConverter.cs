@@ -115,12 +115,14 @@ namespace ORM_1_21_
             {
                 return ConvertFrom(type.GetGenericArguments()[0]);
             }
-            if (UtilsCore.IsJsonType(type))
+
+            var st = UtilsCore.GetSerializeType(type);
+            if (st == SerializeType.Self || st == SerializeType.User)
             {
                 return DbType.String;
+
             }
-
-
+          
             throw new NotSupportedException(string.Format("Unable to convert {0} to a DbType enum value.", type.FullName));
         }
 

@@ -7,7 +7,6 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -15,7 +14,7 @@ namespace ORM_1_21_
 {
     internal static class Pizdaticus
     {
-        public static IEnumerable<TObj> GetRiderToList<TObj>(IDataReader reader,ProviderName providerName)
+        public static IEnumerable<TObj> GetRiderToList<TObj>(IDataReader reader, ProviderName providerName)
         {
             var isLegalese = AttributesOfClass<TObj>.IsUssageActivator(providerName);
             bool? field = null;
@@ -25,13 +24,13 @@ namespace ORM_1_21_
                 TObj d;
                 if (isLegalese)
                 {
-                    d=Activator.CreateInstance<TObj>();
+                    d = Activator.CreateInstance<TObj>();
                 }
                 else
                 {
                     d = (TObj)FormatterServices.GetSafeUninitializedObject(typeof(TObj));
                 }
-               
+
                 foreach (var s in AttributesOfClass<TObj>.ListBaseAttrE(providerName))
                 {
                     try
@@ -67,7 +66,7 @@ namespace ORM_1_21_
             {
                 var ctor = ((NewExpression)ss).Constructor;
                 var lRes = new List<T>();
-                var d = new object[reader.FieldCount]; 
+                var d = new object[reader.FieldCount];
                 while (reader.Read())
                 {
                     for (var i = 0; i < reader.FieldCount; i++)
@@ -88,7 +87,7 @@ namespace ORM_1_21_
 
         }
 
-        public static void GetListAnonymousObjDistinct(IDataReader reader, object ss, IList list,ProviderName providerName)
+        public static void GetListAnonymousObjDistinct(IDataReader reader, object ss, IList list, ProviderName providerName)
         {
             try
             {
@@ -145,7 +144,7 @@ namespace ORM_1_21_
                     isActive = true;
                     return enumerable.First();
                 }
-             
+
                 throw new Exception("Sequence contains more than one element or is empty count -" +
                                     enumerable.Count());
             }
@@ -183,16 +182,16 @@ namespace ORM_1_21_
             if (oneComprosites.Any(a => a.Operand == Evolution.ElementAtOrDefault))
             {
                 isActive = true;
-                return result.Any() ? enumerable.First() : default(T);
+                return result.Any() ? enumerable.First() : default;
             }
 
             isActive = false;
-            return default(T);
+            return default;
         }
 
-      
 
-        public static IEnumerable<TObj> GetRiderToList2<TObj>(IDataReader reader,ProviderName providerName)
+
+        public static IEnumerable<TObj> GetRiderToList2<TObj>(IDataReader reader, ProviderName providerName)
         {
             bool? field = null;
             using (var read = reader)
@@ -217,27 +216,38 @@ namespace ORM_1_21_
 
                         var pr = AttributesOfClass<TObj>.PropertyInfoList.Value[s.PropertyName];
                         {
-                            if (UtilsCore.IsJsonType(pr.PropertyType))
+                            var st = UtilsCore.GetSerializeType(pr.PropertyType);
+                            if (st == SerializeType.Self)
                             {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name,d,
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,
                                     e == DBNull.Value
                                         ? null
                                         : UtilsCore.JsonToObject(e.ToString(), pr.PropertyType));
                             }
+                            if (st == SerializeType.User)
+                            {
+                                var o = Activator.CreateInstance(pr.PropertyType);
+                                ((IMapSerializable)o).Deserialize(e.ToString());
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,
+                                    e == DBNull.Value
+                                        ? null
+                                        : o);
+
+                            }
                             else if (pr.PropertyType == typeof(Image))
                             {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name,d,e == DBNull.Value ? null : UtilsCore.ImageFromByte((byte[])e));
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : UtilsCore.ImageFromByte((byte[])e));
                             }
                             else if (pr.PropertyType == typeof(bool))
                             {
                                 if (e == DBNull.Value)
                                 {
-                                    AttributesOfClass<TObj>.SetValueE(providerName, pr.Name,d, null);
+                                    AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
                                 }
                                 else
                                 {
                                     var b = Convert.ToBoolean(e);
-                                    AttributesOfClass<TObj>.SetValueE(providerName, pr.Name,d, b);
+                                    AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, b);
                                 }
                             }
                             else if (pr.PropertyType == typeof(DateTime))
@@ -252,7 +262,7 @@ namespace ORM_1_21_
                             else if (pr.PropertyType == typeof(Guid))
                             {
                                 var ere = new Guid(e.ToString());
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name,d,
+                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,
                                     e == DBNull.Value ? Guid.Empty : ere);
                             }
                             else
@@ -270,16 +280,24 @@ namespace ORM_1_21_
 
         public static object MethodFree(ProviderName providerName, Type type, object e)
         {
-            if (UtilsCore.IsJsonType(type))
+            var st = UtilsCore.GetSerializeType(type);
+            if (st == SerializeType.Self)
             {
                 if (e == DBNull.Value) return null;
                 return UtilsCore.JsonToObject(e.ToString(), type);
             }
+            if (st == SerializeType.User)
+            {
+                var o = Activator.CreateInstance(type);
+                ((IMapSerializable)o).Deserialize(e.ToString());
+                if (e == DBNull.Value) return null;
+                return o;
+            }
 
             if (type == typeof(Image))
             {
-               
-                return  e == DBNull.Value ? null : UtilsCore.ImageFromByte((byte[])e);
+
+                return e == DBNull.Value ? null : UtilsCore.ImageFromByte((byte[])e);
             }
 
             if (type == typeof(bool))
@@ -290,8 +308,8 @@ namespace ORM_1_21_
                 }
                 else
                 {
-                    return  Convert.ToBoolean(e);
-                    
+                    return Convert.ToBoolean(e);
+
                 }
             }
 
@@ -303,7 +321,7 @@ namespace ORM_1_21_
                 }
                 else
                 {
-                    var b = Convert.ToBoolean(e);
+                    return Convert.ToBoolean(e);
                 }
             }
             else if (type == typeof(DateTime))
@@ -440,7 +458,7 @@ namespace ORM_1_21_
                 return e == DBNull.Value ? null : e;
             }
 
-            return e;
+           
         }
 
     }

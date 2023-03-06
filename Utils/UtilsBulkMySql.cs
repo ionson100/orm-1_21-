@@ -202,7 +202,8 @@ namespace ORM_1_21_.Utils
                 return v ? 0.ToString() : 1.ToString();
             }
 
-            if (UtilsCore.IsJsonType(type))
+            var st = UtilsCore.GetSerializeType(type);
+            if (st==SerializeType.Self||st==SerializeType.User)
             {
                 switch (_providerName)
                 {

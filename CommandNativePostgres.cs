@@ -95,7 +95,19 @@ namespace ORM_1_21_
                 return v ? 0.ToString() : 1.ToString();
             }
 
-            if (UtilsCore.IsJsonType(type)) return $"'{UtilsCore.ObjectToJson(o)}'";
+            switch (UtilsCore.GetSerializeType(type))
+            {
+                case SerializeType.Self:
+                {
+                    return $"'{UtilsCore.ObjectToJson(o)}'";
+                }
+                case SerializeType.User:
+                {
+                   return $"{((IMapSerializable)o).Serialize()}";
+                }
+            }
+
+            
             return $"{o.ToString().Replace("'", "''")}";
         }
 

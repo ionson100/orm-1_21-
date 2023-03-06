@@ -66,7 +66,8 @@ namespace ORM_1_21_
                 return $"NOT NULL DEFAULT '{Guid.Empty}'";
             }
 
-            if (UtilsCore.IsJsonType(type))
+            var st = UtilsCore.GetSerializeType(type);
+            if (st==SerializeType.User||st==SerializeType.Self)
             {
                 return "NULL";
             }
