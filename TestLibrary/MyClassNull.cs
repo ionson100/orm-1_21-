@@ -1,9 +1,9 @@
-﻿using System;
-using ORM_1_21_;
+﻿using ORM_1_21_;
+using System;
 
 namespace TestLibrary
 {
-    [MapTableName("null_table")]
+  
     class MyClassNullBase
     {
         [MapPrimaryKey("id", Generator.Native)]
@@ -32,10 +32,36 @@ namespace TestLibrary
         [MapColumnName("v13")] public long? V13 { get; set; }
         //
         [MapColumnName("v15")] public float? V15 { get; set; }
-        [MapColumnName("v16")] public Guid V16 { get; set; }
+        [MapColumnName("v16")] public Guid? V16 { get; set; }
 
 
         //[MapColumnName("v19")] public byte[] V21 { get; set; } = new byte[] { 5 };
+    }
+    [MapTableName("null_table1")]
+    class ClassNullPostgres : MyClassNullBase
+    {
+
+    }
+    [MapTableName("null_table2")]
+    class ClassNullMsSql : MyClassNullBase
+    {
+
+    }
+    [MapTableName("null_table3")]
+    class ClassNullMysql : MyClassNullBase
+    {
+        [MapColumnName("v2")] public uint? V2 { get; set; } 
+        [MapColumnName("v3")] public ulong? V3 { get; set; }
+        [MapColumnName("v4")] public ushort? V4 { get; set; }
+        [MapColumnName("v14")] public sbyte? V14 { get; set; }
+    }
+    [MapTableName("null_table4")]
+    class ClassNullSqlite : MyClassNullBase
+    {
+        [MapColumnName("v2")] public uint? V2 { get; set; } 
+        [MapColumnName("v3")] public ulong? V3 { get; set; }
+        [MapColumnName("v4")] public ushort? V4 { get; set; }
+        [MapColumnName("v14")] public sbyte? V14 { get; set; }
     }
 
 }

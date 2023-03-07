@@ -2,7 +2,7 @@
 
 namespace ORM_1_21_.Linq
 {
-    internal class OneComprosite
+    internal class OneComposite
     {
 
 

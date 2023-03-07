@@ -1,9 +1,10 @@
-﻿using System;
+﻿using ORM_1_21_;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Threading.Tasks;
-using ORM_1_21_;
+using ORM_1_21_.Extensions;
 using TestLibrary;
 
 
@@ -11,7 +12,7 @@ namespace TestPostgres
 {
     internal class Program
     {
-        private const ProviderName ProviderName = ORM_1_21_.ProviderName.Postgresql;
+        private const ProviderName ProviderName = ORM_1_21_.ProviderName.MsSql;
 
         static async Task Main(string[] args)
         {
@@ -38,25 +39,34 @@ namespace TestPostgres
             //Execute.RunThread();
             //Console.ReadKey();
             //Console.ReadKey();
-            Execute.TotalTest();
-            
+            //Execute.TotalTest();
+            //Execute.TotalTestNull();
+
+
             ISession session = Configure.Session;
-            if (session.TableExists<TestList>())
+            session.TruncateTable<MyClass>();
+            for (int j = 0; j < 10; j++)
             {
-                session.DropTable<TestList>();
+                session.Save(new MyClass() { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now, Valfloat = 123.3f});
+                session.Save(new MyClass() { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now });
             }
-            session.TableCreate<TestList>();
-            session.Save(new TestList());
-            var rr=session.Query<TestList>().First();
-            rr.MyTest.Name="sasasas";
-            session.Save(rr);
-            var errrr = session.Query<TestList>().ToList();
 
+            //ssion.Query<MyClass>().OrderBy(s=>s.Age).ToList();
+            //
+            //"select {session.ColumnName<MyClass>(ss => ss.Age)} from {session.TableName<MyClass>()} where  " +
+            //ssion.ColumnName<MyClass>(ss => ss.Name)}=@1 and " +
+            //ssion.ColumnName<MyClass>(ss => ss.Valdecimal)} = '123.3' and" +
+            //ession.ColumnName<MyClass>(d => d.Age)} = @3";
+            //int)session.ExecuteScalar("select [age] from [my_class5] where  [name]=@1 and [test5] = '123.3' and [age] = '10'", "name1");
+            //= (int)session.ExecuteScalar(sql,
+            //ameter("@1", "name1"),
+            //ameter("@2", new decimal(123.3),DbType.Double),
+            //ameter("@3", 10));
 
+            
 
-
-
-
+           
+            var ee = session.FreeSql<MyClass>("select * from my_class5 where test6 = @1",new Parameter("@1",123.3f));
             Console.ReadKey();
         }
 
@@ -65,9 +75,9 @@ namespace TestPostgres
             return 10;
         }
 
-       
 
-      
+
+
 
 
     }
@@ -77,8 +87,8 @@ namespace TestPostgres
         [MapPrimaryKey("id", Generator.Native)]
         public long Id { get; set; }
 
-        [MapColumnName("mytest")] 
-        public MyTest MyTest { get; set; } = new MyTest(){Name = "123"};
+        [MapColumnName("mytest")]
+        public MyTest MyTest { get; set; } = new MyTest() { Name = "123" };
 
         [MapColumnName("list")]
         public List<int> List { get; set; } = new List<int>() { 1, 2, 3 };
@@ -88,16 +98,16 @@ namespace TestPostgres
 
     }
 
-   
+
 
     [MapTableName("image_my")]
     class MyImage
     {
-        [MapPrimaryKey("id",Generator.Native)]
-        public long Id{ get; set; }
+        [MapPrimaryKey("id", Generator.Native)]
+        public long Id { get; set; }
         [MapColumnName("image")]
         public Image Image { get; set; }
     }
 
-   
+
 }

@@ -159,21 +159,24 @@ namespace ORM_1_21_
             }
         }
 
-        IDataReader ISession.ExecuteReader(string sql, object[] param)
+        IDataReader ISession.ExecuteReader(string sql, object[] @params)
         {
             if (sql == null) throw new ArgumentNullException(nameof(sql));
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
 
             com.CommandText = sql;
-            AddParam(com, MyProviderName, param);
+            AddParam(com, MyProviderName, @params);
             OpenConnectAndTransaction(com);
             return com.ExecuteReader();
         }
 
         private void SetTimeOut(IDbCommand com, int timeOut)
         {
-            com.CommandTimeout = timeOut < 30 ? 30 : timeOut;
+            if (timeOut > 0)
+            {
+                com.CommandTimeout = timeOut;
+            }
         }
 
         IDataReader ISession.ExecuteReaderT(string sql, int timeOut, params object[] param)

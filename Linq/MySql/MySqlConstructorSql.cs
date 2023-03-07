@@ -11,7 +11,7 @@ namespace ORM_1_21_.Linq.MySql
     internal class MySqlConstructorSql
     {
         private readonly ProviderName _providerName;
-        private List<OneComprosite> _listOne;
+        private List<OneComposite> _listOne;
 
         public MySqlConstructorSql(ProviderName providerName)
         {
@@ -24,7 +24,7 @@ namespace ORM_1_21_.Linq.MySql
             return _listOne.Any(a => a.Operand == eval);
         }
 
-        public string GetStringSql<T>(List<OneComprosite> listOne,ProviderName providerName)
+        public string GetStringSql<T>(List<OneComposite> listOne,ProviderName providerName)
         {
             _listOne = listOne;
 
@@ -51,7 +51,7 @@ namespace ORM_1_21_.Linq.MySql
                 listOne.First(a => a.Operand == Evolution.All).Body = sb.ToString().Replace("#1#", "<=")
                     .Replace("#2#", "<").Replace("#3#", ">").Replace("#4#", ">=").Replace("#5#", "!=")
                     .Replace("#6#", "=").Replace("#7#", "=");
-                listOne.Add(new OneComprosite
+                listOne.Add(new OneComposite
                 { Operand = Evolution.Where, Body = listOne.First(a => a.Operand == Evolution.All).Body });
             }
 

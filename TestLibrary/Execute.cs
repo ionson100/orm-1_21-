@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Org.BouncyCastle.Asn1.Crmf;
+
 // ReSharper disable All
 
 namespace TestLibrary
@@ -47,6 +49,15 @@ namespace TestLibrary
             NewExe<MyClassMysql, MyDbMySql>();
             NewExe<MyClassMsSql, MyDbMsSql>();
             NewExe<MyClassSqlite, MyDbSqlite>();
+        }
+
+        public static void TotalTestNull()
+        {
+
+            NewExeNull<ClassNullPostgres, MyDbPostgres>();
+           NewExeNull<ClassNullMysql, MyDbMySql>();
+            NewExeNull<ClassNullMsSql, MyDbMsSql>();
+            NewExeNull<ClassNullSqlite, MyDbSqlite>();
         }
 
         private static void NewExe<T, Tb>() where T : MyClassBase, new() where Tb : IOtherDataBaseFactory, new()
@@ -163,9 +174,9 @@ namespace TestLibrary
 
             List<T> list = new List<T>()
             {
-                new T(){Name = "MyName1",Age = 10},
-                new T(){Name = "MyName2",Age = 20},
-                new T(){Name = "MyName3",Age = 30},
+                new T() { Name = "MyName1", Age = 10 },
+                new T() { Name = "MyName2", Age = 20 },
+                new T() { Name = "MyName3", Age = 30 },
             };
             var i = session.InsertBulk(list);
             Console.WriteLine($"{24}/1 InsertBulk {i == 3}");
@@ -277,32 +288,35 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 session.InsertBulk(new List<T>()
                 {
-                    new T() { Age = 40, Name = "name" ,MyTest = new MyTest{Name = "simple"}},
-                    new T() { Age = 20, Name = "name1",MyTest = new MyTest{Name = "simple"} },
-                    new T() { Age = 30, Name = "name1",MyTest = new MyTest{Name = "simple"} },
-                    new T() { Age = 50, Name = "name1",MyTest = new MyTest{Name = "simple"} },
-                    new T() { Age = 60, Name = "name" ,MyTest = new MyTest{Name = "simple"}},
-                    new T() { Age = 10, Name = "name",MyTest = new MyTest{Name = "simple"}},
+                    new T() { Age = 40, Name = "name", MyTest = new MyTest { Name = "simple" } },
+                    new T() { Age = 20, Name = "name1", MyTest = new MyTest { Name = "simple" } },
+                    new T() { Age = 30, Name = "name1", MyTest = new MyTest { Name = "simple" } },
+                    new T() { Age = 50, Name = "name1", MyTest = new MyTest { Name = "simple" } },
+                    new T() { Age = 60, Name = "name", MyTest = new MyTest { Name = "simple" } },
+                    new T() { Age = 10, Name = "name", MyTest = new MyTest { Name = "simple" } },
                 });
-                var ob = session.Query<T>().Select(a => new { ass = a.Age, asss = string.Concat(a.Name, a.Age) }).ToList();
+                var ob = session.Query<T>().Select(a => new { ass = a.Age, asss = string.Concat(a.Name, a.Age) })
+                    .ToList();
                 Console.WriteLine($"{35} {ob.Count() == 6}");
                 count = session.Query<T>().Where(a => a.Name == "name").OrderBy(r => r.Age).ToList().Sum(a => a.Age);
                 Console.WriteLine($"{36} {count == 110}");
                 var groupList = session.Query<T>().GroupBy(r => r.Name).ToListAsync().Result;
-                Console.WriteLine($"{37} {groupList.Count() == 2 && groupList[0].Count() == 3 && groupList[1].Count() == 3}");
+                Console.WriteLine(
+                    $"{37} {groupList.Count() == 2 && groupList[0].Count() == 3 && groupList[1].Count() == 3}");
 
                 o = session.Query<T>().OrderBy(a => a.Age).First();
                 Console.WriteLine($"{38} {o.Age == 10}");
                 o = session.Query<T>().OrderByDescending(a => a.Age).First();
                 Console.WriteLine($"{39} {o.Age == 60}");
-                count = session.Query<T>().Where(a => a.Age < 100).OrderBy(ds => ds.Age).ToListAsync().Result.Sum(a => a.Age);
+                count = session.Query<T>().Where(a => a.Age < 100).OrderBy(ds => ds.Age).ToListAsync().Result
+                    .Sum(a => a.Age);
                 Console.WriteLine($"{40} {count == 210}");
                 var sCore = session.Query<T>().Where(a => a.Name.Contains("1")).Distinct(a => a.Name);
                 Console.WriteLine($"{41} {sCore.Count() == 1}");
                 count = session.Query<T>().Where(sw => sw.Age == 10).Update(d => new Dictionary<object, object>
                 {
-                    { d.Name,string.Concat(d.Name,d.Age)},
-                    { d.DateTime,DateTime.Now}
+                    { d.Name, string.Concat(d.Name, d.Age) },
+                    { d.DateTime, DateTime.Now }
                 });
 
                 res = session.Query<T>().Where(a => a.Name == "name10").ToList();
@@ -313,13 +327,14 @@ namespace TestLibrary
                 session.Query<T>().Where(a => a.Age == 10).Delete();
                 count = session.Query<T>().Where(a => a.Age == 10).Count();
                 Console.WriteLine($"{44} {count == 0}");
-                res = session.FreeSql<T>($"select * from {session.TableName<T>()} where {session.ColumnName<T>(a => a.Age)} = @1",
+                res = session.FreeSql<T>(
+                    $"select * from {session.TableName<T>()} where {session.ColumnName<T>(a => a.Age)} = @1",
                     new Parameter("@1", 40)).ToList();
                 Console.WriteLine($"{45} {res.Count() == 1}");
 
 
                 var anon1 = session.Query<T>().Where(a => a.Age == 40).Select(d => new { age = d.Age, name = d.Name })
-                   .ToList();
+                    .ToList();
                 Console.WriteLine($"{46} {anon1.Count() == 1}");
 
 
@@ -327,12 +342,14 @@ namespace TestLibrary
                 Console.WriteLine($"{47} {di.Count == 5}");
                 if (s.GetProviderName() == ProviderName.Sqlite)
                 {
-                    var anon = TempSql(new { age = 3L, name = "asss" }, session, $"select age,name from {session.TableName<T>()}");
+                    var anon = TempSql(new { age = 3L, name = "asss" }, session,
+                        $"select age,name from {session.TableName<T>()}");
                     Console.WriteLine($"{48} {anon.Count() == 5}");
                 }
                 else
                 {
-                    var anon = TempSql(new { age = 3, name = "asss" }, session, $"select age,name from {session.TableName<T>()}");
+                    var anon = TempSql(new { age = 3, name = "asss" }, session,
+                        $"select age,name from {session.TableName<T>()}");
                     Console.WriteLine($"{48} {anon.Count() == 5}");
                 }
 
@@ -347,13 +364,13 @@ namespace TestLibrary
                 Console.WriteLine($"{52} {res.Count() == 5}");
                 session.Query<T>().Where(a => a.Age == 20).Update(f => new Dictionary<object, object>()
                 {
-                    {f.Age,400}
+                    { f.Age, 400 }
                 });
                 res = session.Query<T>().Where(a => a.Age < 200).CacheOver().ToList();
                 res = session.Query<T>().Where(a => a.Age < 200).CacheUsage().ToList();
                 Console.WriteLine($"{53} {res.Count() == 4}");
                 var ano = session.Query<T>().Where(a => a.Age < 500).Select(f =>
-                      new { test = f.MyTest, e = f.MyEnum, r = f.Test23, c = f.DateTime }).ToList();
+                    new { test = f.MyTest, e = f.MyEnum, r = f.Test23, c = f.DateTime }).ToList();
                 Console.WriteLine($"{54} {ano.Count() == 5}");
                 var ano1 = session.Query<T>().Distinct(a => a.Age);
                 Console.WriteLine($"{55} {ano1.Count() == 5}");
@@ -368,6 +385,7 @@ namespace TestLibrary
                     list22.Add(new T() { Age = 30, Name = "name1", MyTest = new MyTest { Name = "simple" } });
                     list22.Add(new T() { Age = 10, Name = "name2", MyTest = new MyTest { Name = "simple" } });
                 }
+
                 var myTest = new MyTest() { Name = "simple" };
                 var guid = new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e");
                 var data = new DateTime(2023, 3, 4);
@@ -375,7 +393,7 @@ namespace TestLibrary
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
                 {
-                    { a.Age,  new int()}
+                    { a.Age, new int() }
                 });
                 session.Query<T>().Delete(a => a.Age == new int());
                 res = session.Query<T>().ToListAsync().Result;
@@ -384,7 +402,7 @@ namespace TestLibrary
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
                 {
-                    { a.MyTest,  myTest}
+                    { a.MyTest, myTest }
                 });
                 session.Query<T>().Delete(a => a.MyTest == myTest);
                 res = session.Query<T>().ToListAsync().Result;
@@ -393,7 +411,7 @@ namespace TestLibrary
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
                 {
-                    { a.MyTest,  new MyTest()}
+                    { a.MyTest, new MyTest() }
                 });
                 session.Query<T>().Delete(a => a.MyTest == new MyTest());
                 res = session.Query<T>().ToListAsync().Result;
@@ -402,7 +420,7 @@ namespace TestLibrary
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
                 {
-                    { a.ValGuid,  guid}
+                    { a.ValGuid, guid }
                 });
                 session.Query<T>().Delete(a => a.ValGuid == guid);
                 res = session.Query<T>().ToListAsync().Result;
@@ -411,7 +429,7 @@ namespace TestLibrary
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
                 {
-                    { a.ValGuid,  new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e")}
+                    { a.ValGuid, new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e") }
                 });
                 session.Query<T>().Delete(a => a.ValGuid == new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e"));
                 res = session.Query<T>().ToListAsync().Result;
@@ -420,7 +438,7 @@ namespace TestLibrary
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
                 {
-                    { a.DateTime,  data}
+                    { a.DateTime, data }
                 });
                 session.Query<T>().Delete(a => a.DateTime == data);
                 res = session.Query<T>().ToListAsync().Result;
@@ -429,7 +447,7 @@ namespace TestLibrary
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
                 {
-                    { a.DateTime,  new DateTime(2023, 3, 4)}
+                    { a.DateTime, new DateTime(2023, 3, 4) }
                 });
                 session.Query<T>().Delete(a => a.DateTime == new DateTime(2023, 3, 4));
                 res = session.Query<T>().ToListAsync().Result;
@@ -473,6 +491,66 @@ namespace TestLibrary
                 var intVals = session.Query<T>().Where(a => a.ValInt4 == 20).Select(f => f.ValInt4).ToListAsync()
                     .Result;
                 Console.WriteLine($"{68} {intVals.Count == 4} test select ");
+                session.TruncateTable<T>();
+                for (int j = 0; j < 10; j++)
+                {
+                    session.Save(new T() { Age = 10 * j, Name = "name" + j,DateTime = DateTime.Now, Valdecimal = new decimal(123.3) });
+                    session.Save(new T() { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now });
+                }
+                count=session.Query<T>().Distinct(a => a.Age).ToList().Sum();
+                Console.WriteLine($"{69} {count == 450} test distinct ");
+                var r1 = session.Query<T>().Distinct(a => new { age = a.Age, mane = a.Name });
+                Console.WriteLine($"{70} {r1.Count() == 10} test distinct ");
+                /*----------------------------params------------------------------*/
+                string sql = "";
+                if (s.GetProviderName() == ProviderName.MySql)
+                {
+                    sql = $"select {session.ColumnName<T>(ss => ss.Age)} from {session.TableName<T>()} where  " +
+                          $"{session.ColumnName<T>(ss => ss.Name)}=?assa22 and " +
+                          $"{session.ColumnName<T>(ss => ss.Valdecimal)} =?assa and" +
+                          $" {session.ColumnName<T>(d => d.Age)} = ?age";
+                    count = (int)session.ExecuteScalar(sql, "name1", 123.3, 10);
+                    count = (int)session.ExecuteScalar(sql,
+                        new Parameter("?assa22", "name1"),
+                        new Parameter("?assa", 123.3, DbType.Decimal),
+                        new Parameter("?age", 10));
+                    Console.WriteLine($"{72} {count == 10} test params ");
+                }else if (s.GetProviderName() == ProviderName.MsSql)
+                {
+                   var ssp= session.GetCommand().CreateParameter();
+                   ssp.Precision = 18;
+                   ssp.Scale = 2;
+                   ssp.ParameterName = "@2";
+                   ssp.DbType = DbType.Decimal;
+                   ssp.Value = 123.3;
+                    sql = $"select {session.ColumnName<T>(ss => ss.Age)} from {session.TableName<T>()} where  " +
+                          $"{session.ColumnName<T>(ss => ss.Name)}=@1 and " +
+                          $"{session.ColumnName<T>(ss => ss.Valdecimal)} = @2 and" +
+                          $" {session.ColumnName<T>(d => d.Age)} = @3";
+                    //count = (int)session.ExecuteScalar("select [age] from [my_class5] where  [name]=@1 and [test5] = '123.3' and [age] = '10'", "name1");
+                    count = (int)session.ExecuteScalar(sql,
+                        new Parameter("@1", "name1"),
+                        new Parameter(ssp),
+                        new Parameter("@3", 10));
+                    Console.WriteLine($"{72} {count == 10} test params ");
+                }
+                else
+                {
+                    sql = $"select {session.ColumnName<T>(ss => ss.Age)} from {session.TableName<T>()} where  " +
+                          $"{session.ColumnName<T>(ss => ss.Name)}=@assa22 and " +
+                          $"{session.ColumnName<T>(ss => ss.Valdecimal)} =@assa and" +
+                          $" {session.ColumnName<T>(d => d.Age)} = @age";
+                    var ssT = session.ExecuteScalar(sql, "name1", 123.3, 10);
+                    ssT = session.ExecuteScalar(sql,
+                        new Parameter("@assa22", "name1"),
+                        new Parameter("@assa", 123.3, DbType.Decimal),
+                        new Parameter("@age", 10));
+                    Console.WriteLine($"{72} {count == 10} test params ");
+                }
+
+             
+               
+
 
                 //o.Test23.Count;
 
@@ -494,15 +572,14 @@ namespace TestLibrary
 
 
         }
+
         [MapReceiverFreeSql]
         class MyFreeSql
         {
-
             public Guid IdGuid { get; }
             public string Name { get; }
             public int Age { get; }
             public MyEnum MyEnum { get; }
-
             public MyFreeSql(Guid idGuid, string name, int age, MyEnum @enum)
             {
                 IdGuid = idGuid;
@@ -510,13 +587,183 @@ namespace TestLibrary
                 Age = age;
                 MyEnum = (MyEnum)@enum;
             }
-
-
         }
+
         public static IEnumerable<Ts> TempSql<Ts>(Ts t, ISession session, string sql)
         {
             return session.FreeSql<Ts>(sql);
         }
 
+        private static void NewExeNull<T, Tb>() where T : MyClassNullBase, new() where Tb : IOtherDataBaseFactory, new()
+        {
+            var s = Activator.CreateInstance<Tb>();
+            Console.WriteLine($"**************************{s.GetProviderName()}*****************************");
+
+            ISession session = Configure.GetSession<Tb>();
+            if (session.TableExists<T>())
+            {
+                session.DropTable<T>();
+            }
+            session.TableCreate<T>();
+
+            session.Save(new T());
+            var tttest = session.Query<T>().First();
+
+            if (s.GetProviderName() == ProviderName.Postgresql || s.GetProviderName() == ProviderName.MsSql)
+            {
+                var res = (tttest.V5 == null
+                           || tttest.V6 == null
+                           || tttest.V8 == null
+                           || tttest.V9 == null
+                           || tttest.V10 == null
+                           || tttest.V11 == null
+                           || tttest.V12 == null
+                           || tttest.V13 == null
+                           || tttest.V15 == null
+                           || tttest.V16 == null);
+                Console.WriteLine($"{1} {res} is null");
+                tttest.V5 = true;
+                tttest.V6 = 1;
+                tttest.V8 = DateTime.Now;
+                tttest.V9 = 1;
+                tttest.V10 = 1;
+                tttest.V11 = 1;
+                tttest.V12 = 1;
+                tttest.V13 = 1;
+                tttest.V15 = 1;
+                tttest.V16 = Guid.Empty;
+                session.Save(tttest);
+
+            }
+            if (s.GetProviderName() == ProviderName.MySql)
+            {
+                ClassNullMysql tttest1 = tttest as ClassNullMysql;
+                var res = (
+                              tttest1.V5 == null
+                           || tttest1.V6 == null
+                           || tttest1.V8 == null
+                           || tttest1.V9 == null
+                           || tttest1.V10 == null
+                           || tttest1.V11 == null
+                           || tttest1.V12 == null
+                           || tttest1.V13 == null
+                           || tttest1.V15 == null
+                           || tttest1.V16 == null
+                           || tttest1.V2 == null
+                           || tttest1.V3 == null
+                           || tttest1.V4 == null
+                           || tttest1.V14 == null);
+                Console.WriteLine($"{1} {res} is null");
+                tttest1.V5 = true;
+                tttest1.V6 = 1;
+                tttest1.V8 = DateTime.Now;
+                tttest1.V9 = 1;
+                tttest1.V10 = 1;
+                tttest1.V11 = 1;
+                tttest1.V12 = 1;
+                tttest1.V13 = 1;
+                tttest1.V15 = 1;
+                tttest1.V16 = Guid.Empty;
+                tttest1.V2 = 1;
+                tttest1.V3 = 1;
+                tttest1.V4 = 1;
+                tttest1.V14 = 1;
+                session.Save(tttest1);
+            }
+            if (s.GetProviderName() == ProviderName.Sqlite)
+            {
+                ClassNullSqlite tttest1 = tttest as ClassNullSqlite;
+                var res = (tttest1.V5 == null
+                           || tttest1.V6 == null
+                           || tttest1.V8 == null
+                           || tttest1.V9 == null
+                           || tttest1.V10 == null
+                           || tttest1.V11 == null
+                           || tttest1.V12 == null
+                           || tttest1.V13 == null
+                           || tttest1.V15 == null
+                           || tttest1.V16 == null
+                           || tttest1.V2 == null
+                           || tttest1.V3 == null
+                           || tttest1.V4 == null
+                           || tttest1.V14 == null);
+                Console.WriteLine($"{1} {res} is null");
+                tttest1.V5 = true;
+                tttest1.V6 = 1;
+                tttest1.V8 = DateTime.Now;
+                tttest1.V9 = 1;
+                tttest1.V10 = 1;
+                tttest1.V11 = 1;
+                tttest1.V12 = 1;
+                tttest1.V13 = 1;
+                tttest1.V15 = 1;
+                tttest1.V16 = Guid.Empty;
+                tttest1.V2 = 1;
+                tttest1.V3 = 1;
+                tttest1.V4 = 1;
+                tttest1.V14 = 1;
+                session.Save(tttest1);
+            }
+            tttest = session.Query<T>().First();
+
+            if (s.GetProviderName() == ProviderName.Sqlite)
+            {
+                ClassNullSqlite tttest1 = tttest as ClassNullSqlite;
+                var res = (tttest1.V5 != null
+                           || tttest1.V6 != null
+                           || tttest1.V8 != null
+                           || tttest1.V9 != null
+                           || tttest1.V10 != null
+                           || tttest1.V11 != null
+                           || tttest1.V12 != null
+                           || tttest1.V13 != null
+                           || tttest1.V15 != null
+                           || tttest1.V16 != null
+                           || tttest1.V2 != null
+                           || tttest1.V3 != null
+                           || tttest1.V4 != null
+                           || tttest1.V14 != null);
+                Console.WriteLine($"{2} {res} is not null");
+
+            }
+            if (s.GetProviderName() == ProviderName.MySql)
+            {
+                ClassNullMysql tttest1 = tttest as ClassNullMysql;
+                var res = (tttest1.V5 != null
+                           || tttest1.V6 != null
+                           || tttest1.V8 != null
+                           || tttest1.V9 != null
+                           || tttest1.V10 != null
+                           || tttest1.V11 != null
+                           || tttest1.V12 != null
+                           || tttest1.V13 != null
+                           || tttest1.V15 != null
+                           || tttest1.V16 != null
+                           || tttest1.V2 != null
+                           || tttest1.V3 != null
+                           || tttest1.V4 != null
+                           || tttest1.V14 != null);
+                Console.WriteLine($"{2} {res} is not null");
+            }
+            if (s.GetProviderName() == ProviderName.Postgresql || s.GetProviderName() == ProviderName.MsSql)
+            {
+                var res = (tttest.V5 != null
+                           || tttest.V6 != null
+                           || tttest.V8 != null
+                           || tttest.V9 != null
+                           || tttest.V10 != null
+                           || tttest.V11 != null
+                           || tttest.V12 != null
+                           || tttest.V13 != null
+                           || tttest.V15 != null
+                           || tttest.V16 != null);
+                Console.WriteLine($"{2} {res} is not null");
+
+            }
+
+
+
+
+        }
     }
 }

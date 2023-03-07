@@ -23,7 +23,7 @@ namespace ORM_1_21_.Linq
             {
                 return (
                     IQueryable)Activator.CreateInstance(typeof(Query<>).MakeGenericType(
-                        elementType), new object[] { this, expression });
+                        elementType), this, expression);
             }
             catch (TargetInvocationException tie)
             {
@@ -41,40 +41,26 @@ namespace ORM_1_21_.Linq
         /// Query async
         /// </summary>
         public  abstract Task<List<TS>> ExecuteAsync<TS>(Expression expression);
-       
-
+        
         object IQueryProvider.Execute(Expression expression)
         {
             return Execute(expression);
         }
 
-        
-
-
-        
-
         /// <summary>
         ///Query string
         /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
         public abstract string GetQueryText(Expression expression);
 
         /// <summary>
-        /// 
+        /// Main execute
         /// </summary>
-        /// <param name="expression"></param>
-        /// <typeparam name="TS"></typeparam>
-        /// <returns></returns>
         public abstract object Execute<TS>(Expression expression);
 
         /// <summary>
         /// Executing a database query as a stored procedure
         /// </summary>
-        /// <param name="expression"></param>
-        /// <typeparam name="TS"></typeparam>
-        /// <returns></returns>
-        public abstract object ExecuteSPP<TS>(Expression expression);
+        public abstract object ExecuteSpp<TS>(Expression expression);
 
         /// <summary>
         /// Executing a database query
@@ -82,9 +68,6 @@ namespace ORM_1_21_.Linq
         /// <param name="expression"></param>
         /// <returns></returns>
         public abstract object Execute(Expression expression);
-
-        internal abstract string GetQueryTextForJoin(Expression expression, List<OneComprosite> comprosite, Dictionary<string, object> dictionary, string parStr);
-
     }
 
 

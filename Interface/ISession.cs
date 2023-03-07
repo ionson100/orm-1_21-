@@ -72,15 +72,15 @@ namespace ORM_1_21_
         ///  Getting ExecuteReader
         /// </summary>
         /// <param name="sql">request string</param>
-        /// <param name="param">parameters array</param>
-        IDataReader ExecuteReader(string sql, params object[] param);
+        /// <param name="params">parameters array( param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
+        IDataReader ExecuteReader(string sql, params object[] @params);
 
         /// <summary>
         /// Getting ExecuteReader 
         /// </summary>
         /// <param name="sql">request string</param>
         /// <param name="timeOut">timeout connection</param>
-        /// <param name="param">parameters array</param>
+        /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
         IDataReader ExecuteReaderT(string sql, int timeOut = 30, params object[] param);
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="sql">sql text</param>
         /// <param name="timeout">timeout connection</param>
-        /// <param name="param">parameters array</param>
+        /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
         DataTable GetDataTable(string sql, int timeout = 30, params object[] param);
 
         /// <summary>
@@ -123,14 +123,30 @@ namespace ORM_1_21_
         /// <param name="timeOut">timeout connection</param>
         int InsertBulkFromFile<T>(string fileCsv, string FIELDTERMINATOR = ";", int timeOut = 30) where T : class;
 
-       
+
+        /// <summary>
+        /// Returns the first element of the request
+        /// </summary>
+        /// <param name="sql">sql text</param>
+        /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
+        /// <returns></returns>
+        object ExecuteScalar(string sql, params object[] param);
+
         /// <summary>
         /// Returns the first element of the request
         /// </summary>
         /// <param name="sql">sql text</param>
         /// <param name="param">parameters array</param>
         /// <returns></returns>
-        object ExecuteScalar(string sql, params object[] param);
+        object ExecuteScalar(string sql, params Parameter[] param);
+
+        /// <summary>
+        /// Returns the first element of the request 
+        /// </summary>
+        /// <param name="sql">sql text</param>
+        /// <param name="timeOut">timeout connection</param>
+        /// <param name="param">parameter array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
+        object ExecuteScalarT(string sql, int timeOut = 30, params object[] param);
 
         /// <summary>
         /// Returns the first element of the request 
@@ -138,7 +154,8 @@ namespace ORM_1_21_
         /// <param name="sql">sql text</param>
         /// <param name="timeOut">timeout connection</param>
         /// <param name="param">parameter array</param>
-        object ExecuteScalarT(string sql, int timeOut = 30, params object[] param);
+        /// <returns></returns>
+        object ExecuteScalarT(string sql, int timeOut = 30, params Parameter[] param);
 
         /// <summary>
         /// Recreating a table
@@ -192,8 +209,25 @@ namespace ORM_1_21_
         /// executes the query and returns the number of records affected
         /// </summary>
         /// <param name="sql">sql text</param>
-        /// <param name="param">parameters array</param>
+        /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
         int ExecuteNonQuery(string sql, params object[] param);
+
+
+        /// <summary>
+        /// executes the query and returns the number of records affected
+        /// </summary>
+        /// <param name="sql">sql text</param>
+        /// <param name="param">parameters array</param>
+        /// <returns></returns>
+        int ExecuteNonQuery(string sql, params Parameter[] param);
+
+        /// <summary>
+        /// executes the query and returns the number of records affected
+        /// </summary>
+        /// <param name="sql">sql text</param>
+        /// <param name="timeOut">timeout connection</param>
+        /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
+        int ExecuteNonQueryT(string sql, int timeOut = 30, params object[] param);
 
         /// <summary>
         /// executes the query and returns the number of records affected
@@ -201,7 +235,8 @@ namespace ORM_1_21_
         /// <param name="sql">sql text</param>
         /// <param name="timeOut">timeout connection</param>
         /// <param name="param">parameters array</param>
-        int ExecuteNonQueryT(string sql, int timeOut = 30, params object[] param);
+        /// <returns></returns>
+        int ExecuteNonQueryT(string sql, int timeOut = 30, params Parameter[] param);
 
         /// <summary>
         /// Getting the name of the table to build an sql query.

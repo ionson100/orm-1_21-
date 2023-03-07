@@ -33,7 +33,7 @@ namespace ORM_1_21_.Linq.MsSql
 
         public Dictionary<string, object> Param { get; set; }
 
-        public List<OneComprosite> ListOne { get; } = new List<OneComprosite>();
+        public List<OneComposite> ListOne { get; } = new List<OneComposite>();
         public string Translate(Expression expression, out Evolution ev1)
         {
             CirrentEvalytion = 0;
@@ -55,21 +55,21 @@ namespace ORM_1_21_.Linq.MsSql
 
             if (ev == Evolution.Delete)
             {
-                ListOne.Add(new OneComprosite { Operand = Evolution.Delete });
-                ListOne.Add(new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() });
+                ListOne.Add(new OneComposite { Operand = Evolution.Delete });
+                ListOne.Add(new OneComposite { Operand = Evolution.Where, Body = StringB.ToString() });
             }
 
             if (ev == Evolution.DistinctCore)
-                ListOne.Add(new OneComprosite { Operand = Evolution.DistinctCore, Body = StringB.ToString() });
+                ListOne.Add(new OneComposite { Operand = Evolution.DistinctCore, Body = StringB.ToString() });
 
             if (ev == Evolution.GroupBy)
-                ListOne.Add(new OneComprosite { Operand = Evolution.GroupBy, Body = StringB.ToString() });
+                ListOne.Add(new OneComposite { Operand = Evolution.GroupBy, Body = StringB.ToString() });
             if (ev == Evolution.Limit)
                 if (paramList != null && paramList.Count == 2)
                 {
                     if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
                     {
-                        ListOne.Add(new OneComprosite
+                        ListOne.Add(new OneComposite
                         {
                             Operand = Evolution.Limit,
                             Body =
@@ -78,7 +78,7 @@ namespace ORM_1_21_.Linq.MsSql
                     }
                     else
                     {
-                        ListOne.Add(new OneComprosite
+                        ListOne.Add(new OneComposite
                         {
                             Operand = Evolution.Limit,
                             Body =
@@ -89,7 +89,7 @@ namespace ORM_1_21_.Linq.MsSql
 
 
             if (ev == Evolution.Update)
-                ListOne.Add(new OneComprosite { Operand = Evolution.Update, Body = StringB.ToString() });
+                ListOne.Add(new OneComposite { Operand = Evolution.Update, Body = StringB.ToString() });
             //if (ev == Evolution.OverCache) ListOne.Add(new OneComprosite {Operand = Evolution.OverCache});
 
             if (ev == Evolution.Join)
@@ -97,14 +97,14 @@ namespace ORM_1_21_.Linq.MsSql
                 {
                     foreach (var d in (Dictionary<string, object>)paramList[0]) Param.Add(d.Key, d.Value);
 
-                    ListOne.Add(new OneComprosite
+                    ListOne.Add(new OneComposite
                     { Operand = Evolution.Join, Body = paramList[1].ToString(), NewConstructor = paramList[2] });
                 }
 
             StringB.Length = 0;
         }
 
-        public List<OneComprosite> GetListOne()
+        public List<OneComposite> GetListOne()
         {
             return ListOne;
         }
@@ -139,7 +139,7 @@ namespace ORM_1_21_.Linq.MsSql
                 {
                     var val = m.Method.Invoke(constantExpression.Value, null);
 
-                    ListOne.Add(new OneComprosite { Body = val.ToString(), Operand = Evolution.FreeSql });
+                    ListOne.Add(new OneComposite { Body = val.ToString(), Operand = Evolution.FreeSql });
                 }
 
                 return m;
@@ -151,7 +151,7 @@ namespace ORM_1_21_.Linq.MsSql
                 Visit(m.Arguments[0]);
                 StringB.Clear();
 
-                var o = new OneComprosite
+                var o = new OneComposite
                 {
                     Operand = Evolution.ElementAt
                 };
@@ -159,7 +159,7 @@ namespace ORM_1_21_.Linq.MsSql
                 Visit(m.Arguments[1]);
                 if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
                 {
-                    ListOne.Add(new OneComprosite
+                    ListOne.Add(new OneComposite
                     {
                         Operand = Evolution.Limit,
                         Body = string.Format(" LIMIT {0} ", StringB)
@@ -167,7 +167,7 @@ namespace ORM_1_21_.Linq.MsSql
                 }
                 else
                 {
-                   ListOne.Add(new OneComprosite
+                   ListOne.Add(new OneComposite
                     { 
                         Operand = Evolution.Limit,
                         Body = string.Format(" LIMIT {0},1", StringB)
@@ -184,7 +184,7 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "Contains")
             {
-                var o = new OneComprosite
+                var o = new OneComposite
                 {
                     Operand = Evolution.Contains
                 };
@@ -193,18 +193,18 @@ namespace ORM_1_21_.Linq.MsSql
                 StringB.Clear();
                 Visit(m.Arguments[1]);
 
-                var o1 = new OneComprosite
+                var o1 = new OneComposite
                 {
                     Operand = Evolution.Where,
                     Body = StringB.ToString()
                 };
                 ListOne.Add(o1);
-                var o2 = new OneComprosite
+                var o2 = new OneComposite
                 {
                     Operand = Evolution.Count
                 };
                 ListOne.Add(o2);
-                var o3 = new OneComprosite
+                var o3 = new OneComposite
                 {
                     Operand = Evolution.All
                 };
@@ -221,7 +221,7 @@ namespace ORM_1_21_.Linq.MsSql
             {
                 Visit(m.Arguments[0]);
                 StringB.Clear();
-                var o = new OneComprosite
+                var o = new OneComposite
                 {
                     Operand = Evolution.ElementAtOrDefault
                 };
@@ -229,7 +229,7 @@ namespace ORM_1_21_.Linq.MsSql
                 Visit(m.Arguments[1]);
                 if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
                 {
-                    ListOne.Add(new OneComprosite
+                    ListOne.Add(new OneComposite
                     {
                         Operand = Evolution.Limit,
                         Body = $" LIMIT 1 OFFSET {StringB}"
@@ -237,7 +237,7 @@ namespace ORM_1_21_.Linq.MsSql
                 }
                 else
                 {
-                    ListOne.Add(new OneComprosite
+                    ListOne.Add(new OneComposite
                     {
                         Operand = Evolution.Limit,
                         Body = $" LIMIT {StringB},1"
@@ -701,7 +701,7 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "Where")
             {
-                var o = new OneComprosite { Operand = Evolution.Where };
+                var o = new OneComposite { Operand = Evolution.Where };
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
 
@@ -727,7 +727,7 @@ namespace ORM_1_21_.Linq.MsSql
                 }
                 tt = (Func<T, object>)((LambdaExpression)StripQuotes(m.Arguments[1])).Compile();
                 Visit(lambda.Body);
-                var o = new OneComprosite
+                var o = new OneComposite
                 {
                     Operand = Evolution.GroupBy,
                     Body = StringB.ToString(),
@@ -745,7 +745,7 @@ namespace ORM_1_21_.Linq.MsSql
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
-                var o = new OneComprosite { Operand = Evolution.OrderBy, Body = StringB.ToString().Trim(' ', ',') };
+                var o = new OneComposite { Operand = Evolution.OrderBy, Body = StringB.ToString().Trim(' ', ',') };
                 ListOne.Add(o);
                 StringB.Length = 0;
                 return m;
@@ -765,7 +765,7 @@ namespace ORM_1_21_.Linq.MsSql
                 else
                     sb.AppendFormat("{0}.{1}", AttributesOfClass<T>.TableName(_providerName),
                         AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName));
-                var o = new OneComprosite
+                var o = new OneComposite
                 {
                     Operand = Evolution.Reverse,
                     Body = string.Format("ORDER BY {0} DESC ", sb.ToString().TrimEnd(','))
@@ -781,7 +781,7 @@ namespace ORM_1_21_.Linq.MsSql
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
-                var o = new OneComprosite
+                var o = new OneComposite
                 { Operand = Evolution.OrderBy, Body = StringB.ToString().Trim(' ', ',') + " DESC " };
                 ListOne.Add(o);
                 StringB.Length = 0;
@@ -795,7 +795,7 @@ namespace ORM_1_21_.Linq.MsSql
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
-                var o = new OneComprosite { Operand = Evolution.Select, Body = StringB.ToString().Trim(' ', ',') };
+                var o = new OneComposite { Operand = Evolution.Select, Body = StringB.ToString().Trim(' ', ',') };
                 if (!string.IsNullOrEmpty(StringB.ToString())) ListOne.Add(o);
                 StringB.Length = 0;
                 return m;
@@ -812,16 +812,16 @@ namespace ORM_1_21_.Linq.MsSql
                 {
                     var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
-                    var o1 = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
+                    var o1 = new OneComposite { Operand = Evolution.Where, Body = StringB.ToString() };
                     ListOne.Add(o1);
                     StringB.Length = 0;
-                    var o2 = new OneComprosite { Operand = pizda };
+                    var o2 = new OneComposite { Operand = pizda };
                     ListOne.Add(o2);
                     StringB.Length = 0;
                     return m;
                 }
 
-                var o = new OneComprosite { Operand = pizda, Body = StringB.ToString() };
+                var o = new OneComposite { Operand = pizda, Body = StringB.ToString() };
                 ListOne.Add(o);
                 StringB.Length = 0;
                 return m;
@@ -833,7 +833,7 @@ namespace ORM_1_21_.Linq.MsSql
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
-                var o1 = new OneComprosite { Operand = Evolution.All, Body = StringB.ToString() };
+                var o1 = new OneComposite { Operand = Evolution.All, Body = StringB.ToString() };
                 ListOne.Add(o1);
                 return m;
             }
@@ -848,18 +848,18 @@ namespace ORM_1_21_.Linq.MsSql
                 {
                     var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
-                    var o1 = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
+                    var o1 = new OneComposite { Operand = Evolution.Where, Body = StringB.ToString() };
                     ListOne.Add(o1);
                     StringB.Length = 0;
-                    var o2 = new OneComprosite { Operand = Evolution.Any };
+                    var o2 = new OneComposite { Operand = Evolution.Any };
                     ListOne.Add(o2);
                     StringB.Length = 0;
                     return m;
                 }
 
-                var o = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
+                var o = new OneComposite { Operand = Evolution.Where, Body = StringB.ToString() };
                 ListOne.Add(o);
-                ListOne.Add(new OneComprosite { Operand = Evolution.Any });
+                ListOne.Add(new OneComposite { Operand = Evolution.Any });
                 StringB.Length = 0;
 
                 return m;
@@ -877,7 +877,7 @@ namespace ORM_1_21_.Linq.MsSql
                 {
                     var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
-                    var o1 = new OneComprosite
+                    var o1 = new OneComposite
                     {
                         Operand = Evolution.Where,
                         Body = StringB.ToString()
@@ -896,7 +896,7 @@ namespace ORM_1_21_.Linq.MsSql
                 }
                 else
                 {
-                    var o = new OneComprosite
+                    var o = new OneComposite
                     {
                         Operand = Evolution.OrderBy,
                         Body = $" {AttributesOfClass<T>.TableName(_providerName)}." +
@@ -905,7 +905,7 @@ namespace ORM_1_21_.Linq.MsSql
                     ListOne.Add(o);
                 }
 
-                var o13 = new OneComprosite
+                var o13 = new OneComposite
                 {
                     IsAggregate = true,
                     Operand = pizda,
@@ -924,16 +924,16 @@ namespace ORM_1_21_.Linq.MsSql
                 {
                     var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
-                    var o1 = new OneComprosite { Operand = Evolution.Where, Body = StringB.ToString() };
+                    var o1 = new OneComposite { Operand = Evolution.Where, Body = StringB.ToString() };
                     ListOne.Add(o1);
                     StringB.Length = 0;
-                    var o2 = new OneComprosite { Operand = Evolution.Count };
+                    var o2 = new OneComposite { Operand = Evolution.Count };
                     ListOne.Add(o2);
                     StringB.Length = 0;
                     return m;
                 }
 
-                var o = new OneComprosite
+                var o = new OneComposite
                 { Operand = Evolution.Count, Body = StringB.ToString() }; //|| m.Method.Name == "SingleOrDefault"
                 ListOne.Add(o);
                 StringB.Length = 0;
@@ -945,11 +945,11 @@ namespace ORM_1_21_.Linq.MsSql
                 && m.Method.Name == "Single")
             {
                 Visit(m.Arguments[0]);
-                ListOne.Add(new OneComprosite { Operand = Evolution.Single, Body = "", IsAggregate = true });
+                ListOne.Add(new OneComposite { Operand = Evolution.Single, Body = "", IsAggregate = true });
 
                 if (m.Arguments.Count == 2)
                 {
-                    var o = new OneComprosite { Operand = Evolution.Where };
+                    var o = new OneComposite { Operand = Evolution.Where };
                     Visit(m.Arguments[0]);
                     var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
@@ -959,7 +959,7 @@ namespace ORM_1_21_.Linq.MsSql
                 }
 
 
-                ListOne.Add(new OneComprosite { Operand = Evolution.First, Body = "" });
+                ListOne.Add(new OneComposite { Operand = Evolution.First, Body = "" });
 
                 return m;
             }
@@ -967,13 +967,13 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "SingleOrDefault")
             {
-                ListOne.Add(new OneComprosite { Operand = Evolution.SingleOrDefault, Body = "", IsAggregate = true });
-                ListOne.Add(new OneComprosite { Operand = Evolution.First, Body = "" });
+                ListOne.Add(new OneComposite { Operand = Evolution.SingleOrDefault, Body = "", IsAggregate = true });
+                ListOne.Add(new OneComposite { Operand = Evolution.First, Body = "" });
                 Visit(m.Arguments[0]);
 
                 if (m.Arguments.Count == 2)
                 {
-                    var o = new OneComprosite { Operand = Evolution.Where };
+                    var o = new OneComposite { Operand = Evolution.Where };
 
                     var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                     Visit(lambda.Body);
@@ -1008,7 +1008,7 @@ namespace ORM_1_21_.Linq.MsSql
                                 StringB.Append(mcs.Method.Name + "(");
                                 Visit(lambda.Body);
                                 StringB.Append(")");
-                                ListOne.Add(new OneComprosite
+                                ListOne.Add(new OneComposite
                                 { Operand = Evolution.Select, Body = StringB.ToString(), IsAggregate = true });
 
                                 break;
@@ -1614,7 +1614,7 @@ namespace ORM_1_21_.Linq.MsSql
             {
                 if (nex.Members != null)
                 {
-                    ListOne.Add(new OneComprosite
+                    ListOne.Add(new OneComposite
                     {
                         Operand = Evolution.SelectNew,
                         NewConstructor = Expression.New(nex.Constructor, args, nex.Members)
@@ -1622,11 +1622,11 @@ namespace ORM_1_21_.Linq.MsSql
                     return Expression.New(nex.Constructor, args, nex.Members);
                 }
 
-                ListOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConstructor = nex });
+                ListOne.Add(new OneComposite { Operand = Evolution.SelectNew, NewConstructor = nex });
                 return Expression.New(nex.Constructor, args);
             }
             //todo ion100
-            ListOne.Add(new OneComprosite { Operand = Evolution.SelectNew, NewConstructor = nex });
+            ListOne.Add(new OneComposite { Operand = Evolution.SelectNew, NewConstructor = nex });
             return nex;
         }
 

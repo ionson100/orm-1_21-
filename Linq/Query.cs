@@ -37,7 +37,7 @@ namespace ORM_1_21_.Linq
         /// <summary>
         /// Provider
         /// </summary>
-        public readonly QueryProvider _provider;
+        internal readonly QueryProvider _provider;
         private readonly Expression _expression;
 
         /// <summary>

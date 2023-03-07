@@ -66,7 +66,6 @@ namespace ORM_1_21_
         private readonly IDbConnection _connect;
 
 
-
         private static void NotificAfter<T>(T item, ActionMode mode) where T : class
         {
             if (mode == ActionMode.None) return;
@@ -195,7 +194,34 @@ namespace ORM_1_21_
                 IDataParameter dp = com.CreateParameter();
                 var parName = list[index];
                 dp.ParameterName = parName;
-                dp.Value = obj[index];
+                var value = obj[index]??DBNull.Value;
+                dp.Value = value;
+
+                com.Parameters.Add(dp);
+            }
+        }
+
+        internal static void AddParamCore(IDbCommand com,  Parameter[] parameters)
+        {
+            if(parameters==null) return;
+            foreach (var par in parameters)
+            {
+                if (par.UserParameter != null)
+                {
+                    com.Parameters.Add(par.UserParameter);
+                }
+                IDataParameter dp = com.CreateParameter();
+                dp.ParameterName = par.Name;
+                dp.DbType = DbType.Object;
+
+              
+
+                var value = par.Value??DBNull.Value;
+                if (par.DbType.HasValue)
+                {
+                    dp.DbType = par.DbType.Value;
+                }
+                dp.Value = value;
 
                 com.Parameters.Add(dp);
             }
@@ -251,6 +277,57 @@ namespace ORM_1_21_
         {
             InnerWriteLogFile($"WriteLogFile: {message}");
         }
+        
+        int ISession.ExecuteNonQuery(string sql, params Parameter[] param)
+        {
+            if (sql == null) throw new ArgumentNullException(nameof(sql));
+            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            com.CommandText = sql;
+            AddParamCore(com,  param);
+            try
+            {
+                OpenConnectAndTransaction(com);
+                com.CommandTimeout = 30000;
+                return com.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
+            }
+            finally
+            {
+                ComDisposable(com);
+            }
+        }
+
+         int ISession.ExecuteNonQueryT(string sql, int timeOut, params Parameter[] param)
+        {
+            if (sql == null) throw new ArgumentNullException(nameof(sql));
+
+            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            com.CommandText = sql;
+            AddParamCore(com, param);
+            try
+            {
+                OpenConnectAndTransaction(com);
+                com.CommandTimeout = 30000;
+                SetTimeOut(com, timeOut);
+                return com.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
+            }
+            finally
+            {
+                ComDisposable(com);
+            }
+        }
+
 
         private void InnerWriteLogFile(string message)
         {
@@ -271,7 +348,60 @@ namespace ORM_1_21_
         }
 
 
-        bool ISession.IsPersistent<T>(T obj)
+         object ISession.ExecuteScalar(string sql, params Parameter[] param)
+        {
+            if (sql == null) throw new ArgumentNullException(nameof(sql));
+            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            com.CommandType = CommandType.Text;
+            com.CommandText = sql;
+            AddParamCore(com,  param);
+
+            try
+            {
+                OpenConnectAndTransaction(com);
+                var res = com.ExecuteScalar();
+                return res;
+            }
+            catch (Exception ex)
+            {
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
+            }
+            finally
+            {
+                ComDisposable(com);
+            }
+        }
+
+          object ISession.ExecuteScalarT(string sql, int timeOut, params Parameter[] param)
+         {
+            if (sql == null) throw new ArgumentNullException(nameof(sql));
+            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            com.CommandType = CommandType.Text;
+            com.CommandText = sql;
+            AddParamCore(com,  param);
+            SetTimeOut(com, timeOut);
+
+            try
+            {
+                OpenConnectAndTransaction(com);
+                var res = com.ExecuteScalar();
+                return res;
+            }
+            catch (Exception ex)
+            {
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
+            }
+            finally
+            {
+                ComDisposable(com);
+            }
+        }
+
+         bool ISession.IsPersistent<T>(T obj)
         {
             return UtilsCore.IsPersistent(obj);
         }

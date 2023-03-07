@@ -117,10 +117,10 @@ namespace ORM_1_21_
             return lambda.Compile();
         }
 
-        public static T SingleData<T>(IEnumerable<OneComprosite> listOne, IEnumerable<T> lResul, out bool isActive)
+        public static T SingleData<T>(IEnumerable<OneComposite> listOne, IEnumerable<T> lResul, out bool isActive)
         {
             if (listOne == null) throw new ArgumentException("listOne == null ");
-            var oneComprosites = listOne as OneComprosite[] ?? listOne.ToArray();
+            var oneComprosites = listOne as OneComposite[] ?? listOne.ToArray();
             var result = lResul as T[] ?? lResul.ToArray();
             var enumerable = lResul as T[] ?? result.ToArray();
             if (oneComprosites.Any(a => a.Operand == Evolution.SingleOrDefault && a.IsAggregate))
@@ -448,6 +448,22 @@ namespace ORM_1_21_
             else if (type == typeof(char?))
             {
                 return e == DBNull.Value ? (object)null : Convert.ToChar(e);
+            }
+            else if (type == typeof(short))
+            {
+                return e == DBNull.Value ? 0 : Convert.ToInt16(e);
+            }
+            else if (type == typeof(short?))
+            {
+                return e == DBNull.Value ? (object)null : Convert.ToInt16(e);
+            }
+            else if (type == typeof(Int64))
+            {
+                return e == DBNull.Value ? 0 : Convert.ToInt64(e);
+            }
+            else if (type == typeof(Int64?))
+            {
+                return e == DBNull.Value ? (object)null : Convert.ToInt64(e);
             }
             else if (type == typeof(char))
             {

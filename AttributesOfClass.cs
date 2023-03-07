@@ -247,10 +247,8 @@ namespace ORM_1_21_
             return SimpleSelect(providerName);
         }
 
-        private static readonly Lazy<bool> _isValid = new Lazy<bool>(() =>
-        {
-           return typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), true).Any();
-        }, LazyThreadSafetyMode.PublicationOnly);
+        private static readonly Lazy<bool> _isValid = new Lazy<bool>(() => 
+            typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), false).Any(), LazyThreadSafetyMode.PublicationOnly);
 
         public static bool IsValid => _isValid.Value ;
 
@@ -283,7 +281,7 @@ namespace ORM_1_21_
                 {
                     typeof(T),
                     ((MapTableNameAttribute)
-                        typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), true).First()).TableName(providerName)
+                        typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), false).First()).TableName(providerName)
                 }
             };
             if (typeof(T).BaseType != null)
@@ -308,7 +306,7 @@ namespace ORM_1_21_
 
             while (true)
             {
-                var d = type.GetCustomAttributes(typeof(MapTableNameAttribute), true);
+                var d = type.GetCustomAttributes(typeof(MapTableNameAttribute), false);
                 if (!d.Any()) return;
                 dictionary.Add(type, ((MapTableNameAttribute)d.First()).TableName(providerName));
                 if (type.BaseType != null)
@@ -328,7 +326,7 @@ namespace ORM_1_21_
                 {
                     typeof(T),
                     ((MapTableNameAttribute)
-                        typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), true).First()).SqlWhere
+                        typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), false).First()).SqlWhere
                 }
             };
 
@@ -668,7 +666,7 @@ namespace ORM_1_21_
             command.CommandText = allSql.ToString();
         }
 
-        public static string CreateCommandLimitForMySql(List<OneComprosite> listOne, ProviderName providerName)
+        public static string CreateCommandLimitForMySql(List<OneComposite> listOne, ProviderName providerName)
         {
             Provider = providerName;
             var si = SimpleSqlSelect(providerName);
@@ -700,7 +698,7 @@ namespace ORM_1_21_
             return res;
         }
 
-        public static string CreateCommandUpdateFreeForMsSql(List<OneComprosite> listOne, ProviderName providerName)
+        public static string CreateCommandUpdateFreeForMsSql(List<OneComposite> listOne, ProviderName providerName)
         {
             Provider = providerName;
             var si = SimpleSqlSelect(providerName);
@@ -733,7 +731,7 @@ namespace ORM_1_21_
                 r.ToString().Trim(','), from, where.ToString().Trim(','));
         }
 
-        public static string CreateCommandLimitForMsSql(List<OneComprosite> listOne, string doSql, ProviderName providerName)
+        public static string CreateCommandLimitForMsSql(List<OneComposite> listOne, string doSql, ProviderName providerName)
         {
             Provider = providerName;
             const string table = "tt1";
@@ -747,7 +745,7 @@ namespace ORM_1_21_
             var where = listOne.Where(a => a.Operand == Evolution.Where);
             var sbwhere = new StringBuilder();
             var sbOrderBy = new StringBuilder();
-            var oneComprosites = where as OneComprosite[] ?? where.ToArray();
+            var oneComprosites = where as OneComposite[] ?? where.ToArray();
             foreach (var oneComprosite in oneComprosites)
             {
                 if (oneComprosite == oneComprosites.First())

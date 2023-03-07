@@ -110,48 +110,49 @@ or ("my_class5"."name" LIKE CONCAT(@p1,'%'))) and
 params:  @p1 - nam  @p2 - 1 
 ```
 ###### native sql.
+example:
 ```C#
 var ses1 = Configure.Session;
 var list = ses1.FreeSql<MyClass>($"select * from {ses1.TableName<MyClass>()} where \"name\" LIKE CONCAT(@p1,'%')",
     new Parameter("@p1", "ion100")).ToList();
-
-var dataTable = ses1.GetDataTable($"select * from {ses1.TableName<MyClass>()}");//or
-var dataTable = ses1.GetDataTable($"select * from {ses1.TableName<MyClass>()} where age = @1",12);
-var coutn = dataTable.Rows.Count;
+// where MyClass have MapAttribute
 ```
-FreeSql - быстрый запрос к базе ( не отложенный)\
-Запрос по одному полю:
-```C#
- foreach (var r in Configure.Session.FreeSql<MyEnum>("select enum as enum1 from my_class"))
-   Console.WriteLine($" enum={r}");
-```
-запрос по нескольким полям:
+example: (dynamic)
 ```C#
  foreach (var r in Configure.Session.FreeSql<dynamic>("select enum as enum1,age from my_class"))
    Console.WriteLine($" enum1={r.enum1} age={r.age}");
 ```
-Типизированный запрос по нескольким полям или джойн.\
-Обязательно нужно определить тип, свойства замапить атрибутами, имена колонок должны соответствовать\
-именам полей в запросе, равно и как количество.
+example: (one field)
 ```C#
- [MapTableName("nomap")]
-  class MyClassTemp
-  {
-     [MapColumnName("id")]
-     public int Id { get; set; }
-     [MapColumnName("enum1")]
-     public MyEnum MyEnum { get; set; }
-     [MapColumnName("age")]
-     public int Age { get; set; }
-     public override string ToString()
-     {
-         return $" Id={Id}, MyEnum={MyEnum}, Age={Age}";
-     }
-  }
- foreach (var r in Configure.Session.FreeSql<MyClassTemp>("select enum as enum1, age, id from my_class"))
-    Console.WriteLine($"{r}");
+ foreach (var r in Configure.Session.FreeSql<MyEnum>("select enum as enum1 from my_class"))
+   Console.WriteLine($" enum={r}");
 ```
-Перечисление анонимных типов, можно сделать через метод обертку:
+example: (using attribute:```MapReceiverFreeSqlAttribute```)
+```c#
+[MapReceiverFreeSql]
+ lass MyFreeSql
+ {
+     public Guid IdGuid { get; }
+     public string Name { get; }
+     public int Age { get; }
+     public MyEnum MyEnum { get; }
+     public MyFreeSql(Guid idGuid, string name, int age, MyEnum @enum)
+     {
+         IdGuid = idGuid;
+         Name = name;
+         Age = age;
+         MyEnum = (MyEnum)@enum;
+     }
+ }
+.....
+
+var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {session.TableName<MyClass>()}");
+//Caution!
+//Sequence of types from select: select id,name,age,enum 
+//Must match the sequence of constructor parameter types.: MyFreeSql(Guid idGuid, string name, int age, MyEnum @enum)
+
+```
+example: (anonymous type)
 ```C#
  static IEnumerable<T> TempSql<T>(T t)
  {

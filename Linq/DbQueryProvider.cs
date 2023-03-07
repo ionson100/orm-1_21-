@@ -20,7 +20,7 @@ namespace ORM_1_21_.Linq
 {
     internal class DbQueryProvider<T> :  QueryProvider, ISqlComposite
     {
-        private readonly Dictionary<string, object> _paramFree = new Dictionary<string, object>();
+        private readonly List<Parameter> _paramFree = new List<Parameter>();
         private readonly List<ParameterStoredPr> _paramFreeStoredPr = new List<ParameterStoredPr>();
 
 
@@ -67,7 +67,7 @@ namespace ORM_1_21_.Linq
         }
 
       
-        private bool PingCompositeE(Evolution eval,List<OneComprosite> list)
+        private bool PingCompositeE(Evolution eval,List<OneComposite> list)
         {
             return list.Any(a => a.Operand == eval);
         }
@@ -128,7 +128,7 @@ namespace ORM_1_21_.Linq
             return null;
         }
 
-        internal override string GetQueryTextForJoin(Expression expression, List<OneComprosite> comprosite, Dictionary<string, object> dictionary, string parStr)
+        internal virtual string GetQueryTextForJoin(Expression expression, List<OneComposite> composite, Dictionary<string, object> dictionary, string parStr)
         {
             throw new NotImplementedException();
         }
@@ -136,11 +136,15 @@ namespace ORM_1_21_.Linq
 
         public object ExecuteParam<TS>(Expression expression, params Parameter[] par)
         {
-            if (par != null) par.ToList().ForEach(a => _paramFree.Add(a.Name, a.Value));
+            if (par != null)
+            {
+                _paramFree.AddRange(par);
+               // par.ToList().ForEach(a => _paramFree.Add(a.Name, a.Value));
+            }
             return Execute<TS>(expression);
         }
 
-        public override object ExecuteSPP<TS>(Expression expression)
+        public override object ExecuteSpp<TS>(Expression expression)
         {
             var sb = new StringBuilder();
             IDataReader dataReader = null;
@@ -340,7 +344,7 @@ namespace ORM_1_21_.Linq
             var services = (IServiceSessions)Sessione;
             var re = TranslateE(expression);
             string sql = re.Item1;//Translate(expression, out _).Replace("FROM", " FROM ");
-            List<OneComprosite> listCore = re.Item2;
+            List<OneComposite> listCore = re.Item2;
             
             /*usage cache*/
 
@@ -354,7 +358,7 @@ namespace ORM_1_21_.Linq
                 }
                 foreach (var p in _paramFree)
                 {
-                    b.Append($" {p.Key} - {p.Value} ");
+                    b.Append($" {p.Name} - {p.Value} ");
                 }
                 foreach (var p in _paramFreeStoredPr)
                 {
@@ -423,10 +427,29 @@ namespace ORM_1_21_.Linq
 
             foreach (var p in _paramFree)
             {
-                IDataParameter pr = _com.CreateParameter();
-                pr.ParameterName = p.Key;
-                pr.Value = p.Value;
-                _com.Parameters.Add(pr);
+                if (p.UserParameter != null)
+                {
+                    _com.Parameters.Add(p.UserParameter);
+                    continue;
+                }
+
+                if (_providerName == ProviderName.MsSql)
+                {
+                    dynamic sssa = _com.Parameters;
+                    sssa.AddWithValue(p.Name, p.Value);
+                }
+                else
+                {
+                    IDataParameter pr = _com.CreateParameter();
+                    pr.ParameterName = p.Name;
+                    pr.Value = p.Value ?? DBNull.Value;
+                    if (p.DbType.HasValue)
+                    {
+                        pr.DbType = p.DbType.Value;
+                    }
+                    _com.Parameters.Add(pr);
+                }
+               
             }
 
             foreach (var p in _paramFreeStoredPr)
@@ -815,7 +838,7 @@ namespace ORM_1_21_.Linq
 
        
 
-        private (string,List<OneComprosite>) TranslateE(Expression expression)
+        private (string,List<OneComposite>) TranslateE(Expression expression)
         {
             //QueryTranslatorMsSql
             ITranslate sq=new QueryTranslator<T>(_providerName);
@@ -856,7 +879,7 @@ namespace ORM_1_21_.Linq
         {
             _isStoredPr = true;
             if (par != null) _paramFreeStoredPr.AddRange(par);
-            var res = (IEnumerable<TS>)ExecuteSPP<TS>(callExpr);
+            var res = (IEnumerable<TS>)ExecuteSpp<TS>(callExpr);
 
             foreach (var re in _parOut)
             {
