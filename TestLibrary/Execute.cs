@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Org.BouncyCastle.Asn1.Crmf;
+using Org.BouncyCastle.Crypto.Digests;
 
 // ReSharper disable All
 
@@ -327,10 +328,19 @@ namespace TestLibrary
                 session.Query<T>().Where(a => a.Age == 10).Delete();
                 count = session.Query<T>().Where(a => a.Age == 10).Count();
                 Console.WriteLine($"{44} {count == 0}");
-                res = session.FreeSql<T>(
-                    $"select * from {session.TableName<T>()} where {session.ColumnName<T>(a => a.Age)} = @1",
-                    new Parameter("@1", 40)).ToList();
-                Console.WriteLine($"{45} {res.Count() == 1}");
+                if (s.GetProviderName() == ProviderName.MySql)
+                {
+                    res = session.FreeSql<T>(
+                        $"select * from {session.TableName<T>()} where {session.ColumnName<T>(a => a.Age)} = ?1",40).ToList();
+                    Console.WriteLine($"{45} {res.Count() == 1}");
+                }
+                else
+                {
+                    res = session.FreeSql<T>(
+                        $"select * from {session.TableName<T>()} where {session.ColumnName<T>(a => a.Age)} = @1",40).ToList();
+                    Console.WriteLine($"{45} {res.Count() == 1}");
+                }
+                
 
 
                 var anon1 = session.Query<T>().Where(a => a.Age == 40).Select(d => new { age = d.Age, name = d.Name })
@@ -494,7 +504,7 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T() { Age = 10 * j, Name = "name" + j,DateTime = DateTime.Now, Valdecimal = new decimal(123.3) });
+                    session.Save(new T() { Age = 10 * j, Name = "name" + j,DateTime = DateTime.Now, Valdecimal = new decimal(123) });
                     session.Save(new T() { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now });
                 }
                 count=session.Query<T>().Distinct(a => a.Age).ToList().Sum();
@@ -509,11 +519,7 @@ namespace TestLibrary
                           $"{session.ColumnName<T>(ss => ss.Name)}=?assa22 and " +
                           $"{session.ColumnName<T>(ss => ss.Valdecimal)} =?assa and" +
                           $" {session.ColumnName<T>(d => d.Age)} = ?age";
-                    count = (int)session.ExecuteScalar(sql, "name1", 123.3, 10);
-                    count = (int)session.ExecuteScalar(sql,
-                        new Parameter("?assa22", "name1"),
-                        new Parameter("?assa", 123.3, DbType.Decimal),
-                        new Parameter("?age", 10));
+                    count = (int)session.ExecuteScalar(sql, "name1", 123, 10);
                     Console.WriteLine($"{72} {count == 10} test params ");
                 }else if (s.GetProviderName() == ProviderName.MsSql)
                 {
@@ -528,10 +534,7 @@ namespace TestLibrary
                           $"{session.ColumnName<T>(ss => ss.Valdecimal)} = @2 and" +
                           $" {session.ColumnName<T>(d => d.Age)} = @3";
                     //count = (int)session.ExecuteScalar("select [age] from [my_class5] where  [name]=@1 and [test5] = '123.3' and [age] = '10'", "name1");
-                    count = (int)session.ExecuteScalar(sql,
-                        new Parameter("@1", "name1"),
-                        new Parameter(ssp),
-                        new Parameter("@3", 10));
+                    count = (int)session.ExecuteScalar(sql, "name1", new decimal(123), 10);
                     Console.WriteLine($"{72} {count == 10} test params ");
                 }
                 else
@@ -540,12 +543,8 @@ namespace TestLibrary
                           $"{session.ColumnName<T>(ss => ss.Name)}=@assa22 and " +
                           $"{session.ColumnName<T>(ss => ss.Valdecimal)} =@assa and" +
                           $" {session.ColumnName<T>(d => d.Age)} = @age";
-                    var ssT = session.ExecuteScalar(sql, "name1", 123.3, 10);
-                    ssT = session.ExecuteScalar(sql,
-                        new Parameter("@assa22", "name1"),
-                        new Parameter("@assa", 123.3, DbType.Decimal),
-                        new Parameter("@age", 10));
-                    Console.WriteLine($"{72} {count == 10} test params ");
+                    var ssT = session.ExecuteScalar(sql, "name1", 123, 10);
+                   
                 }
 
              
@@ -625,12 +624,12 @@ namespace TestLibrary
                 tttest.V5 = true;
                 tttest.V6 = 1;
                 tttest.V8 = DateTime.Now;
-                tttest.V9 = 1;
-                tttest.V10 = 1;
+                tttest.V9 = new decimal(1.22);
+                tttest.V10 = 1D;
                 tttest.V11 = 1;
                 tttest.V12 = 1;
-                tttest.V13 = 1;
-                tttest.V15 = 1;
+                tttest.V13 = 1L;
+                tttest.V15 = 1.5F;
                 tttest.V16 = Guid.Empty;
                 session.Save(tttest);
 
@@ -657,12 +656,12 @@ namespace TestLibrary
                 tttest1.V5 = true;
                 tttest1.V6 = 1;
                 tttest1.V8 = DateTime.Now;
-                tttest1.V9 = 1;
-                tttest1.V10 = 1;
+                tttest1.V9 = new decimal(1.22); ;
+                tttest1.V10 = 1.3;
                 tttest1.V11 = 1;
                 tttest1.V12 = 1;
-                tttest1.V13 = 1;
-                tttest1.V15 = 1;
+                tttest1.V13 = 1L;
+                tttest1.V15 = 1.5F;
                 tttest1.V16 = Guid.Empty;
                 tttest1.V2 = 1;
                 tttest1.V3 = 1;
@@ -691,12 +690,12 @@ namespace TestLibrary
                 tttest1.V5 = true;
                 tttest1.V6 = 1;
                 tttest1.V8 = DateTime.Now;
-                tttest1.V9 = 1;
-                tttest1.V10 = 1;
+                tttest1.V9 = new decimal(1.22); ;
+                tttest1.V10 = 1.4;
                 tttest1.V11 = 1;
                 tttest1.V12 = 1;
-                tttest1.V13 = 1;
-                tttest1.V15 = 1;
+                tttest1.V13 = 1L;
+                tttest1.V15 = 1.5F;
                 tttest1.V16 = Guid.Empty;
                 tttest1.V2 = 1;
                 tttest1.V3 = 1;

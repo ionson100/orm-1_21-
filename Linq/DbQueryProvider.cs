@@ -20,7 +20,7 @@ namespace ORM_1_21_.Linq
 {
     internal class DbQueryProvider<T> :  QueryProvider, ISqlComposite
     {
-        private readonly List<Parameter> _paramFree = new List<Parameter>();
+        private readonly List<object> _paramFree = new List<object>();
         private readonly List<ParameterStoredPr> _paramFreeStoredPr = new List<ParameterStoredPr>();
 
 
@@ -134,7 +134,7 @@ namespace ORM_1_21_.Linq
         }
 
 
-        public object ExecuteParam<TS>(Expression expression, params Parameter[] par)
+        public object ExecuteParam<TS>(Expression expression, params object[] par)
         {
             if (par != null)
             {
@@ -356,10 +356,12 @@ namespace ORM_1_21_.Linq
                 {
                     b.Append($" {p.Key} - {p.Value} ");
                 }
-                foreach (var p in _paramFree)
+
+                if (_paramFree.Any())
                 {
-                    b.Append($" {p.Name} - {p.Value} ");
+                    UtilsCore.AddParamsForCache(b,sql,_providerName,_paramFree);
                 }
+               
                 foreach (var p in _paramFreeStoredPr)
                 {
                     b.Append($" {p.Name} - {p.Value} -{p.Value} ");
@@ -425,32 +427,11 @@ namespace ORM_1_21_.Linq
                 _com.Parameters.Add(pr);
             }
 
-            foreach (var p in _paramFree)
+            if (_paramFree.Any())
             {
-                if (p.UserParameter != null)
-                {
-                    _com.Parameters.Add(p.UserParameter);
-                    continue;
-                }
-
-                if (_providerName == ProviderName.MsSql)
-                {
-                    dynamic sssa = _com.Parameters;
-                    sssa.AddWithValue(p.Name, p.Value);
-                }
-                else
-                {
-                    IDataParameter pr = _com.CreateParameter();
-                    pr.ParameterName = p.Name;
-                    pr.Value = p.Value ?? DBNull.Value;
-                    if (p.DbType.HasValue)
-                    {
-                        pr.DbType = p.DbType.Value;
-                    }
-                    _com.Parameters.Add(pr);
-                }
-               
+                UtilsCore.AddParam(_com,_providerName,_paramFree.ToArray());
             }
+            
 
             foreach (var p in _paramFreeStoredPr)
             {

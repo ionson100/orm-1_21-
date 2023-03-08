@@ -19,10 +19,10 @@ using System.Text.RegularExpressions;
 
 namespace ORM_1_21_.Utils
 {
-    
+
     class GroupExpression<T>
     {
-       
+
         public static Delegate Delegate(LambdaExpression lexp)
         {
             return Action(lexp, lexp.ReturnType);
@@ -76,7 +76,7 @@ namespace ORM_1_21_.Utils
 
         }
     }
-    
+
     internal static class UtilsCore
     {
         private static readonly HashSet<Type> Hlam = new HashSet<Type>
@@ -114,7 +114,7 @@ namespace ORM_1_21_.Utils
             typeof(Guid),
             typeof(Enum),
             typeof(byte[]),
-         
+
     };
         private static readonly Dictionary<Type, bool> SerializableTypeDictionary = new Dictionary<Type, bool>();
         private static readonly HashSet<Type> NumericTypes = new HashSet<Type>
@@ -141,7 +141,7 @@ namespace ORM_1_21_.Utils
         }
 
         internal const string Bungalo = "____";
-        
+
 
         internal static string Pref(ProviderName providerName)
         {
@@ -192,7 +192,7 @@ namespace ORM_1_21_.Utils
                    && (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
         }
 
-     
+
         internal static byte[] ObjectToByteArray(object obj)
         {
             if (obj == null)
@@ -231,7 +231,7 @@ namespace ORM_1_21_.Utils
             return (byte[])converter.ConvertTo(img, typeof(byte[]));
         }
 
-       
+
         internal static Image ImageFromByte(byte[] bytes)
         {
             if (bytes == null) return null;
@@ -315,7 +315,7 @@ namespace ORM_1_21_.Utils
             throw new Exception(message);
         }
 
-       
+
 
 
 
@@ -383,14 +383,14 @@ namespace ORM_1_21_.Utils
 
         internal static bool IsJsonType(Type type)
         {
-           
+
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
                 return true;
             if (IsSerializable(type))
             {
                 return true;
             }
-       
+
             return false;
         }
 
@@ -403,11 +403,13 @@ namespace ORM_1_21_.Utils
                 var t = type.GetCustomAttribute(typeof(MapSerializableAttribute));
                 if (t != null)
                 {
-                    SerializeTypes.Add(type,SerializeType.Self);
-                } else if (type.GetInterfaces().Contains(typeof(IMapSerializable)))
+                    SerializeTypes.Add(type, SerializeType.Self);
+                }
+                else if (type.GetInterfaces().Contains(typeof(IMapSerializable)))
                 {
                     SerializeTypes.Add(type, SerializeType.User);
-                }else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+                }
+                else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
                 {
                     SerializeTypes.Add(type, SerializeType.Self);
                 }
@@ -415,8 +417,8 @@ namespace ORM_1_21_.Utils
                 {
                     SerializeTypes.Add(type, SerializeType.None);
                 }
-               
-                
+
+
             }
 
             return SerializeTypes[type];
@@ -430,7 +432,7 @@ namespace ORM_1_21_.Utils
 
         public static object JsonToObject(string o, Type type)
         {
-            if (string.IsNullOrWhiteSpace(o)) return  null;
+            if (string.IsNullOrWhiteSpace(o)) return null;
             return JsonSerializer.Deserialize(o, type);
         }
 
@@ -464,7 +466,7 @@ namespace ORM_1_21_.Utils
             {
                 if (c == '(') stop = ++stop;
                 if (c == ')') stop = --stop;
-                if (stop>0)
+                if (stop > 0)
                 {
                     builder.Append(c);
                     continue;
@@ -495,11 +497,58 @@ namespace ORM_1_21_.Utils
             var str = JsonSerializer.Serialize(ob);
             return JsonSerializer.Deserialize<T>(str);
         }
+
+        public static void AddParamsForCache(StringBuilder b, string sql, ProviderName providerName, List<object> param)
+        {
+            if (param == null) return;
+            if (param.Count == 0) return;
+            Regex regex = new Regex(@"\@([\w.$]+|""[^""]+""|'[^']+')");
+            if (providerName == ProviderName.MySql)
+            {
+                regex = new Regex(@"\?([\w.$]+|""[^""]+""|'[^']+')");
+
+            }
+            MatchCollection matches = regex.Matches(sql);
+            for (var index = 0; index < matches.Count; index++)
+            {
+                b.Append($" {matches[index].Value} - {param[index]} ");
+            }
+        }
+        public static void AddParam(IDbCommand com, ProviderName providerName, object[] param)
+        {
+            if (param == null) return;
+            if (param.Length == 0) return;
+            string sql = com.CommandText;
+
+            Regex regex = new Regex(@"\@([\w.$]+|""[^""]+""|'[^']+')");
+            if (providerName == ProviderName.MySql)
+            {
+                regex = new Regex(@"\?([\w.$]+|""[^""]+""|'[^']+')");
+
+            }
+            MatchCollection matches = regex.Matches(sql);
+
+            for (var index = 0; index < matches.Count; index++)
+            {
+                if (param[index] is IDbDataParameter)
+                {
+                    com.Parameters.Add((IDbDataParameter)param[index]);
+                }
+                else
+                {
+                    dynamic d = com.Parameters;
+                    d.AddWithValue(matches[index].Value, param[index] ?? DBNull.Value);
+                }
+
+                
+
+            }
+        }
     }
 
     internal enum SerializeType
     {
-        None,Self,User
+        None, Self, User
     }
 }
 

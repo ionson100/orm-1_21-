@@ -175,57 +175,8 @@ namespace ORM_1_21_
 
         }
 
-        internal static void AddParam(IDbCommand com, ProviderName providerName, object[] obj)
-        {
-            if (obj == null) return;
-            string sql = com.CommandText;
-            var ss = sql.Split(UtilsCore.PrefParam(providerName).ToArray(), StringSplitOptions.RemoveEmptyEntries);
-            if (ss.Length - 1 != obj.Length)
-                throw new ArgumentException("the count of parameters does not match");
+       
 
-            var list = Regex.Matches(sql, @"\" + UtilsCore.PrefParam(providerName) + @"\w+").Cast<Match>().Select(m => m.Value).ToList();
-            if (list.Count != obj.Length)
-            {
-                throw new Exception($"Count of parameters in sql query {list} does not match the count of parameters passed to the method {obj.Length}");
-            }
-
-            for (var index = 0; index < obj.Length; index++)
-            {
-                IDataParameter dp = com.CreateParameter();
-                var parName = list[index];
-                dp.ParameterName = parName;
-                var value = obj[index]??DBNull.Value;
-                dp.Value = value;
-
-                com.Parameters.Add(dp);
-            }
-        }
-
-        internal static void AddParamCore(IDbCommand com,  Parameter[] parameters)
-        {
-            if(parameters==null) return;
-            foreach (var par in parameters)
-            {
-                if (par.UserParameter != null)
-                {
-                    com.Parameters.Add(par.UserParameter);
-                }
-                IDataParameter dp = com.CreateParameter();
-                dp.ParameterName = par.Name;
-                dp.DbType = DbType.Object;
-
-              
-
-                var value = par.Value??DBNull.Value;
-                if (par.DbType.HasValue)
-                {
-                    dp.DbType = par.DbType.Value;
-                }
-                dp.Value = value;
-
-                com.Parameters.Add(dp);
-            }
-        }
 
 
         bool ISession.IsDispose => _isDispose;
@@ -278,55 +229,9 @@ namespace ORM_1_21_
             InnerWriteLogFile($"WriteLogFile: {message}");
         }
         
-        int ISession.ExecuteNonQuery(string sql, params Parameter[] param)
-        {
-            if (sql == null) throw new ArgumentNullException(nameof(sql));
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-            com.CommandText = sql;
-            AddParamCore(com,  param);
-            try
-            {
-                OpenConnectAndTransaction(com);
-                com.CommandTimeout = 30000;
-                return com.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
-        }
+      
 
-         int ISession.ExecuteNonQueryT(string sql, int timeOut, params Parameter[] param)
-        {
-            if (sql == null) throw new ArgumentNullException(nameof(sql));
-
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-            com.CommandText = sql;
-            AddParamCore(com, param);
-            try
-            {
-                OpenConnectAndTransaction(com);
-                com.CommandTimeout = 30000;
-                SetTimeOut(com, timeOut);
-                return com.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
-        }
+        
 
 
         private void InnerWriteLogFile(string message)
@@ -348,58 +253,9 @@ namespace ORM_1_21_
         }
 
 
-         object ISession.ExecuteScalar(string sql, params Parameter[] param)
-        {
-            if (sql == null) throw new ArgumentNullException(nameof(sql));
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-            com.CommandType = CommandType.Text;
-            com.CommandText = sql;
-            AddParamCore(com,  param);
+        
 
-            try
-            {
-                OpenConnectAndTransaction(com);
-                var res = com.ExecuteScalar();
-                return res;
-            }
-            catch (Exception ex)
-            {
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
-        }
-
-          object ISession.ExecuteScalarT(string sql, int timeOut, params Parameter[] param)
-         {
-            if (sql == null) throw new ArgumentNullException(nameof(sql));
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-            com.CommandType = CommandType.Text;
-            com.CommandText = sql;
-            AddParamCore(com,  param);
-            SetTimeOut(com, timeOut);
-
-            try
-            {
-                OpenConnectAndTransaction(com);
-                var res = com.ExecuteScalar();
-                return res;
-            }
-            catch (Exception ex)
-            {
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
-        }
+        
 
          bool ISession.IsPersistent<T>(T obj)
         {

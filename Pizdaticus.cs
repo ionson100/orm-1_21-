@@ -112,18 +112,15 @@ namespace ORM_1_21_
 
         }
 
-        public static Delegate GetDelegateForGroupBy(LambdaExpression lambda)
-        {
-            return lambda.Compile();
-        }
+      
 
-        public static T SingleData<T>(IEnumerable<OneComposite> listOne, IEnumerable<T> lResul, out bool isActive)
+        public static T SingleData<T>(IEnumerable<OneComposite> listOne, IEnumerable<T> source, out bool isActive)
         {
             if (listOne == null) throw new ArgumentException("listOne == null ");
-            var oneComprosites = listOne as OneComposite[] ?? listOne.ToArray();
-            var result = lResul as T[] ?? lResul.ToArray();
-            var enumerable = lResul as T[] ?? result.ToArray();
-            if (oneComprosites.Any(a => a.Operand == Evolution.SingleOrDefault && a.IsAggregate))
+            var oneComposite = listOne as OneComposite[] ?? listOne.ToArray();
+            var result = source as T[] ?? source.ToArray();
+            var enumerable = source as T[] ?? result.ToArray();
+            if (oneComposite.Any(a => a.Operand == Evolution.SingleOrDefault && a.IsAggregate))
             {
                 if (enumerable.Length == 1)
                 {
@@ -137,7 +134,7 @@ namespace ORM_1_21_
 
             }
 
-            if (oneComprosites.Any(a => a.Operand == Evolution.Single && a.IsAggregate))
+            if (oneComposite.Any(a => a.Operand == Evolution.Single && a.IsAggregate))
             {
                 if (result.Count() == 1)
                 {
@@ -149,37 +146,37 @@ namespace ORM_1_21_
                                     enumerable.Count());
             }
 
-            if (oneComprosites.Any(a => a.Operand == Evolution.First))
+            if (oneComposite.Any(a => a.Operand == Evolution.First))
             {
                 isActive = true;
                 return result.First();
             }
 
-            if (oneComprosites.Any(a => a.Operand == Evolution.FirstOrDefault))
+            if (oneComposite.Any(a => a.Operand == Evolution.FirstOrDefault))
             {
                 isActive = true;
                 return !result.Any() ? default : enumerable.First();
             }
 
-            if (oneComprosites.Any(a => a.Operand == Evolution.LastOrDefault))
+            if (oneComposite.Any(a => a.Operand == Evolution.LastOrDefault))
             {
                 isActive = true;
                 return !result.Any() ? default : enumerable.First();
             }
 
-            if (oneComprosites.Any(a => a.Operand == Evolution.Last))
+            if (oneComposite.Any(a => a.Operand == Evolution.Last))
             {
                 isActive = true;
                 return result.Last();
             }
 
-            if (oneComprosites.Any(a => a.Operand == Evolution.ElementAt))
+            if (oneComposite.Any(a => a.Operand == Evolution.ElementAt))
             {
                 isActive = true;
                 return result.First();
             }
 
-            if (oneComprosites.Any(a => a.Operand == Evolution.ElementAtOrDefault))
+            if (oneComposite.Any(a => a.Operand == Evolution.ElementAtOrDefault))
             {
                 isActive = true;
                 return result.Any() ? enumerable.First() : default;
@@ -190,93 +187,6 @@ namespace ORM_1_21_
         }
 
 
-
-        public static IEnumerable<TObj> GetRiderToList2<TObj>(IDataReader reader, ProviderName providerName)
-        {
-            bool? field = null;
-            using (var read = reader)
-            {
-                while (read.Read())
-                {
-                    var d = (TObj)FormatterServices.GetSafeUninitializedObject(typeof(TObj));
-                    foreach (var s in AttributesOfClass<TObj>.ListBaseAttrE(providerName))
-                    {
-                        if (field == null)
-                            field = UtilsCore.ColumnExists(reader, s.ColumnNameAlias);
-
-                        object e;
-                        if (field == true)
-                            e = reader[s.ColumnNameAlias];
-                        else
-                            e =
-                                reader[
-                                    s.GetColumnName(providerName).Replace("`", string.Empty)
-                                        .Replace("[", string.Empty)
-                                        .Replace("]", string.Empty)];
-
-                        var pr = AttributesOfClass<TObj>.PropertyInfoList.Value[s.PropertyName];
-                        {
-                            var st = UtilsCore.GetSerializeType(pr.PropertyType);
-                            if (st == SerializeType.Self)
-                            {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,
-                                    e == DBNull.Value
-                                        ? null
-                                        : UtilsCore.JsonToObject(e.ToString(), pr.PropertyType));
-                            }
-                            if (st == SerializeType.User)
-                            {
-                                var o = Activator.CreateInstance(pr.PropertyType);
-                                ((IMapSerializable)o).Deserialize(e.ToString());
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,
-                                    e == DBNull.Value
-                                        ? null
-                                        : o);
-
-                            }
-                            else if (pr.PropertyType == typeof(Image))
-                            {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : UtilsCore.ImageFromByte((byte[])e));
-                            }
-                            else if (pr.PropertyType == typeof(bool))
-                            {
-                                if (e == DBNull.Value)
-                                {
-                                    AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, null);
-                                }
-                                else
-                                {
-                                    var b = Convert.ToBoolean(e);
-                                    AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, b);
-                                }
-                            }
-                            else if (pr.PropertyType == typeof(DateTime))
-                            {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : e);
-                            }
-                            else if (pr.PropertyType.BaseType == typeof(Enum))
-                            {
-                                var ere = Enum.Parse(pr.PropertyType, e.ToString());
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : ere);
-                            }
-                            else if (pr.PropertyType == typeof(Guid))
-                            {
-                                var ere = new Guid(e.ToString());
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d,
-                                    e == DBNull.Value ? Guid.Empty : ere);
-                            }
-                            else
-                            {
-                                AttributesOfClass<TObj>.SetValueE(providerName, pr.Name, d, e == DBNull.Value ? null : e);
-                            }
-                        }
-                    }
-
-                    UtilsCore.SetPersistent(d);
-                    yield return d;
-                }
-            }
-        }
 
         public static object MethodFree(ProviderName providerName, Type type, object e)
         {

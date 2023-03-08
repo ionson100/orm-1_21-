@@ -166,7 +166,7 @@ namespace ORM_1_21_
             com.Connection = _connect;
 
             com.CommandText = sql;
-            AddParam(com, MyProviderName, @params);
+            UtilsCore.AddParam(com, MyProviderName, @params);
             OpenConnectAndTransaction(com);
             return com.ExecuteReader();
         }
@@ -187,7 +187,7 @@ namespace ORM_1_21_
             com.CommandText = sql;
             SetTimeOut(com, timeOut);
 
-            AddParam(com, MyProviderName, param);
+            UtilsCore.AddParam(com, MyProviderName, param);
             OpenConnectAndTransaction(com);
             return com.ExecuteReader();
         }
@@ -438,7 +438,7 @@ namespace ORM_1_21_
             com.Connection = _connect;
             com.CommandType = CommandType.Text;
             com.CommandText = sql;
-            AddParam(com, MyProviderName, param);
+            UtilsCore.AddParam(com, MyProviderName, param);
 
             try
             {
@@ -464,7 +464,7 @@ namespace ORM_1_21_
             com.Connection = _connect;
             com.CommandType = CommandType.Text;
             com.CommandText = sql;
-            AddParam(com, MyProviderName, param);
+            UtilsCore.AddParam(com, MyProviderName, param);
             SetTimeOut(com, timeOut);
 
             try
@@ -545,7 +545,7 @@ namespace ORM_1_21_
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = sql;
-            AddParam(com, MyProviderName, param);
+            UtilsCore.AddParam(com, MyProviderName, param);
             try
             {
                 OpenConnectAndTransaction(com);
@@ -570,7 +570,7 @@ namespace ORM_1_21_
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = sql;
-            AddParam(com, MyProviderName, param);
+            UtilsCore.AddParam(com, MyProviderName, param);
             try
             {
                 OpenConnectAndTransaction(com);
@@ -788,7 +788,7 @@ namespace ORM_1_21_
 
             try
             {
-                AddParam(com, MyProviderName, param);
+                UtilsCore.AddParam(com, MyProviderName, param);
                 OpenConnectAndTransaction(com);
                 var reader = com.ExecuteReader();
                 table.BeginLoadData();

@@ -131,7 +131,7 @@ namespace ORM_1_21_.Extensions
         /// <param name="sql">Request string</param>
         /// <param name="par">Request parameters</param>
         /// <returns>IEnumerableTResult</returns>
-        public static IEnumerable<TResult> FreeSql<TResult>(this ISession ses, string sql, params Parameter[] par)
+        public static IEnumerable<TResult> FreeSql<TResult>(this ISession ses, string sql, params object[] par)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(
@@ -149,7 +149,7 @@ namespace ORM_1_21_.Extensions
         /// <param name="ses">ISession</param>
         /// <param name="sql">Request string</param>
         /// <param name="par">Request parameters</param>
-        public static Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params Parameter[] par)
+        public static Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params object[] par)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));

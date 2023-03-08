@@ -7,6 +7,9 @@ namespace TestLibrary
 {
   public  class MyDbMySql : IOtherDataBaseFactory
     {
+        public const string s1 = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=audi124;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+        public const string s2 = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=test;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+
         private static readonly Lazy<DbProviderFactory> DbProviderFactory = new Lazy<DbProviderFactory>(() => new MySqlClientFactory());
         public ProviderName GetProviderName()
         {
@@ -48,7 +51,7 @@ namespace TestLibrary
       }
       public string GetConnectionString()
       {
-          return "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=audi124;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+          return MyDbMySql.s2;
       }
 
       public DbProviderFactory GetDbProviderFactories()

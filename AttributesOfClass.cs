@@ -777,6 +777,7 @@ namespace ORM_1_21_
                     d.Append(s.Replace("]", "").Replace("[", "").Replace(".", UtilsCore.Bungalo).ToLower() + " ,");
             }
 
+            start += 1;
 
             if (string.IsNullOrEmpty(sbOrderBy.ToString()))
                 sbOrderBy.AppendFormat(" {0}.{1} ", TableNameAllLazy.Value[typeof(T)],
@@ -785,8 +786,8 @@ namespace ORM_1_21_
 
             if (listOne.Any(a => a.Operand == Evolution.ElementAtOrDefault||a.Operand==Evolution.ElementAt))
             {
-                start += 1;
-                count = start;
+                //start += 1;
+                count =1;//= start;
             }
             
             var ff = string.Format("SELECT {0} FROM (SELECT ROW_NUMBER() " +
@@ -797,7 +798,7 @@ namespace ORM_1_21_
                 table,
                 sbOrderBy.ToString().Trim(','),
                 start,
-                count);
+                start+count-1);
            
 
             return ff;

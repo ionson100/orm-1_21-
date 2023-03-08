@@ -3,9 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Threading.Tasks;
 using ORM_1_21_.Extensions;
 using TestLibrary;
+using System.Diagnostics.Metrics;
 
 
 namespace TestPostgres
@@ -16,13 +18,11 @@ namespace TestPostgres
 
         static async Task Main(string[] args)
         {
-            string s1 = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=audi124;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
-            string s2 = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=test;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
-
+           
             switch (ProviderName)
             {
                 case ProviderName.MsSql:
-                    Starter.Run(s1, ProviderName);
+                    Starter.Run(MyDbMySql.s2, ProviderName);
                     break;
                 case ProviderName.MySql:
                     Starter.Run("Server=localhost;Database=test;Uid=root;Pwd=12345;", ProviderName);
@@ -39,34 +39,20 @@ namespace TestPostgres
             //Execute.RunThread();
             //Console.ReadKey();
             //Console.ReadKey();
-            //Execute.TotalTest();
-            //Execute.TotalTestNull();
+            Execute.TotalTest();
+            Execute.TotalTestNull();
 
 
             ISession session = Configure.Session;
             session.TruncateTable<MyClass>();
             for (int j = 0; j < 10; j++)
             {
-                session.Save(new MyClass() { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now, Valfloat = 123.3f});
-                session.Save(new MyClass() { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now });
+                session.Save(new MyClass() { Age =  j, Name = "name" + j, DateTime = DateTime.Now, Valfloat = 123.3f});
+               
             }
 
-            //ssion.Query<MyClass>().OrderBy(s=>s.Age).ToList();
-            //
-            //"select {session.ColumnName<MyClass>(ss => ss.Age)} from {session.TableName<MyClass>()} where  " +
-            //ssion.ColumnName<MyClass>(ss => ss.Name)}=@1 and " +
-            //ssion.ColumnName<MyClass>(ss => ss.Valdecimal)} = '123.3' and" +
-            //ession.ColumnName<MyClass>(d => d.Age)} = @3";
-            //int)session.ExecuteScalar("select [age] from [my_class5] where  [name]=@1 and [test5] = '123.3' and [age] = '10'", "name1");
-            //= (int)session.ExecuteScalar(sql,
-            //ameter("@1", "name1"),
-            //ameter("@2", new decimal(123.3),DbType.Double),
-            //ameter("@3", 10));
+            var res = session.Query<MyClass>().OrderByDescending(a => a.Age).Limit(0, 1).ToList();
 
-            
-
-           
-            var ee = session.FreeSql<MyClass>("select * from my_class5 where test6 = @1",new Parameter("@1",123.3f));
             Console.ReadKey();
         }
 

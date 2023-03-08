@@ -132,13 +132,7 @@ namespace ORM_1_21_
         /// <returns></returns>
         object ExecuteScalar(string sql, params object[] param);
 
-        /// <summary>
-        /// Returns the first element of the request
-        /// </summary>
-        /// <param name="sql">sql text</param>
-        /// <param name="param">parameters array</param>
-        /// <returns></returns>
-        object ExecuteScalar(string sql, params Parameter[] param);
+     
 
         /// <summary>
         /// Returns the first element of the request 
@@ -148,14 +142,7 @@ namespace ORM_1_21_
         /// <param name="param">parameter array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
         object ExecuteScalarT(string sql, int timeOut = 30, params object[] param);
 
-        /// <summary>
-        /// Returns the first element of the request 
-        /// </summary>
-        /// <param name="sql">sql text</param>
-        /// <param name="timeOut">timeout connection</param>
-        /// <param name="param">parameter array</param>
-        /// <returns></returns>
-        object ExecuteScalarT(string sql, int timeOut = 30, params Parameter[] param);
+        
 
         /// <summary>
         /// Recreating a table
@@ -213,13 +200,7 @@ namespace ORM_1_21_
         int ExecuteNonQuery(string sql, params object[] param);
 
 
-        /// <summary>
-        /// executes the query and returns the number of records affected
-        /// </summary>
-        /// <param name="sql">sql text</param>
-        /// <param name="param">parameters array</param>
-        /// <returns></returns>
-        int ExecuteNonQuery(string sql, params Parameter[] param);
+        
 
         /// <summary>
         /// executes the query and returns the number of records affected
@@ -229,14 +210,7 @@ namespace ORM_1_21_
         /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
         int ExecuteNonQueryT(string sql, int timeOut = 30, params object[] param);
 
-        /// <summary>
-        /// executes the query and returns the number of records affected
-        /// </summary>
-        /// <param name="sql">sql text</param>
-        /// <param name="timeOut">timeout connection</param>
-        /// <param name="param">parameters array</param>
-        /// <returns></returns>
-        int ExecuteNonQueryT(string sql, int timeOut = 30, params Parameter[] param);
+        
 
         /// <summary>
         /// Getting the name of the table to build an sql query.
