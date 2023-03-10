@@ -167,7 +167,7 @@ namespace ORM_1_21_.Linq
             return conditionalExpression;
         }
 
-        private static Expression VisitParameter(ParameterExpression parameterExpression)
+        protected virtual Expression VisitParameter(ParameterExpression parameterExpression)
         {
             return parameterExpression;
         }

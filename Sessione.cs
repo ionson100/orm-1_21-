@@ -14,7 +14,7 @@ namespace ORM_1_21_
 {
     ///<summary>
     ///</summary>
-    public sealed partial class Sessione : ISession, IServiceSessions
+    internal sealed partial class Sessione : ISession, IServiceSessions
     {
         readonly List<IDbCommand> _dbCommands = new List<IDbCommand>();
 
@@ -646,33 +646,7 @@ namespace ORM_1_21_
             return rez;
         }
 
-        private T GetReal<T>(object id) where T : class
-        {
-            var sqlAll = string.Format("{0} WHERE {1}.{2} = '{3}'", AttributesOfClass<T>.SimpleSqlSelect(MyProviderName),
-                AttributesOfClass<T>.TableName(MyProviderName), AttributesOfClass<T>.PkAttribute(MyProviderName).GetColumnName(MyProviderName), id);
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-            com.CommandText = sqlAll;
-            try
-            {
-                OpenConnectAndTransaction(com);
-                var res = AttributesOfClass<T>.GetEnumerableObjects(com.ExecuteReader(), MyProviderName);
-
-                var enumerable = res as T[] ?? res.ToArray();
-                return enumerable.Any() ? enumerable.First() : null;
-            }
-            catch (Exception ex)
-            {
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-
-            }
-            finally
-            {
-                ComDisposable(com);
-                //GetCache<T>(false, com);
-            }
-        }
+       
 
         internal void ComDisposable(IDbCommand com)
         {

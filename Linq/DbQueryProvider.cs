@@ -51,20 +51,13 @@ namespace ORM_1_21_.Linq
         }
 
         public ISession Sessione { get; }
+        public IDbTransaction Transaction { get; set; }
 
         public List<ContainerCastExpression> ListCastExpression { get; set; } = new List<ContainerCastExpression>();
 
-        public Transactionale Transactionale
-        {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
-        }
+        
 
-        public IDbTransaction Transaction
-        {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
-        }
+       
 
       
         private bool PingCompositeE(Evolution eval,List<OneComposite> list)
@@ -126,11 +119,6 @@ namespace ORM_1_21_.Linq
         public override object Execute(Expression expression)
         {
             return null;
-        }
-
-        internal virtual string GetQueryTextForJoin(Expression expression, List<OneComposite> composite, Dictionary<string, object> dictionary, string parStr)
-        {
-            throw new NotImplementedException();
         }
 
 
@@ -238,8 +226,9 @@ namespace ORM_1_21_.Linq
             }
             catch (Exception ex)
             {
+                _sessione.Transactionale.isError = true;
                 MySqlLogger.Error(_com.CommandText, ex);
-                throw;
+                throw new Exception(ex.Message+Environment.NewLine+_com.CommandText,ex);
 
             }
             finally
@@ -253,79 +242,6 @@ namespace ORM_1_21_.Linq
             }
         }
 
-       
-
-       
-
-        
-
-
-
-
-
-        public object ExecuteMonster<TS>(IDataReader dataReader)
-        {
-
-            var count = dataReader.FieldCount;
-            var list = new List<Type>();
-            for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
-            var ci = typeof(TS).GetConstructor(list.ToArray());
-            var resDis = new List<TS>();
-            if (ci != null)
-            {
-                while (dataReader.Read())
-                {
-                    var par = new List<object>();
-                    for (var i = 0; i < count; i++)
-                        par.Add(dataReader[i] == DBNull.Value ? null : dataReader[i]);
-                    var e = ci.Invoke(par.ToArray());
-                    resDis.Add((TS)e);
-                }
-            }
-            else if (count == 1 && typeof(TS).IsValueType || typeof(TS) == typeof(string) ||
-                     typeof(TS).GetInterface("IEnumerable") != null || typeof(TS).IsGenericTypeDefinition)
-            {
-                while (dataReader.Read())
-                    resDis.Add((TS)(dataReader[0] == DBNull.Value ? null : dataReader[0]));
-            }
-            else
-            {
-                if (typeof(TS) != typeof(object) && typeof(TS).IsClass)
-                {
-                    object employee;
-                    var isLegasy = AttributesOfClass<TS>.IsUssageActivator(_providerName);
-                    if (isLegasy)
-                    {
-                        employee = Activator.CreateInstance<TS>();
-                    }
-                    else
-                    {
-                        employee = (TS)FormatterServices.GetSafeUninitializedObject(typeof(TS));
-                    }
-                    while (dataReader.Read())
-                    {
-                        for (var i = 0; i < dataReader.FieldCount; i++)
-                            AttributesOfClass<TS>.SetValueFreeSqlE(_providerName, dataReader.GetName(i), (TS)employee,
-                                dataReader[i] == DBNull.Value ? null : dataReader[i]);
-                        resDis.Add((TS)employee);
-                    }
-                }
-                else
-                {
-                    while (dataReader.Read())
-                    {
-                        dynamic employee = new ExpandoObject();
-                        for (var i = 0; i < count; i++)
-                            ((IDictionary<string, object>)employee).Add(dataReader.GetName(i),
-                                dataReader[i] == DBNull.Value ? null : dataReader[i]);
-                        resDis.Add((TS)employee);
-                    }
-                }
-            }
-
-            return resDis;
-        }
-
 
         private int GetTimeout()
         {
@@ -333,7 +249,7 @@ namespace ORM_1_21_.Linq
             {
                 if (t.TypeRevalytion == Evolution.Timeout && t.Timeout >= 0) { return t.Timeout; }
             }
-            return 0;
+            return 30;
         }
 
         public override object Execute<TS>(Expression expression)
@@ -449,11 +365,34 @@ namespace ORM_1_21_.Linq
                 _sessione.OpenConnectAndTransaction(_com);
                 if (PingCompositeE(Evolution.All,listCore))
                 {
+                    var reader = _com.ExecuteReader();
+                    try
+                    {
+                        while (reader.Read())
+                        {
+                            var v1 = reader.GetInt32(0);
+                            var v2 = reader.GetInt32(1);
+                            var res = v1 == v2;
+                            if (isCacheUsage)
+                            {
+                                MyCache<T>.Push(hashCode, res);
+                            }
+                            return res;
+                        }
+                    }
+                    finally
+                    {
+                        reader.Dispose();
+                    }
+                   
+                }
+                if (PingCompositeE(Evolution.LongCount, listCore))
+                {
                     var ee = _com.ExecuteScalar();
-                    var res = ee.ToString() != "0";
+                    var res = Convert.ToInt64(ee, CultureInfo.CurrentCulture);
                     if (isCacheUsage)
                     {
-                        MyCache<T>.Push(hashCode,res);
+                        MyCache<T>.Push(hashCode, res);
                     }
                     return res;
                 }
@@ -468,6 +407,7 @@ namespace ORM_1_21_.Linq
                     }
                     return res;
                 }
+               
 
                 if (PingCompositeE(Evolution.Delete,listCore))
                 {
@@ -569,8 +509,8 @@ namespace ORM_1_21_.Linq
                         if (typeof(TS) != typeof(object) && typeof(TS).IsClass)
                         {
                             object employee;
-                            var isLegasy = AttributesOfClass<TS>.IsUssageActivator(_providerName);
-                            if (isLegasy)
+                            var isLegalese = AttributesOfClass<TS>.IsUssageActivator(_providerName);
+                            if (isLegalese)
                             {
                                 employee = Activator.CreateInstance<TS>();
                             }
@@ -702,7 +642,7 @@ namespace ORM_1_21_.Linq
                     {
                         MyCache<T>.Push(hashCode,null);
                     }
-                    return enumerable.First();
+                    return enumerable.FirstOrDefault();
 
                 }
 
@@ -802,8 +742,11 @@ namespace ORM_1_21_.Linq
 
             catch (Exception ex)
             {
+
+                _sessione.Transactionale.isError = true;
+               
                 MySqlLogger.Error(UtilsCore.GetStringSql(_com), ex);
-                throw;
+                throw new Exception(ex.Message + Environment.NewLine + _com.CommandText, ex); 
             }
 
             finally
@@ -837,9 +780,7 @@ namespace ORM_1_21_.Linq
 
         private string TranslateString(Expression expression, out Evolution ev1)
         {
-            //QueryTranslatorMsSql
             ITranslate sq = new QueryTranslator<T>(_providerName);
-            
             _param = sq.Param;
             ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
             string res = sq.Translate(expression, out ev1);

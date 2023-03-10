@@ -1,9 +1,11 @@
-﻿namespace ORM_1_21_
+﻿using System;
+
+namespace ORM_1_21_
 {
     /// <summary>
     /// Transaction in the context of the session
     /// </summary>
-    public interface ITransaction
+    public interface ITransaction:IDisposable
     {
         /// <summary>
         /// Commit transaction

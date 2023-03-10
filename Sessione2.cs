@@ -3,12 +3,10 @@ using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace ORM_1_21_
 {
-    public sealed partial class Sessione
+    internal sealed partial class Sessione
     {
         private readonly IOtherDataBaseFactory _factory;
         private bool _isDispose;

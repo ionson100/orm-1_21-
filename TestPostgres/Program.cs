@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ORM_1_21_.Extensions;
 using TestLibrary;
 using System.Diagnostics.Metrics;
+using System.Security.Policy;
 
 
 namespace TestPostgres
@@ -39,19 +40,44 @@ namespace TestPostgres
             //Execute.RunThread();
             //Console.ReadKey();
             //Console.ReadKey();
-            Execute.TotalTest();
-            Execute.TotalTestNull();
+             //Execute.TotalTest();
+            //Execute.TotalTestNull();
 
 
             ISession session = Configure.Session;
             session.TruncateTable<MyClass>();
             for (int j = 0; j < 10; j++)
             {
-                session.Save(new MyClass() { Age =  j, Name = "name" + j, DateTime = DateTime.Now, Valfloat = 123.3f});
-               
+                session.Save(new MyClass() { Age = 10, Name = "name1" });
             }
 
-            var res = session.Query<MyClass>().OrderByDescending(a => a.Age).Limit(0, 1).ToList();
+            var users = new List<MyClass>
+            {
+                new MyClass {Age = 1,Name= "100" ,  },
+                new MyClass {Age = 2, Name= "100" ,  },
+                new MyClass {Age = 3, Name= "100" ,  }
+            };
+            var users2 = new List<MyClassSqlite>
+            {
+                new MyClassSqlite { Name= "100" ,  },
+                new MyClassSqlite { Name= "100" ,  },
+                new MyClassSqlite { Name= "100" ,  },
+                new MyClassSqlite { Name= "100" ,  },
+                new MyClassSqlite { Name= "100" ,  },
+                new MyClassSqlite { Name= "100" ,  }
+            };
+
+
+            var s = users.SelectMany(a=>users2, (f, h) =>
+            {
+                var foo = new { c = f.Age, ff = h };
+                return foo;
+            }).ToList();
+
+
+
+
+
 
             Console.ReadKey();
         }

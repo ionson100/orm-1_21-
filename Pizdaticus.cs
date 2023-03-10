@@ -122,23 +122,32 @@ namespace ORM_1_21_
             var enumerable = source as T[] ?? result.ToArray();
             if (oneComposite.Any(a => a.Operand == Evolution.SingleOrDefault && a.IsAggregate))
             {
+                isActive = true;
                 if (enumerable.Length == 1)
                 {
-                    isActive = true;
-
                     return enumerable.First();
                 }
 
-                isActive = true;
-                return default;
+                if (enumerable.Length == 0)
+                {
+                    return default;
+                }
+
+                if (enumerable.Length > 1)
+                {
+                    throw new Exception("Sequence contains more than one element");
+                }
+
+
+                
 
             }
 
             if (oneComposite.Any(a => a.Operand == Evolution.Single && a.IsAggregate))
             {
+                isActive = true;
                 if (result.Count() == 1)
                 {
-                    isActive = true;
                     return enumerable.First();
                 }
 

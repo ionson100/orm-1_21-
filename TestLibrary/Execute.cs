@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Org.BouncyCastle.Asn1.Crmf;
-using Org.BouncyCastle.Crypto.Digests;
 
 // ReSharper disable All
 
@@ -56,7 +54,7 @@ namespace TestLibrary
         {
 
             NewExeNull<ClassNullPostgres, MyDbPostgres>();
-           NewExeNull<ClassNullMysql, MyDbMySql>();
+            NewExeNull<ClassNullMysql, MyDbMySql>();
             NewExeNull<ClassNullMsSql, MyDbMsSql>();
             NewExeNull<ClassNullSqlite, MyDbSqlite>();
         }
@@ -64,9 +62,9 @@ namespace TestLibrary
         private static void NewExe<T, Tb>() where T : MyClassBase, new() where Tb : IOtherDataBaseFactory, new()
         {
             var s = Activator.CreateInstance<Tb>();
-            Console.WriteLine($"**************************{s.GetProviderName()}*****************************");
-
+            Configure.WriteLogFile($"**************************{s.GetProviderName()}*****************************");
             ISession session = Configure.GetSession<Tb>();
+          
 
             if (session.TableExists<T>())
             {
@@ -89,52 +87,52 @@ namespace TestLibrary
             session.Save(myClass);
             List<T> res = null;
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Year == dt.Year).ToList();
-            Console.WriteLine($"{1} {res.Count == 1}");
+            Configure.WriteLogFile($"{1} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Month == dt.Month).ToList();
-            Console.WriteLine($"{2} {res.Count == 1}");
+            Configure.WriteLogFile($"{2} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Hour == dt.Hour).ToList();
-            Console.WriteLine($"{3} {res.Count == 1}");
+            Configure.WriteLogFile($"{3} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Day == dt.Day).ToList();
-            Console.WriteLine($"{4} {res.Count == 1}");
+            Configure.WriteLogFile($"{4} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Minute == dt.Minute).ToList();
-            Console.WriteLine($"{5} {res.Count == 1} minutes may not match");
+            Configure.WriteLogFile($"{5} {res.Count == 1} minutes may not match");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Second == dt.Second).ToList();
-            Console.WriteLine($"{6} {res.Count == 1} seconds may not match");
+            Configure.WriteLogFile($"{6} {res.Count == 1} seconds may not match");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.DayOfYear == dt.DayOfYear).ToList();
-            Console.WriteLine($"{7} {res.Count == 1}");
+            Configure.WriteLogFile($"{7} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.DayOfWeek == dt.DayOfWeek).ToList();
-            Console.WriteLine($"{8} {res.Count == 1}");
+            Configure.WriteLogFile($"{8} {res.Count == 1}");
 
 
 
 
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddYears(1).Year == dt.Year + 1)
                 .ToList();
-            Console.WriteLine($"{9} {res.Count == 1}");
+            Configure.WriteLogFile($"{9} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddMonths(1).Month == dt.Month + 1)
                 .ToList();
-            Console.WriteLine($"{10} {res.Count == 1}");
+            Configure.WriteLogFile($"{10} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddHours(1).Hour == dt.Hour + 1)
                 .ToList();
-            Console.WriteLine($"{11} {res.Count == 1}");
+            Configure.WriteLogFile($"{11} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddDays(1).Day == dt.Day + 1)
                 .ToList();
-            Console.WriteLine($"{12} {res.Count == 1}");
+            Configure.WriteLogFile($"{12} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddMinutes(1).Minute == dt.Minute + 1)
                 .ToList();
-            Console.WriteLine($"{13} {res.Count == 1} minutes may not match");
+            Configure.WriteLogFile($"{13} {res.Count == 1} minutes may not match");
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.AddSeconds(1).Second == dt.Second + 1)
                 .ToList();
-            Console.WriteLine($"{14} {res.Count == 1}  seconds may not match");
+            Configure.WriteLogFile($"{14} {res.Count == 1}  seconds may not match");
             res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Concat("a").Concat("a") == "nameaa")
                 .ToList();
-            Console.WriteLine($"{15} {res.Count == 1}");
+            Configure.WriteLogFile($"{15} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Substring(0) == "name").ToList();
-            Console.WriteLine($"{16} {res.Count == 1}");
+            Configure.WriteLogFile($"{16} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Substring(0, 1) == "n").ToList();
-            Console.WriteLine($"{17} {res.Count == 1}");
+            Configure.WriteLogFile($"{17} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Contains("ame")).ToList();
-            Console.WriteLine($"{18} {res.Count == 1}");
+            Configure.WriteLogFile($"{18} {res.Count == 1}");
 
             if (s.GetProviderName() == ProviderName.MsSql)
             {
@@ -142,12 +140,12 @@ namespace TestLibrary
                 my1.Name = " dnamed ";
                 session.Save(my1);
                 res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Trim() == "dnamed").ToList();
-                Console.WriteLine($"{19} {res.Count == 1}");
+                Configure.WriteLogFile($"{19} {res.Count == 1}");
                 res = session.Query<T>().Where(a => a.Age == 12 && a.Name.TrimStart() == "dnamed ").ToList();
-                Console.WriteLine($"{20} {res.Count == 1}");
+                Configure.WriteLogFile($"{20} {res.Count == 1}");
                 var sss = session.Query<T>().Select(a => new { sdsd = a.Name.TrimEnd() }).ToList();
                 res = session.Query<T>().Where(a => a.Age == 12 && a.Name.TrimEnd() == " dnamed").ToList();
-                Console.WriteLine($"{21} {res.Count == 1}");
+                Configure.WriteLogFile($"{21} {res.Count == 1}");
             }
             else
             {
@@ -155,11 +153,11 @@ namespace TestLibrary
                 my2.Name = "dnamed";
                 session.Save(my2);
                 res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Trim('4') == "dnamed").ToList();
-                Console.WriteLine($"{19} {res.Count == 1}");
+                Configure.WriteLogFile($"{19} {res.Count == 1}");
                 res = session.Query<T>().Where(a => a.Age == 12 && a.Name.TrimStart('d') == "named").ToList();
-                Console.WriteLine($"{20} {res.Count == 1}");
+                Configure.WriteLogFile($"{20} {res.Count == 1}");
                 res = session.Query<T>().Where(a => a.Age == 12 && a.Name.TrimEnd('d') == "dname").ToList();
-                Console.WriteLine($"{21} {res.Count == 1}");
+                Configure.WriteLogFile($"{21} {res.Count == 1}");
             }
 
             T my3 = session.Query<T>().FirstOrDefault(A => A.Age == 12);
@@ -167,11 +165,11 @@ namespace TestLibrary
             session.Save(my3);
             var err = session.Query<T>().Select(a => new { sd = a.Name.Length }).ToList();
             res = session.Query<T>().Where(a => a.Name.Length == "name".Length).ToList();
-            Console.WriteLine($"{22} {res.Count == 1}");
+            Configure.WriteLogFile($"{22} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Name.ToUpper() == "NAME".ToUpper().Trim()).ToList();
-            Console.WriteLine($"{23} {res.Count == 1}");
+            Configure.WriteLogFile($"{23} {res.Count == 1}");
             res = session.Query<T>().Where(a => a.Name.ToLower() == "NAME".ToLower().Trim()).ToList();
-            Console.WriteLine($"{24} {res.Count == 1}");
+            Configure.WriteLogFile($"{24} {res.Count == 1}");
 
             List<T> list = new List<T>()
             {
@@ -180,18 +178,18 @@ namespace TestLibrary
                 new T() { Name = "MyName3", Age = 30 },
             };
             var i = session.InsertBulk(list);
-            Console.WriteLine($"{24}/1 InsertBulk {i == 3}");
+            Configure.WriteLogFile($"{24}/1 InsertBulk {i == 3}");
 
             var count = session.Query<T>().Count();
 
-            Console.WriteLine($"{25} {count == 4}");
+            Configure.WriteLogFile($"{25} {count == 4}");
             var o = session.Query<T>().OrderBy(a => a.Age).FirstOrDefault();
 
-            Console.WriteLine($"{26} {o != null && o.Age == 10}");
-            Console.WriteLine("Test transaction");
+            Configure.WriteLogFile($"{26} {o != null && o.Age == 10}");
+            Configure.WriteLogFile("Test transaction");
             session.TruncateTable<T>();
             count = session.Query<T>().Count();
-            Console.WriteLine($"{27} {count == 0}");
+            Configure.WriteLogFile($"{27} {count == 0}");
 
             IsolationLevel? level = null;
             {
@@ -220,7 +218,7 @@ namespace TestLibrary
                 }
 
                 count = session.Query<T>().Count();
-                Console.WriteLine($"{28} {count == 3}");
+                Configure.WriteLogFile($"{28} {count == 3}");
             }
             session.TruncateTable<T>();
             {
@@ -249,7 +247,7 @@ namespace TestLibrary
                 }
 
                 count = session.Query<T>().Count();
-                Console.WriteLine($"{29} {count == 6}");
+                Configure.WriteLogFile($"{29} {count == 6}");
                 session.TruncateTable<T>();
                 session.Save(new T
                 {
@@ -257,35 +255,35 @@ namespace TestLibrary
                     Age = 12
                 });
                 res = session.Query<T>().Where(a => a.Name.Substring(1).Reverse() == "ema").ToList();
-                Console.WriteLine($"{30} {res.Count == 1}");
+                Configure.WriteLogFile($"{30} {res.Count == 1}");
                 res = session.Query<T>().Where(a => string.IsNullOrEmpty(a.Description)).ToList();
-                Console.WriteLine($"{31} {res.Count == 1}");
+                Configure.WriteLogFile($"{31} {res.Count == 1}");
                 o = session.Query<T>().Where(a => a.Age == 12).Single();
-                Console.WriteLine($"{311} {o != null}");
+                Configure.WriteLogFile($"{311} {o != null}");
                 try
                 {
                     o = session.Query<T>().Where(a => a.Age == 14).Single();
-                    Console.WriteLine($"{32} {false}");
+                    Configure.WriteLogFile($"{32} {false}");
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"{32} {true} {e.Message}");
+                    Configure.WriteLogFile($"{32} {true} {e.Message}");
                 }
 
                 o = session.Query<T>().Where(a => a.Age == 14).SingleOrDefault();
-                Console.WriteLine($"{33} {o == null}");
+                Configure.WriteLogFile($"{33} {o == null}");
                 try
                 {
                     o = session.Query<T>().Where(a => a.Age == 14).First();
-                    Console.WriteLine($"{34} {false}");
+                    Configure.WriteLogFile($"{34} {false}");
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"{34} {true} {e.Message}");
+                    Configure.WriteLogFile($"{34} {true} {e.Message}");
                 }
 
                 o = session.Query<T>().Where(a => a.Age == 14).FirstOrDefault();
-                Console.WriteLine($"{34 / 1} {o == null}");
+                Configure.WriteLogFile($"{34 / 1} {o == null}");
                 session.TruncateTable<T>();
                 session.InsertBulk(new List<T>()
                 {
@@ -298,22 +296,22 @@ namespace TestLibrary
                 });
                 var ob = session.Query<T>().Select(a => new { ass = a.Age, asss = string.Concat(a.Name, a.Age) })
                     .ToList();
-                Console.WriteLine($"{35} {ob.Count() == 6}");
+                Configure.WriteLogFile($"{35} {ob.Count() == 6}");
                 count = session.Query<T>().Where(a => a.Name == "name").OrderBy(r => r.Age).ToList().Sum(a => a.Age);
-                Console.WriteLine($"{36} {count == 110}");
+                Configure.WriteLogFile($"{36} {count == 110}");
                 var groupList = session.Query<T>().GroupBy(r => r.Name).ToListAsync().Result;
-                Console.WriteLine(
+                Configure.WriteLogFile(
                     $"{37} {groupList.Count() == 2 && groupList[0].Count() == 3 && groupList[1].Count() == 3}");
 
                 o = session.Query<T>().OrderBy(a => a.Age).First();
-                Console.WriteLine($"{38} {o.Age == 10}");
+                Configure.WriteLogFile($"{38} {o.Age == 10}");
                 o = session.Query<T>().OrderByDescending(a => a.Age).First();
-                Console.WriteLine($"{39} {o.Age == 60}");
+                Configure.WriteLogFile($"{39} {o.Age == 60}");
                 count = session.Query<T>().Where(a => a.Age < 100).OrderBy(ds => ds.Age).ToListAsync().Result
                     .Sum(a => a.Age);
-                Console.WriteLine($"{40} {count == 210}");
+                Configure.WriteLogFile($"{40} {count == 210}");
                 var sCore = session.Query<T>().Where(a => a.Name.Contains("1")).Distinct(a => a.Name);
-                Console.WriteLine($"{41} {sCore.Count() == 1}");
+                Configure.WriteLogFile($"{41} {sCore.Count() == 1}");
                 count = session.Query<T>().Where(sw => sw.Age == 10).Update(d => new Dictionary<object, object>
                 {
                     { d.Name, string.Concat(d.Name, d.Age) },
@@ -321,71 +319,71 @@ namespace TestLibrary
                 });
 
                 res = session.Query<T>().Where(a => a.Name == "name10").ToList();
-                Console.WriteLine($"{42} {res.Count() == 1}");
+                Configure.WriteLogFile($"{42} {res.Count() == 1}");
                 session.Query<T>().Delete(a => a.Name == "name10");
                 res = session.Query<T>().Where(a => a.Name == "name10").ToList();
-                Console.WriteLine($"{43} {res.Count() == 0}");
+                Configure.WriteLogFile($"{43} {res.Count() == 0}");
                 session.Query<T>().Where(a => a.Age == 10).Delete();
                 count = session.Query<T>().Where(a => a.Age == 10).Count();
-                Console.WriteLine($"{44} {count == 0}");
+                Configure.WriteLogFile($"{44} {count == 0}");
                 if (s.GetProviderName() == ProviderName.MySql)
                 {
                     res = session.FreeSql<T>(
-                        $"select * from {session.TableName<T>()} where {session.ColumnName<T>(a => a.Age)} = ?1",40).ToList();
-                    Console.WriteLine($"{45} {res.Count() == 1}");
+                        $"select * from {session.TableName<T>()} where {session.ColumnName<T>(a => a.Age)} = ?1", 40).ToList();
+                    Configure.WriteLogFile($"{45} {res.Count() == 1}");
                 }
                 else
                 {
                     res = session.FreeSql<T>(
-                        $"select * from {session.TableName<T>()} where {session.ColumnName<T>(a => a.Age)} = @1",40).ToList();
-                    Console.WriteLine($"{45} {res.Count() == 1}");
+                        $"select * from {session.TableName<T>()} where {session.ColumnName<T>(a => a.Age)} = @1", 40).ToList();
+                    Configure.WriteLogFile($"{45} {res.Count() == 1}");
                 }
-                
+
 
 
                 var anon1 = session.Query<T>().Where(a => a.Age == 40).Select(d => new { age = d.Age, name = d.Name })
                     .ToList();
-                Console.WriteLine($"{46} {anon1.Count() == 1}");
+                Configure.WriteLogFile($"{46} {anon1.Count() == 1}");
 
 
                 dynamic di = session.FreeSql<dynamic>($"select age, name from {session.TableName<T>()}");
-                Console.WriteLine($"{47} {di.Count == 5}");
+                Configure.WriteLogFile($"{47} {di.Count == 5}");
                 if (s.GetProviderName() == ProviderName.Sqlite)
                 {
                     var anon = TempSql(new { age = 3L, name = "asss" }, session,
                         $"select age,name from {session.TableName<T>()}");
-                    Console.WriteLine($"{48} {anon.Count() == 5}");
+                    Configure.WriteLogFile($"{48} {anon.Count() == 5}");
                 }
                 else
                 {
                     var anon = TempSql(new { age = 3, name = "asss" }, session,
                         $"select age,name from {session.TableName<T>()}");
-                    Console.WriteLine($"{48} {anon.Count() == 5}");
+                    Configure.WriteLogFile($"{48} {anon.Count() == 5}");
                 }
 
                 var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {session.TableName<T>()}");
-                Console.WriteLine($"{49} {tempFree.Count() == 5}");
+                Configure.WriteLogFile($"{49} {tempFree.Count() == 5}");
                 res = session.Query<T>().Where(a => a.Age < 200).CacheUsage().ToList();
-                Console.WriteLine($"{50} {res.Count() == 5}");
+                Configure.WriteLogFile($"{50} {res.Count() == 5}");
                 res = session.Query<T>().Where(a => a.Age < 200).CacheUsage().ToList();
-                Console.WriteLine($"{51} {res.Count() == 5}");
+                Configure.WriteLogFile($"{51} {res.Count() == 5}");
                 var ii = session.Query<T>().Where(a => a.Age < 200).CacheGetKey();
                 res = (List<T>)session.CacheGetValue<T>(ii);
-                Console.WriteLine($"{52} {res.Count() == 5}");
+                Configure.WriteLogFile($"{52} {res.Count() == 5}");
                 session.Query<T>().Where(a => a.Age == 20).Update(f => new Dictionary<object, object>()
                 {
                     { f.Age, 400 }
                 });
                 res = session.Query<T>().Where(a => a.Age < 200).CacheOver().ToList();
                 res = session.Query<T>().Where(a => a.Age < 200).CacheUsage().ToList();
-                Console.WriteLine($"{53} {res.Count() == 4}");
+                Configure.WriteLogFile($"{53} {res.Count() == 4}");
                 var ano = session.Query<T>().Where(a => a.Age < 500).Select(f =>
                     new { test = f.MyTest, e = f.MyEnum, r = f.Test23, c = f.DateTime }).ToList();
-                Console.WriteLine($"{54} {ano.Count() == 5}");
+                Configure.WriteLogFile($"{54} {ano.Count() == 5}");
                 var ano1 = session.Query<T>().Distinct(a => a.Age);
-                Console.WriteLine($"{55} {ano1.Count() == 5}");
+                Configure.WriteLogFile($"{55} {ano1.Count() == 5}");
                 var ano2 = session.Query<T>().Distinct(a => new { ago = a.Age, myTest = a.MyTest, date = a.DateTime });
-                Console.WriteLine($"{56} {ano2.Count() == 5}");
+                Configure.WriteLogFile($"{56} {ano2.Count() == 5}");
 
 
 
@@ -407,8 +405,9 @@ namespace TestLibrary
                 });
                 session.Query<T>().Delete(a => a.Age == new int());
                 res = session.Query<T>().ToListAsync().Result;
-                Console.WriteLine($"{57} {res.Count() == 0}");
-                /*--------------mytest-------------*/
+                Configure.WriteLogFile($"{57} {res.Count() == 0}");
+                
+                Configure.WriteLogFile($"{Environment.NewLine}/*--------------mytest-------------*/{Environment.NewLine}");
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
                 {
@@ -416,7 +415,7 @@ namespace TestLibrary
                 });
                 session.Query<T>().Delete(a => a.MyTest == myTest);
                 res = session.Query<T>().ToListAsync().Result;
-                Console.WriteLine($"{58} {res.Count() == 0}");
+                Configure.WriteLogFile($"{58} {res.Count() == 0}");
 
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
@@ -425,8 +424,9 @@ namespace TestLibrary
                 });
                 session.Query<T>().Delete(a => a.MyTest == new MyTest());
                 res = session.Query<T>().ToListAsync().Result;
-                Console.WriteLine($"{59} {res.Count() == 0}");
-                /*--------------guid-------------*/
+                Configure.WriteLogFile($"{59} {res.Count() == 0}");
+               
+                Configure.WriteLogFile($"{Environment.NewLine} /*--------------guid-------------*/{Environment.NewLine}");
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
                 {
@@ -434,7 +434,7 @@ namespace TestLibrary
                 });
                 session.Query<T>().Delete(a => a.ValGuid == guid);
                 res = session.Query<T>().ToListAsync().Result;
-                Console.WriteLine($"{60} {res.Count() == 0}");
+                Configure.WriteLogFile($"{60} {res.Count() == 0}");
 
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
@@ -443,8 +443,9 @@ namespace TestLibrary
                 });
                 session.Query<T>().Delete(a => a.ValGuid == new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e"));
                 res = session.Query<T>().ToListAsync().Result;
-                Console.WriteLine($"{61} {res.Count() == 0}");
-                /*--------------date-------------*/
+                Configure.WriteLogFile($"{61} {res.Count() == 0}");
+                
+                Configure.WriteLogFile($"{Environment.NewLine}/*--------------date-------------*/{Environment.NewLine}");
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
                 {
@@ -452,7 +453,7 @@ namespace TestLibrary
                 });
                 session.Query<T>().Delete(a => a.DateTime == data);
                 res = session.Query<T>().ToListAsync().Result;
-                Console.WriteLine($"{62} {res.Count() == 0}");
+                Configure.WriteLogFile($"{62} {res.Count() == 0}");
 
                 session.InsertBulk(list22);
                 session.Query<T>().Update(a => new Dictionary<object, object>()
@@ -461,7 +462,7 @@ namespace TestLibrary
                 });
                 session.Query<T>().Delete(a => a.DateTime == new DateTime(2023, 3, 4));
                 res = session.Query<T>().ToListAsync().Result;
-                Console.WriteLine($"{63} {res.Count() == 0}");
+                Configure.WriteLogFile($"{63} {res.Count() == 0}");
                 session.TruncateTable<T>();
                 list22.Clear();
                 for (int j = 0; j < 10; j++)
@@ -473,13 +474,14 @@ namespace TestLibrary
                 var rBases = session.Query<T>().OrderBy(ss => ss.Age).Select(a => a.Age).ToList();
                 res = session.Query<T>().OrderBy(a => a.Age).Limit(2, 2).ToList();
                 count = res.Sum(a => a.Age);
-                Console.WriteLine($"{64} {count == 50}");
+                Configure.WriteLogFile($"{64} {count == 50}");
 
                 rBases = session.Query<T>().OrderByDescending(ss => ss.Age).Select(a => a.Age).ToList();
                 res = session.Query<T>().OrderByDescending(a => a.Age).Limit(2, 2).ToList();
                 count = res.Sum(a => a.Age);
-                Console.WriteLine($"{65} {count == 130}");
-                /*-------------------------test serialize-----------------------------*/
+                Configure.WriteLogFile($"{65} {count == 130}");
+                
+                Configure.WriteLogFile($"{Environment.NewLine}/*-------------------------test serialize-----------------------------*/{Environment.NewLine}");
                 session.TruncateTable<T>();
                 string str = "7''\"#$@@''";
                 list22.Clear();
@@ -487,11 +489,11 @@ namespace TestLibrary
                 session.InsertBulk(list22);
                 o = session.Query<T>().First();
                 var b = o.MyTest.Name == str;
-                Console.WriteLine($"{66} {b} test serialize");
+                Configure.WriteLogFile($"{66} {b} test serialize");
                 o.TestUser.Id = 100;
                 session.Save(o);
                 o = session.Query<T>().First();
-                Console.WriteLine($"{67} {o.TestUser.Id == 100}");
+                Configure.WriteLogFile($"{67} {o.TestUser.Id == 100}");
                 session.TruncateTable<T>();
                 list22.Add(new T() { ValInt4 = 20 });
                 list22.Add(new T() { ValInt4 = 20 });
@@ -500,18 +502,19 @@ namespace TestLibrary
                 session.InsertBulk(list22);
                 var intVals = session.Query<T>().Where(a => a.ValInt4 == 20).Select(f => f.ValInt4).ToListAsync()
                     .Result;
-                Console.WriteLine($"{68} {intVals.Count == 4} test select ");
+                Configure.WriteLogFile($"{68} {intVals.Count == 4} test select ");
                 session.TruncateTable<T>();
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T() { Age = 10 * j, Name = "name" + j,DateTime = DateTime.Now, Valdecimal = new decimal(123) });
+                    session.Save(new T() { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now, Valdecimal = new decimal(123) });
                     session.Save(new T() { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now });
                 }
-                count=session.Query<T>().Distinct(a => a.Age).ToList().Sum();
-                Console.WriteLine($"{69} {count == 450} test distinct ");
+                count = session.Query<T>().Distinct(a => a.Age).ToList().Sum();
+                Configure.WriteLogFile($"{69} {count == 450} test distinct ");
                 var r1 = session.Query<T>().Distinct(a => new { age = a.Age, mane = a.Name });
-                Console.WriteLine($"{70} {r1.Count() == 10} test distinct ");
-                /*----------------------------params------------------------------*/
+                Configure.WriteLogFile($"{70} {r1.Count() == 10} test distinct ");
+                
+                Configure.WriteLogFile($"{Environment.NewLine}/*----------------------------params------------------------------*/{Environment.NewLine}");
                 string sql = "";
                 if (s.GetProviderName() == ProviderName.MySql)
                 {
@@ -520,22 +523,23 @@ namespace TestLibrary
                           $"{session.ColumnName<T>(ss => ss.Valdecimal)} =?assa and" +
                           $" {session.ColumnName<T>(d => d.Age)} = ?age";
                     count = (int)session.ExecuteScalar(sql, "name1", 123, 10);
-                    Console.WriteLine($"{72} {count == 10} test params ");
-                }else if (s.GetProviderName() == ProviderName.MsSql)
+                    Configure.WriteLogFile($"{72} {count == 10} test params ");
+                }
+                else if (s.GetProviderName() == ProviderName.MsSql)
                 {
-                   var ssp= session.GetCommand().CreateParameter();
-                   ssp.Precision = 18;
-                   ssp.Scale = 2;
-                   ssp.ParameterName = "@2";
-                   ssp.DbType = DbType.Decimal;
-                   ssp.Value = 123.3;
+                    var ssp = session.GetCommand().CreateParameter();
+                    ssp.Precision = 18;
+                    ssp.Scale = 2;
+                    ssp.ParameterName = "@2";
+                    ssp.DbType = DbType.Decimal;
+                    ssp.Value = 123.3;
                     sql = $"select {session.ColumnName<T>(ss => ss.Age)} from {session.TableName<T>()} where  " +
                           $"{session.ColumnName<T>(ss => ss.Name)}=@1 and " +
                           $"{session.ColumnName<T>(ss => ss.Valdecimal)} = @2 and" +
                           $" {session.ColumnName<T>(d => d.Age)} = @3";
                     //count = (int)session.ExecuteScalar("select [age] from [my_class5] where  [name]=@1 and [test5] = '123.3' and [age] = '10'", "name1");
                     count = (int)session.ExecuteScalar(sql, "name1", new decimal(123), 10);
-                    Console.WriteLine($"{72} {count == 10} test params ");
+                    Configure.WriteLogFile($"{72} {count == 10} test params ");
                 }
                 else
                 {
@@ -544,21 +548,175 @@ namespace TestLibrary
                           $"{session.ColumnName<T>(ss => ss.Valdecimal)} =@assa and" +
                           $" {session.ColumnName<T>(d => d.Age)} = @age";
                     var ssT = session.ExecuteScalar(sql, "name1", 123, 10);
-                   
+                    Configure.WriteLogFile($"{72} {ssT.ToString() == "10"} test params ");
+
                 }
 
-             
+                session.TruncateTable<T>();
+                for (int j = 0; j < 10; j++)
+                {
+                    session.Save(new T() { Age = j, Name = "name" + j, DateTime = DateTime.Now, Valdecimal = new decimal(123) });
+                }
+
+                res = session.Query<T>().OrderBy(a => a.Age).Limit(0, 1).ToList();
+                Configure.WriteLogFile($"{73} {res.Count == 1 && res.First().Age == 0} test limit ");
+                res = session.Query<T>().OrderByDescending(a => a.Age).Limit(0, 1).ToList();
+                Configure.WriteLogFile($"{74} {res.Count == 1 && res.First().Age == 9} ");
+
+                
+                Configure.WriteLogFile($"{Environment.NewLine}/*----------test ElementAtOrDefault-------------*/{Environment.NewLine}");
+                o = session.Query<T>().OrderBy(a => a.Age).ElementAtOrDefault(0);
+                Configure.WriteLogFile($"{75} {o.Age == 0} test ElementAtOrDefault ");
+
+                o = session.Query<T>().OrderBy(a => a.Age).ElementAtOrDefault(9);
+                Configure.WriteLogFile($"{76} {o.Age == 9} ");
+
+                o = session.Query<T>().OrderBy(a => a.Age).ElementAtOrDefault(10);
+                Configure.WriteLogFile($"{77} {o == null} ");
+                
+                Configure.WriteLogFile($"{Environment.NewLine}/*----------test ElementAt-------------*/{Environment.NewLine}");
+                o = session.Query<T>().OrderBy(a => a.Age).ElementAt(0);
+                Configure.WriteLogFile($"{78} {o.Age == 0} test ElementAt ");
+
+                o = session.Query<T>().OrderBy(a => a.Age).ElementAt(9);
+                Configure.WriteLogFile($"{79} {o.Age == 9} ");
+
+                try
+                {
+                    o = session.Query<T>().OrderBy(a => a.Age).ElementAt(10);
+                    Configure.WriteLogFile($"{80} {1 != 1} ");
+                }
+                catch (Exception e)
+                {
+                    Configure.WriteLogFile($"{80} {1 == 1} {e.Message}");
+                }
+                
+                Configure.WriteLogFile($"{Environment.NewLine}/*-----------test FirstOrDefault------------*/{Environment.NewLine}");
+                o = session.Query<T>().OrderBy(a => a.Age).FirstOrDefault(d => d.Age == 0);
+                Configure.WriteLogFile($"{81} {o.Age == 0} test FirstOrDefault ");
+
+                o = session.Query<T>().OrderBy(a => a.Age).FirstOrDefault(d => d.Age == -10);
+                Configure.WriteLogFile($"{82} {o == null} test ");
                
+                Configure.WriteLogFile($"{Environment.NewLine} /*------------test first-----------*/{Environment.NewLine}");
+                o = session.Query<T>().OrderBy(a => a.Age).First(d => d.Age == 0);
+                Configure.WriteLogFile($"{83} {o.Age == 0} test First");
 
+                try
+                {
+                    o = session.Query<T>().OrderBy(a => a.Age).First(d => d.Age == -10);
+                    Configure.WriteLogFile($"{84} {false}  ");
+                }
+                catch (Exception e)
+                {
+                    Configure.WriteLogFile($"{84} {true} {e.Message} ");
+                }
+               
+                Configure.WriteLogFile($"{Environment.NewLine} /*-----------test last------------*/{Environment.NewLine}");
+                o = session.Query<T>().OrderBy(a => a.Age).Last(d => d.Age == 0);
+                Configure.WriteLogFile($"{85} {o.Age == 0} test last");
 
-                //o.Test23.Count;
+                try
+                {
+                    o = session.Query<T>().OrderBy(a => a.Age).Last(d => d.Age == -10);
+                    Configure.WriteLogFile($"{86} {false}  ");
+                }
+                catch (Exception e)
+                {
+                    Configure.WriteLogFile($"{86} {true} {e.Message} ");
+                }
+                Configure.WriteLogFile($"{Environment.NewLine}*------------test LastOrDefault-----------*{Environment.NewLine}");
+                
+                o = session.Query<T>().OrderBy(a => a.Age).LastOrDefault(d => d.Age == 0);
+                Configure.WriteLogFile($"{87} {o.Age == 0} test LastOrDefault");
 
+                o = session.Query<T>().OrderBy(a => a.Age).LastOrDefault(d => d.Age == -10);
+                Configure.WriteLogFile($"{88} {o==null} ");
+                Configure.WriteLogFile($"{Environment.NewLine} /*------------test test SingleOrDefault-----------*/{Environment.NewLine}");
+               
+                o = session.Query<T>().OrderBy(a => a.Age).SingleOrDefault(d => d.Age == 0);
+                Configure.WriteLogFile($"{87} {o.Age == 0} test SingleOrDefault");
 
+                o = session.Query<T>().OrderBy(a => a.Age).SingleOrDefault(d => d.Age == -10);
+                Configure.WriteLogFile($"{88} {o == null} ");
+                try
+                {
+                    o = session.Query<T>().OrderBy(a => a.Age).SingleOrDefault();
+                    Configure.WriteLogFile($"{89} {false} ");
+                }
+                catch (Exception e)
+                {
+                    Configure.WriteLogFile($"{89} {true} {e.Message}");
+                }
+                Configure.WriteLogFile($"{Environment.NewLine}/*------------test test Single-----------*/{Environment.NewLine}");
+                
+                o = session.Query<T>().OrderBy(a => a.Age).Single(d => d.Age == 0);
+                Configure.WriteLogFile($"{90} {o.Age == 0} test Single");
 
+              
+                try
+                {
+                    o = session.Query<T>().OrderBy(a => a.Age).Single(a=>a.Age==-10);
+                    Configure.WriteLogFile($"{91} {false} ");
+                }
+                catch (Exception e)
+                {
+                    Configure.WriteLogFile($"{91} {true} {e.Message}");
+                }
 
+                Configure.WriteLogFile($"{Environment.NewLine}/*------------test Any-----------*/{Environment.NewLine}");
+                bool bll = session.Query<T>().Where(a => a.Age == 1).Any();
+                Configure.WriteLogFile($"{92} {bll} test Any");
+                 bll = session.Query<T>().Any(a => a.Age == 1);
+                Configure.WriteLogFile($"{93} {bll} ");
+                bll = session.Query<T>().Any(a => a.Age == -1);
+                Configure.WriteLogFile($"{94} {!bll} ");
 
+                Configure.WriteLogFile($"{Environment.NewLine}/*------------test All-----------*/{Environment.NewLine}");
+                session.TruncateTable<T>();
+                for (int j = 0; j < 10; j++)
+                {
+                    session.Save(new T() { Age = 10, Name = "name1" });
+                }
+                for (int j = 0; j < 10; j++)
+                {
+                    session.Save(new T() { Age = 20, Name = "name1" });
+                }
 
+                bll = session.Query<T>().Where(d=>d.Name.StartsWith("name")).All(a => a.Age == 10);
+                Configure.WriteLogFile($"{94} {bll==false} ");
+                session.TruncateTable<T>();
+                for (int j = 0; j < 10; j++)
+                {
+                    session.Save(new T() { Age = 10, Name = "name1" });
+                }
+                bll = session.Query<T>().Where(d => d.Name.StartsWith("name")).All(a => a.Age == 10);
+                Configure.WriteLogFile($"{94} {bll == true} ");
+                bll = session.Query<T>().Where(d => d.Name.Contains("name")).All(a => a.Age == 10);
+                Configure.WriteLogFile($"{95} {bll == true} ");
+                bll = session.Query<T>().Where(d => d.Name.EndsWith("e1")).All(a => a.Age == 11);
+                Configure.WriteLogFile($"{96} {bll != true} ");
 
+                Configure.WriteLogFile($"{Environment.NewLine}/*------------test skip-----------*/{Environment.NewLine}");
+                session.TruncateTable<T>();
+                for (int j = 0; j < 10; j++)
+                {
+                    session.Save(new T() { Age = j, Name = "name1" });
+                }
+
+                count = session.Query<T>().Count();
+
+                res = session.Query<T>().Where(a => a.Age >= 0).OrderBy(d => d.Age).Skip(2).ToListAsync().Result;
+                Configure.WriteLogFile($"{97} {res.Count==8&&res.First().Age==2} ");
+                Configure.WriteLogFile($"{Environment.NewLine}/*------------test select-----------*/{Environment.NewLine}");
+                var listInt = session.Query<T>().Where(a => a.Age >= 0).OrderBy(d => d.Age).Select((d, ir) => ir).ToList();
+                Configure.WriteLogFile($"{98} {listInt.Count == 10} ");
+                i = session.Query<T>().Where(a => a.Age >= 0).OrderBy(d => d.Age).Select((d,index)=>index).ToList().Sum();
+                Configure.WriteLogFile($"{98} {i==55} ");
+                var listOb = session.Query<T>().Where(a => a.Age >= 0).OrderBy(d => d.Age)
+                    .Select((d, index) => new { Age = d.Age, Name = string.Concat(index, "-", d.Name) }).ToListAsync()
+                    .Result;
+                Configure.WriteLogFile($"{98} {listOb.Count == 10} ");
 
 
 
@@ -596,7 +754,7 @@ namespace TestLibrary
         private static void NewExeNull<T, Tb>() where T : MyClassNullBase, new() where Tb : IOtherDataBaseFactory, new()
         {
             var s = Activator.CreateInstance<Tb>();
-            Console.WriteLine($"**************************{s.GetProviderName()}*****************************");
+            Configure.WriteLogFile($"**************************{s.GetProviderName()}*****************************");
 
             ISession session = Configure.GetSession<Tb>();
             if (session.TableExists<T>())
@@ -620,7 +778,7 @@ namespace TestLibrary
                            || tttest.V13 == null
                            || tttest.V15 == null
                            || tttest.V16 == null);
-                Console.WriteLine($"{1} {res} is null");
+                Configure.WriteLogFile($"{1} {res} is null");
                 tttest.V5 = true;
                 tttest.V6 = 1;
                 tttest.V8 = DateTime.Now;
@@ -652,7 +810,7 @@ namespace TestLibrary
                            || tttest1.V3 == null
                            || tttest1.V4 == null
                            || tttest1.V14 == null);
-                Console.WriteLine($"{1} {res} is null");
+                Configure.WriteLogFile($"{1} {res} is null");
                 tttest1.V5 = true;
                 tttest1.V6 = 1;
                 tttest1.V8 = DateTime.Now;
@@ -686,7 +844,7 @@ namespace TestLibrary
                            || tttest1.V3 == null
                            || tttest1.V4 == null
                            || tttest1.V14 == null);
-                Console.WriteLine($"{1} {res} is null");
+                Configure.WriteLogFile($"{1} {res} is null");
                 tttest1.V5 = true;
                 tttest1.V6 = 1;
                 tttest1.V8 = DateTime.Now;
@@ -722,7 +880,7 @@ namespace TestLibrary
                            || tttest1.V3 != null
                            || tttest1.V4 != null
                            || tttest1.V14 != null);
-                Console.WriteLine($"{2} {res} is not null");
+                Configure.WriteLogFile($"{2} {res} is not null");
 
             }
             if (s.GetProviderName() == ProviderName.MySql)
@@ -742,7 +900,7 @@ namespace TestLibrary
                            || tttest1.V3 != null
                            || tttest1.V4 != null
                            || tttest1.V14 != null);
-                Console.WriteLine($"{2} {res} is not null");
+                Configure.WriteLogFile($"{2} {res} is not null");
             }
             if (s.GetProviderName() == ProviderName.Postgresql || s.GetProviderName() == ProviderName.MsSql)
             {
@@ -756,7 +914,7 @@ namespace TestLibrary
                            || tttest.V13 != null
                            || tttest.V15 != null
                            || tttest.V16 != null);
-                Console.WriteLine($"{2} {res} is not null");
+                Configure.WriteLogFile($"{2} {res} is not null");
 
             }
 

@@ -31,6 +31,53 @@ namespace ORM_1_21_.Linq.MySql
             if (PingComposite(Evolution.FreeSql)) return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
 
             if (PingComposite(Evolution.Update)) return AttributesOfClass<T>.CreateCommandLimitForMySql(_listOne,providerName);
+           
+            if (PingComposite(Evolution.All))
+            {
+                StringBuilder builder = new StringBuilder("SELECT COUNT(*),(SELECT COUNT(*) FROM ");
+                builder.Append(AttributesOfClass<T>.TableName(providerName)).Append(" ");
+                var f = _listOne.First(a => a.Operand == Evolution.All).Body;
+                bool addAll = false;
+                if (string.IsNullOrWhiteSpace(f) == false)
+                {
+                    addAll = true;
+                    builder.Append(" WHERE ").Append(f);
+                }
+
+                if (_listOne.Any(s => s.Operand == Evolution.Where))
+                {
+                    if (addAll == false)
+                    {
+                        builder.Append(" WHERE ");
+                    }
+                    else
+                    {
+                        builder.Append(" AND ");
+                    }
+                    foreach (OneComposite composite in listOne.Where(a => a.Operand == Evolution.Where))
+                    {
+                        builder.Append(composite.Body).Append(" AND ");
+                    }
+                }
+                string at = builder.ToString().Trim(" AND ".ToCharArray());
+                builder.Clear().Append(at).Append(" )");
+
+                builder.Append(" FROM ").Append(AttributesOfClass<T>.TableName(providerName));
+
+                if (_listOne.Any(s => s.Operand == Evolution.Where))
+                {
+                    builder.Append(" WHERE ");
+                    foreach (OneComposite composite in listOne.Where(a => a.Operand == Evolution.Where))
+                    {
+                        builder.Append(composite.Body).Append(" AND ");
+                    }
+                }
+
+                string sql = builder.ToString().TrimEnd(" AND ".ToCharArray());
+                return sql;
+
+
+            }
             if (PingComposite(Evolution.All))
             {
                 var sb = new StringBuilder(listOne.First(a => a.Operand == Evolution.All).Body);
@@ -200,15 +247,39 @@ namespace ORM_1_21_.Linq.MySql
                 }
             }
 
+            if (PingComposite(Evolution.Skip))
+            {
+                int isk = 0;
+                foreach (OneComposite composite in listOne.Where(a=>a.Operand==Evolution.Skip))
+                {
+                    isk += int.Parse(composite.Body);
+                }
+
+                if (isk <= 0)
+                {
+
+                }
+                else
+                {
+                    if (_providerName == ProviderName.Postgresql)
+                    {
+                        sbb.Append(" OFFSET ").Append(isk).Append(" ");
+                    }
+                    else
+                    {
+                        sbb.Append($" LIMIT {int.MaxValue} OFFSET {isk} ").Append(" ");
+                    }
+                    
+                }
+            }
+
+
+
             if (PingComposite(Evolution.Limit)) sbb.Append(listOne.First(a => a.Operand == Evolution.Limit).Body);
          
             if (PingComposite(Evolution.Any)) sbb.Append(" ) ");
 
-            if (PingComposite(Evolution.All))
-
-                sbb = new StringBuilder(StringConst.Select + " COUNT(*) " +
-                                        sbb.ToString()
-                                            .Substring(sbb.ToString().IndexOf("FROM", StringComparison.Ordinal)));
+            
 
             if (PingComposite(Evolution.Join))
             {
@@ -246,7 +317,7 @@ namespace ORM_1_21_.Linq.MySql
                                         orderby.ToString().Trim(','));
             }
             // todo ion100 Replace("''", "'")
-            var ssd = sbb.ToString();
+            var ssd = sbb+";";
             return sbb.ToString().Replace("  ", " ").Replace("Average", "AVG")
                 .Replace("LongCount", "Count");
         }

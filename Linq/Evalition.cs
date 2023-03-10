@@ -36,7 +36,9 @@
         CacheUsage,
         CacheOver,
         CacheKey,
-       
+        LongCount,
+        Skip
+
     }
 
 }

@@ -21,34 +21,81 @@ namespace ORM_1_21_.Linq.MsSql
         {
             _listOne = listOne;
 
-            if (PingComposite(Evolution.Update)) return AttributesOfClass<T>.CreateCommandUpdateFreeForMsSql(_listOne,providerName);
+            if (PingComposite(Evolution.Update)) 
+                return AttributesOfClass<T>.CreateCommandUpdateFreeForMsSql(_listOne,providerName);
 
-            if (PingComposite(Evolution.FreeSql)) return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
-
-
+            if (PingComposite(Evolution.FreeSql)) 
+                return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
             if (PingComposite(Evolution.All))
             {
-                var sb = new StringBuilder(listOne.First(a => a.Operand == Evolution.All).Body);
-                // <> - = #7#
-                sb.Replace("<>", "#7#");
-                // >= - <=  #1#
-                sb.Replace(">=", "#1#");
-                // >  -  <  #2#
-                sb.Replace(">", "#2#");
-                // <  - >   #3#
-                sb.Replace("<", "#3#");
-                // <= - >=  #4# 
-                sb.Replace("<=", "#4#");
-                // =  - !=  #5#
-                sb.Replace("=", "#5#");
-                // != - =   #6#
-                sb.Replace("!=", "#6#");
-                listOne.First(a => a.Operand == Evolution.All).Body = sb.ToString().Replace("#1#", "<=")
-                    .Replace("#2#", "<").Replace("#3#", ">").Replace("#4#", ">=").Replace("#5#", "!=")
-                    .Replace("#6#", "=").Replace("#7#", "=");
-                listOne.Add(new OneComposite
-                { Operand = Evolution.Where, Body = listOne.First(a => a.Operand == Evolution.All).Body });
+                StringBuilder builder = new StringBuilder("SELECT COUNT(*),(SELECT COUNT(*) FROM ");
+                builder.Append(AttributesOfClass<T>.TableName(providerName)).Append(" ");
+                var f = _listOne.First(a => a.Operand == Evolution.All).Body;
+                bool addAll = false;
+                if (string.IsNullOrWhiteSpace(f) == false)
+                {
+                    addAll = true;
+                    builder.Append(" WHERE ").Append(f);
+                }
+
+                if (_listOne.Any(s => s.Operand == Evolution.Where))
+                {
+                    if (addAll == false)
+                    {
+                        builder.Append(" WHERE ");
+                    }
+                    else
+                    {
+                        builder.Append(" AND ");
+                    }
+                    foreach (OneComposite composite in listOne.Where(a => a.Operand == Evolution.Where))
+                    {
+                        builder.Append(composite.Body).Append(" AND ");
+                    }
+                }
+                string at = builder.ToString().Trim(" AND ".ToCharArray());
+                builder.Clear().Append(at).Append(" )");
+
+                builder.Append(" FROM ").Append(AttributesOfClass<T>.TableName(providerName));
+
+                if (_listOne.Any(s => s.Operand == Evolution.Where))
+                {
+                    builder.Append(" WHERE ");
+                    foreach (OneComposite composite in listOne.Where(a => a.Operand == Evolution.Where))
+                    {
+                        builder.Append(composite.Body).Append(" AND ");
+                    }
+                }
+
+                string sql = builder.ToString().TrimEnd(" AND ".ToCharArray());
+                return sql;
+
+
             }
+
+           //if (PingComposite(Evolution.All))
+           //{
+           //    var sb = new StringBuilder(listOne.First(a => a.Operand == Evolution.All).Body);
+           //    // <> - = #7#
+           //    sb.Replace("<>", "#7#");
+           //    // >= - <=  #1#
+           //    sb.Replace(">=", "#1#");
+           //    // >  -  <  #2#
+           //    sb.Replace(">", "#2#");
+           //    // <  - >   #3#
+           //    sb.Replace("<", "#3#");
+           //    // <= - >=  #4# 
+           //    sb.Replace("<=", "#4#");
+           //    // =  - !=  #5#
+           //    sb.Replace("=", "#5#");
+           //    // != - =   #6#
+           //    sb.Replace("!=", "#6#");
+           //    listOne.First(a => a.Operand == Evolution.All).Body = sb.ToString().Replace("#1#", "<=")
+           //        .Replace("#2#", "<").Replace("#3#", ">").Replace("#4#", ">=").Replace("#5#", "!=")
+           //        .Replace("#6#", "=").Replace("#7#", "=");
+           //    listOne.Add(new OneComposite
+           //    { Operand = Evolution.Where, Body = listOne.First(a => a.Operand == Evolution.All).Body });
+           //}
 
             var sbb = new StringBuilder();
             if (PingComposite(Evolution.Delete))
@@ -150,16 +197,31 @@ namespace ORM_1_21_.Linq.MsSql
                     $"{StringConst.Select} {StringConst.Top} (1) ");
 
 
-            if (PingComposite(Evolution.All))
-
-                sbb = new StringBuilder(StringConst.Select + " COUNT(*) " +
-                                        sbb.ToString()
-                                            .Substring(sbb.ToString().IndexOf("FROM", StringComparison.Ordinal)));
+           
 
             if (PingComposite(Evolution.Any))
             {
                 sbb.Insert(0, "IF EXISTS (");
                 sbb.Append(" ) BEGIN " + StringConst.Select + " 1; END");
+            }
+
+            if (PingComposite(Evolution.Skip))
+            {
+                int isk = 0;
+                foreach (OneComposite composite in listOne.Where(a => a.Operand == Evolution.Skip))
+                {
+                    isk += int.Parse(composite.Body);
+                }
+
+                if (isk <= 0)
+                {
+
+                }
+                else
+                {
+                    sbb.Append($"   OFFSET {isk} ROWS ");
+
+                }
             }
 
             if (PingComposite(Evolution.Limit))
@@ -201,7 +263,7 @@ namespace ORM_1_21_.Linq.MsSql
             }
 
             return sbb.ToString().Replace("  ", " ").Trim(' ', ',').Replace("Average", "AVG")
-                .Replace("LongCount", "Count");
+                .Replace("LongCount", "Count")+"; ";
         }
     }
 }

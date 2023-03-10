@@ -9,6 +9,7 @@ namespace ORM_1_21_.Transaction
     {
         IDbConnection _connection;
         List<IDisposable> _listDispose = new List<IDisposable>();
+        public bool isError;
 
         public List<IDisposable> ListDispose
         {
@@ -62,6 +63,22 @@ namespace ORM_1_21_.Transaction
             }
             _listDispose.ForEach(a => a.Dispose());
             _listDispose.Clear();
+        }
+
+        public void Dispose()
+        {
+            if (MyStateTransaction == StateTransaction.Begin)
+            {
+                if (isError)
+                {
+                    Rollback();
+                }
+                else
+                {
+                    Commit();
+                }
+            }
+            Transaction?.Dispose();
         }
     }
     internal enum StateTransaction

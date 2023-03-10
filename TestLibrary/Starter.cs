@@ -12,7 +12,7 @@ namespace TestLibrary
         public static void Run(string conSre,ProviderName provider )
         {
 
-            string path = null;
+            string path = @"myLog.txt"; ;
 #if DEBUG
             path = @"myLog.txt";
 #endif

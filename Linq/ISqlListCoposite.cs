@@ -7,7 +7,7 @@ namespace ORM_1_21_.Linq
 {
     interface ISqlComposite
     {
-        Transactionale Transactionale { get; set; }
+       
         ISession Sessione { get; }
         IDbTransaction Transaction { get; set; }
         List<ContainerCastExpression> ListCastExpression { get; }

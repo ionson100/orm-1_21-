@@ -13,7 +13,9 @@ namespace ORM_1_21_
         /// </summary>
         public static void WriteLogFile(string message)
         {
-            MySqlLogger.Info($"WriteLogFile: {message}");
+            MySqlLogger.InfoAppendConsole(message);
+            
+
         }
         /// <summary>
         /// Util

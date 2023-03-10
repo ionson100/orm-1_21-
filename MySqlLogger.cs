@@ -19,7 +19,12 @@ namespace ORM_1_21_
             if (isFinish)
                 _sw.Dispose();
         }
-
+        public static void InfoAppendConsole(string message)
+        {
+            if (_isActive == false) return;
+            _cq.Enqueue($"{message}");
+            Console.WriteLine(message);
+        }
         public static void Info(string message)
         {
             if (_isActive == false) return;
