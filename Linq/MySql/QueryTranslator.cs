@@ -9,6 +9,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using ORM_1_21_.Extensions;
 
 namespace ORM_1_21_.Linq.MySql
 {
@@ -1648,8 +1649,8 @@ namespace ORM_1_21_.Linq.MySql
                 return m;
             }
 
-            if (m.Method.DeclaringType == typeof(Queryable)
-                && m.Method.Name == "First")
+            if ((m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "First")||
+                (m.Method.DeclaringType == typeof(Helper) && m.Method.Name == "FirstAsync"))
             {
 
                 Visit(m.Arguments[0]);
@@ -1673,8 +1674,8 @@ namespace ORM_1_21_.Linq.MySql
                 return m;
             }
 
-            if (m.Method.DeclaringType == typeof(Queryable)
-                && m.Method.Name == "FirstOrDefault")
+            if ((m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "FirstOrDefault")||
+                (m.Method.DeclaringType == typeof(Helper) && m.Method.Name == "FirstOrDefaultAsync"))
             {
 
                 Visit(m.Arguments[0]);
@@ -1960,8 +1961,8 @@ namespace ORM_1_21_.Linq.MySql
                 {
                     switch (mcs.Method.Name)
                     {
-                        case "Count":
-                        case "LongCount":
+                        //case "Count":
+                        //case "LongCount":
                         case "Sum":
                         case "Min":
                         case "Max":

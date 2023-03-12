@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ORM_1_21_.Linq
@@ -40,7 +41,7 @@ namespace ORM_1_21_.Linq
         /// <summary>
         /// Query async
         /// </summary>
-        public  abstract Task<List<TS>> ExecuteAsync<TS>(Expression expression);
+        public  abstract Task<List<TS>> ExecuteAsync<TS>(Expression expression, CancellationToken cancellationToken);
         
         object IQueryProvider.Execute(Expression expression)
         {
@@ -68,6 +69,8 @@ namespace ORM_1_21_.Linq
         /// <param name="expression"></param>
         /// <returns></returns>
         public abstract object Execute(Expression expression);
+
+        public abstract Task<TSource> ExecuteAsyncExtension<TSource>(Expression expression, CancellationToken cancellationToken);
     }
 
 

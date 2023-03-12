@@ -1,14 +1,12 @@
 ﻿using ORM_1_21_;
+using ORM_1_21_.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using ORM_1_21_.Extensions;
 using TestLibrary;
-using System.Diagnostics.Metrics;
-using System.Security.Policy;
 
 
 namespace TestPostgres
@@ -19,7 +17,7 @@ namespace TestPostgres
 
         static async Task Main(string[] args)
         {
-           
+
             switch (ProviderName)
             {
                 case ProviderName.MsSql:
@@ -40,7 +38,7 @@ namespace TestPostgres
             //Execute.RunThread();
             //Console.ReadKey();
             //Console.ReadKey();
-             //Execute.TotalTest();
+            //Execute.TotalTest();
             //Execute.TotalTestNull();
 
 
@@ -50,30 +48,57 @@ namespace TestPostgres
             {
                 session.Save(new MyClass() { Age = 10, Name = "name1" });
             }
+            session.Save(new MyClass() { Age = 20, Name = "name1" });
+            session.Save(new MyClass() { Age = 5, Name = "name1" });
+            var r1 = session.Query<MyClass>().Where(a => a.Age > 0).FirstAsync().Result;
+            var r2 = session.Query<MyClass>().Where(a => a.Age > 0).FirstAsync(s => s.Name.StartsWith("name")).Result;
+            
+            var r3 = session.Query<MyClass>().Where(a => a.Age > 0).FirstOrDefaultAsync().Result;
+            var r4 = session.Query<MyClass>().Where(a => a.Age > 0).FirstOrDefaultAsync(s => s.Name.StartsWith("name")).Result;
+            
+            var r5 = session.Query<MyClass>().Where(a => a.Age > 0).LastAsync().Result;
+            var r6 = session.Query<MyClass>().Where(a => a.Age > 0).LastAsync(s => s.Name.StartsWith("name")).Result;
+            
+            var r7 = session.Query<MyClass>().Where(a => a.Age > 0).LastOrDefaultAsync().Result;
+            var r8 = session.Query<MyClass>().Where(a => a.Age > 0).LastOrDefaultAsync(s => s.Name.StartsWith("name")).Result;
+            
+            var r9 = session.Query<MyClass>().Where(a => a.Age == 20).SingleAsync().Result;
+            var r10 = session.Query<MyClass>().Where(a => a.Age == 20).SingleAsync(s => s.Name.StartsWith("name")).Result;
+            
+            var r11 = session.Query<MyClass>().Where(a => a.Age == 20).SingleOrDefaultAsync().Result;
+            var r12 = session.Query<MyClass>().Where(a => a.Age == 20).SingleOrDefaultAsync(s => s.Name.StartsWith("name")).Result;
+            
+            var r13 = session.Query<MyClass>().Where(a => a.Age == 20).AnyAsync().Result;
+            var r14 = session.Query<MyClass>().Where(a => a.Age == 20).AnyAsync(s => s.Name.StartsWith("name")).Result;
+            
+            
+            var r16 = session.Query<MyClass>().Where(a => a.Age == 20).AllAsync(s => s.Name.StartsWith("name")).Result;
+            
+            var r17 = session.Query<MyClass>().Where(a => a.Age == 20).CountAsync().Result;
+            var r18 = session.Query<MyClass>().Where(a => a.Age == 20).CountAsync(s => s.Name.StartsWith("name")).Result;
+            
+            var r19 = session.Query<MyClass>().Where(a => a.Age == 20).LongCountAsync().Result;
+            var r20 = session.Query<MyClass>().Where(a => a.Age == 20).LongCountAsync(s => s.Name.StartsWith("name")).Result;
+            
+            var r22 = session.Query<MyClass>().MinAsync(a => a.Age).Result;
+            
+            var r24 = session.Query<MyClass>().MaxAsync(a => a.Age).Result;
+           
+            
+            var r25 = session.Query<MyClass>().SumAsync(a => a.Age).Result;
+           
 
-            var users = new List<MyClass>
+            var r27 = session.Query<MyClass>().SumAsync(a => a.Valdecimal).Result;
+           
+            var r30 = await session.Query<MyClass>().Where(a=>a.Age==5).UpdateAsync(a => new Dictionary<object,object>()
             {
-                new MyClass {Age = 1,Name= "100" ,  },
-                new MyClass {Age = 2, Name= "100" ,  },
-                new MyClass {Age = 3, Name= "100" ,  }
-            };
-            var users2 = new List<MyClassSqlite>
-            {
-                new MyClassSqlite { Name= "100" ,  },
-                new MyClassSqlite { Name= "100" ,  },
-                new MyClassSqlite { Name= "100" ,  },
-                new MyClassSqlite { Name= "100" ,  },
-                new MyClassSqlite { Name= "100" ,  },
-                new MyClassSqlite { Name= "100" ,  }
-            };
+                { a.Age, 122 }
+            });
+            var ass = session.Query<MyClassMysql>().Where(a => a.Age == 122).SplitQueryableAsync(3).Result;
 
-
-            var s = users.SelectMany(a=>users2, (f, h) =>
-            {
-                var foo = new { c = f.Age, ff = h };
-                return foo;
-            }).ToList();
-
+            var sum = session.Query<MyClass>().Average(a => a.Valdecimal);
+          
+          
 
 
 

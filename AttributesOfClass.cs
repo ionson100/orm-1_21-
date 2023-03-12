@@ -1,4 +1,5 @@
 ﻿
+using ORM_1_21_.Extensions;
 using ORM_1_21_.Linq;
 using ORM_1_21_.Utils;
 using System;
@@ -11,20 +12,19 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using ORM_1_21_.Extensions;
 
 namespace ORM_1_21_
 {
-   
+
     internal static class AttributesOfClass<T>
     {
         internal static readonly object LockO = new object();
-       
+
         private static ProviderName CurProviderName
         {
             get
             {
-              
+
                 if (ProviderName == null)
                 {
                     return Configure.Provider;
@@ -47,7 +47,7 @@ namespace ORM_1_21_
                         ProviderName = value;
                     }
                 }
-               
+
             }
         }
         public static bool IsUssageActivator(ProviderName providerName)
@@ -66,10 +66,10 @@ namespace ORM_1_21_
 
         public static Lazy<bool> IsUssageActivatorInner = new Lazy<bool>(() =>
         {
-            var t = typeof(T).GetCustomAttribute(typeof(MapUsageActivatorAttribute),true);
-            if(t != null) return true;
+            var t = typeof(T).GetCustomAttribute(typeof(MapUsageActivatorAttribute), true);
+            if (t != null) return true;
             return false;
-                        
+
         }, LazyThreadSafetyMode.PublicationOnly);
 
         private static readonly Lazy<Dictionary<string, string>> ColumnName = new Lazy<Dictionary<string, string>>(() =>
@@ -247,10 +247,10 @@ namespace ORM_1_21_
             return SimpleSelect(providerName);
         }
 
-        private static readonly Lazy<bool> _isValid = new Lazy<bool>(() => 
+        private static readonly Lazy<bool> _isValid = new Lazy<bool>(() =>
             typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), false).Any(), LazyThreadSafetyMode.PublicationOnly);
 
-        public static bool IsValid => _isValid.Value ;
+        public static bool IsValid => _isValid.Value;
 
 
 
@@ -534,7 +534,7 @@ namespace ORM_1_21_
                     var st = UtilsCore.GetSerializeType(prcore.PropertyType);
                     if (prcore.PropertyType == typeof(Image))
                         vall = UtilsCore.ImageToByte((Image)GetValue.Value[prcore.Name](item));
-                    else if (st==SerializeType.Self)
+                    else if (st == SerializeType.Self)
                         vall = UtilsCore.ObjectToJson(GetValue.Value[prcore.Name](item));
                     else if (st == SerializeType.User)
                         vall = ((IMapSerializable)GetValue.Value[prcore.Name](item)).Serialize();
@@ -588,7 +588,7 @@ namespace ORM_1_21_
 
             command.CommandText = allSql.ToString();
         }
-        
+
 
         public static void CreateUpdateCommandPostgres(IDbCommand command, T item, ProviderName providerName)
         {
@@ -621,7 +621,7 @@ namespace ORM_1_21_
                     if (prCore.PropertyType == typeof(Image))
                         val = UtilsCore.ImageToByte((Image)GetValue.Value[prCore.Name](item));
 
-                    else if (st==SerializeType.Self)
+                    else if (st == SerializeType.Self)
                         val = UtilsCore.ObjectToJson(GetValue.Value[prCore.Name](item));
                     else if (st == SerializeType.User)
                         val = ((IMapSerializable)GetValue.Value[prCore.Name](item)).Serialize();
@@ -671,9 +671,9 @@ namespace ORM_1_21_
             Provider = providerName;
             var si = SimpleSqlSelect(providerName);
             var sb = new StringBuilder();
-            foreach (var oneComprosite in listOne.Where(a => a.Operand == Evolution.Update))
+            foreach (var oneComposite in listOne.Where(a => a.Operand == Evolution.Update))
             {
-                var ee = UtilsCore.MySplit(oneComprosite.Body); // .Trim().Trim(' ',',').Split(',');
+                var ee = UtilsCore.MySplit(oneComposite.Body); // .Trim().Trim(' ',',').Split(',');
                 var eee = ee.ToList().Split(2);
                 foreach (var s in eee)
                 {
@@ -758,7 +758,7 @@ namespace ORM_1_21_
             }
 
             var ordrby = listOne.Where(a => a.Operand == Evolution.OrderBy);
-            foreach (var oneComprosite in ordrby) 
+            foreach (var oneComprosite in ordrby)
                 sbOrderBy.AppendFormat("{0},", oneComprosite.Body);
             var ss = SimpleSqlSelect(providerName).Replace(StringConst.Select, "") + AddSqlWhere(sbwhere.ToString(), providerName);
             var mat4 = new Regex(@"AS[^,]*").Matches(doSql.Substring(0, doSql.IndexOf("FROM", StringComparison.Ordinal))
@@ -784,12 +784,12 @@ namespace ORM_1_21_
                     PrimaryKeyLazy.Value[typeof(T)].First().GetColumnName(providerName));
 
 
-            if (listOne.Any(a => a.Operand == Evolution.ElementAtOrDefault||a.Operand==Evolution.ElementAt))
+            if (listOne.Any(a => a.Operand == Evolution.ElementAtOrDefault || a.Operand == Evolution.ElementAt))
             {
                 //start += 1;
-                count =1;//= start;
+                count = 1;//= start;
             }
-            
+
             var ff = string.Format("SELECT {0} FROM (SELECT ROW_NUMBER() " +
                                    "OVER(ORDER BY {3} ) AS rownum, {1} ) " +
                                    "AS {2} WHERE rownum BETWEEN {4} AND {5}",
@@ -798,8 +798,8 @@ namespace ORM_1_21_
                 table,
                 sbOrderBy.ToString().Trim(','),
                 start,
-                start+count-1);
-           
+                start + count - 1);
+
 
             return ff;
         }
@@ -942,7 +942,7 @@ namespace ORM_1_21_
                             val = (int)GetValue.Value[prCore.Name](obj);
                             isEnum = true;
                         }
-                        else if (st==SerializeType.Self)
+                        else if (st == SerializeType.Self)
                             val = UtilsCore.ObjectToJson(GetValue.Value[prCore.Name](obj));
                         else if (st == SerializeType.User)
                             val = ((IMapSerializable)GetValue.Value[prCore.Name](obj)).Serialize();

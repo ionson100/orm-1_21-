@@ -14,15 +14,15 @@ namespace ORM_1_21_.Extensions
     /// <summary>
     /// Extension ORM
     /// </summary>
-    public static class Helper
+    public static partial class Helper
     {
 
         /// <summary>
         ///  Iterating over a collection
         /// </summary>
-        public static void  ForEach<T>(this IQueryable<T> coll, Action<T> action)
+        public static void  ForEach<TSource>(this IQueryable<TSource> source, Action<TSource> action)
         {
-            Query<T> res = (Query<T>)coll;
+            Query<TSource> res = (Query<TSource>)source;
             res.ForEach(action);
         }
 
@@ -37,11 +37,11 @@ namespace ORM_1_21_.Extensions
         /// <summary>
         /// Array of non-recurring values, by selected field
         /// </summary>
-        public static IEnumerable<TR> Distinct<T, TR>(this IQueryable<T> coll, Expression<Func<T, TR>> exp) where T : class
+        public static IEnumerable<TResult> Distinct<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> exp) where TSource : class
         {
-            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCore, TypeRetyrn = typeof(TR), ListDistict = new List<TR>() });
-            return coll.Provider.Execute<IEnumerable<TR>>(coll.Expression);
+            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
+            { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCore, TypeRetyrn = typeof(TResult), ListDistict = new List<TResult>() });
+            return source.Provider.Execute<IEnumerable<TResult>>(source.Expression);
         }
 
         
@@ -50,11 +50,20 @@ namespace ORM_1_21_.Extensions
         /// <summary>
         /// Execution to delete a record from a table
         /// </summary>
-        public static int Delete<T>(this IQueryable<T> coll, Expression<Func<T, bool>> exp = null) where T : class
+        public static int Delete<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> exp = null) where TSource : class
         {
-            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
             { CastomExpression = exp, TypeRevalytion = Evolution.Delete });
-            return coll.Provider.Execute<int>(coll.Expression);
+            return source.Provider.Execute<int>(source.Expression);
+        }
+        /// <summary>
+        /// Execution to delete a record from a table
+        /// </summary>
+        public static Task<int> DeleteAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> exp = null) where TSource : class
+        {
+            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
+                { CastomExpression = exp, TypeRevalytion = Evolution.Delete });
+            return Task.FromResult(source.Provider.Execute<int>(source.Expression));
         }
 
 
@@ -62,66 +71,85 @@ namespace ORM_1_21_.Extensions
         /// LIMIT is always placed at the end of the sentence
         /// (the beginning of the position, taking into account zero, the number in the sample)
         /// </summary>
-        /// <param name="coll"></param>
+        /// <param name="source"></param>
         /// <param name="start">Position start</param>
         /// <param name="length">Record length</param>
-        public static IQueryable<T> Limit<T>(this IQueryable<T> coll, int start, int length)
+        public static IQueryable<TSource> Limit<TSource>(this IQueryable<TSource> source, int start, int length)
         {
-            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
             { TypeRevalytion = Evolution.Limit, ParamList = new List<object> { start, length } });
-            return coll;
+            return source;
         }
 
-
        
+
+
+
         internal static Image GetImage(this byte[] coll)
         {
             return UtilsCore.ImageFromByte(coll);
         }
 
-      
-        internal static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> source, int chunkLength)
+
+        /// <summary>
+        /// Partitioning a sequence
+        /// </summary>
+        /// <param name="source">An System.Linq.IQueryable`1 to return the first element of</param>
+        /// <param name="chunkSize">Quantity per piece</param>
+        public static List<List<TSource>> SplitQueryable<TSource>(this IQueryable<TSource> source, int chunkSize)
         {
-            var enumerable = source as IList<T> ?? source.ToList();
-            using (var enumerator = enumerable.GetEnumerator())
-            {
-                while (enumerator.MoveNext()) yield return InnerSplit(enumerator, chunkLength);
-            }
+            return InnerSplitQueryable(source, chunkSize);
         }
 
-        
-        internal static IEnumerable<IEnumerable<T>> SplitQueryable<T>(this IQueryable<T> coll, int splitSize)
+        /// <summary>
+        /// Partitioning a sequence
+        /// </summary>
+        /// <param name="source">An System.Linq.IQueryable`1 to return the first element of</param>
+        /// <param name="chunkSize">Quantity per piece</param>
+        public static Task<List<List<TSource>>> SplitQueryableAsync<TSource>(this IQueryable<TSource> source, int chunkSize)
         {
-            var enumerable = coll;
-            using (var enumerator = enumerable.GetEnumerator())
-            {
-                while (enumerator.MoveNext()) yield return InnerSplit(enumerator, splitSize);
-            }
+            return Task.FromResult(InnerSplitQueryable(source, chunkSize));
         }
 
-        private static IEnumerable<T> InnerSplit<T>(IEnumerator<T> enumerator, int splitSize)
+        private static List<List<T>> InnerSplitQueryable<T>(this IQueryable<T> coll, int chunkSize)
         {
-            var count = 0;
-            do
-            {
-                count++;
-                yield return enumerator.Current;
-            } while (count % splitSize != 0
-                     && enumerator.MoveNext());
+            var enumerable = coll.ToList();
+            return enumerable
+                .Select((x, i) => new { Index = i, Value = x })
+                .GroupBy(x => x.Index / chunkSize)
+                .Select(x => x.Select(v => v.Value).ToList())
+                .ToList();
         }
+
+       
 
 
         ///  <summary>
         /// Query to update table
         ///  </summary>
-        ///  <param name="coll">IQueryable</param>
+        ///  <param name="source">IQueryable</param>
         ///  <param name="param">field-value dictionary</param>
-        public static int Update<T>(this IQueryable<T> coll, Expression<Func<T, Dictionary<object, object>>> param) where T : class
+        public static int Update<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, Dictionary<object, object>>> param) where TSource : class
         {
            
-            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
             { CastomExpression = param, TypeRevalytion = Evolution.Update });
-            return coll.Provider.Execute<int>(coll.Expression);
+            return source.Provider.Execute<int>(source.Expression);
+        }
+
+      
+
+        ///  <summary>
+        /// Query to update table
+        ///  </summary>
+        ///  <param name="source">IQueryable</param>
+        ///  <param name="param">field-value dictionary</param>
+        public static Task<int> UpdateAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, Dictionary<object, object>>> param) where TSource : class
+        {
+
+            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
+                { CastomExpression = param, TypeRevalytion = Evolution.Update });
+            return Task.FromResult(source.Provider.Execute<int>(source.Expression));
         }
 
         /// <summary>
@@ -129,16 +157,16 @@ namespace ORM_1_21_.Extensions
         /// </summary>
         /// <param name="ses">ISession</param>
         /// <param name="sql">Request string</param>
-        /// <param name="par">Request parameters</param>
+        /// <param name="param">Request parameters</param>
         /// <returns>IEnumerableTResult</returns>
-        public static IEnumerable<TResult> FreeSql<TResult>(this ISession ses, string sql, params object[] par)
+        public static IEnumerable<TResult> FreeSql<TResult>(this ISession ses, string sql, params object[] param)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            if (par != null&&par.Length>0)
+            if (param != null&&param.Length>0)
             {
-                return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteParam<TResult>(callExpr, par);
+                return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteParam<TResult>(callExpr, param);
             }
             return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).Execute<TResult>(callExpr);
         }
@@ -148,14 +176,14 @@ namespace ORM_1_21_.Extensions
         /// </summary>
         /// <param name="ses">ISession</param>
         /// <param name="sql">Request string</param>
-        /// <param name="par">Request parameters</param>
-        public static Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params object[] par)
+        /// <param name="param">Request parameters</param>
+        public static Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params object[] param)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            if (par != null&&par.Length>0)
+            if (param != null&&param.Length>0)
             {
-                return Task.FromResult((IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteParam<TResult>(callExpr, par));
+                return Task.FromResult((IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteParam<TResult>(callExpr, param));
             }
             return Task.FromResult((IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).Execute<TResult>(callExpr));
         }
@@ -180,30 +208,30 @@ namespace ORM_1_21_.Extensions
         /// </summary>
         /// <param name="ses">ISession</param>
         /// <param name="sql">Request string</param>
-        /// <param name="par">Request parameters</param>
+        /// <param name="param">Request parameters</param>
         /// <typeparam name="TResult">Return type enumerable</typeparam>
-        public static IEnumerable<TResult> ProcedureCallParam<TResult>(this ISession ses, string sql, params ParameterStoredPr[] par)
+        public static IEnumerable<TResult> ProcedureCallParam<TResult>(this ISession ses, string sql, params ParameterStoredPr[] param)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            return new DbQueryProvider<TResult>((Sessione)ses).ExecuteCallParam<TResult>(callExpr, par);
+            return new DbQueryProvider<TResult>((Sessione)ses).ExecuteCallParam<TResult>(callExpr, param);
         }
 
         /// <summary>
         /// Asynchronous request execution
         /// </summary>
-        public static Task<List<TResult>> ToListAsync<TResult>(this IQueryable<TResult> coll, CancellationToken cancellationToken = default)
+        public static Task<List<TResult>> ToListAsync<TResult>(this IQueryable<TResult> source, CancellationToken cancellationToken = default)
         {
             try
             {
-                var res = ((QueryProvider)coll.Provider).ExecuteAsync<TResult>(coll.Expression);
+                var res = ((QueryProvider)source.Provider).ExecuteAsync<TResult>(source.Expression,cancellationToken);
                 return res;
                 
             }
             catch (Exception ex)
             {
-                MySqlLogger.Info($" {Environment.NewLine}{coll}{Environment.NewLine}{ex}");
+                MySqlLogger.Info($" {Environment.NewLine}{source}{Environment.NewLine}{ex}");
                 throw;
             }
        
@@ -214,67 +242,69 @@ namespace ORM_1_21_.Extensions
         /// <summary>
         /// Set command timeout for one request 
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="coll"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="source"></param>
         /// <param name="value">>=0</param>
         /// <returns></returns>
-        public static IQueryable<T> SetTimeOut<T>(this IQueryable<T> coll, int value)
+        public static IQueryable<TSource> SetTimeOut<TSource>(this IQueryable<TSource> source, int value)
         {
-            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
             { Timeout = value, TypeRevalytion = Evolution.Timeout });
-            return coll;
+            return source;
         }
 
         /// <summary>
         /// Request using cache, if there is no cache, it will be created
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="coll"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="source"></param>
         /// <returns></returns>
-        public static IQueryable<T> CacheUsage<T>(this IQueryable<T> coll)
+        public static IQueryable<TSource> CacheUsage<TSource>(this IQueryable<TSource> source)
         {
-            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
                 { TypeRevalytion = Evolution.CacheUsage });
-            return coll;
+            return source;
         }
         /// <summary>
         /// Request with cache rewrite, if there is no cache, the cache will be created,
         /// the old cache will be overwritten
         /// </summary>
-        public static IQueryable<T> CacheOver<T>(this IQueryable<T> coll)
+        public static IQueryable<TSource> CacheOver<TSource>(this IQueryable<TSource> source)
         {
-            ((ISqlComposite)coll.Provider).ListCastExpression.Add(new ContainerCastExpression
+            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
                 { TypeRevalytion = Evolution.CacheOver });
-            return coll;
+            return source;
         }
         /// <summary>
-        /// Clears the cache for a type :T
+        /// Clears the cache for a type :TSource
         /// </summary>
-        public static void CacheClear<T>(this ISession session)
+        public static void CacheClear<TSource>(this ISession session)
         {
-            MyCache<T>.Clear();
+            MyCache<TSource>.Clear();
         }
 
         /// <summary>
         /// Get key to get cache value
         /// </summary>
 
-        public static int CacheGetKey<T>(this IQueryable<T> coll)
+        public static int CacheGetKey<TSource>(this IQueryable<TSource> source)
         {
-            ISession ses = ((ISqlComposite)coll.Provider).Sessione;
-            var provider = new DbQueryProvider<T>((Sessione)ses);
+            ISession ses = ((ISqlComposite)source.Provider).Sessione;
+            var provider = new DbQueryProvider<TSource>((Sessione)ses);
            provider.ListCastExpression.Add(new ContainerCastExpression
                 { TypeRevalytion = Evolution.CacheKey });
-            return (int)provider.Execute<int>(coll.Expression);
+            return (int)provider.Execute<int>(source.Expression);
 
         }
         /// <summary>
         /// Get value from cache by key
         /// </summary>
-        public static object CacheGetValue<T>(this ISession session,int key)
+        public static object CacheGetValue<TSource>(this ISession session,int key)
         {
-            return MyCache<T>.GetValue(key);
+            return MyCache<TSource>.GetValue(key);
         }
 
     }
+
+  
 }

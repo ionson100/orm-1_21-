@@ -1,6 +1,5 @@
 ﻿using ORM_1_21_.Linq.MsSql;
 using ORM_1_21_.Linq.MySql;
-using ORM_1_21_.Transaction;
 using ORM_1_21_.Utils;
 using System;
 using System.Collections;
@@ -18,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace ORM_1_21_.Linq
 {
-    internal class DbQueryProvider<T> :  QueryProvider, ISqlComposite
+    internal class DbQueryProvider<T> : QueryProvider, ISqlComposite
     {
         private readonly List<object> _paramFree = new List<object>();
         private readonly List<ParameterStoredPr> _paramFreeStoredPr = new List<ParameterStoredPr>();
@@ -31,7 +30,7 @@ namespace ORM_1_21_.Linq
 
 
         private bool _isStoredPr;
-       
+
         private Dictionary<string, object> _param;
 
         public Type GetSourceType()
@@ -55,18 +54,18 @@ namespace ORM_1_21_.Linq
 
         public List<ContainerCastExpression> ListCastExpression { get; set; } = new List<ContainerCastExpression>();
 
-        
 
-       
 
-      
-        private bool PingCompositeE(Evolution eval,List<OneComposite> list)
+
+
+
+        private bool PingCompositeE(Evolution eval, List<OneComposite> list)
         {
             return list.Any(a => a.Operand == eval);
         }
 
 
-      
+
 
         public override string GetQueryText(Expression expression)
         {
@@ -94,7 +93,7 @@ namespace ORM_1_21_.Linq
             }
         }
 
-        public override Task<List<TS>> ExecuteAsync<TS>(Expression expression)
+        public override Task<List<TS>> ExecuteAsync<TS>(Expression expression, CancellationToken cancellationToken)
         {
             var isGroup = typeof(TS).Name.StartsWith("IGrouping");
             if (isGroup)
@@ -105,7 +104,7 @@ namespace ORM_1_21_.Linq
         }
         List<TResult> ActionCoreGroupBy<TResult>(Expression expression)
         {
-            List< TResult > resList = new List<TResult>();
+            List<TResult> resList = new List<TResult>();
             var res = Execute<TResult>(expression);
             foreach (var o in (IEnumerable<object>)res)
             {
@@ -121,13 +120,18 @@ namespace ORM_1_21_.Linq
             return null;
         }
 
+        public override Task<TSource> ExecuteAsyncExtension<TSource>(Expression expression, CancellationToken cancellationToken)
+        {
+            return Task.FromResult((TSource)Execute<TSource>(expression));
+        }
+
 
         public object ExecuteParam<TS>(Expression expression, params object[] par)
         {
             if (par != null)
             {
                 _paramFree.AddRange(par);
-               // par.ToList().ForEach(a => _paramFree.Add(a.Name, a.Value));
+                // par.ToList().ForEach(a => _paramFree.Add(a.Name, a.Value));
             }
             return Execute<TS>(expression);
         }
@@ -139,7 +143,7 @@ namespace ORM_1_21_.Linq
             var services = (IServiceSessions)Sessione;
             _com = services.CommandForLinq;
             _com.CommandType = CommandType.StoredProcedure;
-            var re=TranslateE(expression);
+            var re = TranslateE(expression);
             _com.CommandText = re.Item1;
             if (_providerName == ProviderName.MsSql)
             {
@@ -228,7 +232,7 @@ namespace ORM_1_21_.Linq
             {
                 _sessione.Transactionale.isError = true;
                 MySqlLogger.Error(_com.CommandText, ex);
-                throw new Exception(ex.Message+Environment.NewLine+_com.CommandText,ex);
+                throw new Exception(ex.Message + Environment.NewLine + _com.CommandText, ex);
 
             }
             finally
@@ -256,12 +260,12 @@ namespace ORM_1_21_.Linq
         {
             var t1 = typeof(T);
             var t2 = typeof(TS);
-            bool isCacheUsage = CacheState == CacheState.CacheUsage || CacheState == CacheState.CacheOver|| CacheState==CacheState.CacheKey;
+            bool isCacheUsage = CacheState == CacheState.CacheUsage || CacheState == CacheState.CacheOver || CacheState == CacheState.CacheKey;
             var services = (IServiceSessions)Sessione;
             var re = TranslateE(expression);
             string sql = re.Item1;//Translate(expression, out _).Replace("FROM", " FROM ");
             List<OneComposite> listCore = re.Item2;
-            
+
             /*usage cache*/
 
             int hashCode = -1;
@@ -275,9 +279,9 @@ namespace ORM_1_21_.Linq
 
                 if (_paramFree.Any())
                 {
-                    UtilsCore.AddParamsForCache(b,sql,_providerName,_paramFree);
+                    UtilsCore.AddParamsForCache(b, sql, _providerName, _paramFree);
                 }
-               
+
                 foreach (var p in _paramFreeStoredPr)
                 {
                     b.Append($" {p.Name} - {p.Value} -{p.Value} ");
@@ -332,7 +336,7 @@ namespace ORM_1_21_.Linq
             }
 
             _com.Parameters.Clear();
-           
+
 
             foreach (var p in _param)
             {
@@ -345,9 +349,9 @@ namespace ORM_1_21_.Linq
 
             if (_paramFree.Any())
             {
-                UtilsCore.AddParam(_com,_providerName,_paramFree.ToArray());
+                UtilsCore.AddParam(_com, _providerName, _paramFree.ToArray());
             }
-            
+
 
             foreach (var p in _paramFreeStoredPr)
             {
@@ -363,7 +367,7 @@ namespace ORM_1_21_.Linq
             try
             {
                 _sessione.OpenConnectAndTransaction(_com);
-                if (PingCompositeE(Evolution.All,listCore))
+                if (PingCompositeE(Evolution.All, listCore))
                 {
                     var reader = _com.ExecuteReader();
                     try
@@ -384,7 +388,7 @@ namespace ORM_1_21_.Linq
                     {
                         reader.Dispose();
                     }
-                   
+
                 }
                 if (PingCompositeE(Evolution.LongCount, listCore))
                 {
@@ -397,7 +401,7 @@ namespace ORM_1_21_.Linq
                     return res;
                 }
 
-                if (PingCompositeE(Evolution.Count,listCore))
+                if (PingCompositeE(Evolution.Count, listCore))
                 {
                     var ee = _com.ExecuteScalar();
                     var res = Convert.ToInt32(ee, CultureInfo.CurrentCulture);
@@ -407,9 +411,9 @@ namespace ORM_1_21_.Linq
                     }
                     return res;
                 }
-               
 
-                if (PingCompositeE(Evolution.Delete,listCore))
+
+                if (PingCompositeE(Evolution.Delete, listCore))
                 {
                     var ee = _com.ExecuteNonQuery();
                     MyCache<T>.Clear();
@@ -448,21 +452,22 @@ namespace ORM_1_21_.Linq
                     if (UtilsCore.IsAnonymousType(typeof(TS)))
                     {
                         var ci = typeof(TS).GetConstructor(list.ToArray());
-                        
-                       
-                            while (dataReader.Read())
+
+
+                        while (dataReader.Read())
+                        {
+                            var par = new List<object>();
+                            for (var i = 0; i < count; i++)
                             {
-                                var par = new List<object>();
-                                for (var i = 0; i < count; i++)
-                                {
-                                    var val = Pizdaticus.MethodFree(_providerName, list[i], dataReader[i]);
-                                    par.Add(dataReader[i] == DBNull.Value ? null : val);
-                                }
-                                var e = ci.Invoke(par.ToArray());
-                                resDis.Add((TS)e);
+                                var val = Pizdaticus.MethodFree(_providerName, list[i], dataReader[i]);
+                                par.Add(dataReader[i] == DBNull.Value ? null : val);
                             }
-                       
-                    }else if (AttributesOfClass<TS>.IsReceiverFreeSql)
+                            var e = ci.Invoke(par.ToArray());
+                            resDis.Add((TS)e);
+                        }
+
+                    }
+                    else if (AttributesOfClass<TS>.IsReceiverFreeSql)
                     {
                         var c = typeof(TS).GetConstructors();
                         if (c.Length == 0)
@@ -470,7 +475,7 @@ namespace ORM_1_21_.Linq
                             throw new Exception(
                                 $"The type {typeof(TS)} is marked with an attribute but does not have a constructor");
                         }
-                        if (c.Length >1)
+                        if (c.Length > 1)
                         {
                             throw new Exception(
                                 $"The type {typeof(TS)} is marked with an attribute. Must have only one constructor");
@@ -489,7 +494,7 @@ namespace ORM_1_21_.Linq
                             var par = new List<object>();
                             for (var i = 0; i < count; i++)
                             {
-                               var val = Pizdaticus.MethodFree(_providerName, ci.GetParameters()[i].ParameterType, dataReader[i]);
+                                var val = Pizdaticus.MethodFree(_providerName, ci.GetParameters()[i].ParameterType, dataReader[i]);
                                 par.Add(dataReader[i] == DBNull.Value ? null : val);
                             }
                             var e = ci.Invoke(par.ToArray());
@@ -561,7 +566,7 @@ namespace ORM_1_21_.Linq
                         rObj = dataReader[0];
                         break;
                     }
-                    
+
 
                     dataReader.Dispose();
                     var res = UtilsCore.Convertor<TS>(rObj);
@@ -572,7 +577,9 @@ namespace ORM_1_21_.Linq
                     return res;
                 }
 
-                if (PingCompositeE(Evolution.Join,listCore))
+               
+
+                if (PingCompositeE(Evolution.Join, listCore))
                 {
                     dataReader = _com.ExecuteReader();
                     var lres = new List<TS>();
@@ -581,7 +588,7 @@ namespace ORM_1_21_.Linq
                         while (dataReader.Read())
                             lres.Add((TS)dataReader[0]);
                     else
-                        lres = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss,_providerName);
+                        lres = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss, _providerName);
 
                     if (isCacheUsage)
                     {
@@ -600,7 +607,7 @@ namespace ORM_1_21_.Linq
                     dataReader.Dispose();
                     bool isactive1;
                     var datasingl1 = Pizdaticus.SingleData(listCore, lres, out isactive1);
-                    var res=!isactive1 ? (object)lres : datasingl1;
+                    var res = !isactive1 ? (object)lres : datasingl1;
                     if (isCacheUsage)
                     {
                         MyCache<T>.Push(hashCode, res);
@@ -615,7 +622,7 @@ namespace ORM_1_21_.Linq
                     var enumerable = r as T[] ?? r.ToArray();
                     if (enumerable.Any())
                     {
-                        var res=enumerable.First();
+                        var res = enumerable.First();
                         if (isCacheUsage)
                         {
                             MyCache<T>.Push(hashCode, res);
@@ -640,7 +647,7 @@ namespace ORM_1_21_.Linq
                     }
                     if (isCacheUsage)
                     {
-                        MyCache<T>.Push(hashCode,null);
+                        MyCache<T>.Push(hashCode, null);
                     }
                     return enumerable.FirstOrDefault();
 
@@ -655,7 +662,7 @@ namespace ORM_1_21_.Linq
                     if (PingCompositeE(Evolution.SelectNew, listCore))
                     {
                         var ss = listCore.Single(a => a.Operand == Evolution.SelectNew).NewConstructor;
-                        Pizdaticus.GetListAnonymousObjDistinct(dataReader, ss, resT,_providerName);
+                        Pizdaticus.GetListAnonymousObjDistinct(dataReader, ss, resT, _providerName);
                         return resT;
 
                     }
@@ -664,7 +671,7 @@ namespace ORM_1_21_.Linq
                         var resDis = resT;
                         while (dataReader.Read())
                         {
-                           var val= Pizdaticus.MethodFree(_providerName, sas.TypeRetyrn, dataReader[0]);
+                            var val = Pizdaticus.MethodFree(_providerName, sas.TypeRetyrn, dataReader[0]);
                             resDis.Add(val);
                         }
 
@@ -686,7 +693,7 @@ namespace ORM_1_21_.Linq
                     dataReader = _com.ExecuteReader();
                     if (UtilsCore.IsAnonymousType(typeof(TS)))
                     {
-                        var lRes = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss,_providerName);
+                        var lRes = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss, _providerName);
                         var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
                         var res = !isaActive1 ? (object)lRes : dataSing1;
                         if (isCacheUsage)
@@ -699,7 +706,7 @@ namespace ORM_1_21_.Linq
                     {
                         if (listCore.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
                         {
-                            var lRes = Pizdaticus.GetListAnonymousObj<object>(dataReader, ss,_providerName);
+                            var lRes = Pizdaticus.GetListAnonymousObj<object>(dataReader, ss, _providerName);
                             bool isActive1;
                             var dataSingl1 = Pizdaticus.SingleData(listCore, lRes, out isActive1);
                             var res = !isActive1 ? lRes : dataSingl1;
@@ -744,9 +751,9 @@ namespace ORM_1_21_.Linq
             {
 
                 _sessione.Transactionale.isError = true;
-               
+
                 MySqlLogger.Error(UtilsCore.GetStringSql(_com), ex);
-                throw new Exception(ex.Message + Environment.NewLine + _com.CommandText, ex); 
+                throw new Exception(ex.Message + Environment.NewLine + _com.CommandText, ex);
             }
 
             finally
@@ -760,21 +767,21 @@ namespace ORM_1_21_.Linq
             }
         }
 
-       
 
-        private (string,List<OneComposite>) TranslateE(Expression expression)
+
+        private (string, List<OneComposite>) TranslateE(Expression expression)
         {
             //QueryTranslatorMsSql
-            ITranslate sq=new QueryTranslator<T>(_providerName);
-            
+            ITranslate sq = new QueryTranslator<T>(_providerName);
+
             _param = sq.Param;
             ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
             string res = sq.Translate(expression, out _);
             var sdd = sq.GetListOne();
             Thread.MemoryBarrier();
-            
 
-            return (res,sdd);
+
+            return (res, sdd);
 
         }
 
@@ -784,12 +791,12 @@ namespace ORM_1_21_.Linq
             _param = sq.Param;
             ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
             string res = sq.Translate(expression, out ev1);
-           
+
 
             return res;
         }
 
-       
+
 
         public IEnumerable<TS> ExecuteCall<TS>(Expression callExpr)
         {

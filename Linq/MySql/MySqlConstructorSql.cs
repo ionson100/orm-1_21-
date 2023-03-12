@@ -112,6 +112,7 @@ namespace ORM_1_21_.Linq.MySql
             {
                 sbb.Append(StringConst.Select + " ");
 
+
                 if (PingComposite(Evolution.Select))
                 {
                     sbb.Append(listOne.First(a => a.Operand == Evolution.Select).Body);

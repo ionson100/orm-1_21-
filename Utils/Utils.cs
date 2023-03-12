@@ -79,6 +79,24 @@ namespace ORM_1_21_.Utils
 
     internal static class UtilsCore
     {
+        internal static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> source, int chunkLength)
+        {
+            var enumerable = source as IList<T> ?? source.ToList();
+            using (var enumerator = enumerable.GetEnumerator())
+            {
+                while (enumerator.MoveNext()) yield return InnerSplit(enumerator, chunkLength);
+            }
+        }
+        private static IEnumerable<T> InnerSplit<T>(IEnumerator<T> enumerator, int splitSize)
+        {
+            var count = 0;
+            do
+            {
+                count++;
+                yield return enumerator.Current;
+            } while (count % splitSize != 0
+                     && enumerator.MoveNext());
+        }
         private static readonly HashSet<Type> Hlam = new HashSet<Type>
         {
             typeof(uint),
