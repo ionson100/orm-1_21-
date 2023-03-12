@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using TestLibrary;
 
@@ -13,7 +14,7 @@ namespace TestPostgres
 {
     internal class Program
     {
-        private const ProviderName ProviderName = ORM_1_21_.ProviderName.MsSql;
+        private const ProviderName ProviderName = ORM_1_21_.ProviderName.Postgresql;
 
         static async Task Main(string[] args)
         {
@@ -50,56 +51,79 @@ namespace TestPostgres
             }
             session.Save(new MyClass() { Age = 20, Name = "name1" });
             session.Save(new MyClass() { Age = 5, Name = "name1" });
-            var r1 = session.Query<MyClass>().Where(a => a.Age > 0).FirstAsync().Result;
-            var r2 = session.Query<MyClass>().Where(a => a.Age > 0).FirstAsync(s => s.Name.StartsWith("name")).Result;
-            
-            var r3 = session.Query<MyClass>().Where(a => a.Age > 0).FirstOrDefaultAsync().Result;
-            var r4 = session.Query<MyClass>().Where(a => a.Age > 0).FirstOrDefaultAsync(s => s.Name.StartsWith("name")).Result;
-            
-            var r5 = session.Query<MyClass>().Where(a => a.Age > 0).LastAsync().Result;
-            var r6 = session.Query<MyClass>().Where(a => a.Age > 0).LastAsync(s => s.Name.StartsWith("name")).Result;
-            
-            var r7 = session.Query<MyClass>().Where(a => a.Age > 0).LastOrDefaultAsync().Result;
-            var r8 = session.Query<MyClass>().Where(a => a.Age > 0).LastOrDefaultAsync(s => s.Name.StartsWith("name")).Result;
-            
-            var r9 = session.Query<MyClass>().Where(a => a.Age == 20).SingleAsync().Result;
-            var r10 = session.Query<MyClass>().Where(a => a.Age == 20).SingleAsync(s => s.Name.StartsWith("name")).Result;
-            
-            var r11 = session.Query<MyClass>().Where(a => a.Age == 20).SingleOrDefaultAsync().Result;
-            var r12 = session.Query<MyClass>().Where(a => a.Age == 20).SingleOrDefaultAsync(s => s.Name.StartsWith("name")).Result;
-            
-            var r13 = session.Query<MyClass>().Where(a => a.Age == 20).AnyAsync().Result;
-            var r14 = session.Query<MyClass>().Where(a => a.Age == 20).AnyAsync(s => s.Name.StartsWith("name")).Result;
-            
-            
-            var r16 = session.Query<MyClass>().Where(a => a.Age == 20).AllAsync(s => s.Name.StartsWith("name")).Result;
-            
-            var r17 = session.Query<MyClass>().Where(a => a.Age == 20).CountAsync().Result;
-            var r18 = session.Query<MyClass>().Where(a => a.Age == 20).CountAsync(s => s.Name.StartsWith("name")).Result;
-            
-            var r19 = session.Query<MyClass>().Where(a => a.Age == 20).LongCountAsync().Result;
-            var r20 = session.Query<MyClass>().Where(a => a.Age == 20).LongCountAsync(s => s.Name.StartsWith("name")).Result;
-            
-            var r22 = session.Query<MyClass>().MinAsync(a => a.Age).Result;
-            
-            var r24 = session.Query<MyClass>().MaxAsync(a => a.Age).Result;
-           
-            
-            var r25 = session.Query<MyClass>().SumAsync(a => a.Age).Result;
-           
+            // var r1 = session.Query<MyClass>().Where(a => a.Age > 0).FirstAsync().Result;
+            // var r2 = session.Query<MyClass>().Where(a => a.Age > 0).FirstAsync(s => s.Name.StartsWith("name")).Result;
+            // 
+            // var r3 = session.Query<MyClass>().Where(a => a.Age > 0).FirstOrDefaultAsync().Result;
+            // var r4 = session.Query<MyClass>().Where(a => a.Age > 0).FirstOrDefaultAsync(s => s.Name.StartsWith("name")).Result;
+            // 
+            // var r5 = session.Query<MyClass>().Where(a => a.Age > 0).LastAsync().Result;
+            // var r6 = session.Query<MyClass>().Where(a => a.Age > 0).LastAsync(s => s.Name.StartsWith("name")).Result;
+            // 
+            // var r7 = session.Query<MyClass>().Where(a => a.Age > 0).LastOrDefaultAsync().Result;
+            // var r8 = session.Query<MyClass>().Where(a => a.Age > 0).LastOrDefaultAsync(s => s.Name.StartsWith("name")).Result;
+            // 
+            // var r9 = session.Query<MyClass>().Where(a => a.Age == 20).SingleAsync().Result;
+            // var r10 = session.Query<MyClass>().Where(a => a.Age == 20).SingleAsync(s => s.Name.StartsWith("name")).Result;
+            // 
+            // var r11 = session.Query<MyClass>().Where(a => a.Age == 20).SingleOrDefaultAsync().Result;
+            // var r12 = session.Query<MyClass>().Where(a => a.Age == 20).SingleOrDefaultAsync(s => s.Name.StartsWith("name")).Result;
+            // 
+            // var r13 = session.Query<MyClass>().Where(a => a.Age == 20).AnyAsync().Result;
+            // var r14 = session.Query<MyClass>().Where(a => a.Age == 20).AnyAsync(s => s.Name.StartsWith("name")).Result;
+            // 
+            // 
+            // var r16 = session.Query<MyClass>().Where(a => a.Age == 20).AllAsync(s => s.Name.StartsWith("name")).Result;
+            // 
+            // var r17 = session.Query<MyClass>().Where(a => a.Age == 20).CountAsync().Result;
+            // var r18 = session.Query<MyClass>().Where(a => a.Age == 20).CountAsync(s => s.Name.StartsWith("name")).Result;
+            // 
+            // var r19 = session.Query<MyClass>().Where(a => a.Age == 20).LongCountAsync().Result;
+            // var r20 = session.Query<MyClass>().Where(a => a.Age == 20).LongCountAsync(s => s.Name.StartsWith("name")).Result;
+            // 
+            // var r22 = session.Query<MyClass>().MinAsync(a => a.Age).Result;
+            // 
+            // var r24 = session.Query<MyClass>().MaxAsync(a => a.Age).Result;
+            //
+            // 
+            // var r25 = session.Query<MyClass>().SumAsync(a => a.Age).Result;
+            //
+            //
 
-            var r27 = session.Query<MyClass>().SumAsync(a => a.Valdecimal).Result;
+            CancellationTokenSource cancelTokenSource = new CancellationTokenSource();
+            CancellationToken token = cancelTokenSource.Token;
+            cancelTokenSource.Cancel();
+            try
+            { 
+                var r27 = session.Query<MyClass>().SumAsync(a => a.Age,token).Result;
+            }
+            catch (OperationCanceledException e)
+            {
+                Console.WriteLine(e);
+            }
            
-            var r30 = await session.Query<MyClass>().Where(a=>a.Age==5).UpdateAsync(a => new Dictionary<object,object>()
-            {
-                { a.Age, 122 }
-            });
-            var ass = session.Query<MyClassMysql>().Where(a => a.Age == 122).SplitQueryableAsync(3).Result;
-
-            await session.Query<MyClass>().ForEachAsync(a =>
-            {
-                Console.WriteLine(a.Age);
-            });
+           //
+           // var r30 = await session.Query<MyClass>().Where(a=>a.Age==5).UpdateAsync(a => new Dictionary<object,object>()
+           // {
+           //     { a.Age, 122 }
+           // });
+            //var ass = session.Query<MyClassMysql>().Where(a => a.Age == 122).SplitQueryableAsync(3).Result;
+           //
+           // await session.Query<MyClass>().ForEachAsync(a =>
+           // {
+           //     Console.WriteLine(a.Age);
+           // });
+           // var t = session.Query<MyClass>().Where(a => a.ValInt == null);
+           // await t.ForEachAsync(a =>
+           // {
+           //     Console.WriteLine(a.Name);
+           // });
+           // var rt=t.ToList();
+           // Dictionary<int,List<MyClass>> dictionary=new Dictionary<int,List<MyClass>>();
+           // session.Query<MyClass>().Distinct(a => a.Age).ToList().ForEach(a =>
+           // {
+           //     dictionary.Add((int)a,session.Query<MyClass>().Where(v=>v.Age==(int)a).ToList());
+           // });
           
           
 

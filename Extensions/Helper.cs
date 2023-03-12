@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
@@ -124,11 +123,9 @@ namespace ORM_1_21_.Extensions
 
 
         /// <summary>
-        /// 
+        /// Asynchronously enumerates the query results and performs the specified action
+        /// on each element.
         /// </summary>
-        /// <param name="source"></param>
-        /// <param name="action"></param>
-        /// <typeparam name="TSource"></typeparam>
         public static async Task ForEachAsync<TSource>(this IQueryable<TSource> source, Action<TSource> action)
         {
             Check.NotNull(source, "source");

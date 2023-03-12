@@ -21,6 +21,7 @@ namespace ORM_1_21_.Linq
     {
         private readonly List<object> _paramFree = new List<object>();
         private readonly List<ParameterStoredPr> _paramFreeStoredPr = new List<ParameterStoredPr>();
+        private CancellationToken _cancellationToken = default;
 
 
         private readonly Dictionary<string, object> _parOut = new Dictionary<string, object>();
@@ -95,6 +96,7 @@ namespace ORM_1_21_.Linq
 
         public override Task<List<TS>> ExecuteAsync<TS>(Expression expression, CancellationToken cancellationToken)
         {
+            _cancellationToken = cancellationToken;
             var isGroup = typeof(TS).Name.StartsWith("IGrouping");
             if (isGroup)
             {
@@ -122,6 +124,7 @@ namespace ORM_1_21_.Linq
 
         public override Task<TSource> ExecuteAsyncExtension<TSource>(Expression expression, CancellationToken cancellationToken)
         {
+            _cancellationToken = cancellationToken;
             return Task.FromResult((TSource)Execute<TSource>(expression));
         }
 
@@ -310,6 +313,28 @@ namespace ORM_1_21_.Linq
             /*usage cache*/
 
             _com = services.CommandForLinq;
+            if (_cancellationToken != default)
+            {
+                _cancellationToken.Register(() =>
+                {
+                    try
+                    {
+                        _com.Cancel();
+
+                    }
+                    catch (Exception ex)
+                    {
+                        MySqlLogger.Error("cancellationToken", ex);
+                    }
+                    finally
+                    {
+                        _sessione.Transactionale.isError = true;
+                        _cancellationToken.ThrowIfCancellationRequested();
+                    }
+                   
+
+                });
+            }
             var to = GetTimeout();
             if (to >= 0)
             {
@@ -381,6 +406,7 @@ namespace ORM_1_21_.Linq
                             {
                                 MyCache<T>.Push(hashCode, res);
                             }
+
                             return res;
                         }
                     }
@@ -390,6 +416,7 @@ namespace ORM_1_21_.Linq
                     }
 
                 }
+
                 if (PingCompositeE(Evolution.LongCount, listCore))
                 {
                     var ee = _com.ExecuteScalar();
@@ -398,6 +425,7 @@ namespace ORM_1_21_.Linq
                     {
                         MyCache<T>.Push(hashCode, res);
                     }
+
                     return res;
                 }
 
@@ -409,6 +437,7 @@ namespace ORM_1_21_.Linq
                     {
                         MyCache<T>.Push(hashCode, res);
                     }
+
                     return res;
                 }
 
@@ -435,11 +464,16 @@ namespace ORM_1_21_.Linq
                     {
                         MyCache<T>.Push(hashCode, res);
                     }
+
                     return res;
                 }
 
+                //if (_cancellationToken != default && _cancellationToken.IsCancellationRequested)
+                //{
+                //    _cancellationToken.ThrowIfCancellationRequested();
+                //}
 
-                #region  dataReader
+                #region dataReader
 
                 if (PingCompositeE(Evolution.FreeSql, listCore) &&
                     AttributesOfClass<TS>.IsValid == false)
@@ -462,6 +496,7 @@ namespace ORM_1_21_.Linq
                                 var val = Pizdaticus.MethodFree(_providerName, list[i], dataReader[i]);
                                 par.Add(dataReader[i] == DBNull.Value ? null : val);
                             }
+
                             var e = ci.Invoke(par.ToArray());
                             resDis.Add((TS)e);
                         }
@@ -475,6 +510,7 @@ namespace ORM_1_21_.Linq
                             throw new Exception(
                                 $"The type {typeof(TS)} is marked with an attribute but does not have a constructor");
                         }
+
                         if (c.Length > 1)
                         {
                             throw new Exception(
@@ -489,14 +525,17 @@ namespace ORM_1_21_.Linq
                                 $"The number of parameters of the constructor method:{ci.GetParameters().Length}  is not equal to the number of" +
                                 $" fields retrieved from the database: {list.Count}, check sql the query");
                         }
+
                         while (dataReader.Read())
                         {
                             var par = new List<object>();
                             for (var i = 0; i < count; i++)
                             {
-                                var val = Pizdaticus.MethodFree(_providerName, ci.GetParameters()[i].ParameterType, dataReader[i]);
+                                var val = Pizdaticus.MethodFree(_providerName, ci.GetParameters()[i].ParameterType,
+                                    dataReader[i]);
                                 par.Add(dataReader[i] == DBNull.Value ? null : val);
                             }
+
                             var e = ci.Invoke(par.ToArray());
                             resDis.Add((TS)e);
                         }
@@ -523,10 +562,12 @@ namespace ORM_1_21_.Linq
                             {
                                 employee = (TS)FormatterServices.GetSafeUninitializedObject(typeof(TS));
                             }
+
                             while (dataReader.Read())
                             {
                                 for (var i = 0; i < dataReader.FieldCount; i++)
-                                    AttributesOfClass<TS>.SetValueFreeSqlE(_providerName, dataReader.GetName(i), (TS)employee,
+                                    AttributesOfClass<TS>.SetValueFreeSqlE(_providerName, dataReader.GetName(i),
+                                        (TS)employee,
                                         dataReader[i] == DBNull.Value ? null : dataReader[i]);
                                 resDis.Add((TS)employee);
                             }
@@ -554,6 +595,7 @@ namespace ORM_1_21_.Linq
                     {
                         MyCache<T>.Push(hashCode, resDis);
                     }
+
                     return resDis;
                 }
 
@@ -574,10 +616,11 @@ namespace ORM_1_21_.Linq
                     {
                         MyCache<T>.Push(hashCode, res);
                     }
+
                     return res;
                 }
 
-               
+
 
                 if (PingCompositeE(Evolution.Join, listCore))
                 {
@@ -594,6 +637,7 @@ namespace ORM_1_21_.Linq
                     {
                         MyCache<T>.Push(hashCode, lres);
                     }
+
                     return lres;
                 }
 
@@ -612,6 +656,7 @@ namespace ORM_1_21_.Linq
                     {
                         MyCache<T>.Push(hashCode, res);
                     }
+
                     return res;
                 }
 
@@ -627,10 +672,13 @@ namespace ORM_1_21_.Linq
                         {
                             MyCache<T>.Push(hashCode, res);
                         }
+
                         return res;
                     }
+
                     throw new Exception("Element not in selection.");
                 }
+
                 if (PingCompositeE(Evolution.ElementAtOrDefault, listCore))
                 {
                     dataReader = _com.ExecuteReader();
@@ -643,12 +691,15 @@ namespace ORM_1_21_.Linq
                         {
                             MyCache<T>.Push(hashCode, enumerable.First());
                         }
+
                         return enumerable.First();
                     }
+
                     if (isCacheUsage)
                     {
                         MyCache<T>.Push(hashCode, null);
                     }
+
                     return enumerable.FirstOrDefault();
 
                 }
@@ -680,6 +731,7 @@ namespace ORM_1_21_.Linq
                         {
                             MyCache<T>.Push(hashCode, resDis);
                         }
+
                         return resDis;
                     }
 
@@ -700,6 +752,7 @@ namespace ORM_1_21_.Linq
                         {
                             MyCache<T>.Push(hashCode, res);
                         }
+
                         return res;
                     }
                     else
@@ -714,6 +767,7 @@ namespace ORM_1_21_.Linq
                             {
                                 MyCache<T>.Push(hashCode, res);
                             }
+
                             return res;
                         }
 
@@ -734,6 +788,7 @@ namespace ORM_1_21_.Linq
                     {
                         MyCache<T>.Push(hashCode, lResult);
                     }
+
                     return lResult;
                 }
 
@@ -744,20 +799,26 @@ namespace ORM_1_21_.Linq
                 {
                     MyCache<T>.Push(hashCode, ress2);
                 }
+
                 return ress2;
             }
-
+           
             catch (Exception ex)
             {
 
+                
                 _sessione.Transactionale.isError = true;
 
-                MySqlLogger.Error(UtilsCore.GetStringSql(_com), ex);
+              
                 throw new Exception(ex.Message + Environment.NewLine + _com.CommandText, ex);
+
+                
+               
             }
 
             finally
             {
+               
                 _sessione.ComDisposable(_com);
                 if (dataReader != null)
                 {

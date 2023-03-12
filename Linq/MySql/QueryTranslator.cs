@@ -2004,7 +2004,7 @@ namespace ORM_1_21_.Linq.MySql
                     return m;
                 }
 
-                if (m.Method.Name == "Querion")
+                if (m.Method.Name == "Query")
                 {
                     return m;
                 }

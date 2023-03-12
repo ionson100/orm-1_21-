@@ -2,7 +2,7 @@
 using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity.Infrastructure;
+
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -708,7 +708,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            IDbAsyncQueryProvider dbAsyncQueryProvider = source.Provider as IDbAsyncQueryProvider;
+            //IDbAsyncQueryProvider dbAsyncQueryProvider = source.Provider as IDbAsyncQueryProvider;
             return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TResult>(ex, cancellationToken);
         }
 

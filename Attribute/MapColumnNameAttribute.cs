@@ -36,4 +36,5 @@ namespace ORM_1_21_
             return DbTypeConverter.ConvertFrom(TypeColumn);
         }
     }
+    
 }
