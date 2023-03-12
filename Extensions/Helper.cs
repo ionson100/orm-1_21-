@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
@@ -121,8 +122,20 @@ namespace ORM_1_21_.Extensions
                 .ToList();
         }
 
-       
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="action"></param>
+        /// <typeparam name="TSource"></typeparam>
+        public static async Task ForEachAsync<TSource>(this IQueryable<TSource> source, Action<TSource> action)
+        {
+            Check.NotNull(source, "source");
+            Check.NotNull(action, "action");
+            var res = await source.ToListAsync();
+            res.ForEach(action);
+        }
 
         ///  <summary>
         /// Query to update table

@@ -96,7 +96,10 @@ namespace TestPostgres
             });
             var ass = session.Query<MyClassMysql>().Where(a => a.Age == 122).SplitQueryableAsync(3).Result;
 
-            var sum = session.Query<MyClass>().Average(a => a.Valdecimal);
+            await session.Query<MyClass>().ForEachAsync(a =>
+            {
+                Console.WriteLine(a.Age);
+            });
           
           
 
