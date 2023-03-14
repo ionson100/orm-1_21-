@@ -594,9 +594,9 @@ namespace ORM_1_21_
             return AttributesOfClass<T>.TableName(MyProviderName);
         }
 
-        private int SaveNew<T>(T item) where T : class
+        private int SaveNew<T>(T item) where T : class, new()
         {
-            var rez = 0;
+            var res = 0;
             IDbCommand com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
 
 
@@ -615,8 +615,12 @@ namespace ORM_1_21_
 
 
                     OpenConnectAndTransaction(com);
-                    rez = com.ExecuteNonQuery();
-                    NotificAfter(item, ActionMode.Update);
+                    res = com.ExecuteNonQuery();
+                    if (res == 1)
+                    {
+                        NotificAfter(item, ActionMode.Update);
+                    }
+                    
                 }
                 else
                 {
@@ -627,10 +631,11 @@ namespace ORM_1_21_
                     if (val != null)
                     {
                         AttributesOfClass<T>.RedefiningPrimaryKey(item, val, MyProviderName);
-                        rez = 1;
+                        UtilsCore.SetPersistent(item);
+                        res = 1; 
+                        NotificAfter(item, ActionMode.Insert);
                     }
-                    UtilsCore.SetPersistent(item);
-                    NotificAfter(item, ActionMode.Insert);
+                   
                 }
             }
             catch (Exception ex)
@@ -643,7 +648,7 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
 
-            return rez;
+            return res;
         }
 
        

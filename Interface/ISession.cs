@@ -25,18 +25,18 @@ namespace ORM_1_21_
         /// <param name="reader">IDataReader</param>
         /// <typeparam name="T"></typeparam>
         /// <returns>IEnumerable</returns>
-        IEnumerable<T> GetListMonster<T>(IDataReader reader) where T : class;
+        IEnumerable<T> GetListMonster<T>(IDataReader reader) where T : class, new();
 
         /// <summary>
         /// Saving an object in the database (insert or update), returns the number of rows affected
         /// </summary>
       
-        int Save<T>(T item) where T : class;
+        int Save<T>(T item) where T : class, new();
 
         /// <summary>
         /// Removing an object from the database, return the number of affected rows
         /// </summary>
-        int Delete<T>(T item) where T : class;
+        int Delete<T>(T item) where T : class, new();
 
         /// <summary>
         /// Getting ITransaction with the start of the transaction
@@ -51,7 +51,7 @@ namespace ORM_1_21_
         /// <summary>
         /// Create a table
         /// </summary>
-        int TableCreate<T>() where T : class;
+        int TableCreate<T>() where T : class, new();
 
         /// <summary>
         /// Getting DbCommand
@@ -61,12 +61,12 @@ namespace ORM_1_21_
         /// <summary>
         /// Drop table
         /// </summary>
-        int DropTable<T>() where T : class;
+        int DropTable<T>() where T : class, new();
 
         /// <summary>
         /// Checking if a table exists in database
         /// </summary>
-        bool TableExists<T>() where T : class;
+        bool TableExists<T>() where T : class, new();
 
         /// <summary>
         ///  Getting ExecuteReader
@@ -111,7 +111,7 @@ namespace ORM_1_21_
         /// <summary>
         /// Insert bulk from list
         /// </summary>
-        int InsertBulk<T>(IEnumerable<T> list, int timeOut = 30) where T : class;
+        int InsertBulk<T>(IEnumerable<T> list, int timeOut = 30) where T : class, new();
 
         
 
@@ -121,7 +121,7 @@ namespace ORM_1_21_
         /// <param name="fileCsv">path to file</param>
         /// <param name="FIELDTERMINATOR">terminator, default - ;</param>
         /// <param name="timeOut">timeout connection</param>
-        int InsertBulkFromFile<T>(string fileCsv, string FIELDTERMINATOR = ";", int timeOut = 30) where T : class;
+        int InsertBulkFromFile<T>(string fileCsv, string FIELDTERMINATOR = ";", int timeOut = 30) where T : class, new();
 
 
         /// <summary>
@@ -147,23 +147,23 @@ namespace ORM_1_21_
         /// <summary>
         /// Recreating a table
         /// </summary>
-        int TruncateTable<T>() where T : class;
+        int TruncateTable<T>() where T : class, new();
 
         /// <summary>
         /// Main point  Linq to Sql
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        Query<T> Query<T>() where T : class;
+        Query<T> Query<T>() where T : class, new();
 
         /// <summary>
         /// Determines if the object is received from the database, or was created on the client
         /// </summary>
-        bool IsPersistent<T>(T obj) where T : class;
+        bool IsPersistent<T>(T obj) where T : class, new();
 
         /// <summary>
         /// Making an object persistent ( as object received from database)
         /// </summary>
-        void ToPersistent<T>(T obj) where T : class;
+        void ToPersistent<T>(T obj) where T : class, new();
 
         /// <summary>
         /// Write to log file
@@ -215,34 +215,34 @@ namespace ORM_1_21_
         /// <summary>
         /// Getting the name of the table to build an sql query.
         /// </summary>
-        string TableName<T>() where T : class;
+        string TableName<T>() where T : class, new();
 
         /// <summary>
         /// Getting the field name for a table
         /// </summary>
-        string ColumnName<T>(Expression<Func<T, object>> property) where T : class;
+        string ColumnName<T>(Expression<Func<T, object>> property) where T : class, new();
 
         /// <summary>
         /// Getting string SQL for insert command
         /// </summary>
-        string GetSqlInsertCommand<T>(T t) where T : class;
+        string GetSqlInsertCommand<T>(T t) where T : class, new();
 
         /// <summary>
         /// Getting string SQL for delete command
         /// </summary>
-        string GetSqlDeleteCommand<T>(T t) where T : class;
+        string GetSqlDeleteCommand<T>(T t) where T : class, new();
 
         /// <summary>
         /// Cloning an object using JSON
         /// </summary>
-        T Clone<T>(T ob) where T : class;
+        T Clone<T>(T ob) where T : class, new();
 
         /// <summary>
         /// Getting string SQL for bulk insert command
         /// </summary>
         /// <param name="enumerable"></param>
         /// <typeparam name="T"></typeparam>
-        string GetSqlForInsertBulk<T>(IEnumerable<T> enumerable) where T : class;
+        string GetSqlForInsertBulk<T>(IEnumerable<T> enumerable) where T : class,new();
 
 
         /// <summary>
