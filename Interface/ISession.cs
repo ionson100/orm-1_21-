@@ -30,13 +30,13 @@ namespace ORM_1_21_
         /// <summary>
         /// Saving an object in the database (insert or update), returns the number of rows affected
         /// </summary>
-      
-        int Save<T>(T item) where T : class, new();
+
+        int Save<TSource>(TSource source) where TSource : class, new();
 
         /// <summary>
         /// Removing an object from the database, return the number of affected rows
         /// </summary>
-        int Delete<T>(T item) where T : class, new();
+        int Delete<TSource>(TSource source) where TSource : class, new();
 
         /// <summary>
         /// Getting ITransaction with the start of the transaction
@@ -51,7 +51,7 @@ namespace ORM_1_21_
         /// <summary>
         /// Create a table
         /// </summary>
-        int TableCreate<T>() where T : class, new();
+        int TableCreate<TSource>() where TSource : class, new();
 
         /// <summary>
         /// Getting DbCommand
@@ -61,12 +61,12 @@ namespace ORM_1_21_
         /// <summary>
         /// Drop table
         /// </summary>
-        int DropTable<T>() where T : class, new();
+        int DropTable<TSource>() where TSource : class, new();
 
         /// <summary>
         /// Checking if a table exists in database
         /// </summary>
-        bool TableExists<T>() where T : class, new();
+        bool TableExists<TSource>() where TSource : class, new();
 
         /// <summary>
         ///  Getting ExecuteReader
@@ -111,9 +111,9 @@ namespace ORM_1_21_
         /// <summary>
         /// Insert bulk from list
         /// </summary>
-        int InsertBulk<T>(IEnumerable<T> list, int timeOut = 30) where T : class, new();
+        int InsertBulk<TSource>(IEnumerable<TSource> list, int timeOut = 30) where TSource : class, new();
 
-        
+
 
         /// <summary>
         /// Insert bulk to database from file
@@ -132,7 +132,7 @@ namespace ORM_1_21_
         /// <returns></returns>
         object ExecuteScalar(string sql, params object[] param);
 
-     
+
 
         /// <summary>
         /// Returns the first element of the request 
@@ -142,28 +142,28 @@ namespace ORM_1_21_
         /// <param name="param">parameter array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
         object ExecuteScalarT(string sql, int timeOut = 30, params object[] param);
 
-        
+
 
         /// <summary>
         /// Recreating a table
         /// </summary>
-        int TruncateTable<T>() where T : class, new();
+        int TruncateTable<TSource>() where TSource : class, new();
 
         /// <summary>
         /// Main point  Linq to Sql
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        Query<T> Query<T>() where T : class, new();
+        /// <typeparam name="TSource"></typeparam>
+        Query<TSource> Query<TSource>() where TSource : class, new();
 
         /// <summary>
         /// Determines if the object is received from the database, or was created on the client
         /// </summary>
-        bool IsPersistent<T>(T obj) where T : class, new();
+        bool IsPersistent<TSource>(TSource obj) where TSource : class, new();
 
         /// <summary>
         /// Making an object persistent ( as object received from database)
         /// </summary>
-        void ToPersistent<T>(T obj) where T : class, new();
+        void ToPersistent<TSource>(TSource source) where TSource : class, new();
 
         /// <summary>
         /// Write to log file
@@ -200,7 +200,7 @@ namespace ORM_1_21_
         int ExecuteNonQuery(string sql, params object[] param);
 
 
-        
+
 
         /// <summary>
         /// executes the query and returns the number of records affected
@@ -210,39 +210,39 @@ namespace ORM_1_21_
         /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
         int ExecuteNonQueryT(string sql, int timeOut = 30, params object[] param);
 
-        
+
 
         /// <summary>
         /// Getting the name of the table to build an sql query.
         /// </summary>
-        string TableName<T>() where T : class, new();
+        string TableName<TSource>() where TSource : class, new();
 
         /// <summary>
         /// Getting the field name for a table
         /// </summary>
-        string ColumnName<T>(Expression<Func<T, object>> property) where T : class, new();
+        string ColumnName<TSource>(Expression<Func<TSource, object>> property) where TSource : class, new();
 
         /// <summary>
         /// Getting string SQL for insert command
         /// </summary>
-        string GetSqlInsertCommand<T>(T t) where T : class, new();
+        string GetSqlInsertCommand<TSource>(TSource source) where TSource : class, new();
 
         /// <summary>
         /// Getting string SQL for delete command
         /// </summary>
-        string GetSqlDeleteCommand<T>(T t) where T : class, new();
+        string GetSqlDeleteCommand<TSource>(TSource source) where TSource : class, new();
 
         /// <summary>
         /// Cloning an object using JSON
         /// </summary>
-        T Clone<T>(T ob) where T : class, new();
+        TSource Clone<TSource>(TSource source) where TSource : class, new();
 
         /// <summary>
         /// Getting string SQL for bulk insert command
         /// </summary>
         /// <param name="enumerable"></param>
-        /// <typeparam name="T"></typeparam>
-        string GetSqlForInsertBulk<T>(IEnumerable<T> enumerable) where T : class,new();
+        /// <typeparam name="TSource"></typeparam>
+        string GetSqlForInsertBulk<TSource>(IEnumerable<TSource> enumerable) where TSource : class, new();
 
 
         /// <summary>
@@ -255,5 +255,13 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="tableName"></param>
         IEnumerable<TableColumn> GetTableColumns(string tableName);
+
+        /// <summary>
+        /// Update table with additional condition where
+        /// </summary>
+        /// <param name="source">object for update</param>
+        /// <param name="whereObjects">list condition</param>
+        /// <returns>Query result: 1 -ok 0-Record not updated</returns>
+        int Update<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class, new();
     }
 }

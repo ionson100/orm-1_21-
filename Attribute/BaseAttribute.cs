@@ -44,6 +44,7 @@ namespace ORM_1_21_
         {
             return _columnName;
         }
+        internal bool IsNotUpdateInsert { get; set; }
       
         internal string PropertyName { get; set; }
         /// <summary>

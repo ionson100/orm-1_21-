@@ -1,8 +1,4 @@
-﻿
-using ORM_1_21_.Extensions;
-using ORM_1_21_.Linq;
-using ORM_1_21_.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
@@ -12,56 +8,20 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using ORM_1_21_.Linq;
+using ORM_1_21_.Utils;
 
 namespace ORM_1_21_
 {
-
     internal static class AttributesOfClass<T>
     {
         internal static readonly object LockO = new object();
-
-        private static ProviderName CurProviderName
-        {
-            get
-            {
-
-                if (ProviderName == null)
-                {
-                    return Configure.Provider;
-                }
-                else
-                {
-                    return ProviderName.Value;
-                }
-            }
-        }
-
-        private static ProviderName Provider
-        {
-            set
-            {
-                lock (LockO)
-                {
-                    if (ProviderName == null)
-                    {
-                        ProviderName = value;
-                    }
-                }
-
-            }
-        }
-        public static bool IsUssageActivator(ProviderName providerName)
-        {
-            Provider = providerName;
-            return IsUssageActivatorInner.Value;
-        }
 
         public static Lazy<bool> IsSerializableObject = new Lazy<bool>(() =>
         {
             var t = typeof(T).GetCustomAttribute(typeof(MapSerializableAttribute));
             if (t != null) return true;
             return false;
-
         }, LazyThreadSafetyMode.PublicationOnly);
 
         public static Lazy<bool> IsUssageActivatorInner = new Lazy<bool>(() =>
@@ -69,7 +29,6 @@ namespace ORM_1_21_
             var t = typeof(T).GetCustomAttribute(typeof(MapUsageActivatorAttribute), true);
             if (t != null) return true;
             return false;
-
         }, LazyThreadSafetyMode.PublicationOnly);
 
         private static readonly Lazy<Dictionary<string, string>> ColumnName = new Lazy<Dictionary<string, string>>(() =>
@@ -98,13 +57,6 @@ namespace ORM_1_21_
             new Lazy<Dictionary<Type, List<MapPrimaryKeyAttribute>>>(ActivatePrimaryKeyLazy,
                 LazyThreadSafetyMode.PublicationOnly);
 
-
-        public static List<BaseAttribute> ListBaseAttrE(ProviderName providerName)
-        {
-            Provider = providerName;
-            return ListBaseAttr.Value;
-        }
-
         private static readonly Lazy<List<BaseAttribute>> ListBaseAttr = new Lazy<List<BaseAttribute>>(() =>
         {
             var l = new List<BaseAttribute>();
@@ -120,12 +72,6 @@ namespace ORM_1_21_
                 typeof(T).GetProperties().ToList().ForEach(a => d.Add(a.Name, a));
                 return d;
             }, LazyThreadSafetyMode.PublicationOnly);
-
-        public static object GetValueE(ProviderName providerName, string k, T o)
-        {
-            Provider = providerName;
-            return GetValue.Value[k](o);
-        }
 
         private static readonly Lazy<Dictionary<string, Func<T, object>>> GetValue =
             new Lazy<Dictionary<string, Func<T, object>>>(
@@ -144,13 +90,6 @@ namespace ORM_1_21_
 
                     return dictionary;
                 }, LazyThreadSafetyMode.PublicationOnly);
-
-
-        public static void SetValueE(ProviderName providerName, string name, T t, object a)
-        {
-            Provider = providerName;
-            SetValue.Value[name](t, a);
-        }
 
         private static readonly Lazy<Dictionary<string, Action<T, object>>> SetValue =
             new Lazy<Dictionary<string, Action<T, object>>>(
@@ -178,12 +117,6 @@ namespace ORM_1_21_
                     return list;
                 }, LazyThreadSafetyMode.PublicationOnly);
 
-        public static void SetValueFreeSqlE(ProviderName providerName, string name, T t, object a)
-        {
-            Provider = providerName;
-            SetValueFreeSql.Value[name](t, a);
-        }
-
         private static readonly Lazy<Dictionary<string, Action<T, object>>> SetValueFreeSql =
             new Lazy<Dictionary<string, Action<T, object>>>(
                 () =>
@@ -209,13 +142,89 @@ namespace ORM_1_21_
                     return list;
                 }, LazyThreadSafetyMode.PublicationOnly);
 
+        private static readonly Lazy<bool> _isValid = new Lazy<bool>(() =>
+                typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), false).Any(),
+            LazyThreadSafetyMode.PublicationOnly);
+
+
+        private static readonly Lazy<bool> _isReceiverFreeSql = new Lazy<bool>(
+            () => { return typeof(T).GetCustomAttributes(typeof(MapReceiverFreeSqlAttribute), true).Any(); },
+            LazyThreadSafetyMode.PublicationOnly);
+
+        private static ProviderName CurProviderName
+        {
+            get
+            {
+                if (ProviderName == null)
+                    return Configure.Provider;
+                return ProviderName.Value;
+            }
+        }
+
+        private static ProviderName Provider
+        {
+            set
+            {
+                lock (LockO)
+                {
+                    if (ProviderName == null) ProviderName = value;
+                }
+            }
+        }
+
+        public static string AllSqlWhereFromMap => GetSqlAll();
+
+        private static string SqlWhere => SqlWhereAllLazy.Value[typeof(T)];
+
+        private static string SqlWhereBase =>
+            SqlWhereAllLazy.Value.ContainsKey(typeof(T).BaseType)
+                ? SqlWhereAllLazy.Value[typeof(T).BaseType]
+                : string.Empty;
+
+        public static bool IsValid => _isValid.Value;
+
+        public static bool IsReceiverFreeSql => _isReceiverFreeSql.Value;
+
+
+        private static ProviderName? ProviderName { get; set; }
+
+        public static bool IsUssageActivator(ProviderName providerName)
+        {
+            Provider = providerName;
+            return IsUssageActivatorInner.Value;
+        }
+
+
+        public static List<BaseAttribute> ListBaseAttrE(ProviderName providerName)
+        {
+            Provider = providerName;
+            return ListBaseAttr.Value;
+        }
+
+        public static object GetValueE(ProviderName providerName, string k, T o)
+        {
+            Provider = providerName;
+            return GetValue.Value[k](o);
+        }
+
+
+        public static void SetValueE(ProviderName providerName, string name, T t, object a)
+        {
+            Provider = providerName;
+            SetValue.Value[name](t, a);
+        }
+
+        public static void SetValueFreeSqlE(ProviderName providerName, string name, T t, object a)
+        {
+            Provider = providerName;
+            SetValueFreeSql.Value[name](t, a);
+        }
+
         public static List<MapColumnNameAttribute> CurrentTableAttributeDall(ProviderName providerName)
         {
             Provider = providerName;
             return AttributeDall.Value[typeof(T)];
         }
-
-        public static string AllSqlWhereFromMap => GetSqlAll();
 
         public static MapPrimaryKeyAttribute PkAttribute(ProviderName providerName)
         {
@@ -234,76 +243,56 @@ namespace ORM_1_21_
             return UtilsCore.ClearTrim(TableName(providerName));
         }
 
-        private static string SqlWhere => SqlWhereAllLazy.Value[typeof(T)];
-
-        private static string SqlWhereBase =>
-            SqlWhereAllLazy.Value.ContainsKey(typeof(T).BaseType)
-                ? SqlWhereAllLazy.Value[typeof(T).BaseType]
-                : string.Empty;
-
         public static string SimpleSqlSelect(ProviderName providerName)
         {
             Provider = providerName;
             return SimpleSelect(providerName);
         }
 
-        private static readonly Lazy<bool> _isValid = new Lazy<bool>(() =>
-            typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), false).Any(), LazyThreadSafetyMode.PublicationOnly);
-
-        public static bool IsValid => _isValid.Value;
-
-
-
-
-        private static readonly Lazy<bool> _isReceiverFreeSql = new Lazy<bool>(() =>
-        {
-            return typeof(T).GetCustomAttributes(typeof(MapReceiverFreeSqlAttribute), true).Any();
-        }, LazyThreadSafetyMode.PublicationOnly);
-
-        public static bool IsReceiverFreeSql => _isReceiverFreeSql.Value;
-
-
-
-
-        private static ProviderName? ProviderName { get; set; }
-
         private static Dictionary<Type, List<MapColumnNameAttribute>> ActivateDallAll()
         {
-            var dictionary = new Dictionary<Type, List<MapColumnNameAttribute>> { { typeof(T), ActivateADall(CurProviderName) } };
+            var dictionary = new Dictionary<Type, List<MapColumnNameAttribute>>
+                { { typeof(T), ActivateADall(CurProviderName) } };
             return dictionary;
         }
 
         private static Dictionary<Type, string> ActivateTableNameAll()
         {
-            ProviderName providerName = CurProviderName;
-            var dictionary = new Dictionary<Type, string>
+            try
             {
+                var providerName = CurProviderName;
+                var dictionary = new Dictionary<Type, string>
                 {
-                    typeof(T),
-                    ((MapTableNameAttribute)
-                        typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), false).First()).TableName(providerName)
-                }
-            };
-            if (typeof(T).BaseType != null)
-                RecursionTableName(dictionary, typeof(T).BaseType, providerName);
-            return dictionary;
+                    {
+                        typeof(T),
+                        ((MapTableNameAttribute)
+                            typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), false).First())
+                        .TableName(providerName)
+                    }
+                };
+                if (typeof(T).BaseType != null)
+                    RecursionTableName(dictionary, typeof(T).BaseType, providerName);
+                return dictionary;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Perhaps you forgot to put the table name attribute (MapTableNameAttribute) in the type: {typeof(T)}", ex);
+            }
+           
         }
 
         public static string GetTypeTable(ProviderName providerName)
         {
             Provider = providerName;
             var o = typeof(T).GetCustomAttributes(typeof(MapTypeMysqlTableAttribute), true);
-            if (o.Any())
-            {
-                return ((MapTypeMysqlTableAttribute)o.First()).TableType;
-            }
+            if (o.Any()) return ((MapTypeMysqlTableAttribute)o.First()).TableType;
 
             return "";
         }
 
-        private static void RecursionTableName(IDictionary<Type, string> dictionary, Type type, ProviderName providerName)
+        private static void RecursionTableName(IDictionary<Type, string> dictionary, Type type,
+            ProviderName providerName)
         {
-
             while (true)
             {
                 var d = type.GetCustomAttributes(typeof(MapTableNameAttribute), false);
@@ -340,8 +329,9 @@ namespace ORM_1_21_
             return lazy;
         }
 
-        private static void RecursionPrimaryKey(IDictionary<Type, List<MapPrimaryKeyAttribute>> dictionary, Type type, ProviderName
-            providerName)
+        private static void RecursionPrimaryKey(IDictionary<Type, List<MapPrimaryKeyAttribute>> dictionary, Type type,
+            ProviderName
+                providerName)
         {
             var l1 = new List<MapPrimaryKeyAttribute>();
             foreach (var f in type.GetProperties())
@@ -381,9 +371,7 @@ namespace ORM_1_21_
                 ((MapColumnNameAttribute)o1.First()).TypeColumn = f.PropertyType;
                 ((MapColumnNameAttribute)o1.First()).DeclareType = typeof(T);
                 if (o3.Any())
-                {
                     ((MapColumnNameAttribute)o1.First()).DefaultValue = ((MapDefaultValueAttribute)o3.First()).Value;
-                }
 
                 ((MapColumnNameAttribute)o1.First()).ColumnNameAlias = UtilsCore.GetAsAlias(
                     TableNameAllLazy.Value[typeof(T)],
@@ -392,9 +380,10 @@ namespace ORM_1_21_
 
                 var o4 = f.GetCustomAttributes(typeof(MapColumnTypeAttribute), true);
                 if (o4.Any())
-                {
                     ((MapColumnNameAttribute)o1.First()).TypeString = ((MapColumnTypeAttribute)o4.First()).TypeString;
-                }
+
+                var o5 = f.GetCustomAttributes(typeof(MapNotInsertUpdateAttribute), true);
+                if (o5.Any()) ((MapColumnNameAttribute)o1.First()).IsNotUpdateInsert = true;
 
 
                 res.Add((MapColumnNameAttribute)o1.First());
@@ -434,12 +423,11 @@ namespace ORM_1_21_
 
             var res = Pizdaticus.GetRiderToList<T>(reader, providerName);
             return res;
-
-
         }
 
 
-        public static IEnumerable<T> GetEnumerableObjectsGroupBy<TT>(IDataReader reader, Delegate expDelegate, ProviderName providerName)
+        public static IEnumerable<T> GetEnumerableObjectsGroupBy<TT>(IDataReader reader, Delegate expDelegate,
+            ProviderName providerName)
         {
             Provider = providerName;
             if (reader == null) return null;
@@ -455,7 +443,6 @@ namespace ORM_1_21_
             var sb = new StringBuilder();
             sb.Append(StringConst.Select + " ");
             foreach (var type in AttributeDall.Value.Keys.Reverse())
-            {
                 if (providerName == ORM_1_21_.ProviderName.Postgresql)
                 {
                     foreach (var a in AttributeDall.Value[type])
@@ -478,8 +465,6 @@ namespace ORM_1_21_
                             UtilsCore.GetAsAlias(TableNameAllLazy.Value[type], pk.GetColumnName(providerName)));
                 }
 
-            }
-
 
             sb = new StringBuilder(sb.ToString().Trim(','));
             sb.AppendFormat(" FROM {0}", TableName(providerName));
@@ -488,28 +473,13 @@ namespace ORM_1_21_
         }
 
 
-        public static void CreateUpdateCommandMysql(IDbCommand command, T item, ProviderName providerName)
+        public static void CreateUpdateCommandMysql(IDbCommand command, T item, ProviderName providerName,
+            params AppenderWhere[] whereObjects)
         {
             Provider = providerName;
             var listType = TableNameAllLazy.Value.Keys.Reverse();
             var allSql = new StringBuilder();
-            switch (providerName)
-            {
-                case ORM_1_21_.ProviderName.MsSql:
-                    //allSql.Append("DECLARE @T1 VARCHAR(20);BEGIN TRAN T1;");
-                    break;
-                case ORM_1_21_.ProviderName.MySql:
-                    allSql.Append(""); //START TRANSACTION;
-                    break;
-                case ORM_1_21_.ProviderName.Postgresql:
-                    allSql.Append("");
-                    break;
-                case ORM_1_21_.ProviderName.Sqlite:
-                    allSql.Append("");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(providerName), providerName, null);
-            }
+
 
             var i = 0;
             var sb = new StringBuilder();
@@ -522,9 +492,11 @@ namespace ORM_1_21_
 
                 var par = new StringBuilder();
                 foreach (var pra in AttributeDall.Value[type]
-                    .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
+                             .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
                 {
-                    par.AppendFormat(" {0}.{1} = {3}p{2},", TableNameAllLazy.Value[type], pra.GetColumnName(providerName), ++i,
+                    if (pra.IsNotUpdateInsert) continue;
+                    par.AppendFormat(" {0}.{1} = {3}p{2},", TableNameAllLazy.Value[type],
+                        pra.GetColumnName(providerName), ++i,
                         UtilsCore.PrefParam(providerName));
 
                     IDataParameter pr = command.CreateParameter();
@@ -549,9 +521,10 @@ namespace ORM_1_21_
                 }
 
 
-                sb.AppendFormat("UPDATE {0} SET {1} WHERE {0}.{2} = {4}p{3}; ", TableNameAllLazy.Value[type],
+                sb.AppendFormat("UPDATE {0} SET {1} WHERE {0}.{2} = {4}p{3}  ", TableNameAllLazy.Value[type],
                     par.ToString().Trim(','),
-                    PrimaryKeyLazy.Value[type].First().GetColumnName(providerName), ++i, UtilsCore.PrefParam(providerName));
+                    PrimaryKeyLazy.Value[type].First().GetColumnName(providerName), ++i,
+                    UtilsCore.PrefParam(providerName));
 
                 IDataParameter pr1 = command.CreateParameter();
                 pr1.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
@@ -568,29 +541,21 @@ namespace ORM_1_21_
             }
 
 
-            switch (providerName)
-            {
-                case ORM_1_21_.ProviderName.MsSql:
-                    // allSql.Append("COMMIT TRAN T1;");
-                    break;
-                case ORM_1_21_.ProviderName.MySql:
-                    allSql.Append(""); //COMMIT;
-                    break;
-                case ORM_1_21_.ProviderName.Postgresql:
-                    allSql.Append("");
-                    break;
-                case ORM_1_21_.ProviderName.Sqlite:
-                    allSql.Append("");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(providerName), providerName, null);
-            }
+            if (whereObjects != null && whereObjects.Length > 0)
+                foreach (var o in whereObjects)
+                {
+                    var nameParam = $"{UtilsCore.PrefParam(providerName)}p{++i}";
+                    allSql.Append($" AND {o.ColumnName} = {nameParam}");
+                    dynamic d = command.Parameters;
+                    d.AddWithValue(nameParam, o.Value);
+                }
 
-            command.CommandText = allSql.ToString();
+            command.CommandText = allSql + ";";
         }
 
 
-        public static void CreateUpdateCommandPostgres(IDbCommand command, T item, ProviderName providerName)
+        public static void CreateUpdateCommandPostgres(IDbCommand command, T item, ProviderName providerName,
+            params AppenderWhere[] whereObjects)
         {
             Provider = providerName;
             var listType = TableNameAllLazy.Value.Keys.Reverse();
@@ -606,9 +571,11 @@ namespace ORM_1_21_
 
                 var par = new StringBuilder();
                 foreach (var pra in AttributeDall.Value[type]
-                    .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
+                             .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
                 {
-                    par.AppendFormat(" {0} = {2}p{1},", pra.GetColumnName(providerName), ++i, UtilsCore.PrefParam(providerName));
+                    if (pra.IsNotUpdateInsert) continue;
+                    par.AppendFormat(" {0} = {2}p{1},", pra.GetColumnName(providerName), ++i,
+                        UtilsCore.PrefParam(providerName));
 
                     IDataParameter pr = command.CreateParameter();
                     pr.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
@@ -632,38 +599,46 @@ namespace ORM_1_21_
 
                     pr.Value = val ?? DBNull.Value;
                     if (prCore.PropertyType.BaseType == typeof(Enum))
-                    {
                         pr.DbType = DbTypeConverter.ConvertFrom(typeof(int));
-                    }
                     else
-                    {
                         pr.DbType = pra.DbType();
-                    }
 
                     if (prCore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.Sqlite)
                     {
                         pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
                         pr.Value = GetValue.Value[prCore.Name](item).ToString();
                     }
+
                     command.Parameters.Add(pr);
                 }
 
 
-                sb.AppendFormat("UPDATE {0} SET {1} WHERE {2} = {4}p{3}; ", TableNameAllLazy.Value[type],
+                sb.AppendFormat("UPDATE {0} SET {1} WHERE {2} = {4}p{3} ", TableNameAllLazy.Value[type],
                     par.ToString().Trim(','),
-                    PrimaryKeyLazy.Value[type].First().GetColumnName(providerName), ++i, UtilsCore.PrefParam(providerName));
+                    PrimaryKeyLazy.Value[type].First().GetColumnName(providerName), ++i,
+                    UtilsCore.PrefParam(providerName));
 
                 IDataParameter pr1 = command.CreateParameter();
                 pr1.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
-                var cname = PrimaryKeyLazy.Value[type].First();
-                var sxs = item.GetType().GetProperties().First(a => a.Name == cname.PropertyName);
-                var val1 = GetValue.Value[sxs.Name](item);
+                var pk = PrimaryKeyLazy.Value[type].First();
+                //var sxs = item.GetType().GetProperties().First(a => a.Name == cname.PropertyName);
+                var val1 = GetValue.Value[pk.PropertyName](item);
                 pr1.Value = val1 ?? DBNull.Value;
                 pr1.DbType = PrimaryKeyLazy.Value[type].First().DbType();
                 command.Parameters.Add(pr1);
                 allSql.Append(sb);
             }
-            command.CommandText = allSql.ToString();
+
+            if (whereObjects != null && whereObjects.Length > 0)
+                foreach (var o in whereObjects)
+                {
+                    var nameParam = $"{UtilsCore.PrefParam(providerName)}p{++i}";
+                    allSql.Append($" AND {o.ColumnName} = {nameParam}");
+                    dynamic d = command.Parameters;
+                    d.AddWithValue(nameParam, o.Value);
+                }
+
+            command.CommandText = allSql + ";";
         }
 
         public static string CreateCommandLimitForMySql(List<OneComposite> listOne, ProviderName providerName)
@@ -681,6 +656,7 @@ namespace ORM_1_21_
                     if (enumerable.Any()) sb.AppendFormat(" {0} = {1},", enumerable.First(), enumerable.Last());
                 }
             }
+
             var where = new StringBuilder();
             foreach (var v in listOne.Where(a => a.Operand == Evolution.Where)) where.AppendFormat(" {0} AND", v.Body);
             if (!string.IsNullOrEmpty(where.ToString()))
@@ -689,10 +665,11 @@ namespace ORM_1_21_
 
             if (providerName == ORM_1_21_.ProviderName.Postgresql || providerName == ORM_1_21_.ProviderName.Sqlite)
             {
-                string str = string.Format("UPDATE {0} SET {1}  {2};", from, sb.ToString().Trim(','),
+                var str = string.Format("UPDATE {0} SET {1}  {2};", from, sb.ToString().Trim(','),
                     where.ToString().Trim(','));
                 return str.Replace($"{TableName(providerName)}.", "");
             }
+
             var res = string.Format("UPDATE {0} SET {1}  {2};", from, sb.ToString().Trim(','),
                 where.ToString().Trim(','));
             return res;
@@ -707,7 +684,7 @@ namespace ORM_1_21_
             var r = new StringBuilder();
             foreach (var oneComprosite in listOne.Where(a => a.Operand == Evolution.Update))
             {
-                var ee = UtilsCore.MySplit(oneComprosite.Body);// oneComprosite.Body.Trim().Trim(',').Split(',');
+                var ee = UtilsCore.MySplit(oneComprosite.Body); // oneComprosite.Body.Trim().Trim(',').Split(',');
                 //  var eee = ee.Split(2).ToList();
                 foreach (var s in ee.Split(2))
                 {
@@ -731,7 +708,8 @@ namespace ORM_1_21_
                 r.ToString().Trim(','), from, where.ToString().Trim(','));
         }
 
-        public static string CreateCommandLimitForMsSql(List<OneComposite> listOne, string doSql, ProviderName providerName)
+        public static string CreateCommandLimitForMsSql(List<OneComposite> listOne, string doSql,
+            ProviderName providerName)
         {
             Provider = providerName;
             const string table = "tt1";
@@ -760,9 +738,10 @@ namespace ORM_1_21_
             var ordrby = listOne.Where(a => a.Operand == Evolution.OrderBy);
             foreach (var oneComprosite in ordrby)
                 sbOrderBy.AppendFormat("{0},", oneComprosite.Body);
-            var ss = SimpleSqlSelect(providerName).Replace(StringConst.Select, "") + AddSqlWhere(sbwhere.ToString(), providerName);
+            var ss = SimpleSqlSelect(providerName).Replace(StringConst.Select, "") +
+                     AddSqlWhere(sbwhere.ToString(), providerName);
             var mat4 = new Regex(@"AS[^,]*").Matches(doSql.Substring(0, doSql.IndexOf("FROM", StringComparison.Ordinal))
-                                                         .Replace(StringConst.Select, "") + ",");
+                .Replace(StringConst.Select, "") + ",");
             var d = new StringBuilder();
             if (mat4.Count > 0)
             {
@@ -785,10 +764,8 @@ namespace ORM_1_21_
 
 
             if (listOne.Any(a => a.Operand == Evolution.ElementAtOrDefault || a.Operand == Evolution.ElementAt))
-            {
                 //start += 1;
-                count = 1;//= start;
-            }
+                count = 1; //= start;
 
             var ff = string.Format("SELECT {0} FROM (SELECT ROW_NUMBER() " +
                                    "OVER(ORDER BY {3} ) AS rownum, {1} ) " +
@@ -823,7 +800,8 @@ namespace ORM_1_21_
                 {
                     if (pk.Generator == Generator.Native) continue;
                     if (pk.Generator == Generator.Assigned) continue;
-                    sbvalues.AppendFormat(" {0}.{1}={2}{3}{4},", TableNameAllLazy.Value[type], pk.GetColumnName(providerName),
+                    sbvalues.AppendFormat(" {0}.{1}={2}{3}{4},", TableNameAllLazy.Value[type],
+                        pk.GetColumnName(providerName),
                         UtilsCore.PrefParam(providerName), par, ++i);
                     IDataParameter pr = command.CreateParameter();
                     pr.ParameterName = string.Format("{0}{1}{2}", UtilsCore.PrefParam(providerName), par, i);
@@ -835,7 +813,8 @@ namespace ORM_1_21_
 
                 foreach (var rtp in AttributeDall.Value[type])
                 {
-                    sbvalues.AppendFormat(" {0}.{1}={2}{3}{4},", TableNameAllLazy.Value[type], rtp.GetColumnName(providerName),
+                    sbvalues.AppendFormat(" {0}.{1}={2}{3}{4},", TableNameAllLazy.Value[type],
+                        rtp.GetColumnName(providerName),
                         UtilsCore.PrefParam(providerName), par, ++i);
                     IDataParameter pr = command.CreateParameter();
                     pr.ParameterName = string.Format("{0}{1}{2}", UtilsCore.PrefParam(providerName), par, i);
@@ -846,7 +825,8 @@ namespace ORM_1_21_
                 }
 
                 sb.Append(sbvalues.ToString().Trim(',') + " ");
-                sb.Append(SimpleSelect(providerName).Substring(SimpleSelect(providerName).IndexOf("FROM", StringComparison.Ordinal)));
+                sb.Append(SimpleSelect(providerName)
+                    .Substring(SimpleSelect(providerName).IndexOf("FROM", StringComparison.Ordinal)));
                 sb.Append(";");
                 allSb.Append(sb);
             }
@@ -880,17 +860,15 @@ namespace ORM_1_21_
                 sb.AppendFormat("INSERT INTO {0} (", TableNameAllLazy.Value[type]);
                 foreach (var pk in PrimaryKeyLazy.Value[type])
                 {
+                    if (pk.IsNotUpdateInsert) continue;
 
                     if (pk.Generator != Generator.Assigned) continue;
 
-                    if (providerName == ORM_1_21_.ProviderName.Postgresql || providerName == ORM_1_21_.ProviderName.Sqlite)
-                    {
+                    if (providerName == ORM_1_21_.ProviderName.Postgresql ||
+                        providerName == ORM_1_21_.ProviderName.Sqlite)
                         sb.AppendFormat($"{pk.GetColumnName(providerName)}, ");
-                    }
                     else
-                    {
                         sb.AppendFormat("{0}.{1}, ", TableNameAllLazy.Value[type], pk.GetColumnName(providerName));
-                    }
                     if (pk.IsForeignKey)
                     {
                         values.Append(" @basekey, ");
@@ -898,7 +876,7 @@ namespace ORM_1_21_
                     else
                     {
                         values.AppendFormat("{0}{1}{2},", UtilsCore.PrefParam(providerName), par, ++i);
-                        IDataParameter pr = command.CreateParameter();// 
+                        IDataParameter pr = command.CreateParameter(); // 
                         pr.ParameterName = string.Format("{0}{1}{2}", UtilsCore.PrefParam(providerName), par, i);
                         // var val = obj.GetType().GetProperty(pk.PropertyName).GetValue(obj, null);
                         var val = GetValue.Value[pk.PropertyName](obj);
@@ -912,15 +890,13 @@ namespace ORM_1_21_
 
                 foreach (var rtp in AttributeDall.Value[type])
                 {
+                    if (rtp.IsNotUpdateInsert) continue;
 
-                    if (providerName == ORM_1_21_.ProviderName.Postgresql || providerName == ORM_1_21_.ProviderName.Sqlite)
-                    {
+                    if (providerName == ORM_1_21_.ProviderName.Postgresql ||
+                        providerName == ORM_1_21_.ProviderName.Sqlite)
                         sb.AppendFormat($"{rtp.GetColumnName(providerName)}, ");
-                    }
                     else
-                    {
                         sb.AppendFormat("{0}.{1},", TableNameAllLazy.Value[type], rtp.GetColumnName(providerName));
-                    }
 
                     if (rtp.IsForeignKey)
                     {
@@ -928,26 +904,34 @@ namespace ORM_1_21_
                     }
                     else
                     {
-                        bool isEnum = false;
+                        var isEnum = false;
                         values.AppendFormat("{0}{1}{2},", UtilsCore.PrefParam(providerName), par, ++i);
-                        IDataParameter pr = command.CreateParameter();// ProviderFactories.GetParameter(providerName);
+                        IDataParameter pr = command.CreateParameter(); // ProviderFactories.GetParameter(providerName);
                         pr.ParameterName = $"{UtilsCore.PrefParam(providerName)}{par}{i}";
                         var prCore = obj.GetType().GetProperty(rtp.PropertyName);
                         object val;
                         var st = UtilsCore.GetSerializeType(prCore.PropertyType);
                         if (prCore.PropertyType == typeof(Image))
+                        {
                             val = UtilsCore.ImageToByte((Image)GetValue.Value[prCore.Name](obj));
+                        }
                         else if (prCore.PropertyType.BaseType == typeof(Enum))
                         {
                             val = (int)GetValue.Value[prCore.Name](obj);
                             isEnum = true;
                         }
                         else if (st == SerializeType.Self)
+                        {
                             val = UtilsCore.ObjectToJson(GetValue.Value[prCore.Name](obj));
+                        }
                         else if (st == SerializeType.User)
+                        {
                             val = ((IMapSerializable)GetValue.Value[prCore.Name](obj)).Serialize();
+                        }
                         else
+                        {
                             val = GetValue.Value[prCore.Name](obj);
+                        }
 
                         if (prCore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.Sqlite)
                         {
@@ -965,46 +949,46 @@ namespace ORM_1_21_
                     }
                 }
 
-                sb = new StringBuilder(sb.ToString().Trim(' ', ',') + ")");
-                sb.Append(values.ToString().Trim(' ', ',') + ");");
+                sb = new StringBuilder(sb.ToString().Trim(' ', ',') + ") ");
+                sb.Append(values.ToString().Trim(' ', ',') + ") ");
                 allSb.Append(sb);
-
             }
 
-            switch (providerName)
+            string ss = allSb.ToString();
+
+            if (PkAttribute(providerName).Generator == Generator.Native)
             {
-                case ORM_1_21_.ProviderName.MsSql:
+                //allSb.Append(";");
+                switch (providerName)
+                {
+                    case ORM_1_21_.ProviderName.MsSql:
                     {
-                        allSb.Insert(0, declare);
+                       
+                        allSb.Append($" SELECT IDENT_CURRENT ('{TableNameAllLazy.Value[typeof(T)]}')");
                         break;
                     }
-                case ORM_1_21_.ProviderName.Postgresql:
+                    case ORM_1_21_.ProviderName.Postgresql:
                     {
-                        var s = allSb.ToString().Trim(' ', ';');
-                        allSb.Length = 0;
-                        allSb.Append(s).Append(" ").Append(UtilsCore.Pref(providerName).Replace("{1}", TableNameAllLazy.Value[typeof(T)])
-                            .Replace("{2}", PkAttribute(providerName).GetColumnName(providerName)));
+                        allSb.Append($" RETURNING {PkAttribute(providerName).GetColumnName(providerName)}");
                         break;
                     }
-                case ORM_1_21_.ProviderName.Sqlite:
+                    case ORM_1_21_.ProviderName.Sqlite:
                     {
-                        var s = allSb.ToString().Trim(' ', ';');
-                        allSb.Length = 0;
-                        allSb.Append(s).Append(" ").Append(UtilsCore.Pref(providerName).Replace("{1}", TableNameAllLazy.Value[typeof(T)])
-                            .Replace("{2}", PkAttribute(providerName).GetColumnName(providerName)));
+                        allSb.Append(";select last_insert_rowid()");
                         break;
                     }
-                case ORM_1_21_.ProviderName.MySql:
+                    case ORM_1_21_.ProviderName.MySql:
                     {
-                        allSb.Append(UtilsCore.Pref(providerName).Replace("{1}", TableNameAllLazy.Value[typeof(T)]).Replace("{2}",
-                            PkAttribute(providerName).GetColumnName(providerName)));
+                        allSb.Append("; SELECT LAST_INSERT_ID()");
                         break;
                     }
-                default:
-                    throw new ArgumentOutOfRangeException();
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
+            
 
-            command.CommandText = allSb.ToString();
+            command.CommandText = allSb+";";
         }
 
         public static void CreateDeleteCommand(IDbCommand command, T obj, ProviderName providerName)

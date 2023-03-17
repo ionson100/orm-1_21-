@@ -40,6 +40,7 @@ namespace ORM_1_21_
         /// <param name="connectionString">Connection string</param>
         public Sessione(string connectionString)
         {
+            Check.NotEmpty(connectionString, "connectionString");
             _connect = ProviderFactories.GetConnect(null);
             _connect.ConnectionString = connectionString;
         }
@@ -64,10 +65,10 @@ namespace ORM_1_21_
         private readonly IDbConnection _connect;
 
 
-        private static void NotificAfter<T>(T item, ActionMode mode) where T : class
+        private static void NotificAfter<TSource>(TSource item, ActionMode mode) where TSource : class
         {
             if (mode == ActionMode.None) return;
-            if (!(item is IActionDal<T> dal)) return;
+            if (!(item is IActionDal<TSource> dal)) return;
             switch (mode)
             {
                 case ActionMode.Insert:
@@ -82,29 +83,27 @@ namespace ORM_1_21_
             }
         }
 
-        private static void NotificBefore<T>(T item, ActionMode mode) where T : class
+        private static void NotificBefore<TSource>(TSource source, ActionMode mode) where TSource : class
         {
-            if (item is IValidateDal<T> dal && mode == ActionMode.Insert)
+            if (source is IValidateDal<TSource> dal && mode == ActionMode.Insert)
             {
-                dal.Validate(item);
+                dal.Validate(source);
             }
             if (mode == ActionMode.None) return;
-            if (!(item is IActionDal<T> actionDal)) return;
+            if (!(source is IActionDal<TSource> actionDal)) return;
             switch (mode)
             {
                 case ActionMode.Insert:
-                    actionDal.BeforeInsert(item);
+                    actionDal.BeforeInsert(source);
                     break;
                 case ActionMode.Update:
-                    actionDal.BeforeUpdate(item);
+                    actionDal.BeforeUpdate(source);
                     break;
                 case ActionMode.Delete:
-                    actionDal.BeforeDelete(item);
+                    actionDal.BeforeDelete(source);
                     break;
             }
         }
-
-
 
         ITransaction ISession.BeginTransaction()
         {
@@ -131,8 +130,6 @@ namespace ORM_1_21_
             return Transactionale;
         }
 
-
-
         ///<summary>
         /// Disposing
         ///</summary>
@@ -140,8 +137,6 @@ namespace ORM_1_21_
         {
             InnerDispose();
         }
-
-
 
         internal void OpenConnectAndTransaction(IDbCommand com)
         {
@@ -170,23 +165,17 @@ namespace ORM_1_21_
                     com.Transaction = Transaction;
                 }
             }
-
         }
-
-       
-
-
 
         bool ISession.IsDispose => _isDispose;
 
-     
+
         /// <summary>
         /// finally call dispose
         /// </summary>
         ~Sessione()
         {
             InnerDispose(true);
-
         }
 
         void InnerDispose(bool isFinalize = false)
@@ -218,19 +207,12 @@ namespace ORM_1_21_
             {
                 //ignored
             }
-
         }
-
 
         void ISession.WriteLogFile(string message)
         {
             InnerWriteLogFile($"WriteLogFile: {message}");
         }
-        
-      
-
-        
-
 
         private void InnerWriteLogFile(string message)
         {
@@ -250,31 +232,21 @@ namespace ORM_1_21_
 
         }
 
-
-        
-
-        
-
-         bool ISession.IsPersistent<T>(T obj)
+        bool ISession.IsPersistent<TSource>(TSource source)
         {
-            return UtilsCore.IsPersistent(obj);
+            return UtilsCore.IsPersistent(source);
         }
 
-
-        void ISession.ToPersistent<T>(T obj)
+        void ISession.ToPersistent<TSource>(TSource source)
         {
-            UtilsCore.SetPersistent(obj);
+            UtilsCore.SetPersistent(source);
         }
-
-
 
         IEnumerable<TableColumn> ISession.GetTableColumns(string tableName)
         {
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
             return ColumnsTableFactory.GeTableColumns(MyProviderName, com, UtilsCore.ClearTrim(tableName.Trim()));
-
-
         }
     }
 }

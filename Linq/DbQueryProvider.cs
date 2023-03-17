@@ -93,16 +93,37 @@ namespace ORM_1_21_.Linq
                 return CacheState.NoCache;
             }
         }
+        public async Task<List<TS>> ExecuteAsyncFree<TS>(Expression expression, CancellationToken cancellationToken,params object[] param)
+        {
+            _cancellationToken = cancellationToken;
 
-        public override Task<List<TS>> ExecuteAsync<TS>(Expression expression, CancellationToken cancellationToken)
+            return await Task.Factory.StartNew((a) =>
+                (List<TS>)ExecuteParam<TS>(expression,param), cancellationToken, 
+                TaskCreationOptions.LongRunning).ConfigureAwait(false);
+        }
+
+        public  async Task<List<TS>> ExecuteAsyncFree<TS>(Expression expression, CancellationToken cancellationToken)
+        {
+            _cancellationToken = cancellationToken;
+           
+            return await Task.Factory.StartNew((a) =>
+                (List<TS>)Execute<TS>(expression), cancellationToken, 
+                TaskCreationOptions.LongRunning).ConfigureAwait(false);
+        }
+
+        public override async Task<List<TS>> ExecuteAsync<TS>(Expression expression, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
             var isGroup = typeof(TS).Name.StartsWith("IGrouping");
             if (isGroup)
             {
-                return Task.FromResult(ActionCoreGroupBy<TS>(expression));
+                return await Task.Factory.StartNew((a)=>
+                    ActionCoreGroupBy<TS>(expression),cancellationToken,TaskCreationOptions.LongRunning)
+                    .ConfigureAwait(false);
             }
-            return Task.FromResult((List<TS>)Execute<TS>(expression));
+            return await Task.Factory.StartNew((a) =>
+                (List<TS>)Execute<TS>(expression),cancellationToken,TaskCreationOptions.LongRunning)
+                .ConfigureAwait(false);
         }
         List<TResult> ActionCoreGroupBy<TResult>(Expression expression)
         {
@@ -122,10 +143,11 @@ namespace ORM_1_21_.Linq
             return null;
         }
 
-        public override Task<TSource> ExecuteAsyncExtension<TSource>(Expression expression, CancellationToken cancellationToken)
+        public override async Task<TSource> ExecuteAsyncExtension<TSource>(Expression expression, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
-            return Task.FromResult((TSource)Execute<TSource>(expression));
+            return await Task.Factory.StartNew((a)=>
+                (TSource)Execute<TSource>(expression),cancellationToken,TaskCreationOptions.LongRunning).ConfigureAwait(false);
         }
 
 
@@ -261,6 +283,24 @@ namespace ORM_1_21_.Linq
 
         public override object Execute<TS>(Expression expression)
         {
+            CancellationTokenRegistration? registration=null;
+            void FunCancel()
+            {
+                try
+                {
+                    _com.Cancel();
+
+                }
+                catch (Exception ex)
+                {
+                    MySqlLogger.Error("cancellationToken", ex);
+                }
+                finally
+                {
+                    _sessione.Transactionale.isError = true;
+                    _cancellationToken.ThrowIfCancellationRequested();
+                }
+            }
             var t1 = typeof(T);
             var t2 = typeof(TS);
             bool isCacheUsage = CacheState == CacheState.CacheUsage || CacheState == CacheState.CacheOver || CacheState == CacheState.CacheKey;
@@ -315,25 +355,7 @@ namespace ORM_1_21_.Linq
             _com = services.CommandForLinq;
             if (_cancellationToken != default)
             {
-                _cancellationToken.Register(() =>
-                {
-                    try
-                    {
-                        _com.Cancel();
-
-                    }
-                    catch (Exception ex)
-                    {
-                        MySqlLogger.Error("cancellationToken", ex);
-                    }
-                    finally
-                    {
-                        _sessione.Transactionale.isError = true;
-                        _cancellationToken.ThrowIfCancellationRequested();
-                    }
-                   
-
-                });
+                registration= _cancellationToken.Register(FunCancel);
             }
             var to = GetTimeout();
             if (to >= 0)
@@ -780,6 +802,10 @@ namespace ORM_1_21_.Linq
 
                 ////////////////////////////////////////////////////////////////////////////////////////////////
                 dataReader = _com.ExecuteReader();
+                if (registration.HasValue)
+                {
+                    registration.Value.Dispose();
+                }
                 if (listCore.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
                 {
                     var lResult = AttributesOfClass<TS>.GetEnumerableObjectsGroupBy<T>(dataReader,
@@ -828,6 +854,7 @@ namespace ORM_1_21_.Linq
             }
         }
 
+        
 
 
         private (string, List<OneComposite>) TranslateE(Expression expression)

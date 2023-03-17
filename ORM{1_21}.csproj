@@ -79,9 +79,6 @@
     <DelaySign>false</DelaySign>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto, Version=1.9.0.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
-      <HintPath>packages\Portable.BouncyCastle.1.9.0\lib\net40\BouncyCastle.Crypto.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.7.0.0\lib\netstandard2.0\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
@@ -124,11 +121,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionMode.cs" />
+    <Compile Include="AppenderWhere.cs" />
     <Compile Include="AttributesOfClass.cs" />
     <Compile Include="Attribute\BaseAttribute.cs" />
     <Compile Include="Attribute\MapColumnTypeAttribute.cs" />
     <Compile Include="Attribute\MapDefaultValueAttribute.cs" />
     <Compile Include="Attribute\MapIndexAttribute.cs" />
+    <Compile Include="Attribute\MapNotInsertUpdateAttribute.cs" />
     <Compile Include="Attribute\MapReceiverFreeSqlAttribute.cs" />
     <Compile Include="Attribute\MapSerializableAttribute.cs" />
     <Compile Include="Attribute\MapTableNameAttribute.cs" />

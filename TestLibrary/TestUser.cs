@@ -14,9 +14,14 @@ namespace TestLibrary
 
         public void Deserialize(string str)
         {
+            if(str==null) return;
             var o = JsonConvert.DeserializeObject<TestUser>(str);
-            Id = o.Id;
-            Name = o.Name;
+            if (o != null)
+            {
+                Id = o.Id;
+                Name = o.Name;
+            }
+           
         }
     }
 }

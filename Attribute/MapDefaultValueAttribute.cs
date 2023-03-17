@@ -6,7 +6,7 @@ namespace ORM_1_21_
     /// Table field default value (set by user)
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class MapDefaultValueAttribute : Attribute
+    public sealed class MapDefaultValueAttribute : System.Attribute
     {
         /// <summary>
         /// 

@@ -116,6 +116,8 @@ namespace ORM_1_21_
 
         public static T SingleData<T>(IEnumerable<OneComposite> listOne, IEnumerable<T> source, out bool isActive)
         {
+            Check.NotNull(listOne, "listOne");
+            Check.NotNull(source, "source");
             if (listOne == null) throw new ArgumentException("listOne == null ");
             var oneComposite = listOne as OneComposite[] ?? listOne.ToArray();
             var result = source as T[] ?? source.ToArray();
@@ -245,6 +247,7 @@ namespace ORM_1_21_
             }
             else if (type == typeof(DateTime))
             {
+                
                 return providerName == ProviderName.Sqlite ? DateTime.Parse(e.ToString()) : e;
             }
             else if (type == typeof(DateTime?))

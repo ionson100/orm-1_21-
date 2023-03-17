@@ -14,7 +14,7 @@ namespace TestPostgres
 {
     internal class Program
     {
-        private const ProviderName ProviderName = ORM_1_21_.ProviderName.Postgresql;
+        private const ProviderName ProviderName = ORM_1_21_.ProviderName.MsSql;
 
         static async Task Main(string[] args)
         {
@@ -22,16 +22,16 @@ namespace TestPostgres
             switch (ProviderName)
             {
                 case ProviderName.MsSql:
-                    Starter.Run(MyDbMySql.s2, ProviderName);
+                    Starter.Run(ConnectionStrings.MsSql, ProviderName);
                     break;
                 case ProviderName.MySql:
-                    Starter.Run("Server=localhost;Database=test;Uid=root;Pwd=12345;", ProviderName);
+                    Starter.Run(ConnectionStrings.Mysql, ProviderName);
                     break;
                 case ProviderName.Postgresql:
-                    Starter.Run("Server=localhost;Port=5432;Database=testorm;User Id=postgres;Password=ion100312873;", ProviderName);
+                    Starter.Run(ConnectionStrings.Postgesql, ProviderName);
                     break;
                 case ProviderName.Sqlite:
-                    Starter.Run("Data Source=mydb.db;Version=3;BinaryGUID=False;", ProviderName);//
+                    Starter.Run(ConnectionStrings.Sqlite, ProviderName);//
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -39,8 +39,12 @@ namespace TestPostgres
             //Execute.RunThread();
             //Console.ReadKey();
             //Console.ReadKey();
-            //Execute.TotalTest();
-            //Execute.TotalTestNull();
+            Execute.TotalTest();
+            Execute.TotalTestNull();
+            Execute.TestNativeInsert();
+            Execute.TestAssignetInsert();
+            
+            Execute2.TestTimeStamp();
 
 
             ISession session = Configure.Session;
@@ -51,86 +55,9 @@ namespace TestPostgres
             }
             session.Save(new MyClass() { Age = 20, Name = "name1" });
             session.Save(new MyClass() { Age = 5, Name = "name1" });
-            // var r1 = session.Query<MyClass>().Where(a => a.Age > 0).FirstAsync().Result;
-            // var r2 = session.Query<MyClass>().Where(a => a.Age > 0).FirstAsync(s => s.Name.StartsWith("name")).Result;
-            // 
-            // var r3 = session.Query<MyClass>().Where(a => a.Age > 0).FirstOrDefaultAsync().Result;
-            // var r4 = session.Query<MyClass>().Where(a => a.Age > 0).FirstOrDefaultAsync(s => s.Name.StartsWith("name")).Result;
-            // 
-            // var r5 = session.Query<MyClass>().Where(a => a.Age > 0).LastAsync().Result;
-            // var r6 = session.Query<MyClass>().Where(a => a.Age > 0).LastAsync(s => s.Name.StartsWith("name")).Result;
-            // 
-            // var r7 = session.Query<MyClass>().Where(a => a.Age > 0).LastOrDefaultAsync().Result;
-            // var r8 = session.Query<MyClass>().Where(a => a.Age > 0).LastOrDefaultAsync(s => s.Name.StartsWith("name")).Result;
-            // 
-            // var r9 = session.Query<MyClass>().Where(a => a.Age == 20).SingleAsync().Result;
-            // var r10 = session.Query<MyClass>().Where(a => a.Age == 20).SingleAsync(s => s.Name.StartsWith("name")).Result;
-            // 
-            // var r11 = session.Query<MyClass>().Where(a => a.Age == 20).SingleOrDefaultAsync().Result;
-            // var r12 = session.Query<MyClass>().Where(a => a.Age == 20).SingleOrDefaultAsync(s => s.Name.StartsWith("name")).Result;
-            // 
-            // var r13 = session.Query<MyClass>().Where(a => a.Age == 20).AnyAsync().Result;
-            // var r14 = session.Query<MyClass>().Where(a => a.Age == 20).AnyAsync(s => s.Name.StartsWith("name")).Result;
-            // 
-            // 
-            // var r16 = session.Query<MyClass>().Where(a => a.Age == 20).AllAsync(s => s.Name.StartsWith("name")).Result;
-            // 
-            // var r17 = session.Query<MyClass>().Where(a => a.Age == 20).CountAsync().Result;
-            // var r18 = session.Query<MyClass>().Where(a => a.Age == 20).CountAsync(s => s.Name.StartsWith("name")).Result;
-            // 
-            // var r19 = session.Query<MyClass>().Where(a => a.Age == 20).LongCountAsync().Result;
-            // var r20 = session.Query<MyClass>().Where(a => a.Age == 20).LongCountAsync(s => s.Name.StartsWith("name")).Result;
-            // 
-            // var r22 = session.Query<MyClass>().MinAsync(a => a.Age).Result;
-            // 
-            // var r24 = session.Query<MyClass>().MaxAsync(a => a.Age).Result;
-            //
-            // 
-            // var r25 = session.Query<MyClass>().SumAsync(a => a.Age).Result;
-            //
-            //
-
-            CancellationTokenSource cancelTokenSource = new CancellationTokenSource();
-            CancellationToken token = cancelTokenSource.Token;
-            cancelTokenSource.Cancel();
-            try
-            { 
-                var r27 = session.Query<MyClass>().SumAsync(a => a.Age,token).Result;
-            }
-            catch (OperationCanceledException e)
-            {
-                Console.WriteLine(e);
-            }
-           
-           //
-           // var r30 = await session.Query<MyClass>().Where(a=>a.Age==5).UpdateAsync(a => new Dictionary<object,object>()
-           // {
-           //     { a.Age, 122 }
-           // });
-            //var ass = session.Query<MyClassMysql>().Where(a => a.Age == 122).SplitQueryableAsync(3).Result;
-           //
-           // await session.Query<MyClass>().ForEachAsync(a =>
-           // {
-           //     Console.WriteLine(a.Age);
-           // });
-           // var t = session.Query<MyClass>().Where(a => a.ValInt == null);
-           // await t.ForEachAsync(a =>
-           // {
-           //     Console.WriteLine(a.Name);
-           // });
-           // var rt=t.ToList();
-           // Dictionary<int,List<MyClass>> dictionary=new Dictionary<int,List<MyClass>>();
-           // session.Query<MyClass>().Distinct(a => a.Age).ToList().ForEach(a =>
-           // {
-           //     dictionary.Add((int)a,session.Query<MyClass>().Where(v=>v.Age==(int)a).ToList());
-           // });
-          
-          
 
 
-
-
-
+            var list = session.Query<TestList>().ToList();
             Console.ReadKey();
         }
 
@@ -145,11 +72,12 @@ namespace TestPostgres
 
 
     }
-    [MapTableName("test_list")]
+   [MapTableName("test_list")]
     class TestList
     {
         [MapPrimaryKey("id", Generator.Native)]
         public long Id { get; set; }
+
 
         [MapColumnName("mytest")]
         public MyTest MyTest { get; set; } = new MyTest() { Name = "123" };
@@ -159,6 +87,15 @@ namespace TestPostgres
 
         [MapColumnName("testuser")]
         public TestUser TestUser { get; set; } = new TestUser { Id = 23, Name = "23" };
+
+
+
+       
+        [MapNotInsertUpdate]
+        [MapColumnType("rowversion")]   
+        [MapDefaultValue(" ")]
+        [MapColumnName("ts")]
+        public byte[] Date { get; set; } =new byte[]{0};
 
     }
 

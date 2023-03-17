@@ -922,5 +922,80 @@ namespace TestLibrary
 
 
         }
+
+        public static void TestNativeInsert()
+        {
+
+            TestNativeInser<TiPostgresNative, MyDbPostgres>();
+            TestNativeInser< TiMysqlNative, MyDbMySql>();
+            TestNativeInser< TiMsSqlNative, MyDbMsSql>();
+            TestNativeInser< TiSqliteNative, MyDbSqlite>();
+        }
+
+        static void TestNativeInser<T,Tb>() where Tb: IOtherDataBaseFactory, new() where T : TestInsertBaseNative, new()
+        {
+            IOtherDataBaseFactory s = Activator.CreateInstance<Tb>();
+            Console.WriteLine($"*********************NativeInser {s.GetProviderName()} **********************");
+
+            ISession session = Configure.GetSession<Tb>();
+            if (session.TableExists<T>())
+            {
+                session.DropTable<T>();
+            }
+            session.TableCreate<T>();
+            T t = new T();
+            var i=session.Save(t);
+            Console.WriteLine($"{1} {i == 1}");
+            Console.WriteLine($"{2} {t.Id==1}");
+            Console.WriteLine($"{3} {session.IsPersistent(t)}");
+            List<T> list = new List<T>
+            {
+                new T(), new T(), new T()
+            };
+            i = session.InsertBulk(list);
+            Console.WriteLine($"{4} {i==3}");
+            i=list.Where(a => session.IsPersistent(a)).Count();
+            Console.WriteLine($"{5} {i == 3}");
+            i = session.Query<T>().Count();
+            Console.WriteLine($"{6} {i == 4}");
+        }
+        public static void TestAssignetInsert()
+        {
+
+            TestAssignetInser<TiPostgresAssignet, MyDbPostgres>();
+            TestAssignetInser<TiMysqlAssignet, MyDbMySql>();
+            TestAssignetInser<TiMsSqlAssignet, MyDbMsSql>();
+            TestAssignetInser<TiSqliteAssignet, MyDbSqlite>();
+        }
+        static void TestAssignetInser<T, Tb>() where Tb : IOtherDataBaseFactory, new() where T : TestInsertBaseAssignet, new()
+        {
+            IOtherDataBaseFactory s = Activator.CreateInstance<Tb>();
+            Console.WriteLine($"********************* AssignetInser {s.GetProviderName()} **********************");
+
+            ISession session = Configure.GetSession<Tb>();
+            if (session.TableExists<T>())
+            {
+                session.DropTable<T>();
+            }
+            session.TableCreate<T>();
+            T t = new T();
+            var i = session.Save(t);
+            Console.WriteLine($"{1} {i == 1}");
+          
+            Console.WriteLine($"{3} {session.IsPersistent(t)}");
+            List<T> list = new List<T>
+            {
+                new T(), new T(), new T()
+            };
+            i = session.InsertBulk(list);
+            Console.WriteLine($"{4} {i == 3}");
+            i = list.Where(a => session.IsPersistent(a)).Count();
+            Console.WriteLine($"{5} {i == 3}");
+            i = session.Query<T>().Count();
+            Console.WriteLine($"{6} {i == 4}");
+        }
+
+
+
     }
 }

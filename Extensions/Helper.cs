@@ -63,7 +63,8 @@ namespace ORM_1_21_.Extensions
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
                 { CastomExpression = exp, TypeRevalytion = Evolution.Delete });
-            return Task.FromResult(source.Provider.Execute<int>(source.Expression));
+             return ((QueryProvider)source.Provider).ExecuteAsyncExtension<int>(source.Expression, CancellationToken.None);
+            
         }
 
 
@@ -98,7 +99,12 @@ namespace ORM_1_21_.Extensions
         /// <param name="chunkSize">Quantity per piece</param>
         public static List<List<TSource>> SplitQueryable<TSource>(this IQueryable<TSource> source, int chunkSize)
         {
-            return InnerSplitQueryable(source, chunkSize);
+            var enumerable = source.ToList();
+            return enumerable
+                .Select((x, i) => new { Index = i, Value = x })
+                .GroupBy(x => x.Index / chunkSize)
+                .Select(x => x.Select(v => v.Value).ToList())
+                .ToList();
         }
 
         /// <summary>
@@ -108,17 +114,20 @@ namespace ORM_1_21_.Extensions
         /// <param name="chunkSize">Quantity per piece</param>
         public static Task<List<List<TSource>>> SplitQueryableAsync<TSource>(this IQueryable<TSource> source, int chunkSize)
         {
-            return Task.FromResult(InnerSplitQueryable(source, chunkSize));
+            return InnerSplitQueryable(source, chunkSize);
         }
 
-        private static List<List<T>> InnerSplitQueryable<T>(this IQueryable<T> coll, int chunkSize)
+        private static async Task<List<List<T>>> InnerSplitQueryable<T>(this IQueryable<T> coll, int chunkSize)
         {
-            var enumerable = coll.ToList();
-            return enumerable
-                .Select((x, i) => new { Index = i, Value = x })
-                .GroupBy(x => x.Index / chunkSize)
-                .Select(x => x.Select(v => v.Value).ToList())
-                .ToList();
+           return  await Task.Run(() =>
+            {
+                var enumerable = coll.ToList();
+                return enumerable
+                    .Select((x, i) => new { Index = i, Value = x })
+                    .GroupBy(x => x.Index / chunkSize)
+                    .Select(x => x.Select(v => v.Value).ToList())
+                    .ToList();
+            });
         }
 
 
@@ -159,7 +168,8 @@ namespace ORM_1_21_.Extensions
 
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
                 { CastomExpression = param, TypeRevalytion = Evolution.Update });
-            return Task.FromResult(source.Provider.Execute<int>(source.Expression));
+            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<int>(source.Expression, CancellationToken.None);
+          
         }
 
         /// <summary>
@@ -187,15 +197,16 @@ namespace ORM_1_21_.Extensions
         /// <param name="ses">ISession</param>
         /// <param name="sql">Request string</param>
         /// <param name="param">Request parameters</param>
-        public static Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params object[] param)
+        public static Task<List<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params object[] param)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
             if (param != null&&param.Length>0)
             {
-                return Task.FromResult((IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteParam<TResult>(callExpr, param));
+                return new DbQueryProvider<TResult>((Sessione)ses).ExecuteAsyncFree<TResult>(callExpr,CancellationToken.None, param);
             }
-            return Task.FromResult((IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).Execute<TResult>(callExpr));
+            
+            return new DbQueryProvider<TResult>((Sessione)ses).ExecuteAsyncFree<TResult>(callExpr,CancellationToken.None);
         }
 
 
