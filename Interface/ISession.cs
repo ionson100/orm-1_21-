@@ -25,18 +25,18 @@ namespace ORM_1_21_
         /// <param name="reader">IDataReader</param>
         /// <typeparam name="T"></typeparam>
         /// <returns>IEnumerable</returns>
-        IEnumerable<T> GetListMonster<T>(IDataReader reader) where T : class, new();
+        IEnumerable<T> GetListMonster<T>(IDataReader reader) where T : class;
 
         /// <summary>
         /// Saving an object in the database (insert or update), returns the number of rows affected
         /// </summary>
 
-        int Save<TSource>(TSource source) where TSource : class, new();
+        int Save<TSource>(TSource source) where TSource : class;
 
         /// <summary>
         /// Removing an object from the database, return the number of affected rows
         /// </summary>
-        int Delete<TSource>(TSource source) where TSource : class, new();
+        int Delete<TSource>(TSource source) where TSource : class;
 
         /// <summary>
         /// Getting ITransaction with the start of the transaction
@@ -51,7 +51,7 @@ namespace ORM_1_21_
         /// <summary>
         /// Create a table
         /// </summary>
-        int TableCreate<TSource>() where TSource : class, new();
+        int TableCreate<TSource>() where TSource : class;
 
         /// <summary>
         /// Getting DbCommand
@@ -61,12 +61,12 @@ namespace ORM_1_21_
         /// <summary>
         /// Drop table
         /// </summary>
-        int DropTable<TSource>() where TSource : class, new();
+        int DropTable<TSource>() where TSource : class;
 
         /// <summary>
         /// Checking if a table exists in database
         /// </summary>
-        bool TableExists<TSource>() where TSource : class, new();
+        bool TableExists<TSource>() where TSource : class;
 
         /// <summary>
         ///  Getting ExecuteReader
@@ -111,7 +111,7 @@ namespace ORM_1_21_
         /// <summary>
         /// Insert bulk from list
         /// </summary>
-        int InsertBulk<TSource>(IEnumerable<TSource> list, int timeOut = 30) where TSource : class, new();
+        int InsertBulk<TSource>(IEnumerable<TSource> list, int timeOut = 30) where TSource : class;
 
 
 
@@ -121,7 +121,7 @@ namespace ORM_1_21_
         /// <param name="fileCsv">path to file</param>
         /// <param name="FIELDTERMINATOR">terminator, default - ;</param>
         /// <param name="timeOut">timeout connection</param>
-        int InsertBulkFromFile<T>(string fileCsv, string FIELDTERMINATOR = ";", int timeOut = 30) where T : class, new();
+        int InsertBulkFromFile<T>(string fileCsv, string FIELDTERMINATOR = ";", int timeOut = 30) where T : class;
 
 
         /// <summary>
@@ -147,23 +147,23 @@ namespace ORM_1_21_
         /// <summary>
         /// Recreating a table
         /// </summary>
-        int TruncateTable<TSource>() where TSource : class, new();
+        int TruncateTable<TSource>() where TSource : class;
 
         /// <summary>
         /// Main point  Linq to Sql
         /// </summary>
         /// <typeparam name="TSource"></typeparam>
-        Query<TSource> Query<TSource>() where TSource : class, new();
+        Query<TSource> Query<TSource>() where TSource : class;
 
         /// <summary>
         /// Determines if the object is received from the database, or was created on the client
         /// </summary>
-        bool IsPersistent<TSource>(TSource obj) where TSource : class, new();
+        bool IsPersistent<TSource>(TSource obj) where TSource : class;
 
         /// <summary>
         /// Making an object persistent ( as object received from database)
         /// </summary>
-        void ToPersistent<TSource>(TSource source) where TSource : class, new();
+        void ToPersistent<TSource>(TSource source) where TSource : class;
 
         /// <summary>
         /// Write to log file
@@ -215,34 +215,34 @@ namespace ORM_1_21_
         /// <summary>
         /// Getting the name of the table to build an sql query.
         /// </summary>
-        string TableName<TSource>() where TSource : class, new();
+        string TableName<TSource>() where TSource : class;
 
         /// <summary>
         /// Getting the field name for a table
         /// </summary>
-        string ColumnName<TSource>(Expression<Func<TSource, object>> property) where TSource : class, new();
+        string ColumnName<TSource>(Expression<Func<TSource, object>> property) where TSource : class;
 
         /// <summary>
         /// Getting string SQL for insert command
         /// </summary>
-        string GetSqlInsertCommand<TSource>(TSource source) where TSource : class, new();
+        string GetSqlInsertCommand<TSource>(TSource source) where TSource : class;
 
         /// <summary>
         /// Getting string SQL for delete command
         /// </summary>
-        string GetSqlDeleteCommand<TSource>(TSource source) where TSource : class, new();
+        string GetSqlDeleteCommand<TSource>(TSource source) where TSource : class;
 
         /// <summary>
         /// Cloning an object using JSON
         /// </summary>
-        TSource Clone<TSource>(TSource source) where TSource : class, new();
+        TSource Clone<TSource>(TSource source) where TSource : class;
 
         /// <summary>
         /// Getting string SQL for bulk insert command
         /// </summary>
         /// <param name="enumerable"></param>
         /// <typeparam name="TSource"></typeparam>
-        string GetSqlForInsertBulk<TSource>(IEnumerable<TSource> enumerable) where TSource : class, new();
+        string GetSqlForInsertBulk<TSource>(IEnumerable<TSource> enumerable) where TSource : class;
 
 
         /// <summary>
@@ -262,6 +262,6 @@ namespace ORM_1_21_
         /// <param name="source">object for update</param>
         /// <param name="whereObjects">list condition</param>
         /// <returns>Query result: 1 -ok 0-Record not updated</returns>
-        int Update<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class, new();
+        int Update<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class;
     }
 }

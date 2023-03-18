@@ -351,6 +351,7 @@ namespace ORM_1_21_.Linq
 
             }
             /*usage cache*/
+         
 
             _com = services.CommandForLinq;
             if (_cancellationToken != default)
@@ -863,6 +864,7 @@ namespace ORM_1_21_.Linq
             ITranslate sq = new QueryTranslator<T>(_providerName);
 
             _param = sq.Param;
+          
             ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
             string res = sq.Translate(expression, out _);
             var sdd = sq.GetListOne();

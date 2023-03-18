@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace TestLibrary
 {
-    [MapUsageActivator]
+    //[MapUsageActivator]
     public class MyClassBase
     {
         public MyClassBase()

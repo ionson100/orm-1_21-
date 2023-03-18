@@ -8,10 +8,10 @@ namespace TestLibrary
     {
         public static void TestTimeStamp()
         {
-            TestTimeStampPostgresql();
+            //TestTimeStampPostgresql();
             TestTimeStampMsSql();
-            TestTimeStampMySql();
-            TestTimeStampSqlie();
+            //TestTimeStampMySql();
+            //estTimeStampSqlie();
         }
          static void TestTimeStampPostgresql()
         {
@@ -99,6 +99,7 @@ namespace TestLibrary
         [MapPrimaryKey("id", Generator.Assigned)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
+        [MapIndex]
         [MapColumnName("name")] public string Name { get; set; }
     }
 

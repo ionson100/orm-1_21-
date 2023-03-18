@@ -7,7 +7,10 @@ namespace TestLibrary
     [MapTableName("my_class5")]
     public class MyClass : MyClassBase
     {
-       
+        public MyClass(int t)
+        {
+
+        }
     }
     [MapTableName("my_class5")]
    public class MyClassMysql : MyClassBase

@@ -174,7 +174,7 @@ namespace ORM_1_21_
 
         public static string AllSqlWhereFromMap => GetSqlAll();
 
-        private static string SqlWhere => SqlWhereAllLazy.Value[typeof(T)];
+        internal static string SqlWhere => SqlWhereAllLazy.Value[typeof(T)];
 
         private static string SqlWhereBase =>
             SqlWhereAllLazy.Value.ContainsKey(typeof(T).BaseType)
@@ -419,7 +419,7 @@ namespace ORM_1_21_
         public static IEnumerable<T> GetEnumerableObjects(IDataReader reader, ProviderName providerName)
         {
             Provider = providerName;
-            if (reader == null) return null;
+            Check.NotNull(reader, "IDataReader reader");
 
             var res = Pizdaticus.GetRiderToList<T>(reader, providerName);
             return res;
@@ -430,7 +430,7 @@ namespace ORM_1_21_
             ProviderName providerName)
         {
             Provider = providerName;
-            if (reader == null) return null;
+            Check.NotNull(reader, "IDataReader reader");
             var rr = typeof(T).GetGenericArguments();
             var r = Pizdaticus.GetRiderToList<TT>(reader, providerName);
             var res = CallExp<T, TT>.GetTreeForGroupBy(r, expDelegate, rr[0]);

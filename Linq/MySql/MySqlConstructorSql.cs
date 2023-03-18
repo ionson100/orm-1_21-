@@ -27,6 +27,11 @@ namespace ORM_1_21_.Linq.MySql
         public string GetStringSql<T>(List<OneComposite> listOne,ProviderName providerName)
         {
             _listOne = listOne;
+            if (!string.IsNullOrWhiteSpace(AttributesOfClass<T>.SqlWhere))
+            {
+                _listOne.Add(new OneComposite
+                    { Operand = Evolution.Where, Body = $"({AttributesOfClass<T>.SqlWhere})" });
+            }
 
             if (PingComposite(Evolution.FreeSql)) return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
 

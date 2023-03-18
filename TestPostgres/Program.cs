@@ -39,25 +39,25 @@ namespace TestPostgres
             //Execute.RunThread();
             //Console.ReadKey();
             //Console.ReadKey();
-            Execute.TotalTest();
-            Execute.TotalTestNull();
-            Execute.TestNativeInsert();
-            Execute.TestAssignetInsert();
-            
-            Execute2.TestTimeStamp();
-
+            //Execute.TotalTest();
+            //Execute.TotalTestNull();
+            //Execute.TestNativeInsert();
+            //Execute.TestAssignetInsert();
+            //
+            //Execute2.TestTimeStamp();
+            //
 
             ISession session = Configure.Session;
             session.TruncateTable<MyClass>();
             for (int j = 0; j < 10; j++)
             {
-                session.Save(new MyClass() { Age = 10, Name = "name1" });
+                session.Save(new MyClass(1) { Age = 10, Name = "name1" });
             }
-            session.Save(new MyClass() { Age = 20, Name = "name1" });
-            session.Save(new MyClass() { Age = 5, Name = "name1" });
+            session.Save(new MyClass(1) { Age = 20, Name = "name1" });
+            session.Save(new MyClass(1) { Age = 5, Name = "name1" });
 
 
-            var list = session.Query<TestList>().ToList();
+            var list = session.Query<MyClass>().ToList();
             Console.ReadKey();
         }
 

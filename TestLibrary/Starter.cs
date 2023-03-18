@@ -32,7 +32,7 @@ namespace TestLibrary
 
         public static MyClass GetMyClass(int age, string name)
         {
-            return new MyClass { Age = age, Name = name };
+            return new MyClass(1){ Age = age, Name = name };
         }
     }
 }

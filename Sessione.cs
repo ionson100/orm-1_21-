@@ -723,7 +723,7 @@ namespace ORM_1_21_
             }
         }
 
-        public int Update<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class, new()
+        public int Update<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class
         {
             Check.NotNull(source, "source");
             if (!UtilsCore.IsPersistent(source))
@@ -737,7 +737,7 @@ namespace ORM_1_21_
             if (timeOut > 0) com.CommandTimeout = timeOut;
         }
 
-        private int SaveNew<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class, new()
+        private int SaveNew<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class
         {
             var res = 0;
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);

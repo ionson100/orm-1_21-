@@ -20,6 +20,11 @@ namespace ORM_1_21_.Linq.MsSql
         public string GetStringSql<T>(List<OneComposite> listOne,ProviderName providerName) //, JoinCapital joinCapital
         {
             _listOne = listOne;
+            if (!string.IsNullOrWhiteSpace(AttributesOfClass<T>.SqlWhere))
+            {
+                _listOne.Add(new OneComposite
+                    { Operand = Evolution.Where, Body = $"({AttributesOfClass<T>.SqlWhere})" });
+            }
 
             if (PingComposite(Evolution.Update)) 
                 return AttributesOfClass<T>.CreateCommandUpdateFreeForMsSql(_listOne,providerName);

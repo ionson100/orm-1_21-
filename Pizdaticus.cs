@@ -209,7 +209,8 @@ namespace ORM_1_21_
             }
             if (st == SerializeType.User)
             {
-                var o = Activator.CreateInstance(type);
+                var o=FormatterServices.GetSafeUninitializedObject(type);
+                //var o = Activator.CreateInstance(type);
                 ((IMapSerializable)o).Deserialize(e.ToString());
                 if (e == DBNull.Value) return null;
                 return o;

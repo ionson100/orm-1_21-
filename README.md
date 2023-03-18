@@ -50,7 +50,7 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
 ```
 ORM adds itself.
-###### Мапинг таблиц.
+###### Tables Map.
 ```C#
  [MapTableName("my_class")]
  class MyClass
@@ -89,6 +89,163 @@ ORM adds itself.
      public string Name { get; set; }
  }
 ```
+###### Attribute.
+Table name:
+```C#
+class PeopleAllBase
+{
+    [MapPrimaryKey("id", Generator.Native)]
+    public long Id { get; set; }
+    [MapColumnName("name")]
+    public string Name { get; set; }
+    [MapColumnName("age")]
+    public int Age { get; set; }
+}
+
+[MapTableName("People")]
+class PeopleAll : PeopleAllBase {}
+
+[MapTableName("People"," \"age\" < 55")]
+class PeopleYoung :PeopleAllBase {}
+
+[MapTableName("People", " \"age\" >= 55")]
+class PeopleOld : PeopleAllBase { }
+.......
+  ISession session = Configure.Session;
+  if (session.TableExists<PeopleAll>())
+  {
+      session.DropTable<PeopleAll>();
+  }
+
+  session.TableCreate<PeopleAll>();
+  for (int i = 0; i < 10; i++)
+  {
+      session.Save(new PeopleAll() { Age = i * 10, Name = "simpleName" });
+  }
+  session.Query<PeopleAll>().ForEach(all =>
+  {
+      Console.WriteLine($@" {all.Name} {all.Age}");
+  });
+  //sql:SELECT "People"."id", "People"."name", "People"."age" FROM "People"
+
+   session.Query<PeopleYoung>().Where(a => a.Name.StartsWith("simple")).ForEach(all =>
+  {
+      Console.WriteLine($@" Young {all.Name} {all.Age}");
+  });
+  //sql:SELECT "People"."id", "People"."name", "People"."age" FROM "People" 
+  //WHERE ("People"."name" LIKE CONCAT(@p1,'%')) and ( "age" < 55) params:  @p1 - simple 
+
+   session.Query<PeopleOld>().Where(a=>a.Name.StartsWith("simple")).ForEach(all =>
+  {
+      Console.WriteLine($@" Old {all.Name} {all.Age}");
+  });
+  //sql:SELECT "People"."id", "People"."name", "People"."age" FROM "People" 
+  //WHERE ("People"."name" LIKE CONCAT(@p1,'%')) and ( "age" >= 55) params:  @p1 - simple 
+```
+Column Name,Index,Not Insert and Update,Type,Default value
+```C#
+public class TestTSBase
+{
+    [MapPrimaryKey("id", Generator.Assigned)]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [MapIndex]
+    [MapColumnName("name")] 
+    public string Name { get; set; }
+}
+
+[MapTableName("TS2")]
+public class TSMsSql : TestTSBase
+{
+    [MapNotInsertUpdate]
+    [MapColumnName("ts")]
+    [MapColumnType("rowversion")]
+    [MapDefaultValue("")]
+    public byte[] Ts { get; set; } 
+}
+```
+```sql
+IF not exists (select 1 from information_schema.tables where table_name = 'TS2')CREATE TABLE [dbo].[TS2](
+[id] uniqueIdentifier default (newId()) primary key,
+ [ts] rowversion ,
+ [name] [NVARCHAR] (256) NULL,
+);
+CREATE INDEX [INDEX_TS2_name] ON [TS2] (name);
+
+INSERT INTO [TS2] ([TS2].[id], [TS2].[name]) VALUES (@p1,@p2) ; params:  @p1 - 03ced090-affd-4cf5-be48-3329267b2b98  @p2 - 123 
+SELECT TOP (2)  [TS2].[ts] AS ts2____ts, [TS2].[name] AS ts2____name, [TS2].[id] AS ts2____id FROM [TS2]; 
+UPDATE [TS2] SET  [TS2].[name] = @p1 WHERE [TS2].[id] = @p2   AND [ts] = @p3; params:  @p1 - 123  @p2 - 03ced090-affd-4cf5-be48-3329267b2b98  @p3 - System.Byte[] 
+UPDATE [TS2] SET  [TS2].[name] = @p1 WHERE [TS2].[id] = @p2   AND [ts] = @p3; params:  @p1 - 123  @p2 - 03ced090-affd-4cf5-be48-3329267b2b98  @p3 - System.Byte[] 
+```
+Primary Key
+
+```[MapPrimaryKey("id", Generator.Assigned)]``` - Assigned by user\
+```[MapPrimaryKey("id", Generator.Native)]``` - Designates a database as an auto-increment column
+
+Serialization to JSON
+```C#
+ class Foo
+ {
+     [MapColumnName("mylist")]
+     public List<MyItem> MyList { get; set; } = new List<MyItem>() { new MyItem() { Name = "simple" }
+ }
+```
+ORM serializes the property type List<> as a JCJON into a table with a text column
+```C#
+class Foo
+{
+  [MapColumnName("my_test")]
+  public MyTest MyTest { get; set; }
+}
+
+[MapSerializable]
+class MyTest 
+{
+    public string Name { get; set; }
+}
+
+```
+The ORM serializes the type marked with ```MapSerializableAttribute``` as JSON into a table with a text column.
+```C#
+class Foo
+{
+  [MapColumnName("my_test")]
+  public F MyTest { get; set; }
+}
+
+public class F: IMapSerializable
+{
+    public F()
+    {
+    }
+    public string Serialize()
+    {    
+    }
+    public void Deserialize(string str)
+    {          
+    }
+}
+```
+User Serialization. Using the Interface ```IMapSerializable```. Having a default constructor
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ###### Ling To SQL.
 Отложенное выполнение или запрос по требованию.\
