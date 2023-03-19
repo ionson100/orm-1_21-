@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -134,7 +135,7 @@ namespace ORM_1_21_.Utils
             typeof(byte[]),
 
     };
-        private static readonly Dictionary<Type, bool> SerializableTypeDictionary = new Dictionary<Type, bool>();
+        private static readonly ConcurrentDictionary<Type, bool> SerializableTypeDictionary = new ConcurrentDictionary<Type, bool>();
         private static readonly HashSet<Type> NumericTypes = new HashSet<Type>
         {
 
@@ -390,13 +391,10 @@ namespace ORM_1_21_.Utils
         private static bool IsSerializable(Type type)
         {
             if (Hlam.Contains(type)) return false;
-            if (SerializableTypeDictionary.ContainsKey(type) == false)
-            {
-                var t = type.GetCustomAttribute(typeof(MapSerializableAttribute));
-                SerializableTypeDictionary.Add(type, t != null);
-            }
-
-            return SerializableTypeDictionary[type];
+           
+            var t = type.GetCustomAttribute(typeof(MapSerializableAttribute));
+            SerializableTypeDictionary.TryAdd(type, t != null);
+          return SerializableTypeDictionary[type];
         }
 
         internal static bool IsJsonType(Type type)
