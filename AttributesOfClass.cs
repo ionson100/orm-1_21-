@@ -420,7 +420,6 @@ namespace ORM_1_21_
         {
             Provider = providerName;
             Check.NotNull(reader, "IDataReader reader");
-
             var res = Pizdaticus.GetRiderToList<T>(reader, providerName);
             return res;
         }

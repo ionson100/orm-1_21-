@@ -1,14 +1,19 @@
 ﻿namespace ORM_1_21_
 {
+
     /// <summary>
-    ///Validating data entered into the database
+    /// Tracking the modification  of an object in the database
     /// </summary>
-    public interface IValidateDal<in T> where T : class
+    /// <typeparam name="T">Type object</typeparam>
+    public interface IMapAction<in T> where T : class
     {
-      /// <summary>
-      /// Call before insert or update
-      /// </summary>
-      /// <param name="item"></param>
-        void Validate(T item);
+        /// <summary>
+        /// Modification event
+        /// </summary>
+        /// <param name="item">Modification object</param>
+        /// <param name="mode">Modification type</param>
+        void ActionCommand(T item, CommandMode mode);
     }
+
+  
 }

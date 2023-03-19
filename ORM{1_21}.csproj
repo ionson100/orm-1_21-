@@ -164,7 +164,6 @@
     <Compile Include="Generator.cs" />
     <Compile Include="Attribute\MapPrimaryKeyAttribute.cs" />
     <Compile Include="Attribute\MapColumnNameAttribute.cs" />
-    <Compile Include="Interface\IActionDAL.cs" />
     <Compile Include="Interface\ISession.cs" />
     <Compile Include="Linq\Creator.cs" />
     <Compile Include="Linq\DbQueryProvider.cs" />

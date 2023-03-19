@@ -65,50 +65,58 @@ namespace ORM_1_21_
         private readonly IDbConnection _connect;
 
 
-        private static void NotificAfter<TSource>(TSource item, ActionMode mode) where TSource : class
+        private static void NotificAfter<TSource>(TSource source, ActionMode mode) where TSource : class
         {
             if (mode == ActionMode.None) return;
-            if (!(item is IActionDal<TSource> dal)) return;
+            if (!(source is IMapAction<TSource> actionDal)) return;
             switch (mode)
             {
+                case ActionMode.None:
+                    break;
                 case ActionMode.Insert:
-                    dal.AfterInsert(item);
+                    actionDal.ActionCommand(source,CommandMode.AfterInsert);
                     break;
                 case ActionMode.Update:
-                    dal.AfterUpdate(item);
+                    actionDal.ActionCommand(source, CommandMode.AfterUpdate);
                     break;
                 case ActionMode.Delete:
-                    dal.AfterDelete(item);
+                    actionDal.ActionCommand(source, CommandMode.AfterDelete);
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
             }
         }
 
         private static void NotificBefore<TSource>(TSource source, ActionMode mode) where TSource : class
         {
-            if (source is IValidateDal<TSource> dal && mode == ActionMode.Insert)
-            {
-                dal.Validate(source);
-            }
+
+          
             if (mode == ActionMode.None) return;
-            if (!(source is IActionDal<TSource> actionDal)) return;
+            if (!(source is IMapAction<TSource> actionDal)) return;
             switch (mode)
             {
+                case ActionMode.None:
+                    break;
                 case ActionMode.Insert:
-                    actionDal.BeforeInsert(source);
+                    actionDal.ActionCommand(source, CommandMode.BeforeInsert);
                     break;
                 case ActionMode.Update:
-                    actionDal.BeforeUpdate(source);
+                    actionDal.ActionCommand(source, CommandMode.BeforeUpdate);
                     break;
                 case ActionMode.Delete:
-                    actionDal.BeforeDelete(source);
+                    actionDal.ActionCommand(source, CommandMode.BeforeDelete);
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
             }
+
         }
 
         ITransaction ISession.BeginTransaction()
         {
             if (Transactionale.MyStateTransaction == StateTransaction.Begin)
             {
+                Transactionale.isError = true;
                 throw new Exception("Transaction opened earlier");
             }
             Transactionale.MyStateTransaction = StateTransaction.Begin;
@@ -122,6 +130,7 @@ namespace ORM_1_21_
         {
             if (Transactionale.MyStateTransaction == StateTransaction.Begin)
             {
+                Transactionale.isError = true;
                 throw new Exception("Transaction opened earlier");
             }
             Transactionale.MyStateTransaction = StateTransaction.Begin;
@@ -244,6 +253,7 @@ namespace ORM_1_21_
 
         IEnumerable<TableColumn> ISession.GetTableColumns(string tableName)
         {
+            Check.NotEmpty(tableName, "tableName",() => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
             return ColumnsTableFactory.GeTableColumns(MyProviderName, com, UtilsCore.ClearTrim(tableName.Trim()));

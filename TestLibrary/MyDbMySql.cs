@@ -15,8 +15,6 @@ namespace TestLibrary
     }
   public  class MyDbMySql : IOtherDataBaseFactory
     {
-        
-
         private static readonly Lazy<DbProviderFactory> DbProviderFactory = 
             new Lazy<DbProviderFactory>(() => new MySqlClientFactory());
         public ProviderName GetProviderName()

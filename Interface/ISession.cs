@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ORM_1_21_
 {
@@ -64,6 +66,11 @@ namespace ORM_1_21_
         int DropTable<TSource>() where TSource : class;
 
         /// <summary>
+        /// Drop table
+        /// </summary>
+        int DropTableIfExists<TSource>() where TSource : class;
+
+        /// <summary>
         /// Checking if a table exists in database
         /// </summary>
         bool TableExists<TSource>() where TSource : class;
@@ -113,6 +120,11 @@ namespace ORM_1_21_
         /// </summary>
         int InsertBulk<TSource>(IEnumerable<TSource> list, int timeOut = 30) where TSource : class;
 
+        /// <summary>
+        /// Insert bulk from list
+        /// </summary>
+        Task<int> InsertBulkAsync<TSource>(IEnumerable<TSource> list, int timeOut,CancellationToken cancellationToken=default) where TSource : class;
+
 
 
         /// <summary>
@@ -148,6 +160,13 @@ namespace ORM_1_21_
         /// Recreating a table
         /// </summary>
         int TruncateTable<TSource>() where TSource : class;
+
+        /// <summary>
+        /// Recreating a table
+        /// </summary>
+        Task<int> TruncateTableAsync<TSource>(CancellationToken cancellationToken=default) where TSource : class;
+
+
 
         /// <summary>
         /// Main point  Linq to Sql
@@ -261,7 +280,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="source">object for update</param>
         /// <param name="whereObjects">list condition</param>
-        /// <returns>Query result: 1 -ok 0-Record not updated</returns>
+        /// <returns>Query result: 1 - ok  0-Record not updated</returns>
         int Update<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class;
     }
 }

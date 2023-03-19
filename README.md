@@ -2,13 +2,17 @@
 ОРМ ( MySql,PostgreSQL,MSSQL,Sqlite)\
 Allows access to different databases (MSSQL,Postgresql,MySQL,Sqlite) from one application context.\
 CodeFirst, Linq to sql,Query caching.
-###### Restrictions.
+#### Restrictions.
 All bases must be created before use, with the exception of Sqlite,\
  if the file does not exist, the ORM will create it.\
 Write to log file=debug mode only.\
 install database provider from NuGet (Npgsql,Mysql.Data,System.Data.SQLite,System.Data.SqlClient)
-###### Quick start
+#### Quick start
 ```C#
+using ORM_1_21_;
+using ORM_1_21_.Extensions;
+
+
 string path = null;
 #if DEBUG
     path = "SqlLog.txt";
@@ -50,8 +54,12 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
 ```
 ORM adds itself.
-###### Tables Map.
+#### Tables Map.
 ```C#
+using ORM_1_21_;
+using ORM_1_21_.Extensions;
+
+
  [MapTableName("my_class")]
  class MyClass
  {
@@ -89,9 +97,13 @@ ORM adds itself.
      public string Name { get; set; }
  }
 ```
-###### Attribute.
-Table name:
+#### Attribute.
+###### Table name:
 ```C#
+using ORM_1_21_;
+using ORM_1_21_.Extensions;
+
+//using Postgresql
 class PeopleAllBase
 {
     [MapPrimaryKey("id", Generator.Native)]
@@ -142,13 +154,15 @@ class PeopleOld : PeopleAllBase { }
   //sql:SELECT "People"."id", "People"."name", "People"."age" FROM "People" 
   //WHERE ("People"."name" LIKE CONCAT(@p1,'%')) and ( "age" >= 55) params:  @p1 - simple 
 ```
-Column Name,Index,Not Insert and Update,Type,Default value
+###### Column Name,Index,Not Insert and Update,Type,Default value
 ```C#
+using ORM_1_21_;
+using ORM_1_21_.Extensions;
+
 public class TestTSBase
 {
     [MapPrimaryKey("id", Generator.Assigned)]
     public Guid Id { get; set; } = Guid.NewGuid();
-
     [MapIndex]
     [MapColumnName("name")] 
     public string Name { get; set; }
@@ -163,8 +177,15 @@ public class TSMsSql : TestTSBase
     [MapDefaultValue("")]
     public byte[] Ts { get; set; } 
 }
+ var session=Configure.Session;
+ session.TableCreate<TSMsSql>();
+ session.Save(new TSMsSql { Name = "123" });
+ var t=session.Query<TSMsSql>().Single();
+ session.Save(t);
+ var res = session.Update(t, new AppenderWhere(session.ColumnName<TSMsSql>(d => d.Ts), t.Ts));
 ```
 ```sql
+// using MsSql
 IF not exists (select 1 from information_schema.tables where table_name = 'TS2')CREATE TABLE [dbo].[TS2](
 [id] uniqueIdentifier default (newId()) primary key,
  [ts] rowversion ,
@@ -174,23 +195,25 @@ CREATE INDEX [INDEX_TS2_name] ON [TS2] (name);
 
 INSERT INTO [TS2] ([TS2].[id], [TS2].[name]) VALUES (@p1,@p2) ; params:  @p1 - 03ced090-affd-4cf5-be48-3329267b2b98  @p2 - 123 
 SELECT TOP (2)  [TS2].[ts] AS ts2____ts, [TS2].[name] AS ts2____name, [TS2].[id] AS ts2____id FROM [TS2]; 
+UPDATE [TS2] SET  [TS2].[name] = @p1 WHERE [TS2].[id] = @p2; params:  @p1 - 123  @p2 - 03ced090-affd-4cf5-be48-3329267b2b98 
 UPDATE [TS2] SET  [TS2].[name] = @p1 WHERE [TS2].[id] = @p2   AND [ts] = @p3; params:  @p1 - 123  @p2 - 03ced090-affd-4cf5-be48-3329267b2b98  @p3 - System.Byte[] 
-UPDATE [TS2] SET  [TS2].[name] = @p1 WHERE [TS2].[id] = @p2   AND [ts] = @p3; params:  @p1 - 123  @p2 - 03ced090-affd-4cf5-be48-3329267b2b98  @p3 - System.Byte[] 
+ 
 ```
-Primary Key
+###### Primary Key
 
 ```[MapPrimaryKey("id", Generator.Assigned)]``` - Assigned by user\
 ```[MapPrimaryKey("id", Generator.Native)]``` - Designates a database as an auto-increment column
 
-Serialization to JSON
+###### Serialization to JSON
 ```C#
  class Foo
  {
      [MapColumnName("mylist")]
      public List<MyItem> MyList { get; set; } = new List<MyItem>() { new MyItem() { Name = "simple" }
  }
+ORM serializes the property type List<> as a JSON into a table with a text column
 ```
-ORM serializes the property type List<> as a JCJON into a table with a text column
+
 ```C#
 class Foo
 {
@@ -201,11 +224,11 @@ class Foo
 [MapSerializable]
 class MyTest 
 {
-    public string Name { get; set; }
+  public string Name { get; set; }
 }
-
+The ORM serializes the type marked with MapSerializableAttribute as JSON into a table with a text column.
 ```
-The ORM serializes the type marked with ```MapSerializableAttribute``` as JSON into a table with a text column.
+
 ```C#
 class Foo
 {
@@ -214,77 +237,151 @@ class Foo
 }
 
 public class F: IMapSerializable
+{ 
+  public string Serialize()
+  {    
+  }
+  public void Deserialize(string str)
+  {          
+  }
+}
+User Serialization. Using the Interface IMapSerializable.
+```
+
+<span style="color:red">Important</span>.
+ 
+By default, no constructor and initializer is called for map type.\
+To make this work, the type must be marked ```MapUsageActivatorAttribute```\
+Having a default constructor
+```C#
+[MapUsageActivator]
+class Foo
 {
-    public F()
-    {
-    }
-    public string Serialize()
-    {    
-    }
-    public void Deserialize(string str)
-    {          
-    }
+  public Fo(){}
+  public int IntFoo{get;set;}=5;
 }
 ```
-User Serialization. Using the Interface ```IMapSerializable```. Having a default constructor
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###### Ling To SQL.
-Отложенное выполнение или запрос по требованию.\
-Внимание! Не все конструкции реализованы в Визиторе, особенно для SQlite
-Пример запроса:
+#### Persistence
+All objects received or stored in the database are persistent.\
+On this marker, the method chooses to insert or update command.
 ```C#
-var list = Configure.Session.Query<MyClass>().
+MyClass myClass = new MyClass();
+ISession  session = Configure.Session;
+bool isPer = session.IsPersistent(myClass);// false
+session.Save(myClass); // Magic Insert command
+isPer = session.IsPersistent(myClass); //trye
+myClass=session.Query<MyClass>().First();
+isPer =session.IsPersistent(myClass); //trye
+session.Save(myClass);// Magic  update command
+isPer = session.IsPersistent(myClass); //trye
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Ling To SQL.
+
+```C#
+using ORM_1_21_;
+using ORM_1_21_.Extensions;
+
+
+var expSql = Configure.Session.Query<MyClass>().
 Where(a => (a.Age > 5 || a.Name.StartsWith("nam")) && a.Name.Contains("1")).
 OrderBy(d => d.Age).
 Select(f => new { age = f.Age }).
-Limit(0, 2).
-ToList();
+Limit(0, 2);
+var list=expSql.ToList();
 ```
 real sql:
 ```sql
+// Postgresql
 SELECT "my_class5"."age" FROM "my_class5" WHERE ((("my_class5"."age" > 5) 
 or ("my_class5"."name" LIKE CONCAT(@p1,'%'))) and 
 ("my_class5"."name" LIKE CONCAT('%',@p2,'%'))) ORDER BY "my_class5"."age" Limit 2 OFFSET 0;
 params:  @p1 - nam  @p2 - 1 
 ```
-###### native sql.
-example:
+###### Update:
 ```C#
-var ses1 = Configure.Session;
-var list = ses1.FreeSql<MyClass>($"select * from {ses1.TableName<MyClass>()} where \"name\" LIKE CONCAT(@p1,'%')",
-    new Parameter("@p1", "ion100")).ToList();
+var count = session.Query<MyClass>().Where(a => a.Age == 10).Update(d => new Dictionary<object, object>
+{
+  { d.Name, string.Concat(d.Name, d.Age) },
+  { d.DateTime, DateTime.Now }
+});
+```
+###### Delete
+```C#
+session.Query<MyClass>().Delete(a => a.Age == 10);
+```
+###### Insert Bulk:
+```C#
+var count=session.InsertBulk(new List<MyClass>()
+{
+   new MyClass { Age = 40, Name = "name", MyTest = new MyTest { Name = "simple" } },
+   new MyClass { Age = 20, Name = "name1", MyTest = new MyTest { Name = "simple" } },
+});
+```
+###### Distinct:
+```C#
+var d1 = Configure.Session.Query<MyClass>().Distinct(a => a.Name);
+var d2 = Configure.Session.Query<MyClass>().Distinct(a => new {a.Age,a.Name});
+```
+<span style="color:red">Important</span>\
+Replace expression in queries ``` "str1"+"str2"``` to ```string.Concat("str1","str2")```
+######  Caching:
+```C#
+var res = session.Query<MyClass>().Where(a => a.Age = 10).CacheUsage().ToList();//First call to create cache
+res = session.Query<MyClass>().Where(a => a.Age = 10).CacheUsage().ToList();//Next calls - get from cache
+res = session.Query<MyClass>().Where(a => a.Age = 10).CacheOver().ToList();//If cache exists, will be overwritten
+session.CacheClear<MyClass>();//Removing all caches for a type MyClass.
+```
+<span style="color:red">Important</span>\
+Removing all caches for a type MyClass, when calling any command Insert or Update.
+###### Sql Builder:
+```C#
+ISession session = Configure.Session;
+// select * from my_class where age=10;
+string sql = $" select * from {session.TableName<MyClass>()} where {session.ColumnName<MyClass>(a=>a.Age)} = @1";
+var res=session.FreeSql<MyClass>(sql, 10);
+```
+
+
+
+#### Native SQL.
+###### example class map native:
+```C#
+var session = Configure.Session;
+var list = session.FreeSql<MyClass>($"select * from {session.TableName<MyClass>()} where \"name\" LIKE CONCAT(@p1,'%')","name").ToList();
 // where MyClass have MapAttribute
 ```
-example: (dynamic)
+###### example: (dynamic)
 ```C#
  foreach (var r in Configure.Session.FreeSql<dynamic>("select enum as enum1,age from my_class"))
    Console.WriteLine($" enum1={r.enum1} age={r.age}");
 ```
-example: (one field)
+###### example: (one column)
 ```C#
  foreach (var r in Configure.Session.FreeSql<MyEnum>("select enum as enum1 from my_class"))
    Console.WriteLine($" enum={r}");
 ```
-example: (using attribute:```MapReceiverFreeSqlAttribute```)
+###### example: (using attribute:```MapReceiverFreeSqlAttribute```)
 ```c#
 [MapReceiverFreeSql]
  lass MyFreeSql
@@ -309,7 +406,7 @@ var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {sessio
 //Must match the sequence of constructor parameter types.: MyFreeSql(Guid idGuid, string name, int age, MyEnum @enum)
 
 ```
-example: (anonymous type)
+###### example: (anonymous type)
 ```C#
  static IEnumerable<T> TempSql<T>(T t)
  {
@@ -318,64 +415,19 @@ example: (anonymous type)
  foreach (var r in TempSql(new { enum1 = 1, age = 2 }))
     Console.WriteLine($"{r}");
 ```
-Рефлексия для собирания результата запроса, реализована на компиляции деревьев выражений\
-[Тынц](https://github.com/ionson100/AccessGetSet)\
-Что дает хороший прирост производительности.
-###### Интерфейсы.
+
+#### Interfaces.
 ```C#
- class T : IActionDal<T>,IValidateDal<T>
+ class MyClass : IMapAction<MyClass>
  {
-    void IActionDal<T>.AfterDelete(T item){}
-
-    void IActionDal<T>.AfterInsert(T item){}
-
-    void IActionDal<T>.AfterUpdate(T item){}
-
-    void IActionDal<T>.BeforeDelete(T item){}
-
-    void IActionDal<T>.BeforeInsert(T item){}
-
-    void IActionDal<T>.BeforeUpdate(T item){}
-
-    void IValidateDal<T>.Validate(T item){}// вызывается перед вставкой и обновлением
+   public void ActionCommand(MyClass item, CommandMode mode)
+   {
+       
+   }
  }
 ```
-Хорошее место сделать медиатор или декоратор.\
-\
-Объект ( на основе маппинга) полученный из базы,\
-или сохраненный удачно в базе, имеет признак персистентный:
-```C#
-var isP = ses.IsPersistent(list[0]);
-```
-сделать объект персистентным ( как бы он получен из базы):
-```C#
-var o=new MyClass();
-ses.ToPersistent(o);
-```
-если потом этот объект попытаться сохранить: ```ses.Save(o)```, то ОРМ попытается сделать запрос UPDATE.\
-При выполнении асинхронных запросов, иногда приведение типов не очень удачно работает,\
-например:
-```C#
-await Configure.Session.Querion<MyClass>().Where(s=>s.Name!=null).GroupBy(f=>f.Age).ToListAsync().ContinueWith(f =>
-       {
-         Console.WriteLine(f.Result.Count());
-       });
-```
-Error...\
-Всегда можно заменить:
-```C#
- await Configure.Session.Querion<MyClass>().Where(s=>s.Name!=null).ToListAsync().ContinueWith(f =>
- {
-   var res=f.Result.GroupBy(s => s.Age);
-   Console.WriteLine(res.Count());
- });
-```
-Запрос к базе не изменится.
-```sql
-SELECT "my_class"."id", "my_class"."name", "my_class"."age", "my_class"."desc", "my_class"."enum", "my_class"."date", "my_class"."test" 
-FROM "my_class" WHERE ("my_class"."name" is not null)
-```
-###### sql transaction.
+
+#### Transaction.
 ```C#
  ISession session = Configure.Session;
  var tr=session.BeginTransaction();
@@ -393,101 +445,135 @@ FROM "my_class" WHERE ("my_class"."name" is not null)
     session.Dispose();
  }  
 ```
-При работе с Sqlite и MsSql express, обращайте внимание на изоляцию транзакций,\
-из за специфики файловой структуры базы.
-###### Обращение к дугой базе данных.
-Для обращения к другой DB, есть метод получения сессии 
+```C#
+ using (ISession session = Configure.Session)
+ {
+   using (var tr = session.BeginTransaction())
+   {
+       // insert update 
+   }
+ }
+```
+
+#### Accessing another database.
+Getting a session
 ```C#
 var session=Configure.GetSession<TS>()
 ```
-Где TS тип который реализует интерфейс,```IOtherDataBaseFactory```\
-тип должен иметь открытый конструктор.
+The type that implements the interface:```IOtherDataBaseFactory```\
+the type must have a public constructor.
 ```C#
-  /// <summary>
-  ///Интерфейс для  обращение к чужой базе данных
-  /// </summary>
+ /// <summary>
+ /// Interface for accessing a foreign database
+ /// </summary>
  public interface IOtherDataBaseFactory
  {
-    /// <summary>
-    /// Тип базы данных 
-    /// </summary>
-    ProviderName GetProviderName();
+     /// <summary>
+     /// Type database
+     /// </summary>
+     ProviderName GetProviderName();
 
-    /// <summary>
-    /// Получение Провайдера для выбранной базы данных
-    /// </summary>
-    DbProviderFactory GetDbProviderFactories();
+     /// <summary>
+     /// Getting the DbProviderFactory for the selected database
+     /// </summary>
+     DbProviderFactory GetDbProviderFactories();
 
-    /// <summary>
-    /// Строка подключения к базе данных
-    /// </summary>
-    string GetConnectionString();
+     /// <summary>
+     /// Database connection string
+     /// </summary>
+     string GetConnectionString();
+ }
+
+```
+###### example MySql
+```C#
+ public  class MyDbMySql : IOtherDataBaseFactory
+ {
+   private static readonly Lazy<DbProviderFactory> DbProviderFactory = 
+       new Lazy<DbProviderFactory>(() => new MySqlClientFactory());
+   public ProviderName GetProviderName()
+   {
+       return ProviderName.MySql;
+   }
+   public string GetConnectionString()
+   {
+       return ConnectionStrings.Mysql;
+   }
+
+   public DbProviderFactory GetDbProviderFactories()
+   {
+       return DbProviderFactory.Value;
+   }
  }
 ```
-
-Пример реализации для приложения где орм настроена на Postgresql, а есть желание\
-обращаться и к MySql.
+###### example Postgres
 ```C#
- class MyDbMySql : IOtherDataBaseFactory
- {
+public class MyDbPostgres : IOtherDataBaseFactory
+{
+  private static readonly Lazy<DbProviderFactory> DbProviderFactory = 
+      new Lazy<DbProviderFactory>(() => Npgsql.NpgsqlFactory.Instance);
+  public ProviderName GetProviderName()
+  {
+      return ProviderName.Postgresql;
+  }
+  public string GetConnectionString()
+  {
+      return ConnectionStrings.Postgesql;
+  }
+
+  public DbProviderFactory GetDbProviderFactories()
+  {
+      return DbProviderFactory.Value;
+  }
+}
+```
+###### example MsSql
+```C#
+public class MyDbMsSql : IOtherDataBaseFactory
+{
+    private static readonly Lazy<DbProviderFactory> DbProviderFactory = 
+        new Lazy<DbProviderFactory>(() => System.Data.SqlClient.SqlClientFactory.Instance);
     public ProviderName GetProviderName()
     {
-        return ProviderName.MySql;
+        return ProviderName.MsSql;
     }
     public string GetConnectionString()
     {
-        return "Server=localhost;Database=test;Uid=root;Pwd=12345;";
+        return ConnectionStrings.MsSql;
     }
-    
+
     public DbProviderFactory GetDbProviderFactories()
     {
-        return MySql.Data.MySqlClient.MySqlClientFactory.Instance;
+        return DbProviderFactory.Value;
     }
- }
-/*******************/
-var session=Configure.GetSession<MyDbMySql>();
-var r1 = session.Querion<MyClassMysql>()
-                .Where(d => d.Age != 123)
-                .Select(f => new { name = f.Name });
-var task = r1.ToListAsync();
-var mysql = await task;
-```
-Сессия открыта только для обращения к базе MySql.\
-Следует учитывать. ВАЖНО.\
-Если вы использовали тип, в примере MyClassMysql, к обращению к одной базе, к другой базе\
-этот тип в контексте приложения, уже обращаться не может (кэширование).\
-Может возникнуть ошибка нарушения синтаксиса SQL.\
-Если структура таблиц в разных базах одинакова можно сделать трюк с наследованием
-```C#
-class BaseMap
-{
-  [MapColumnName("id")]
-  public Guid Id { get; set; } = Guid.NewGuid();
-
-  [MapColumnName("name")]
-  public string Name { get; set; }
 }
-[MapTableName("my_class")]
-class TablePostgres:BaseMap{}
-
-[MapTableName("my_class")]
-class TableMysql:BaseMap{}
 ```
-Один тип, для обращения к Postgresql (TablePostgres)\
-Другой тип (TableMysql), для обращения к MySql.
-###### Что такое сессия.
-Легковесный объект, реализующий IDisposable.\
-Является прокси для доступа к базе, в нем создаются объекты для доступа к базе.\
-Хороший тон - вызывать Dispose (using).\
-Если не вызывать, а писать в простом стиле : ``` Configure.Session.FreeSql... .```\
-Ошибки не будет, все объекты для доступа к базе получат своевременно Dispose.\
-Но будет вызван финализатор для сессии, когда подойдет время для очистки кучи.\
-Если вы используете транзакцию, лучше все же использовать using.(try/finaly)\
-Все метаданные типов, для маппинга таблиц, кэшируются при первом обращении.\
-Тип ```IOtherDataBaseFactory```   инстанцируется и кэшируется при первом обращении,\
-если менять его реализацию на лету, то за кэшируется первая реализация, изменения учитываться не будут.\
-Если сессия получила Dispose - этой сессии пользоваться нельзя, возникнет исключение.\
-Сессий много не бывает.
+###### example SQLite
+```C#
+public class MyDbSqlite : IOtherDataBaseFactory
+{
+    private static readonly Lazy<DbProviderFactory> DbProviderFactory = 
+        new Lazy<DbProviderFactory>(() => System.Data.SQLite.SQLiteFactory.Instance);
+    public ProviderName GetProviderName()
+    {
+        return ProviderName.Sqlite;
+    }
+    public string GetConnectionString()
+    {
+        return ConnectionStrings.Sqlite;
+    }
+
+    public DbProviderFactory GetDbProviderFactories()
+    {
+        return DbProviderFactory.Value;
+    }
+}
+```
+<span style="color:red">Important</span>\
+The session is opened only for this database\
+Type to use only for a specific database\
+
+
 
 
 

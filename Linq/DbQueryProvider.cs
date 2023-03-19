@@ -93,21 +93,21 @@ namespace ORM_1_21_.Linq
                 return CacheState.NoCache;
             }
         }
-        public async Task<List<TS>> ExecuteAsyncFree<TS>(Expression expression, CancellationToken cancellationToken,params object[] param)
+        public async Task<List<TS>> ExecuteAsyncFree<TS>(Expression expression, CancellationToken cancellationToken, params object[] param)
         {
             _cancellationToken = cancellationToken;
 
             return await Task.Factory.StartNew((a) =>
-                (List<TS>)ExecuteParam<TS>(expression,param), cancellationToken, 
+                (List<TS>)ExecuteParam<TS>(expression, param), cancellationToken,
                 TaskCreationOptions.LongRunning).ConfigureAwait(false);
         }
 
-        public  async Task<List<TS>> ExecuteAsyncFree<TS>(Expression expression, CancellationToken cancellationToken)
+        public async Task<List<TS>> ExecuteAsyncFree<TS>(Expression expression, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
-           
+
             return await Task.Factory.StartNew((a) =>
-                (List<TS>)Execute<TS>(expression), cancellationToken, 
+                (List<TS>)Execute<TS>(expression), cancellationToken,
                 TaskCreationOptions.LongRunning).ConfigureAwait(false);
         }
 
@@ -117,12 +117,12 @@ namespace ORM_1_21_.Linq
             var isGroup = typeof(TS).Name.StartsWith("IGrouping");
             if (isGroup)
             {
-                return await Task.Factory.StartNew((a)=>
-                    ActionCoreGroupBy<TS>(expression),cancellationToken,TaskCreationOptions.LongRunning)
+                return await Task.Factory.StartNew((a) =>
+                    ActionCoreGroupBy<TS>(expression), cancellationToken, TaskCreationOptions.LongRunning)
                     .ConfigureAwait(false);
             }
             return await Task.Factory.StartNew((a) =>
-                (List<TS>)Execute<TS>(expression),cancellationToken,TaskCreationOptions.LongRunning)
+                (List<TS>)Execute<TS>(expression), cancellationToken, TaskCreationOptions.LongRunning)
                 .ConfigureAwait(false);
         }
         List<TResult> ActionCoreGroupBy<TResult>(Expression expression)
@@ -146,8 +146,8 @@ namespace ORM_1_21_.Linq
         public override async Task<TSource> ExecuteAsyncExtension<TSource>(Expression expression, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
-            return await Task.Factory.StartNew((a)=>
-                (TSource)Execute<TSource>(expression),cancellationToken,TaskCreationOptions.LongRunning).ConfigureAwait(false);
+            return await Task.Factory.StartNew((a) =>
+                (TSource)Execute<TSource>(expression), cancellationToken, TaskCreationOptions.LongRunning).ConfigureAwait(false);
         }
 
 
@@ -162,39 +162,41 @@ namespace ORM_1_21_.Linq
         }
 
         public override object ExecuteSpp<TS>(Expression expression)
-        {
-            var sb = new StringBuilder();
+        { 
             IDataReader dataReader = null;
-            var services = (IServiceSessions)Sessione;
-            _com = services.CommandForLinq;
-            _com.CommandType = CommandType.StoredProcedure;
-            var re = TranslateE(expression);
-            _com.CommandText = re.Item1;
-            if (_providerName == ProviderName.MsSql)
-            {
-                var mat = new Regex(@"TOP\s@p\d").Matches(_com.CommandText);
-                foreach (var variable in mat)
-                {
-                    var st = variable.ToString().Split(' ')[1];
-                    var val = _param.FirstOrDefault(a => a.Key == st).Value;
-                    _com.CommandText = _com.CommandText.Replace(variable.ToString(),
-                        string.Format("{1} ({0})", val, StringConst.Top));
-                    _param.Remove(st);
-                }
-            }
-
-            foreach (var p in _paramFreeStoredPr)
-            {
-                sb.Append(string.Format(CultureInfo.CurrentCulture, "{0}-{1},", p.Name, p.Value));
-                IDataParameter pr = _com.CreateParameter();
-                pr.Direction = p.Direction;
-                pr.ParameterName = p.Name;
-                pr.Value = p.Value;
-                _com.Parameters.Add(pr);
-            }
-
             try
             {
+                var sb = new StringBuilder();
+               
+                var services = (IServiceSessions)Sessione;
+                _com = services.CommandForLinq;
+                _com.CommandType = CommandType.StoredProcedure;
+                var re = TranslateE(expression);
+                _com.CommandText = re.Item1;
+                if (_providerName == ProviderName.MsSql)
+                {
+                    var mat = new Regex(@"TOP\s@p\d").Matches(_com.CommandText);
+                    foreach (var variable in mat)
+                    {
+                        var st = variable.ToString().Split(' ')[1];
+                        var val = _param.FirstOrDefault(a => a.Key == st).Value;
+                        _com.CommandText = _com.CommandText.Replace(variable.ToString(),
+                            string.Format("{1} ({0})", val, StringConst.Top));
+                        _param.Remove(st);
+                    }
+                }
+
+                foreach (var p in _paramFreeStoredPr)
+                {
+                    sb.Append(string.Format(CultureInfo.CurrentCulture, "{0}-{1},", p.Name, p.Value));
+                    IDataParameter pr = _com.CreateParameter();
+                    pr.Direction = p.Direction;
+                    pr.ParameterName = p.Name;
+                    pr.Value = p.Value;
+                    _com.Parameters.Add(pr);
+                }
+
+
                 _sessione.OpenConnectAndTransaction(_com);
                 dataReader = _com.ExecuteReader();
                 if (AttributesOfClass<TS>.IsValid)
@@ -283,7 +285,8 @@ namespace ORM_1_21_.Linq
 
         public override object Execute<TS>(Expression expression)
         {
-            CancellationTokenRegistration? registration=null;
+            //Thread.Sleep(5000);
+            CancellationTokenRegistration? registration = null;
             void FunCancel()
             {
                 try
@@ -351,12 +354,12 @@ namespace ORM_1_21_.Linq
 
             }
             /*usage cache*/
-         
+
 
             _com = services.CommandForLinq;
             if (_cancellationToken != default)
             {
-                registration= _cancellationToken.Register(FunCancel);
+                registration = _cancellationToken.Register(FunCancel);
             }
             var to = GetTimeout();
             if (to >= 0)
@@ -829,23 +832,15 @@ namespace ORM_1_21_.Linq
 
                 return ress2;
             }
-           
+
             catch (Exception ex)
             {
-
-                
                 _sessione.Transactionale.isError = true;
-
-              
                 throw new Exception(ex.Message + Environment.NewLine + _com.CommandText, ex);
-
-                
-               
             }
 
             finally
             {
-               
                 _sessione.ComDisposable(_com);
                 if (dataReader != null)
                 {
@@ -855,7 +850,7 @@ namespace ORM_1_21_.Linq
             }
         }
 
-        
+
 
 
         private (string, List<OneComposite>) TranslateE(Expression expression)
@@ -864,7 +859,7 @@ namespace ORM_1_21_.Linq
             ITranslate sq = new QueryTranslator<T>(_providerName);
 
             _param = sq.Param;
-          
+
             ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
             string res = sq.Translate(expression, out _);
             var sdd = sq.GetListOne();

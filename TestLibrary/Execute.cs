@@ -285,7 +285,7 @@ namespace TestLibrary
                 o = session.Query<T>().Where(a => a.Age == 14).FirstOrDefault();
                 Configure.WriteLogFile($"{34 / 1} {o == null}");
                 session.TruncateTable<T>();
-                session.InsertBulk(new List<T>()
+                count=session.InsertBulk(new List<T>()
                 {
                     new T() { Age = 40, Name = "name", MyTest = new MyTest { Name = "simple" } },
                     new T() { Age = 20, Name = "name1", MyTest = new MyTest { Name = "simple" } },

@@ -198,7 +198,7 @@ namespace ORM_1_21_
         }
 
 
-
+       
         public static object MethodFree(ProviderName providerName, Type type, object e)
         {
             var st = UtilsCore.GetSerializeType(type);

@@ -5,6 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using ORM_1_21_.Extensions;
 using ORM_1_21_.Linq;
 using ORM_1_21_.Transaction;
 using ORM_1_21_.Utils;
@@ -16,8 +19,7 @@ namespace ORM_1_21_
     internal sealed partial class Sessione : ISession, IServiceSessions
     {
         private readonly List<IDbCommand> _dbCommands = new List<IDbCommand>();
-        private ISession _sessionImplementation;
-
+        
         IDbCommand IServiceSessions.CommandForLinq
         {
             get
@@ -34,7 +36,7 @@ namespace ORM_1_21_
 
         int ISession.Delete<TSource>(TSource source)
         {
-            Check.NotNull(source, "source");
+            Check.NotNull(source, "source", () => Transactionale.isError = true);
             if (!UtilsCore.IsPersistent(source))
                 throw new Exception("You are trying to delete an object not obtained from database");
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
@@ -44,17 +46,25 @@ namespace ORM_1_21_
             {
                 NotificBefore(source, ActionMode.Delete);
                 OpenConnectAndTransaction(com);
-                return com.ExecuteNonQuery();
+                var res= com.ExecuteNonQuery();
+                if (res == 1)
+                {
+                    this.CacheClear<TSource>();
+                    NotificAfter(source, ActionMode.Delete);
+                }
+
+                return res;
+
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
                 throw;
             }
             finally
             {
                 ComDisposable(com);
-                NotificAfter(source, ActionMode.Delete);
             }
         }
 
@@ -65,7 +75,7 @@ namespace ORM_1_21_
 
         int ISession.Save<TSource>(TSource source)
         {
-            Check.NotNull(source, "source");
+            Check.NotNull(source, "source",() => Transactionale.isError = true);
             return SaveNew(source);
         }
 
@@ -83,6 +93,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
                 throw;
             }
@@ -100,26 +111,41 @@ namespace ORM_1_21_
 
         int ISession.DropTable<TSource>()
         {
+            var sql= $"DROP TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)}";
+            return InnerDropTable<TSource>(sql);
+        }
+        public int DropTableIfExists<TSource>() where TSource : class
+        {
+            var sql = $"DROP TABLE IF EXISTS {AttributesOfClass<TSource>.TableName(MyProviderName)}";
+            return InnerDropTable<TSource>(sql);
+        }
+
+        int InnerDropTable<TSource>(string sql)
+        {
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
 
-            com.CommandText = $"DROP TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)}";
+            com.CommandText = sql;
             try
             {
                 OpenConnectAndTransaction(com);
-                return com.ExecuteNonQuery();
+                var res = com.ExecuteNonQuery();
+                this.CacheClear<TSource>();
+                return res;
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
                 throw;
             }
             finally
             {
-                InnerWriteLogFile($"DropTable: {com.CommandText}");
                 ComDisposable(com);
             }
         }
+
+       
 
         bool ISession.TableExists<TSource>()
         {
@@ -136,10 +162,19 @@ namespace ORM_1_21_
                     OpenConnectAndTransaction(com);
                     var res = (long)com.ExecuteScalar();
                     return res != 0;
+                }else if (MyProviderName == ProviderName.MsSql)
+                {
+                    string t = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
+                    string sql = $"SELECT OBJECT_ID('{t}', 'U');";
+                    com.Connection = _connect;
+                    com.CommandText = sql;
+                    OpenConnectAndTransaction(com);
+                     var res=com.ExecuteScalar();
+                     return !(res is DBNull);
                 }
                 else
                 {
-                    com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+                   
                     com.Connection = _connect;
                     com.CommandText = $"select 1 from {AttributesOfClass<TSource>.TableName(MyProviderName)};";
                     OpenConnectAndTransaction(com);
@@ -147,9 +182,11 @@ namespace ORM_1_21_
                     return true;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return false;
+                Transactionale.isError = true;
+                MySqlLogger.Error(com.CommandText, ex);
+                throw;
             }
             finally
             {
@@ -164,9 +201,20 @@ namespace ORM_1_21_
             com.Connection = _connect;
 
             com.CommandText = sql;
-            UtilsCore.AddParam(com, MyProviderName, @params);
-            OpenConnectAndTransaction(com);
-            return com.ExecuteReader();
+           
+            try
+            {
+                UtilsCore.AddParam(com, MyProviderName, @params);
+                OpenConnectAndTransaction(com);
+                return com.ExecuteReader();
+            }
+            catch (Exception e)
+            {
+                MySqlLogger.Error(com.CommandText, e);
+                Transactionale.isError = true;
+                throw;
+            }
+            
         }
 
         IDataReader ISession.ExecuteReaderT(string sql, int timeOut, params object[] param)
@@ -179,7 +227,18 @@ namespace ORM_1_21_
 
             UtilsCore.AddParam(com, MyProviderName, param);
             OpenConnectAndTransaction(com);
-            return com.ExecuteReader();
+            try
+            {
+                return com.ExecuteReader();
+
+            }
+            catch (Exception ex)
+            {
+                Transactionale.isError = true;
+                MySqlLogger.Error(com.CommandText, ex);
+                throw;
+            }
+            
         }
 
         DataTable ISession.GetDataTable(string sql, int timeOut)
@@ -204,6 +263,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(com.CommandText, ex);
                 throw;
             }
@@ -256,6 +316,7 @@ namespace ORM_1_21_
                     break;
                 }
 
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -274,6 +335,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
                 throw;
             }
@@ -327,6 +389,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(com.CommandText, ex);
                 throw;
             }
@@ -339,9 +402,8 @@ namespace ORM_1_21_
         int ISession.InsertBulk<TSource>(IEnumerable<TSource> list, int timeOut)
         {
             var enumerable = list as TSource[] ?? list.ToArray();
-            Check.NotNull(enumerable, "list");
-
-            Check.NotNull(enumerable, "list");
+            Check.NotNull(enumerable, "list",() => Transactionale.isError = true);
+            Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
             switch (MyProviderName)
@@ -365,7 +427,6 @@ namespace ORM_1_21_
             try
             {
                 OpenConnectAndTransaction(com);
-                com.CommandTimeout = 30000;
                 SetTimeOut(com, timeOut);
                 var res = com.ExecuteNonQuery();
                 foreach (var iSource in enumerable) ((ISession)this).ToPersistent(iSource);
@@ -373,7 +434,81 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                Transactionale.isError = true;
+                MySqlLogger.Error($"{ex.Message}{Environment.NewLine}{UtilsCore.GetStringSql(com)}", ex);
+                throw;
+            }
+            finally
+            {
+                ComDisposable(com);
+            }
+        }
+
+        public Task<int> InsertBulkAsync<TSource>(IEnumerable<TSource> list, int timeOut, CancellationToken cancellationToken = default) where TSource : class
+        {
+           
+            var tcs = new TaskCompletionSource<int>();
+            CancellationTokenRegistration? registration = null;
+            var enumerable = list as TSource[] ?? list.ToArray();
+            Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
+            Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
+            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            switch (MyProviderName)
+            {
+                case ProviderName.MsSql:
+                    com.CommandText = new UtilsBulkMsSql(ProviderName.MsSql).GetSql(enumerable);
+                    break;
+                case ProviderName.MySql:
+                    com.CommandText = new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable);
+                    break;
+                case ProviderName.Postgresql:
+                    com.CommandText = new UtilsBulkPostgres(ProviderName.Postgresql).GetSql(enumerable);
+                    break;
+                case ProviderName.Sqlite:
+                    com.CommandText = new UtilsBulkMySql(ProviderName.Sqlite).GetSql(enumerable);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            try
+            {
+                OpenConnectAndTransaction(com);
+                com.CommandTimeout = timeOut;
+                if (cancellationToken != default)
+                {
+                    registration = cancellationToken.Register(() =>
+                    {
+                        try
+                        {
+                            com.Cancel();
+
+                        }
+                        catch (Exception ex)
+                        {
+                            MySqlLogger.Error("cancellationToken", ex);
+                        }
+                        finally
+                        {
+                            Transactionale.isError = true;
+                            cancellationToken.ThrowIfCancellationRequested();
+                        }
+                    });
+                }
+                var res = com.ExecuteNonQuery();
+                if (registration.HasValue)
+                {
+                    registration.Value.Dispose();
+                }
+                foreach (var iSource in enumerable) ((ISession)this).ToPersistent(iSource);
+                tcs.SetResult(res);
+                return tcs.Task;
+            }
+            catch (Exception ex)
+            {
+                Transactionale.isError = true;
+                MySqlLogger.Error($"{ex.Message}{Environment.NewLine}{UtilsCore.GetStringSql(com)}", ex);
                 throw;
             }
             finally
@@ -416,8 +551,9 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                return -100;
+                throw;
             }
             finally
             {
@@ -442,6 +578,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
                 throw;
             }
@@ -469,6 +606,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
                 throw;
             }
@@ -491,10 +629,68 @@ namespace ORM_1_21_
             try
             {
                 OpenConnectAndTransaction(com);
-                return com.ExecuteNonQuery();
+                var res= com.ExecuteNonQuery();
+                this.CacheClear<TSource>();
+                return res;
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
+            }
+            finally
+            {
+                ComDisposable(com);
+            }
+        }
+
+        public Task<int> TruncateTableAsync<TSource>(CancellationToken cancellationToken = default) where TSource : class
+        {
+            var tcs = new TaskCompletionSource<int>();
+            CancellationTokenRegistration? registration = null;
+            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            com.CommandType = CommandType.Text;
+            if (MyProviderName == ProviderName.Sqlite)
+                com.CommandText = $"DELETE FROM {AttributesOfClass<TSource>.TableName(MyProviderName)};";
+            else
+                com.CommandText = $"TRUNCATE TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)};";
+
+            try
+            {
+                OpenConnectAndTransaction(com);
+                if (cancellationToken != default)
+                {
+                    registration = cancellationToken.Register(() =>
+                    {
+                        try
+                        {
+                            com.Cancel();
+                        }
+                        catch (Exception ex)
+                        {
+                            MySqlLogger.Error("cancellationToken", ex);
+                        }
+                        finally
+                        {
+                            Transactionale.isError = true;
+                            cancellationToken.ThrowIfCancellationRequested();
+                        }
+                    });
+                }
+                var res = com.ExecuteNonQuery();
+                if (registration.HasValue)
+                {
+                    registration.Value.Dispose();
+                }
+                this.CacheClear<TSource>();
+                tcs.SetResult(res);
+                return tcs.Task;
+            }
+            catch (Exception ex)
+            {
+                Transactionale.isError = true;
                 MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
                 throw;
             }
@@ -542,11 +738,11 @@ namespace ORM_1_21_
             try
             {
                 OpenConnectAndTransaction(com);
-                com.CommandTimeout = 30000;
                 return com.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
                 throw;
             }
@@ -567,12 +763,12 @@ namespace ORM_1_21_
             try
             {
                 OpenConnectAndTransaction(com);
-                com.CommandTimeout = 30000;
                 SetTimeOut(com, timeOut);
                 return com.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
                 throw;
             }
@@ -584,12 +780,22 @@ namespace ORM_1_21_
 
         string ISession.TableName<TSource>()
         {
-            return AttributesOfClass<TSource>.TableName(MyProviderName);
+            try
+            {
+                return AttributesOfClass<TSource>.TableName(MyProviderName);
+
+            }
+            catch (Exception)
+            {
+                Transactionale.isError = true;
+                throw;
+            }
+           
         }
 
         string ISession.ColumnName<TSource>(Expression<Func<TSource, object>> property)
         {
-            Check.NotNull(property, "property");
+            Check.NotNull(property, "property", () => Transactionale.isError = true);
             LambdaExpression lambda = property;
             MemberExpression memberExpression;
 
@@ -609,43 +815,62 @@ namespace ORM_1_21_
                     return dal.GetColumnName(MyProviderName);
             if (AttributesOfClass<TSource>.PkAttribute(MyProviderName).PropertyName == name)
                 return AttributesOfClass<TSource>.PkAttribute(MyProviderName).GetColumnName(MyProviderName);
+            Transactionale.isError = true;
             throw new Exception($"Can't determine table field for type: {typeof(TSource)}");
         }
 
         string ISession.GetSqlInsertCommand<TSource>(TSource source)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            switch (MyProviderName)
+            Check.NotNull(source, "source", () => Transactionale.isError = true);
+            try
             {
-                case ProviderName.MsSql:
-                    throw new Exception("не рализовано");
-                case ProviderName.MySql:
-                    throw new Exception("не рализовано");
-                case ProviderName.Postgresql:
-                    return new CommandNativePostgres(ProviderName.Postgresql).GetInsertSql(source);
-                case ProviderName.Sqlite:
-                    throw new Exception("не рализовано");
-                default:
-                    throw new ArgumentOutOfRangeException();
+                switch (MyProviderName)
+                {
+                    case ProviderName.MsSql:
+                        throw new Exception("не рализовано");
+                    case ProviderName.MySql:
+                        throw new Exception("не рализовано");
+                    case ProviderName.Postgresql:
+                        return new CommandNativePostgres(ProviderName.Postgresql).GetInsertSql(source);
+                    case ProviderName.Sqlite:
+                        throw new Exception("не рализовано");
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
+            catch (Exception e)
+            {
+                Transactionale.isError = true;
+                throw;
+            }
+           
         }
 
         string ISession.GetSqlDeleteCommand<TSource>(TSource source)
         {
-            Check.NotNull(source, "source");
-            switch (MyProviderName)
+            Check.NotNull(source, "source", () => Transactionale.isError = true);
+            try
             {
-                case ProviderName.MsSql:
-                    throw new Exception("not implemented");
-                case ProviderName.MySql:
-                    throw new Exception("not implemented");
-                case ProviderName.Postgresql:
-                    return new CommandNativePostgres(ProviderName.Postgresql).GetDeleteSql(source);
-                case ProviderName.Sqlite:
-                    throw new Exception("not implemented");
-                default:
-                    throw new ArgumentOutOfRangeException();
+                switch (MyProviderName)
+                {
+                    case ProviderName.MsSql:
+                        throw new Exception("not implemented");
+                    case ProviderName.MySql:
+                        throw new Exception("not implemented");
+                    case ProviderName.Postgresql:
+                        return new CommandNativePostgres(ProviderName.Postgresql).GetDeleteSql(source);
+                    case ProviderName.Sqlite:
+                        throw new Exception("not implemented");
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
+            catch (Exception e)
+            {
+                Transactionale.isError = true;
+                throw;
+            }
+           
             // 
         }
 
@@ -680,6 +905,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(com.CommandText, ex);
                 throw;
             }
@@ -698,6 +924,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error("Clone", ex);
                 throw;
             }
@@ -706,35 +933,52 @@ namespace ORM_1_21_
         string ISession.GetSqlForInsertBulk<TSource>(IEnumerable<TSource> list)
         {
             var enumerable = list as TSource[] ?? list.ToArray();
-            Check.NotNull(enumerable, "list");
-            if (list == null) throw new ArgumentNullException(nameof(list));
-            switch (MyProviderName)
+            Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
+
+            try
             {
-                case ProviderName.MsSql:
-                    return new UtilsBulkMsSql(ProviderName.MsSql).GetSql(enumerable);
-                case ProviderName.MySql:
-                    return new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable);
-                case ProviderName.Postgresql:
-                    return new UtilsBulkPostgres(ProviderName.Postgresql).GetSql(enumerable);
-                case ProviderName.Sqlite:
-                    return new UtilsBulkMySql(ProviderName.Sqlite).GetSql(enumerable);
-                default:
-                    throw new ArgumentOutOfRangeException();
+                switch (MyProviderName)
+                {
+                    case ProviderName.MsSql:
+                        return new UtilsBulkMsSql(ProviderName.MsSql).GetSql(enumerable);
+                    case ProviderName.MySql:
+                        return new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable);
+                    case ProviderName.Postgresql:
+                        return new UtilsBulkPostgres(ProviderName.Postgresql).GetSql(enumerable);
+                    case ProviderName.Sqlite:
+                        return new UtilsBulkMySql(ProviderName.Sqlite).GetSql(enumerable);
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
+            catch (Exception e)
+            {
+                Transactionale.isError = true;
+                throw;
+            }
+           
         }
 
         public int Update<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class
         {
-            Check.NotNull(source, "source");
+            Check.NotNull(source, "source", () => Transactionale.isError = true);
             if (!UtilsCore.IsPersistent(source))
+            {
+                Transactionale.isError = true;
                 throw new Exception("You are trying to update an object not obtained from database");
+            }
             return SaveNew(source, whereObjects);
         }
 
         private void SetTimeOut(IDbCommand com, int timeOut)
         {
-            Check.NotNull(com, "com");
-            if (timeOut > 0) com.CommandTimeout = timeOut;
+            Check.NotNull(com, "com", () => Transactionale.isError = true);
+            if (timeOut < 0)
+            {
+                Transactionale.isError = true;
+                throw new Exception($"timeOut has an invalid value:{timeOut}");
+            } 
+            com.CommandTimeout = timeOut;
         }
 
         private int SaveNew<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class
@@ -760,7 +1004,11 @@ namespace ORM_1_21_
 
                     OpenConnectAndTransaction(com);
                     res = com.ExecuteNonQuery();
-                    if (res == 1) NotificAfter(source, ActionMode.Update);
+                    if (res == 1)
+                    {
+                        this.CacheClear<TSource>();
+                        NotificAfter(source, ActionMode.Update);
+                    }
                 }
                 else
                 {
@@ -774,6 +1022,7 @@ namespace ORM_1_21_
                         {
                             ((ISession)this).ToPersistent(source);
                             res = 1;
+                            this.CacheClear<TSource>();
                             NotificAfter(source, ActionMode.Insert);
                         }
                     }
@@ -784,8 +1033,8 @@ namespace ORM_1_21_
                         {
                             AttributesOfClass<TSource>.RedefiningPrimaryKey(source, val, MyProviderName);
                             ((ISession)this).ToPersistent(source);
-                            var tet = ((ISession)this).IsPersistent(source);
                             res = 1;
+                            this.CacheClear<TSource>();
                             NotificAfter(source, ActionMode.Insert);
                         }
                     }
@@ -793,6 +1042,7 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
+                Transactionale.isError = true;
                 MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
                 throw;
             }
@@ -807,7 +1057,7 @@ namespace ORM_1_21_
 
         internal void ComDisposable(IDbCommand com)
         {
-            Check.NotNull(com, "com");
+            Check.NotNull(com, "com", () => Transactionale.isError = true);
             try
             {
                 InnerWriteLogFile(com);
