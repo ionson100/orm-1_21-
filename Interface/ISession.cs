@@ -76,6 +76,11 @@ namespace ORM_1_21_
         bool TableExists<TSource>() where TSource : class;
 
         /// <summary>
+        ///  Checking if a table exists in database
+        /// </summary>
+        Task<bool> TableExistsAsync<TSource>(CancellationToken cancellationToken=default) where TSource : class;
+
+        /// <summary>
         ///  Getting ExecuteReader
         /// </summary>
         /// <param name="sql">request string</param>
@@ -88,7 +93,7 @@ namespace ORM_1_21_
         /// <param name="sql">request string</param>
         /// <param name="timeOut">timeout connection</param>
         /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
-        IDataReader ExecuteReaderT(string sql, int timeOut = 30, params object[] param);
+        IDataReader ExecuteReader(string sql, int timeOut = 30, params object[] param);
 
         /// <summary>
         /// Getting DataTable
@@ -152,7 +157,7 @@ namespace ORM_1_21_
         /// <param name="sql">sql text</param>
         /// <param name="timeOut">timeout connection</param>
         /// <param name="param">parameter array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
-        object ExecuteScalarT(string sql, int timeOut = 30, params object[] param);
+        object ExecuteScalar(string sql, int timeOut = 30, params object[] param);
 
 
 
@@ -227,7 +232,7 @@ namespace ORM_1_21_
         /// <param name="sql">sql text</param>
         /// <param name="timeOut">timeout connection</param>
         /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
-        int ExecuteNonQueryT(string sql, int timeOut = 30, params object[] param);
+        int ExecuteNonQuery(string sql, int timeOut = 30, params object[] param);
 
 
 
@@ -282,5 +287,26 @@ namespace ORM_1_21_
         /// <param name="whereObjects">list condition</param>
         /// <returns>Query result: 1 - ok  0-Record not updated</returns>
         int Update<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class;
+
+        Task<int> DropTableAsync<TSource>(CancellationToken cancellationToken = default) where  TSource:class;
+        Task<int> DropTableIfExistsAsync<TSource>(CancellationToken cancellationToken = default) where TSource : class;
+        Task<int> TableCreateAsync<TSource>(CancellationToken cancellationToken = default) where TSource : class;
+        Task<IDataReader> ExecuteReaderAsync(string sql, object[] param, CancellationToken cancellationToken = default);
+
+        Task<IDataReader> ExecuteReaderAsync(string sql, int timeOut, object[] param,
+            CancellationToken cancellationToken = default);
+
+        Task<object> ExecuteScalarAsync(string sql, object[] param, CancellationToken cancellationToken = default);
+
+        Task<object> ExecuteScalarAsync(string sql, int timeOut, object[] param,
+            CancellationToken cancellationToken = default);
+
+        Task<int> ExecuteNonQueryAsync(string sql, object[] param, CancellationToken cancellationToken = default);
+
+        Task<DataTable> GetDataTableAsync(string sql, int timeOut, object[] param,
+            CancellationToken cancellationToken = default);
+
+        DataTable GetDataTable(string sql, params object[] param);
+        Task<DataTable> GetDataTableAsync(string sql, object[] param, CancellationToken cancellationToken);
     }
 }

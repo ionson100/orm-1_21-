@@ -29,6 +29,8 @@ namespace ORM_1_21_.Linq
         private IDbCommand _com;
         private ProviderName _providerName;
 
+        
+
 
         private bool _isStoredPr;
 
@@ -93,38 +95,12 @@ namespace ORM_1_21_.Linq
                 return CacheState.NoCache;
             }
         }
-        public async Task<List<TS>> ExecuteAsyncFree<TS>(Expression expression, CancellationToken cancellationToken, params object[] param)
-        {
-            _cancellationToken = cancellationToken;
+       
 
-            return await Task.Factory.StartNew((a) =>
-                (List<TS>)ExecuteParam<TS>(expression, param), cancellationToken,
-                TaskCreationOptions.LongRunning).ConfigureAwait(false);
-        }
+       
 
-        public async Task<List<TS>> ExecuteAsyncFree<TS>(Expression expression, CancellationToken cancellationToken)
-        {
-            _cancellationToken = cancellationToken;
-
-            return await Task.Factory.StartNew((a) =>
-                (List<TS>)Execute<TS>(expression), cancellationToken,
-                TaskCreationOptions.LongRunning).ConfigureAwait(false);
-        }
-
-        public override async Task<List<TS>> ExecuteAsync<TS>(Expression expression, CancellationToken cancellationToken)
-        {
-            _cancellationToken = cancellationToken;
-            var isGroup = typeof(TS).Name.StartsWith("IGrouping");
-            if (isGroup)
-            {
-                return await Task.Factory.StartNew((a) =>
-                    ActionCoreGroupBy<TS>(expression), cancellationToken, TaskCreationOptions.LongRunning)
-                    .ConfigureAwait(false);
-            }
-            return await Task.Factory.StartNew((a) =>
-                (List<TS>)Execute<TS>(expression), cancellationToken, TaskCreationOptions.LongRunning)
-                .ConfigureAwait(false);
-        }
+       
+       
         List<TResult> ActionCoreGroupBy<TResult>(Expression expression)
         {
             List<TResult> resList = new List<TResult>();
@@ -137,28 +113,9 @@ namespace ORM_1_21_.Linq
         }
 
 
-
         public override object Execute(Expression expression)
         {
             return null;
-        }
-
-        public override async Task<TSource> ExecuteAsyncExtension<TSource>(Expression expression, CancellationToken cancellationToken)
-        {
-            _cancellationToken = cancellationToken;
-            return await Task.Factory.StartNew((a) =>
-                (TSource)Execute<TSource>(expression), cancellationToken, TaskCreationOptions.LongRunning).ConfigureAwait(false);
-        }
-
-
-        public object ExecuteParam<TS>(Expression expression, params object[] par)
-        {
-            if (par != null)
-            {
-                _paramFree.AddRange(par);
-                // par.ToList().ForEach(a => _paramFree.Add(a.Name, a.Value));
-            }
-            return Execute<TS>(expression);
         }
 
         public override object ExecuteSpp<TS>(Expression expression)
@@ -283,6 +240,43 @@ namespace ORM_1_21_.Linq
             return 30;
         }
 
+        public List<object> GetParamFree()
+        {
+            return _paramFree;
+        }
+
+        public List<OneComposite> ListOuterOneComposites { get; set; } = new List<OneComposite>();
+
+        public TS ExecuteExtension<TS>(Expression expression, params object[] param)
+        {
+            if (param != null&&param.Length>0)
+            {
+                _paramFree.AddRange(param);
+            }
+
+            var ss = typeof(T);
+            var ssa = typeof(TS);
+            var res= Execute<TS>(expression);
+            return (TS)res;
+        }
+
+       
+
+        public override Task<TS> ExecuteExtensionAsync<TS>(Expression expression, object[] param,CancellationToken cancellationToken)
+        {
+            var tk = new TaskCompletionSource<TS>();
+            
+            _cancellationToken = cancellationToken;
+            if (param != null && param.Length > 0)
+            {
+                _paramFree.AddRange(param);
+            }
+            var r= (TS)Execute<TS>(expression);
+            tk.SetResult(r);
+            tk.Task.ConfigureAwait(false);
+            return tk.Task;
+        }
+
         public override object Execute<TS>(Expression expression)
         {
             //Thread.Sleep(5000);
@@ -311,6 +305,7 @@ namespace ORM_1_21_.Linq
             var re = TranslateE(expression);
             string sql = re.Item1;//Translate(expression, out _).Replace("FROM", " FROM ");
             List<OneComposite> listCore = re.Item2;
+            listCore.AddRange(ListOuterOneComposites);
 
             /*usage cache*/
 
@@ -494,12 +489,93 @@ namespace ORM_1_21_.Linq
                     return res;
                 }
 
-                //if (_cancellationToken != default && _cancellationToken.IsCancellationRequested)
-                //{
-                //    _cancellationToken.ThrowIfCancellationRequested();
-                //}
+               
 
                 #region dataReader
+                if(PingCompositeE(Evolution.TableCreate,listCore))
+                {
+                    if (AttributesOfClass<T>.IsValid == false)
+                    {
+                        throw new Exception(
+                            $"I can't create a table from type {typeof(T)}, it doesn't have attrubute: MapTableNameAttribute");
+                    }
+                    _com.CommandText = listCore.First(a => a.Operand == Evolution.TableCreate).Body;
+                    int res = _com.ExecuteNonQuery();
+                    return res;
+
+                }
+
+                if (PingCompositeE(Evolution.DropTable, listCore))
+                {
+                    _com.CommandText = listCore.First(a => a.Operand == Evolution.DropTable).Body;
+                    int res = _com.ExecuteNonQuery();
+                    return res;
+
+                }
+
+                if (PingCompositeE(Evolution.DataTable, listCore))
+                {
+                    _com.CommandText = listCore.First(a => a.Operand == Evolution.DataTable).Body;
+                    var table = new DataTable();
+                    var reader = _com.ExecuteReader();
+                    table.BeginLoadData();
+                    table.Load(reader);
+                    table.EndLoadData();
+                    return table;
+
+                }
+                if (PingCompositeE(Evolution.ExecuteNonQuery, listCore))
+                {
+                    _com.CommandText = listCore.First(a => a.Operand == Evolution.ExecuteNonQuery).Body;
+                    int res = _com.ExecuteNonQuery();
+                    return res;
+                }
+                
+
+                if (PingCompositeE(Evolution.TruncateTable, listCore))
+                {
+                    _com.CommandText = listCore.First(a => a.Operand == Evolution.TruncateTable).Body;
+                    int res = _com.ExecuteNonQuery();
+                    return res;
+                }
+                if (PingCompositeE(Evolution.ExecuteScalar, listCore))
+                {
+
+                    _com.CommandText = listCore.First(a => a.Operand == Evolution.ExecuteScalar).Body;
+                    object res = _com.ExecuteScalar();
+                    return res;
+
+                }
+
+
+                if (PingCompositeE(Evolution.TableExists, listCore))
+                {
+                    _com.CommandText = listCore.First(a => a.Operand == Evolution.TableExists).Body;
+                    if (_providerName == ProviderName.Postgresql)
+                    {
+                        var r = (long)_com.ExecuteScalar();
+                        return r != 0;
+                    }
+
+                    if (_providerName == ProviderName.MsSql)
+                    {
+                        var r = _com.ExecuteScalar();
+                        return !(r is DBNull);
+                    }
+                    else
+                    {
+                        try
+                        {
+                            _com.ExecuteNonQuery();
+                            return true;
+                        }
+                        catch (Exception e)
+                        {
+                            return false;
+                        }
+                    }
+                
+                }
 
                 if (PingCompositeE(Evolution.FreeSql, listCore) &&
                     AttributesOfClass<TS>.IsValid == false)
@@ -507,6 +583,7 @@ namespace ORM_1_21_.Linq
                     dataReader = _com.ExecuteReader();
                     var count = dataReader.FieldCount;
                     var list = new List<Type>();
+                    var tt = typeof(T);
                     for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
                     var resDis = new List<TS>();
                     if (UtilsCore.IsAnonymousType(typeof(TS)))
@@ -848,6 +925,21 @@ namespace ORM_1_21_.Linq
                     dataReader.Dispose();
                 }
             }
+        }
+
+        public override  async Task<List<TS>> ExecuteToListAsync<TS>(Expression expression, CancellationToken cancellationToken)
+        {
+            _cancellationToken = cancellationToken;
+            var isGroup = typeof(TS).Name.StartsWith("IGrouping");
+            if (isGroup)
+            {
+                return await Task.Factory.StartNew((a) =>
+                        ActionCoreGroupBy<TS>(expression), cancellationToken, TaskCreationOptions.LongRunning)
+                    .ConfigureAwait(false);
+            }
+            return await Task.Factory.StartNew((a) =>
+                    (List<TS>)Execute<TS>(expression), cancellationToken, TaskCreationOptions.LongRunning)
+                .ConfigureAwait(false);
         }
 
 

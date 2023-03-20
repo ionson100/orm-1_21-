@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -63,7 +64,7 @@ namespace ORM_1_21_.Extensions
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
                 { CastomExpression = exp, TypeRevalytion = Evolution.Delete });
-             return ((QueryProvider)source.Provider).ExecuteAsyncExtension<int>(source.Expression, CancellationToken.None);
+             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(source.Expression,null, CancellationToken.None);
             
         }
 
@@ -137,7 +138,7 @@ namespace ORM_1_21_.Extensions
         /// </summary>
         public static async Task ForEachAsync<TSource>(this IQueryable<TSource> source, Action<TSource> action)
         {
-            Check.NotNull(source, "source");
+            Check.NotNull(source, "source" );
             Check.NotNull(action, "action");
             var res = await source.ToListAsync();
             res.ForEach(action);
@@ -168,7 +169,7 @@ namespace ORM_1_21_.Extensions
 
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
                 { CastomExpression = param, TypeRevalytion = Evolution.Update });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<int>(source.Expression, CancellationToken.None);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(source.Expression,null, CancellationToken.None);
           
         }
 
@@ -184,11 +185,12 @@ namespace ORM_1_21_.Extensions
             var p = new V(sql);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            if (param != null&&param.Length>0)
+            var db = new DbQueryProvider<TResult>((Sessione)ses);
+            if (param != null && param.Length > 0)
             {
-                return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).ExecuteParam<TResult>(callExpr, param);
+                db.GetParamFree().AddRange(param);
             }
-            return (IEnumerable<TResult>)new DbQueryProvider<TResult>((Sessione)ses).Execute<TResult>(callExpr);
+            return (IEnumerable<TResult>)db.Execute<TResult>(callExpr);
         }
 
         /// <summary>
@@ -197,16 +199,19 @@ namespace ORM_1_21_.Extensions
         /// <param name="ses">ISession</param>
         /// <param name="sql">Request string</param>
         /// <param name="param">Request parameters</param>
-        public static Task<List<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params object[] param)
+        public static Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params object[] param)
         {
+            var tk = new TaskCompletionSource<IEnumerable<TResult>>();
             var p = new V(sql);
-            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            if (param != null&&param.Length>0)
+            Expression callExpr = Expression.Call(
+                Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
+            var db = new DbQueryProvider<TResult>((Sessione)ses);
+            if (param != null && param.Length > 0)
             {
-                return new DbQueryProvider<TResult>((Sessione)ses).ExecuteAsyncFree<TResult>(callExpr,CancellationToken.None, param);
+                db.GetParamFree().AddRange(param);
             }
-            
-            return new DbQueryProvider<TResult>((Sessione)ses).ExecuteAsyncFree<TResult>(callExpr,CancellationToken.None);
+            tk.SetResult((IEnumerable<TResult>)db.Execute<TResult>(callExpr));
+            return tk.Task;
         }
 
 
@@ -246,16 +251,16 @@ namespace ORM_1_21_.Extensions
         {
             try
             {
-                var res = ((QueryProvider)source.Provider).ExecuteAsync<TResult>(source.Expression,cancellationToken);
+                var res = ((QueryProvider)source.Provider).ExecuteToListAsync<TResult>(source.Expression, cancellationToken);
                 return res;
-                
+
             }
             catch (Exception ex)
             {
                 MySqlLogger.Info($" {Environment.NewLine}{source}{Environment.NewLine}{ex}");
                 throw;
             }
-       
+
         }
 
      

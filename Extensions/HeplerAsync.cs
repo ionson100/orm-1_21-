@@ -312,7 +312,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             var ex = Expression.Call(null,
                 _first.MakeGenericMethod(typeof(TSource)), source.Expression);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TSource>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TSource>(ex, null, cancellationToken);
         }
 
         /// <summary>
@@ -331,7 +331,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(predicate, "predicate");
             var ex = Expression.Call(null, _first_Predicate.MakeGenericMethod(typeof(TSource)),
                 source.Expression, predicate);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TSource>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TSource>(ex, null, cancellationToken);
         }
 
         /// <summary>
@@ -346,10 +346,11 @@ namespace ORM_1_21_.Extensions
         ///     ( TSource ) if source is empty; otherwise, the first element in source.</returns>
         public static Task<TSource> FirstOrDefaultAsync<TSource>(this IQueryable<TSource> source, CancellationToken cancellationToken = default)
         {
+          
             Check.NotNull(source, "source");
             var ex = Expression.Call(null,
                 _firstOrDefault.MakeGenericMethod(typeof(TSource)), source.Expression);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TSource>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TSource>(ex, null, cancellationToken);
         }
 
         /// <summary>
@@ -370,7 +371,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(predicate, "predicate");
             var ex = Expression.Call(null, _firstOrDefault_Predicate.MakeGenericMethod(typeof(TSource)),
                 source.Expression, predicate);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TSource>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TSource>(ex, null, cancellationToken);
 
         }
 
@@ -389,7 +390,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             var ex = Expression.Call(null,
                 _last.MakeGenericMethod(typeof(TSource)), source.Expression);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TSource>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TSource>(ex, null, cancellationToken);
         }
 
 
@@ -410,7 +411,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(predicate, "predicate");
             var ex = Expression.Call(null, _last_Predicate.MakeGenericMethod(typeof(TSource)),
                 source.Expression, predicate);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TSource>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TSource>(ex, null, cancellationToken);
 
         }
 
@@ -432,7 +433,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             var ex = Expression.Call(null,
                 _lastOrDefault.MakeGenericMethod(typeof(TSource)), source.Expression);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TSource>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TSource>(ex, null, cancellationToken);
         }
 
 
@@ -454,7 +455,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(predicate, "predicate");
             var ex = Expression.Call(null, _lastOrDefault_Predicate.MakeGenericMethod(typeof(TSource)),
                 source.Expression, predicate);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TSource>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TSource>(ex, null, cancellationToken);
 
         }
 
@@ -474,7 +475,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             var ex = Expression.Call(null,
                 _single.MakeGenericMethod(typeof(TSource)), source.Expression);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TSource>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TSource>(ex, null, cancellationToken);
         }
 
 
@@ -496,7 +497,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(predicate, "predicate");
             var ex = Expression.Call(null, _single_Predicate.MakeGenericMethod(typeof(TSource)),
                 source.Expression, predicate);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TSource>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TSource>(ex, null, cancellationToken);
 
         }
 
@@ -517,7 +518,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             var ex = Expression.Call(null,
                 _singleOrDefault.MakeGenericMethod(typeof(TSource)), source.Expression);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TSource>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TSource>(ex, null, cancellationToken);
         }
 
 
@@ -541,7 +542,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(predicate, "predicate");
             var ex = Expression.Call(null, _singleOrDefault_Predicate.MakeGenericMethod(typeof(TSource)),
                 source.Expression, predicate);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TSource>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TSource>(ex, null, cancellationToken);
 
         }
 
@@ -561,7 +562,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             var ex = Expression.Call(null,
                 _any.MakeGenericMethod(typeof(TSource)), source.Expression);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<bool>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<bool>(ex, null, cancellationToken);
         }
 
 
@@ -582,7 +583,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(predicate, "predicate");
             var ex = Expression.Call(null, _any_Predicate.MakeGenericMethod(typeof(TSource)),
                 source.Expression, predicate);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<bool>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<bool>(ex, null, cancellationToken);
 
         }
 
@@ -604,7 +605,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(predicate, "predicate");
             var ex = Expression.Call(null, _all_Predicate.MakeGenericMethod(typeof(TSource)),
                 source.Expression, predicate);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<bool>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<bool>(ex, null, cancellationToken);
 
         }
 
@@ -624,7 +625,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             var ex = Expression.Call(null,
                 _count.MakeGenericMethod(typeof(TSource)), source.Expression);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<int>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(ex, null, cancellationToken);
         }
 
         /// <summary>
@@ -644,7 +645,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(predicate, "predicate");
             var ex = Expression.Call(null, _count_Predicate.MakeGenericMethod(typeof(TSource)),
                 source.Expression, predicate);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<int>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(ex, null, cancellationToken);
 
         }
 
@@ -667,7 +668,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             var ex = Expression.Call(null,
                 _longCount.MakeGenericMethod(typeof(TSource)), source.Expression);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<long>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<long>(ex, null, cancellationToken);
         }
 
         /// <summary>
@@ -689,7 +690,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(predicate, "predicate");
             var ex = Expression.Call(null, _longCount_Predicate.MakeGenericMethod(typeof(TSource)),
                 source.Expression, predicate);
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<long>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<long>(ex, null, cancellationToken);
 
         }
 
@@ -709,7 +710,7 @@ namespace ORM_1_21_.Extensions
                 Expression.Quote(selector)
             });
             //IDbAsyncQueryProvider dbAsyncQueryProvider = source.Provider as IDbAsyncQueryProvider;
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TResult>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TResult>(ex, null, cancellationToken);
         }
 
 
@@ -729,7 +730,7 @@ namespace ORM_1_21_.Extensions
                 Expression.Quote(selector)
             });
             //IDbAsyncQueryProvider dbAsyncQueryProvider = source.Provider as IDbAsyncQueryProvider;
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<TResult>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<TResult>(ex, null, cancellationToken);
         }
 
 
@@ -743,7 +744,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<int>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(ex, null, cancellationToken);
         }
 
 
@@ -756,7 +757,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<int?>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int?>(ex, null, cancellationToken);
         }
 
 
@@ -769,7 +770,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<long>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<long>(ex, null, cancellationToken);
         }
 
 
@@ -782,7 +783,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<long?>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<long?>(ex,null, cancellationToken);
         }
 
 
@@ -795,7 +796,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<decimal>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<decimal>(ex, null, cancellationToken);
         }
 
 
@@ -808,7 +809,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<decimal?>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<decimal?>(ex,null, cancellationToken);
         }
 
 
@@ -822,7 +823,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<float>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<float>(ex, null, cancellationToken);
         }
 
 
@@ -835,7 +836,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<float?>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<float?>(ex, null, cancellationToken);
         }
 
 
@@ -848,7 +849,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<double>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<double>(ex, null, cancellationToken);
         }
 
 
@@ -862,7 +863,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<double?>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<double?>(ex, null, cancellationToken);
         }
 
 
@@ -876,7 +877,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<int>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(ex, null, cancellationToken);
 
         }
         public static Task<int?> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, int?>> selector, CancellationToken cancellationToken = default)
@@ -889,7 +890,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<int?>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int?>(ex, null, cancellationToken);
 
         }
 
@@ -903,7 +904,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<double>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<double>(ex, null, cancellationToken);
 
         }
         public static Task<double?> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, double?>> selector, CancellationToken cancellationToken = default)
@@ -916,7 +917,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<double?>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<double?>(ex, null, cancellationToken);
 
         }
 
@@ -931,7 +932,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<decimal>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<decimal>(ex, null, cancellationToken);
 
         }
         public static Task<decimal?> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, decimal?>> selector, CancellationToken cancellationToken = default)
@@ -944,7 +945,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<decimal?>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<decimal?>(ex, null, cancellationToken);
 
         }
 
@@ -958,7 +959,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<float>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<float>(ex, null, cancellationToken);
 
         }
         public static Task<float?> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, float?>> selector, CancellationToken cancellationToken = default)
@@ -971,7 +972,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<float?>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<float?>(ex, null, cancellationToken);
 
         }
 
@@ -985,7 +986,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<long>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<long>(ex, null, cancellationToken);
 
         }
 
@@ -999,7 +1000,7 @@ namespace ORM_1_21_.Extensions
                 source.Expression,
                 Expression.Quote(selector)
             });
-            return ((QueryProvider)source.Provider).ExecuteAsyncExtension<long?>(ex, cancellationToken);
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<long?>(ex, null, cancellationToken);
 
         }
 

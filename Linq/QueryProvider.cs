@@ -41,8 +41,11 @@ namespace ORM_1_21_.Linq
         /// <summary>
         /// Query async
         /// </summary>
-        public  abstract Task<List<TS>> ExecuteAsync<TS>(Expression expression, CancellationToken cancellationToken);
-        
+        public abstract Task<List<TS>> ExecuteToListAsync<TS>(Expression expression, CancellationToken cancellationToken);
+
+
+
+
         object IQueryProvider.Execute(Expression expression)
         {
             return Execute(expression);
@@ -70,7 +73,10 @@ namespace ORM_1_21_.Linq
         /// <returns></returns>
         public abstract object Execute(Expression expression);
 
-        public abstract Task<TSource> ExecuteAsyncExtension<TSource>(Expression expression, CancellationToken cancellationToken);
+        public abstract Task<T> ExecuteExtensionAsync<T>(Expression expression, object[] param,
+            CancellationToken cancellationToken);
+
+
     }
 
 

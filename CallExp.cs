@@ -9,6 +9,7 @@ namespace ORM_1_21_
     {
         public static IEnumerable<TRes> GetTreeForGroupBy(IEnumerable<TElement> list, Delegate @delegate, Type type)
         {
+          
             if (type == typeof(Guid)) return (IEnumerable<TRes>)list.GroupBy((Func<TElement, Guid>)@delegate);
             if (type == typeof(uint)) return (IEnumerable<TRes>)list.GroupBy((Func<TElement, uint>)@delegate);
             if (type == typeof(ulong)) return (IEnumerable<TRes>)list.GroupBy((Func<TElement, ulong>)@delegate);

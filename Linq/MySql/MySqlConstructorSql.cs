@@ -24,16 +24,26 @@ namespace ORM_1_21_.Linq.MySql
             return _listOne.Any(a => a.Operand == eval);
         }
 
+        
+
         public string GetStringSql<T>(List<OneComposite> listOne,ProviderName providerName)
         {
+         
             _listOne = listOne;
+            var sqlBody = UtilsCore.CheckAny(listOne, Evolution.FreeSql, 
+                Evolution.TableCreate, Evolution.TableExists,Evolution.ExecuteScalar, Evolution.TruncateTable,Evolution.ExecuteNonQuery, Evolution.DataTable);
+            if (sqlBody != null)
+            {
+                return sqlBody;
+            }
             if (!string.IsNullOrWhiteSpace(AttributesOfClass<T>.SqlWhere))
             {
                 _listOne.Add(new OneComposite
                     { Operand = Evolution.Where, Body = $"({AttributesOfClass<T>.SqlWhere})" });
             }
 
-            if (PingComposite(Evolution.FreeSql)) return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
+
+            //if (PingComposite(Evolution.FreeSql)) return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
 
             if (PingComposite(Evolution.Update)) return AttributesOfClass<T>.CreateCommandLimitForMySql(_listOne,providerName);
            

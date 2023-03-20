@@ -1,4 +1,8 @@
-﻿using System;
+﻿using ORM_1_21_.Extensions;
+using ORM_1_21_.Linq;
+using ORM_1_21_.Transaction;
+using ORM_1_21_.Utils;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -7,10 +11,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_.Extensions;
-using ORM_1_21_.Linq;
-using ORM_1_21_.Transaction;
-using ORM_1_21_.Utils;
 
 namespace ORM_1_21_
 {
@@ -19,7 +19,7 @@ namespace ORM_1_21_
     internal sealed partial class Sessione : ISession, IServiceSessions
     {
         private readonly List<IDbCommand> _dbCommands = new List<IDbCommand>();
-        
+
         IDbCommand IServiceSessions.CommandForLinq
         {
             get
@@ -46,7 +46,7 @@ namespace ORM_1_21_
             {
                 NotificBefore(source, ActionMode.Delete);
                 OpenConnectAndTransaction(com);
-                var res= com.ExecuteNonQuery();
+                var res = com.ExecuteNonQuery();
                 if (res == 1)
                 {
                     this.CacheClear<TSource>();
@@ -75,33 +75,30 @@ namespace ORM_1_21_
 
         int ISession.Save<TSource>(TSource source)
         {
-            Check.NotNull(source, "source",() => Transactionale.isError = true);
+            Check.NotNull(source, "source", () => Transactionale.isError = true);
             return SaveNew(source);
         }
 
         int ISession.TableCreate<TSource>()
         {
             var ss = new FactoryCreatorTable().SqlCreate<TSource>(MyProviderName);
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-
-            com.CommandText = ss;
-            try
-            {
-                OpenConnectAndTransaction(com);
-                return com.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                Transactionale.isError = true;
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
+            var p = new V(ss);
+            Expression callExpr = Expression.Call(
+                Expression.Constant(p), p.GetType().GetMethod("TableCreate"));
+            DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
+            return (int)provider.ExecuteExtension<int>(callExpr); ;
         }
+        Task<int> ISession.TableCreateAsync<TSource>(CancellationToken cancellationToken)
+        {
+            var ss = new FactoryCreatorTable().SqlCreate<TSource>(MyProviderName);
+            var p = new V(ss);
+            Expression callExpr = Expression.Call(
+                Expression.Constant(p), p.GetType().GetMethod("TableCreate"));
+            DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
+            return provider.ExecuteExtensionAsync<int>(callExpr,null, cancellationToken); ;
+        }
+
+     
 
         IDbCommand ISession.GeDbCommand()
         {
@@ -111,120 +108,136 @@ namespace ORM_1_21_
 
         int ISession.DropTable<TSource>()
         {
-            var sql= $"DROP TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)}";
-            return InnerDropTable<TSource>(sql);
+            var sql = $"DROP TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)}";
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
+            DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
+            return (int)provider.ExecuteExtension<int>(callExpr); ;
+
         }
-        public int DropTableIfExists<TSource>() where TSource : class
+
+        Task<int> ISession.DropTableAsync<TSource>(CancellationToken cancellationToken)
+        {
+            var sql = $"DROP TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)}";
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
+            DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
+            return provider.ExecuteExtensionAsync<int>(callExpr,null, cancellationToken);
+        }
+
+        int ISession.DropTableIfExists<TSource>()
         {
             var sql = $"DROP TABLE IF EXISTS {AttributesOfClass<TSource>.TableName(MyProviderName)}";
-            return InnerDropTable<TSource>(sql);
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
+            DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
+            return (int)provider.ExecuteExtension<int>(callExpr); ;
         }
 
-        int InnerDropTable<TSource>(string sql)
+        Task<int> ISession.DropTableIfExistsAsync<TSource>(CancellationToken cancellationToken)
         {
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-
-            com.CommandText = sql;
-            try
-            {
-                OpenConnectAndTransaction(com);
-                var res = com.ExecuteNonQuery();
-                this.CacheClear<TSource>();
-                return res;
-            }
-            catch (Exception ex)
-            {
-                Transactionale.isError = true;
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
+            var sql = $"DROP TABLE IF EXISTS {AttributesOfClass<TSource>.TableName(MyProviderName)}";
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
+            DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
+            return provider.ExecuteExtensionAsync<int>(callExpr,null, cancellationToken);
         }
-
-       
 
         bool ISession.TableExists<TSource>()
         {
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            string sql;
             try
             {
-                if (MyProviderName == ProviderName.Postgresql)
+                switch (MyProviderName)
                 {
-                    com.Connection = _connect;
-                    var tableName = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
-                    com.CommandText =
-                        $"SELECT count(*) FROM pg_tables WHERE   tablename  = '{tableName}';";
+                    case ProviderName.Postgresql:
+                    {
+                        var tableName = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
+                        sql = $"SELECT count(*) FROM pg_tables WHERE   tablename  = '{tableName}';";
+                        break;
+                    }
 
-                    OpenConnectAndTransaction(com);
-                    var res = (long)com.ExecuteScalar();
-                    return res != 0;
-                }else if (MyProviderName == ProviderName.MsSql)
-                {
-                    string t = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
-                    string sql = $"SELECT OBJECT_ID('{t}', 'U');";
-                    com.Connection = _connect;
-                    com.CommandText = sql;
-                    OpenConnectAndTransaction(com);
-                     var res=com.ExecuteScalar();
-                     return !(res is DBNull);
-                }
-                else
-                {
-                   
-                    com.Connection = _connect;
-                    com.CommandText = $"select 1 from {AttributesOfClass<TSource>.TableName(MyProviderName)};";
-                    OpenConnectAndTransaction(com);
-                    com.ExecuteNonQuery();
-                    return true;
+                    case ProviderName.MsSql:
+                    {
+                        string t = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
+                        sql = $"SELECT OBJECT_ID('{t}', 'U');";
+                        break;
+                    }
+                    case ProviderName.MySql:
+                    case ProviderName.Sqlite:
+                    {
+                        sql = $"select 1 from {AttributesOfClass<TSource>.TableName(MyProviderName)};";
+                        break;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
             catch (Exception ex)
             {
                 Transactionale.isError = true;
-                MySqlLogger.Error(com.CommandText, ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
-        }
-
-        IDataReader ISession.ExecuteReader(string sql, object[] @params)
-        {
-            Check.NotEmpty(sql, "sql");
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-
-            com.CommandText = sql;
-           
-            try
-            {
-                UtilsCore.AddParam(com, MyProviderName, @params);
-                OpenConnectAndTransaction(com);
-                return com.ExecuteReader();
-            }
-            catch (Exception e)
-            {
-                MySqlLogger.Error(com.CommandText, e);
-                Transactionale.isError = true;
+                MySqlLogger.Error("", ex);
                 throw;
             }
             
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("TableExists"));
+            DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
+            return (bool)provider.ExecuteExtension<bool>(callExpr); ;
+
+          
         }
 
-        IDataReader ISession.ExecuteReaderT(string sql, int timeOut, params object[] param)
+        Task<bool> ISession.TableExistsAsync<TSource>(CancellationToken cancellationToken)
         {
-            Check.NotEmpty(sql, "sql");
+            string sql;
+            try
+            {
+                switch (MyProviderName)
+                {
+                    case ProviderName.Postgresql:
+                    {
+                        var tableName = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
+                        sql = $"SELECT count(*) FROM pg_tables WHERE   tablename  = '{tableName}';";
+                        break;
+                    }
+
+                    case ProviderName.MsSql:
+                    {
+                        string t = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
+                        sql = $"SELECT OBJECT_ID('{t}', 'U');";
+                        break;
+                    }
+                    case ProviderName.MySql:
+                    case ProviderName.Sqlite:
+                    {
+                        sql = $"select 1 from {AttributesOfClass<TSource>.TableName(MyProviderName)};";
+                        break;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            catch (Exception ex)
+            {
+                Transactionale.isError = true;
+                MySqlLogger.Error("", ex);
+                throw;
+            }
+
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("TableExists"));
+            DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
+            return provider.ExecuteExtensionAsync<bool>(callExpr,null,cancellationToken); ;
+        }
+
+        #region ExecuteReader
+        IDataReader ISession.ExecuteReader(string sql, object[] param)
+        {
+            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = sql;
-            SetTimeOut(com, timeOut);
-
             UtilsCore.AddParam(com, MyProviderName, param);
             OpenConnectAndTransaction(com);
             try
@@ -238,12 +251,110 @@ namespace ORM_1_21_
                 MySqlLogger.Error(com.CommandText, ex);
                 throw;
             }
-            
         }
+
+        IDataReader ISession.ExecuteReader(string sql, int timeOut, params object[] param)
+        {
+            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
+            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            com.CommandText = sql;
+            SetTimeOut(com, timeOut);
+
+            UtilsCore.AddParam(com, MyProviderName, param);
+            OpenConnectAndTransaction(com);
+            try
+            {
+                return com.ExecuteReader();
+            }
+            catch (Exception ex)
+            {
+                Transactionale.isError = true;
+                MySqlLogger.Error(com.CommandText, ex);
+                throw;
+            }
+
+        }
+
+        public Task<IDataReader> ExecuteReaderAsync(string sql, object[] param, CancellationToken cancellationToken = default)
+        {
+            var tk = new TaskCompletionSource<IDataReader>();
+            CancellationTokenRegistration? registration = null;
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
+            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            com.CommandText = sql;
+            UtilsCore.AddParam(com, MyProviderName, param);
+            OpenConnectAndTransaction(com);
+            try
+            {
+                if (cancellationToken != default)
+                {
+                    registration =
+                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale));
+                }
+
+                tk.SetResult(com.ExecuteReader());
+                return tk.Task;
+            }
+            catch (Exception ex)
+            {
+
+                Transactionale.isError = true;
+                MySqlLogger.Error(com.CommandText, ex);
+                throw;
+            }
+            finally
+            {
+                if (registration.HasValue)
+                {
+                    registration.Value.Dispose();
+                }
+            }
+        }
+
+        public Task<IDataReader> ExecuteReaderAsync(string sql, int timeOut, object[] param, CancellationToken cancellationToken = default)
+        {
+            var tk = new TaskCompletionSource<IDataReader>();
+            CancellationTokenRegistration? registration = null;
+            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
+            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            com.CommandText = sql;
+            com.CommandTimeout = timeOut;
+            UtilsCore.AddParam(com, MyProviderName, param);
+            OpenConnectAndTransaction(com);
+            try
+            {
+                if (cancellationToken != default)
+                {
+                    registration =
+                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale));
+                }
+
+                tk.SetResult(com.ExecuteReader());
+                return tk.Task;
+            }
+            catch (Exception ex)
+            {
+
+                Transactionale.isError = true;
+                MySqlLogger.Error(com.CommandText, ex);
+                throw;
+            }
+            finally
+            {
+                if (registration.HasValue)
+                {
+                    registration.Value.Dispose();
+                }
+            }
+        }
+        #endregion
 
         DataTable ISession.GetDataTable(string sql, int timeOut)
         {
-            Check.NotEmpty(sql, "sql");
+            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
             var table = new DataTable();
 
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
@@ -282,39 +393,39 @@ namespace ORM_1_21_
             switch (MyProviderName)
             {
                 case ProviderName.Sqlite:
-                {
-                    index = 0;
-                    com.CommandText = "SELECT name FROM sqlite_master WHERE type='table';";
-                    break;
-                }
+                    {
+                        index = 0;
+                        com.CommandText = "SELECT name FROM sqlite_master WHERE type='table';";
+                        break;
+                    }
                 case ProviderName.MsSql:
-                {
-                    com.CommandText = "SELECT * FROM information_schema.tables";
-                    index = 2;
-                    break;
-                }
+                    {
+                        com.CommandText = "SELECT * FROM information_schema.tables";
+                        index = 2;
+                        break;
+                    }
 
                 case ProviderName.MySql:
-                {
-                    index = 0;
-                    var strs = Configure.ConnectionString.Split(';');
-                    foreach (var str in strs)
-                        if (str.ToUpper().Contains("DATABASE"))
-                        {
-                            var nameBase = str.Split('=')[1].Trim();
-                            com.CommandText =
-                                $"SELECT table_name FROM information_schema.tables WHERE table_schema = '{nameBase}';";
-                        }
+                    {
+                        index = 0;
+                        var strs = Configure.ConnectionString.Split(';');
+                        foreach (var str in strs)
+                            if (str.ToUpper().Contains("DATABASE"))
+                            {
+                                var nameBase = str.Split('=')[1].Trim();
+                                com.CommandText =
+                                    $"SELECT table_name FROM information_schema.tables WHERE table_schema = '{nameBase}';";
+                            }
 
-                    break;
-                }
+                        break;
+                    }
 
                 case ProviderName.Postgresql:
-                {
-                    index = 0;
-                    com.CommandText = "SELECT table_name FROM information_schema.tables where table_schema='public'";
-                    break;
-                }
+                    {
+                        index = 0;
+                        com.CommandText = "SELECT table_name FROM information_schema.tables where table_schema='public'";
+                        break;
+                    }
 
 
                 default:
@@ -349,7 +460,7 @@ namespace ORM_1_21_
 
         int ISession.CreateBase(string baseName)
         {
-            Check.NotEmpty(baseName, "baseName");
+            Check.NotEmpty(baseName, "baseName",()=>Transactionale.isError=true);
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
 
@@ -402,7 +513,7 @@ namespace ORM_1_21_
         int ISession.InsertBulk<TSource>(IEnumerable<TSource> list, int timeOut)
         {
             var enumerable = list as TSource[] ?? list.ToArray();
-            Check.NotNull(enumerable, "list",() => Transactionale.isError = true);
+            Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
             Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
@@ -446,7 +557,7 @@ namespace ORM_1_21_
 
         public Task<int> InsertBulkAsync<TSource>(IEnumerable<TSource> list, int timeOut, CancellationToken cancellationToken = default) where TSource : class
         {
-           
+
             var tcs = new TaskCompletionSource<int>();
             CancellationTokenRegistration? registration = null;
             var enumerable = list as TSource[] ?? list.ToArray();
@@ -520,7 +631,7 @@ namespace ORM_1_21_
 
         int ISession.InsertBulkFromFile<TSource>(string fileCsv, string fieldterminator, int timeOut)
         {
-            Check.NotEmpty(fileCsv, "fileCsv");
+            Check.NotEmpty(fileCsv, "fileCsv", () => Transactionale.isError = true);
             if (fileCsv == null) throw new ArgumentNullException(nameof(fileCsv));
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
@@ -561,143 +672,82 @@ namespace ORM_1_21_
             }
         }
 
+        #region ExecuteScalar
+
+
         object ISession.ExecuteScalar(string sql, params object[] param)
         {
-            Check.NotEmpty(sql, "sql");
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-            com.CommandType = CommandType.Text;
-            com.CommandText = sql;
-            UtilsCore.AddParam(com, MyProviderName, param);
+            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteScalar"));
+            var provider = new DbQueryProvider<object>(this);
+            return provider.ExecuteExtension<object>(callExpr,param);
 
-            try
-            {
-                OpenConnectAndTransaction(com);
-                var res = com.ExecuteScalar();
-                return res;
-            }
-            catch (Exception ex)
-            {
-                Transactionale.isError = true;
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
         }
 
-        object ISession.ExecuteScalarT(string sql, int timeOut, params object[] param)
+        Task<object> ISession.ExecuteScalarAsync(string sql,  object[] param,CancellationToken cancellationToken)
         {
-            Check.NotEmpty(sql, "sql");
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-            com.CommandType = CommandType.Text;
-            com.CommandText = sql;
-            UtilsCore.AddParam(com, MyProviderName, param);
-            SetTimeOut(com, timeOut);
-
-            try
-            {
-                OpenConnectAndTransaction(com);
-                var res = com.ExecuteScalar();
-                return res;
-            }
-            catch (Exception ex)
-            {
-                Transactionale.isError = true;
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteScalar"));
+            var provider = new DbQueryProvider<object>(this);
+            return provider.ExecuteExtensionAsync<object>(callExpr, param,cancellationToken);
         }
+
+        object ISession.ExecuteScalar(string sql, int timeOut, params object[] param)
+        {
+            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteScalar"));
+            DbQueryProvider<object> provider = new DbQueryProvider<object>(this);
+            provider.ListCastExpression.Add(new ContainerCastExpression
+                { Timeout = timeOut, TypeRevalytion = Evolution.Timeout });
+            return provider.ExecuteExtension<object>(callExpr, param);
+        }
+
+        Task<object> ISession.ExecuteScalarAsync(string sql, int timeOut,  object[] param,CancellationToken cancellationToken)
+        {
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteScalar"));
+            DbQueryProvider<object> provider = new DbQueryProvider<object>(this);
+            provider.ListCastExpression.Add(new ContainerCastExpression
+                { Timeout = timeOut, TypeRevalytion = Evolution.Timeout });
+            return provider.ExecuteExtensionAsync<object>(callExpr, param,cancellationToken);
+        }
+
+
+        #endregion
 
         int ISession.TruncateTable<TSource>()
         {
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-            com.CommandType = CommandType.Text;
+            string sql;
             if (MyProviderName == ProviderName.Sqlite)
-                com.CommandText = $"DELETE FROM {AttributesOfClass<TSource>.TableName(MyProviderName)};";
+                sql = $"DELETE FROM {AttributesOfClass<TSource>.TableName(MyProviderName)};";
             else
-                com.CommandText = $"TRUNCATE TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)};";
+                sql = $"TRUNCATE TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)};";
 
-            try
-            {
-                OpenConnectAndTransaction(com);
-                var res= com.ExecuteNonQuery();
-                this.CacheClear<TSource>();
-                return res;
-            }
-            catch (Exception ex)
-            {
-                Transactionale.isError = true;
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("TruncateTable"));
+            var provider = new DbQueryProvider<object>(this);
+            return provider.ExecuteExtension<int>(callExpr);
+
         }
 
-        public Task<int> TruncateTableAsync<TSource>(CancellationToken cancellationToken = default) where TSource : class
+         Task<int> ISession.TruncateTableAsync<TSource>(CancellationToken cancellationToken)
         {
-            var tcs = new TaskCompletionSource<int>();
-            CancellationTokenRegistration? registration = null;
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-            com.CommandType = CommandType.Text;
+            string sql;
             if (MyProviderName == ProviderName.Sqlite)
-                com.CommandText = $"DELETE FROM {AttributesOfClass<TSource>.TableName(MyProviderName)};";
+                sql = $"DELETE FROM {AttributesOfClass<TSource>.TableName(MyProviderName)};";
             else
-                com.CommandText = $"TRUNCATE TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)};";
+                sql = $"TRUNCATE TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)};";
 
-            try
-            {
-                OpenConnectAndTransaction(com);
-                if (cancellationToken != default)
-                {
-                    registration = cancellationToken.Register(() =>
-                    {
-                        try
-                        {
-                            com.Cancel();
-                        }
-                        catch (Exception ex)
-                        {
-                            MySqlLogger.Error("cancellationToken", ex);
-                        }
-                        finally
-                        {
-                            Transactionale.isError = true;
-                            cancellationToken.ThrowIfCancellationRequested();
-                        }
-                    });
-                }
-                var res = com.ExecuteNonQuery();
-                if (registration.HasValue)
-                {
-                    registration.Value.Dispose();
-                }
-                this.CacheClear<TSource>();
-                tcs.SetResult(res);
-                return tcs.Task;
-            }
-            catch (Exception ex)
-            {
-                Transactionale.isError = true;
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("TruncateTable"));
+            var provider = new DbQueryProvider<object>(this);
+            return provider.ExecuteExtensionAsync<int>(callExpr,null,cancellationToken);
         }
 
         Query<TSource> ISession.Query<TSource>()
@@ -730,52 +780,32 @@ namespace ORM_1_21_
 
         int ISession.ExecuteNonQuery(string sql, params object[] param)
         {
-            Check.NotEmpty(sql, "sql");
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-            com.CommandText = sql;
-            UtilsCore.AddParam(com, MyProviderName, param);
-            try
-            {
-                OpenConnectAndTransaction(com);
-                return com.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                Transactionale.isError = true;
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
+            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteNonQuery"));
+            var provider = new DbQueryProvider<object>(this);
+            return provider.ExecuteExtension<int>(callExpr,param);
         }
 
-        int ISession.ExecuteNonQueryT(string sql, int timeOut, params object[] param)
+        Task<int> ISession.ExecuteNonQueryAsync(string sql,  object[] param,CancellationToken cancellationToken=default)
         {
-            Check.NotEmpty(sql, "sql");
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteNonQuery"));
+            var provider = new DbQueryProvider<object>(this);
+            return provider.ExecuteExtensionAsync<int>(callExpr, param,cancellationToken);
+        }
 
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-            com.CommandText = sql;
-            UtilsCore.AddParam(com, MyProviderName, param);
-            try
-            {
-                OpenConnectAndTransaction(com);
-                SetTimeOut(com, timeOut);
-                return com.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                Transactionale.isError = true;
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
+        int ISession.ExecuteNonQuery(string sql, int timeOut, params object[] param)
+        {
+            
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteNonQuery"));
+            var provider = new DbQueryProvider<object>(this);
+            provider.ListCastExpression.Add(new ContainerCastExpression
+                { Timeout = timeOut, TypeRevalytion = Evolution.Timeout });
+            return provider.ExecuteExtension<int>(callExpr, param);
         }
 
         string ISession.TableName<TSource>()
@@ -790,7 +820,7 @@ namespace ORM_1_21_
                 Transactionale.isError = true;
                 throw;
             }
-           
+
         }
 
         string ISession.ColumnName<TSource>(Expression<Func<TSource, object>> property)
@@ -843,7 +873,7 @@ namespace ORM_1_21_
                 Transactionale.isError = true;
                 throw;
             }
-           
+
         }
 
         string ISession.GetSqlDeleteCommand<TSource>(TSource source)
@@ -870,50 +900,57 @@ namespace ORM_1_21_
                 Transactionale.isError = true;
                 throw;
             }
-           
+
             // 
         }
 
+        #region DataTable
+
+        
+
+          
         DataTable ISession.GetDataTable(string sql, int timeOut, params object[] param)
         {
-            Check.NotEmpty(sql, "sql");
-            if (sql == null) throw new ArgumentNullException(nameof(sql));
-            if (string.IsNullOrEmpty(sql))
-                throw new ArgumentException($@"""{nameof(sql)}"" cannot be null or empty.", nameof(sql));
-
-            if (param is null) throw new ArgumentNullException(nameof(param));
-
-            var table = new DataTable();
-
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
-            com.Connection = _connect;
-            SetTimeOut(com, timeOut);
-
-            com.CommandText = sql;
-
-
-            try
-            {
-                UtilsCore.AddParam(com, MyProviderName, param);
-                OpenConnectAndTransaction(com);
-                var reader = com.ExecuteReader();
-                table.BeginLoadData();
-                table.Load(reader);
-                table.EndLoadData();
-                InnerWriteLogFile($"GetDataTable: {com.CommandText}");
-                return table;
-            }
-            catch (Exception ex)
-            {
-                Transactionale.isError = true;
-                MySqlLogger.Error(com.CommandText, ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DataTable"));
+            var provider = new DbQueryProvider<object>(this);
+            provider.ListCastExpression.Add(new ContainerCastExpression
+                { Timeout = timeOut, TypeRevalytion = Evolution.Timeout });
+            return provider.ExecuteExtension<DataTable>(callExpr, param);
         }
+
+        DataTable ISession.GetDataTable(string sql,  params object[] param)
+        {
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DataTable"));
+            var provider = new DbQueryProvider<object>(this);
+            return provider.ExecuteExtension<DataTable>(callExpr, param);
+        }
+
+        Task<DataTable>ISession.GetDataTableAsync(string sql, int timeOut, object[] param,CancellationToken cancellationToken)
+        {
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DataTable"));
+            var provider = new DbQueryProvider<object>(this);
+            provider.ListCastExpression.Add(new ContainerCastExpression
+                { Timeout = timeOut, TypeRevalytion = Evolution.Timeout });
+            return provider.ExecuteExtensionAsync<DataTable>(callExpr, param,cancellationToken);
+        }
+
+        Task<DataTable> ISession.GetDataTableAsync(string sql,  object[] param, CancellationToken cancellationToken)
+        {
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DataTable"));
+            var provider = new DbQueryProvider<object>(this);
+           
+            return provider.ExecuteExtensionAsync<DataTable>(callExpr, param, cancellationToken);
+        }
+
+        #endregion
 
         TSource ISession.Clone<TSource>(TSource source)
         {
@@ -956,7 +993,7 @@ namespace ORM_1_21_
                 Transactionale.isError = true;
                 throw;
             }
-           
+
         }
 
         public int Update<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class
@@ -977,7 +1014,7 @@ namespace ORM_1_21_
             {
                 Transactionale.isError = true;
                 throw new Exception($"timeOut has an invalid value:{timeOut}");
-            } 
+            }
             com.CommandTimeout = timeOut;
         }
 

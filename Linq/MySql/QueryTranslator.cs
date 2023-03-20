@@ -1,4 +1,5 @@
-﻿using ORM_1_21_.Linq.MsSql;
+﻿using ORM_1_21_.Extensions;
+using ORM_1_21_.Linq.MsSql;
 using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
@@ -9,14 +10,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using ORM_1_21_.Extensions;
 
 namespace ORM_1_21_.Linq.MySql
 {
 
     internal sealed class QueryTranslator<T> : ExpressionVisitor, ITranslate
     {
-        private string currentMethod=null;
+        private string currentMethod = null;
         private Evolution _currentEvalytion;
         private readonly List<OneComposite> _listOne = new List<OneComposite>();
         private int _paramIndex;
@@ -189,7 +189,88 @@ namespace ORM_1_21_.Linq.MySql
 
                 AddListOne(new OneComposite { Body = val.ToString(), Operand = Evolution.FreeSql });
                 return m;
+
             }
+            if (m.Method.DeclaringType == typeof(V)
+                && m.Method.Name == "TableCreate")
+            {
+                var constantExpression = (ConstantExpression)m.Object;
+                if (constantExpression == null) return m;
+                var val = m.Method.Invoke(constantExpression.Value, null);
+
+                AddListOne(new OneComposite { Body = val.ToString(), Operand = Evolution.TableCreate });
+                return m;
+            }
+            
+            if (m.Method.DeclaringType == typeof(V)
+                && m.Method.Name == "DropTable")
+            {
+                var constantExpression = (ConstantExpression)m.Object;
+                if (constantExpression == null) return m;
+                var val = m.Method.Invoke(constantExpression.Value, null);
+
+                AddListOne(new OneComposite { Body = val.ToString(), Operand = Evolution.DropTable });
+                return m;
+            }
+            if (m.Method.DeclaringType == typeof(V)
+                && m.Method.Name == "TableExists")
+            {
+                var constantExpression = (ConstantExpression)m.Object;
+                if (constantExpression == null) return m;
+                var val = m.Method.Invoke(constantExpression.Value, null);
+
+                AddListOne(new OneComposite { Body = val.ToString(), Operand = Evolution.TableExists });
+                return m;
+            }
+            if (m.Method.DeclaringType == typeof(V)
+                && m.Method.Name == "ExecuteScalar")
+            {
+                var constantExpression = (ConstantExpression)m.Object;
+                if (constantExpression == null) return m;
+                var val = m.Method.Invoke(constantExpression.Value, null);
+
+                AddListOne(new OneComposite { Body = val.ToString(), Operand = Evolution.ExecuteScalar });
+                return m;
+            }
+            if (m.Method.DeclaringType == typeof(V)
+                && m.Method.Name == "TruncateTable")
+            {
+                var constantExpression = (ConstantExpression)m.Object;
+                if (constantExpression == null) return m;
+                var val = m.Method.Invoke(constantExpression.Value, null);
+
+                AddListOne(new OneComposite { Body = val.ToString(), Operand = Evolution.TruncateTable });
+                return m;
+            }
+            
+            if (m.Method.DeclaringType == typeof(V)
+                && m.Method.Name == "ExecuteNonQuery")
+            {
+                var constantExpression = (ConstantExpression)m.Object;
+                if (constantExpression == null) return m;
+                var val = m.Method.Invoke(constantExpression.Value, null);
+
+                AddListOne(new OneComposite { Body = val.ToString(), Operand = Evolution.ExecuteNonQuery });
+                return m;
+            }
+
+            if (m.Method.DeclaringType == typeof(V)
+                && m.Method.Name == "DataTable")
+            {
+                var constantExpression = (ConstantExpression)m.Object;
+                if (constantExpression == null) return m;
+                var val = m.Method.Invoke(constantExpression.Value, null);
+
+                AddListOne(new OneComposite { Body = val.ToString(), Operand = Evolution.DataTable });
+                return m;
+            }
+
+
+
+
+
+
+
 
 
             if (m.Method.DeclaringType == typeof(Queryable)
@@ -723,7 +804,7 @@ namespace ORM_1_21_.Linq.MySql
 
                                 case ProviderName.MsSql:
                                     {
-                                        
+
                                         StringB.AppendFormat(" {0} CONCAT(", StringConst.Like);
                                         Visit(m.Arguments[0]);
                                         StringB.Append(",'%'))");
@@ -1584,7 +1665,7 @@ namespace ORM_1_21_.Linq.MySql
                 {
                     AddListOne(o);
                 }
-                
+
                 StringB.Length = 0;
                 return m;
             }
@@ -1649,7 +1730,7 @@ namespace ORM_1_21_.Linq.MySql
                 return m;
             }
 
-            if ((m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "First")||
+            if ((m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "First") ||
                 (m.Method.DeclaringType == typeof(Helper) && m.Method.Name == "FirstAsync"))
             {
 
@@ -1674,7 +1755,7 @@ namespace ORM_1_21_.Linq.MySql
                 return m;
             }
 
-            if ((m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "FirstOrDefault")||
+            if ((m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "FirstOrDefault") ||
                 (m.Method.DeclaringType == typeof(Helper) && m.Method.Name == "FirstOrDefaultAsync"))
             {
 
@@ -1844,7 +1925,7 @@ namespace ORM_1_21_.Linq.MySql
                     return m;
 
                 }
-             
+
             }
 
             if (m.Method.Name == "Skip")
@@ -1854,7 +1935,7 @@ namespace ORM_1_21_.Linq.MySql
                 if (m.Arguments.Count == 2)
                 {
                     var lambda = (ConstantExpression)StripQuotes(m.Arguments[1]);
-                  
+
                     var o1 = new OneComposite { Operand = Evolution.Skip, Body = lambda.Value.ToString() };
                     AddListOne(o1);
                     StringB.Length = 0;
@@ -1901,14 +1982,14 @@ namespace ORM_1_21_.Linq.MySql
                     AddListOne(o1);
                     var o2 = new OneComposite { Operand = Evolution.LongCount };
                     AddListOne(o2);
-                     o2 = new OneComposite { Operand = Evolution.Count };
+                    o2 = new OneComposite { Operand = Evolution.Count };
                     AddListOne(o2);
                     StringB.Length = 0;
                     return m;
                 }
                 var o = new OneComposite { Operand = Evolution.LongCount, Body = StringB.ToString() };
                 AddListOne(o);
-                 o = new OneComposite { Operand = Evolution.Count, Body = StringB.ToString() };
+                o = new OneComposite { Operand = Evolution.Count, Body = StringB.ToString() };
                 AddListOne(o);
                 StringB.Length = 0;
                 return m;
@@ -2786,14 +2867,22 @@ namespace ORM_1_21_.Linq.MySql
                 if (fieldInfo != null)
                 {
                     var ty = fieldInfo.FieldType;
-                    if (UtilsCore.IsJsonType(ty))
+                    var st = UtilsCore.GetSerializeType(ty);
+                    switch (st)
                     {
-                        value = JsonSerializer.Serialize(str);
+                        case SerializeType.None:
+                            value = fieldInfo.GetValue(str);
+                            break;
+                        case SerializeType.Self:
+                            value = JsonSerializer.Serialize(str);
+                            break;
+                        case SerializeType.User:
+                            value = ((IMapSerializable)str).Serialize();
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
-                    else
-                    {
-                        value = fieldInfo.GetValue(str);
-                    }
+
 
                 }
             }
@@ -2940,18 +3029,32 @@ namespace ORM_1_21_.Linq.MySql
                 Param.Add(p, str);
                 return nex;
             }
-
-
-
-            if (UtilsCore.IsJsonType(nex.Type))
+            var st = UtilsCore.GetSerializeType(nex.Type);
+            switch (st)
             {
-                var str = Expression.Lambda<Func<object>>(nex).Compile()();
-                var p = ParamName;
-                StringB.Append(p);
-                var value = JsonSerializer.Serialize(str);
-                Param.Add(p, value);
-                return nex;
+
+                case SerializeType.Self:
+                    {
+                        var str = Expression.Lambda<Func<object>>(nex).Compile()();
+                        var p = ParamName;
+                        StringB.Append(p);
+                        var value = JsonSerializer.Serialize(str);
+                        Param.Add(p, value);
+                        return nex;
+                    }
+
+                case SerializeType.User:
+                    {
+                        var str = Expression.Lambda<Func<object>>(nex).Compile()();
+                        var p = ParamName;
+                        StringB.Append(p);
+                        var value =((IMapSerializable)str).Serialize();
+                        Param.Add(p, value);
+                        return nex;
+                    }
+               
             }
+
 
             IEnumerable<Expression> args = VisitExpressionList(nex.Arguments);
             if (args != nex.Arguments)
@@ -2995,7 +3098,7 @@ namespace ORM_1_21_.Linq.MySql
                 {
                     StringB.Append(" (row_number() OVER ()) ");
                 }
-                
+
             }
             return m;
         }

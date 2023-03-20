@@ -190,6 +190,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Transactionale.cs" />
     <Compile Include="Utils\Check.cs" />
+    <Compile Include="Utils\GroupExpression.cs" />
     <Compile Include="Utils\Utils.cs" />
     <Compile Include="Utils\UtilsBulkMsSql.cs" />
     <Compile Include="Utils\UtilsBulkMySql.cs" />

@@ -20,17 +20,25 @@ namespace ORM_1_21_.Linq.MsSql
         public string GetStringSql<T>(List<OneComposite> listOne,ProviderName providerName) //, JoinCapital joinCapital
         {
             _listOne = listOne;
+            var sqlBody = UtilsCore.CheckAny(listOne, Evolution.FreeSql, Evolution.TableCreate,
+                Evolution.TableExists,Evolution.ExecuteScalar,
+                Evolution.TruncateTable,Evolution.ExecuteNonQuery,Evolution.DataTable);
+            if (sqlBody != null)
+            {
+                return sqlBody;
+            }
             if (!string.IsNullOrWhiteSpace(AttributesOfClass<T>.SqlWhere))
             {
                 _listOne.Add(new OneComposite
                     { Operand = Evolution.Where, Body = $"({AttributesOfClass<T>.SqlWhere})" });
             }
 
+
             if (PingComposite(Evolution.Update)) 
                 return AttributesOfClass<T>.CreateCommandUpdateFreeForMsSql(_listOne,providerName);
 
-            if (PingComposite(Evolution.FreeSql)) 
-                return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
+            //if (PingComposite(Evolution.FreeSql)) 
+               // return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
             if (PingComposite(Evolution.All))
             {
                 StringBuilder builder = new StringBuilder("SELECT COUNT(*),(SELECT COUNT(*) FROM ");

@@ -38,8 +38,16 @@
         CacheKey,
         LongCount,
         Skip,
-        
 
+
+        TableCreate,
+        DropTable,
+        TableExists,
+
+        ExecuteScalar,
+        TruncateTable,
+        ExecuteNonQuery,
+        DataTable
     }
 
 }

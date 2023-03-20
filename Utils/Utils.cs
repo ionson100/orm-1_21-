@@ -8,76 +8,18 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-
+using System.Threading;
+using ORM_1_21_.Linq;
 
 
 namespace ORM_1_21_.Utils
 {
-
-    class GroupExpression<T>
-    {
-
-        public static Delegate Delegate(LambdaExpression lexp)
-        {
-            return Action(lexp, lexp.ReturnType);
-        }
-        private static Delegate Action(LambdaExpression lexp, Type type)
-        {
-
-            if (type == typeof(Guid)) { return (Func<T, Guid>)lexp.Compile(); }
-            if (type == typeof(DateTime)) { return (Func<T, DateTime>)lexp.Compile(); }
-            if (type == typeof(uint)) { return (Func<T, uint>)lexp.Compile(); }
-            if (type == typeof(ulong)) { return (Func<T, ulong>)lexp.Compile(); }
-            if (type == typeof(ushort)) { return (Func<T, ushort>)lexp.Compile(); }
-            if (type == typeof(bool)) { return (Func<T, bool>)lexp.Compile(); }
-            if (type == typeof(byte)) { return (Func<T, byte>)lexp.Compile(); }
-            if (type == typeof(char)) { return (Func<T, char>)lexp.Compile(); }
-            if (type == typeof(decimal)) { return (Func<T, decimal>)lexp.Compile(); }
-            if (type == typeof(double)) { return (Func<T, double>)lexp.Compile(); }
-            if (type == typeof(short)) { return (Func<T, short>)lexp.Compile(); }
-            if (type == typeof(int)) { return (Func<T, int>)lexp.Compile(); }
-            if (type == typeof(long)) { return (Func<T, long>)lexp.Compile(); }
-            if (type == typeof(sbyte)) { return (Func<T, sbyte>)lexp.Compile(); }
-            if (type == typeof(float)) { return (Func<T, float>)lexp.Compile(); }
-
-            if (type == typeof(string))
-            {
-                return (Func<T, string>)lexp.Compile();
-            }
-            if (type == typeof(object)) { return (Func<T, object>)lexp.Compile(); }
-
-
-            if (type == typeof(Guid?)) { return (Func<T, Guid?>)lexp.Compile(); }
-            if (type == typeof(DateTime?)) { return (Func<T, DateTime?>)lexp.Compile(); }
-            if (type == typeof(uint?)) { return (Func<T, uint?>)lexp.Compile(); }
-            if (type == typeof(ulong?)) { return (Func<T, ulong?>)lexp.Compile(); }
-            if (type == typeof(ushort?)) { return (Func<T, ushort?>)lexp.Compile(); }
-            if (type == typeof(bool?)) { return (Func<T, bool?>)lexp.Compile(); }
-            if (type == typeof(byte?)) { return (Func<T, byte?>)lexp.Compile(); }
-            if (type == typeof(char?)) { return (Func<T, char?>)lexp.Compile(); }
-            if (type == typeof(decimal?)) { return (Func<T, decimal?>)lexp.Compile(); }
-            if (type == typeof(double?)) { return (Func<T, double?>)lexp.Compile(); }
-            if (type == typeof(short?)) { return (Func<T, short?>)lexp.Compile(); }
-            if (type == typeof(int?)) { return (Func<T, int?>)lexp.Compile(); }
-            if (type == typeof(long?)) { return (Func<T, long?>)lexp.Compile(); }
-            if (type == typeof(sbyte?)) { return (Func<T, sbyte?>)lexp.Compile(); }
-            if (type == typeof(float?)) { return (Func<T, float?>)lexp.Compile(); }
-
-
-
-            return (Func<T, object>)lexp.Compile();
-
-
-        }
-    }
-
     internal static class UtilsCore
     {
         internal static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> source, int chunkLength)
@@ -135,7 +77,7 @@ namespace ORM_1_21_.Utils
             typeof(byte[]),
 
     };
-        private static readonly ConcurrentDictionary<Type, bool> SerializableTypeDictionary = new ConcurrentDictionary<Type, bool>();
+        // private static readonly ConcurrentDictionary<Type, bool> SerializableTypeDictionary = new ConcurrentDictionary<Type, bool>();
         private static readonly HashSet<Type> NumericTypes = new HashSet<Type>
         {
 
@@ -387,31 +329,33 @@ namespace ORM_1_21_.Utils
             return false;
         }
 
-        private static readonly Dictionary<Type, SerializeType> SerializeTypes = new Dictionary<Type, SerializeType>();
-        private static bool IsSerializable(Type type)
-        {
-            if (Hlam.Contains(type)) return false;
-           
-            var t = type.GetCustomAttribute(typeof(MapSerializableAttribute));
-            SerializableTypeDictionary.TryAdd(type, t != null);
-          return SerializableTypeDictionary[type];
-        }
+        private static readonly ConcurrentDictionary<Type, SerializeType> SerializeTypes = new ConcurrentDictionary<Type, SerializeType>();
+        //private static bool IsSerializable(Type type)
+        //{
+        //    if (Hlam.Contains(type)) return false;
+        //   
+        //    var t = type.GetCustomAttribute(typeof(MapSerializableAttribute));
+        //    SerializableTypeDictionary.TryAdd(type, t != null);
+        //  return SerializableTypeDictionary[type];
+        //}
 
-        internal static bool IsJsonType(Type type)
-        {
-
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
-                return true;
-            if (IsSerializable(type))
-            {
-                return true;
-            }
-
-            return false;
-        }
+        // internal static bool IsJsonType(Type type)
+        // {
+        //
+        //     if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+        //         return true;
+        //     if (IsSerializable(type))
+        //     {
+        //         return true;
+        //     }
+        //
+        //     return false;
+        // }
 
         internal static SerializeType GetSerializeType(Type type)
         {
+            if (IsAnonymousType(type))
+                return SerializeType.None;
             if (Hlam.Contains(type))
                 return SerializeType.None;
             if (SerializeTypes.ContainsKey(type) == false)
@@ -419,19 +363,19 @@ namespace ORM_1_21_.Utils
                 var t = type.GetCustomAttribute(typeof(MapSerializableAttribute));
                 if (t != null)
                 {
-                    SerializeTypes.Add(type, SerializeType.Self);
+                    SerializeTypes.TryAdd(type, SerializeType.Self);
                 }
                 else if (type.GetInterfaces().Contains(typeof(IMapSerializable)))
                 {
-                    SerializeTypes.Add(type, SerializeType.User);
+                    SerializeTypes.TryAdd(type, SerializeType.User);
                 }
                 else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
                 {
-                    SerializeTypes.Add(type, SerializeType.Self);
+                    SerializeTypes.TryAdd(type, SerializeType.Self);
                 }
                 else
                 {
-                    SerializeTypes.Add(type, SerializeType.None);
+                    SerializeTypes.TryAdd(type, SerializeType.None);
                 }
 
 
@@ -559,6 +503,38 @@ namespace ORM_1_21_.Utils
 
 
             }
+        }
+
+        public static Action CancellRegistr(IDbCommand com,CancellationToken cancellationToken,Transaction.Transactionale transactionale)
+        {
+            return () =>
+            {
+                try
+                {
+                    com.Cancel();
+
+                }
+                catch (Exception ex)
+                {
+                    MySqlLogger.Error("cancellationToken", ex);
+                }
+                finally
+                {
+                    transactionale.isError = true;
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+            };
+        }
+        public static string CheckAny(List<OneComposite> listOne, params Evolution[] param)
+        {
+            foreach (Evolution evolution in param)
+            {
+                var ss = listOne.FirstOrDefault(a => a.Operand == evolution);
+                if (ss!=null)
+                    return ss.Body;
+            }
+
+            return null;
         }
     }
 

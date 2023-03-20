@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace ORM_1_21_.Linq
 {
@@ -13,5 +14,6 @@ namespace ORM_1_21_.Linq
         public int Timeout { get; set; } = -1;
         public Type TypeRetyrn { get; set; }
         public IList ListDistict { get; set; }
+        public string Body { get; set; }
     }
 }
