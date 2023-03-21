@@ -87,7 +87,6 @@
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
     </Reference>
-    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -199,7 +198,7 @@
     <Compile Include="Utils\UtilsCreateTableMsSql.cs" />
     <Compile Include="Utils\UtilsCreateTableMysql.cs" />
     <Compile Include="Utils\UtilsCreateTablePostgres.cs" />
-    <Compile Include="Utils\UtilsCreateTableSqlite.cs" />
+    <Compile Include="Utils\UtilsCreateTableSqLite.cs" />
     <Compile Include="V.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -30,6 +30,9 @@ namespace ORM_1_21_
     /// </summary>
     public enum CommandMode
     {
+        /// <summary>
+        /// None
+        /// </summary>
         None,
         /// <summary>
         /// Before Update

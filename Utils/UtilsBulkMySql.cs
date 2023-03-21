@@ -15,11 +15,11 @@ namespace ORM_1_21_.Utils
             _providerName = providerName;
         }
 
-        public string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
+        public string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldTerminator)
         {
             if (fileCsv != null)
             {
-                return SqlFile(list, fileCsv, fieldterminator);
+                return SqlFile(list, fileCsv, fieldTerminator);
             }
             return SqlSimple(list);
         }
@@ -194,7 +194,7 @@ namespace ORM_1_21_.Utils
 
             if (type == typeof(bool?) || type == typeof(bool))
             {
-                if (_providerName == ProviderName.Postgresql)
+                if (_providerName == ProviderName.PostgreSql)
                 {
                     return o.ToString();
                 }
@@ -211,9 +211,9 @@ namespace ORM_1_21_.Utils
                         return $"'{UtilsCore.ObjectToJson(o).Replace("'", "''")}'";
                     case ProviderName.MySql:
                         return $"'{UtilsCore.ObjectToJson(o).Replace("\\", "\\\\").Replace("'", "''")}'";
-                    case ProviderName.Postgresql:
+                    case ProviderName.PostgreSql:
                         return $"'{UtilsCore.ObjectToJson(o).Replace("'", "''")}'";
-                    case ProviderName.Sqlite:
+                    case ProviderName.SqLite:
                         return $"'{UtilsCore.ObjectToJson(o).Replace("'", "''")}'";
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -227,9 +227,9 @@ namespace ORM_1_21_.Utils
                     return $"'{o.ToString().Replace("'", "''")}'";
                 case ProviderName.MySql:
                     return $"\"{o.ToString().Replace("\"", "\\\"")}\"";
-                case ProviderName.Postgresql:
+                case ProviderName.PostgreSql:
                     return $"'{o.ToString().Replace("'", "''")}'";
-                case ProviderName.Sqlite:
+                case ProviderName.SqLite:
                     return $"'{o.ToString().Replace("'", "''")}'";
                 default:
                     throw new ArgumentOutOfRangeException();

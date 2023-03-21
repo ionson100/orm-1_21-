@@ -113,9 +113,9 @@ namespace ORM_1_21_.Utils
                     return "SELECT IDENT_CURRENT ('{1}');";
                 case ProviderName.MySql:
                     return "SELECT LAST_INSERT_ID();";
-                case ProviderName.Postgresql:
+                case ProviderName.PostgreSql:
                     return "RETURNING {2};";
-                case ProviderName.Sqlite:
+                case ProviderName.SqLite:
                     return ";select last_insert_rowid();";
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -132,9 +132,9 @@ namespace ORM_1_21_.Utils
                     return "@";
                 case ProviderName.MySql:
                     return "?";
-                case ProviderName.Postgresql:
+                case ProviderName.PostgreSql:
                     return "@";
-                case ProviderName.Sqlite:
+                case ProviderName.SqLite:
                     return "@";
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -146,7 +146,7 @@ namespace ORM_1_21_.Utils
 
         internal static bool IsAnonymousType(Type type)
         {
-            return System.Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
+            return Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
                    && type.IsGenericType && type.Name.Contains("AnonymousType")
                    && (type.Name.StartsWith("<>", StringComparison.OrdinalIgnoreCase) ||
                        type.Name.StartsWith("VB$", StringComparison.OrdinalIgnoreCase))
@@ -330,27 +330,7 @@ namespace ORM_1_21_.Utils
         }
 
         private static readonly ConcurrentDictionary<Type, SerializeType> SerializeTypes = new ConcurrentDictionary<Type, SerializeType>();
-        //private static bool IsSerializable(Type type)
-        //{
-        //    if (Hlam.Contains(type)) return false;
-        //   
-        //    var t = type.GetCustomAttribute(typeof(MapSerializableAttribute));
-        //    SerializableTypeDictionary.TryAdd(type, t != null);
-        //  return SerializableTypeDictionary[type];
-        //}
-
-        // internal static bool IsJsonType(Type type)
-        // {
-        //
-        //     if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
-        //         return true;
-        //     if (IsSerializable(type))
-        //     {
-        //         return true;
-        //     }
-        //
-        //     return false;
-        // }
+       
 
         internal static SerializeType GetSerializeType(Type type)
         {

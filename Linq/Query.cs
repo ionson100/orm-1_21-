@@ -12,8 +12,9 @@ namespace ORM_1_21_.Linq
     {
         object GetInnerList();
     }
+
     /// <summary>
-    /// 
+    /// Supplier request
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public sealed class Query<T> : IOrderedQueryable<T>, IGetTypeQuery, IInnerList

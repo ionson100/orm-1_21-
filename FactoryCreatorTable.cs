@@ -14,10 +14,10 @@ namespace ORM_1_21_
                     return UtilsCreateTableMySql.Create<T>(providerName);
                 case ProviderName.MsSql:
                     return UtilsCreateTableMsSql.Create<T>(providerName);
-                case ProviderName.Postgresql:
+                case ProviderName.PostgreSql:
                     return UtilsCreateTablePostgres.Create<T>(providerName);
-                case ProviderName.Sqlite:
-                    return UtilsCreateTableSqlite.Create<T>(providerName);
+                case ProviderName.SqLite:
+                    return UtilsCreateTableSqLite.Create<T>(providerName);
                 default:
                     return null;
             }

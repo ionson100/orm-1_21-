@@ -6,7 +6,7 @@ namespace ORM_1_21_
     /// The object is stored in the database in Json format, as a string
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class MapSerializableAttribute : System.Attribute
+    public sealed class MapSerializableAttribute : Attribute
     {
     }
 }

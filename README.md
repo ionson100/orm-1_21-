@@ -343,6 +343,10 @@ var count=session.InsertBulk(new List<MyClass>()
 var d1 = Configure.Session.Query<MyClass>().Distinct(a => a.Name);
 var d2 = Configure.Session.Query<MyClass>().Distinct(a => new {a.Age,a.Name});
 ```
+###### SetTimeOut сurrent request:
+```C#
+var f = await session.Query<MyClass>().Where(a => a.Age > 0).SetTimeOut(30).SingleOrDefaultAsync();
+```
 <span style="color:red">Important</span>\
 Replace expression in queries ``` "str1"+"str2"``` to ```string.Concat("str1","str2")```
 ######  Caching:

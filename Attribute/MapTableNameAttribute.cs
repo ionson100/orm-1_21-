@@ -8,7 +8,7 @@ namespace ORM_1_21_
     ///Table names in the database.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class MapTableNameAttribute : System.Attribute
+    public sealed class MapTableNameAttribute : Attribute
     {
         private readonly string _tableName;
         private readonly string _sqlWhere;
@@ -43,9 +43,9 @@ namespace ORM_1_21_
                     return $"[{_tableName}]";
                 case ProviderName.MySql:
                     return $"`{_tableName}`";
-                case ProviderName.Postgresql:
+                case ProviderName.PostgreSql:
                     return $"\"{_tableName}\"";
-                case ProviderName.Sqlite:
+                case ProviderName.SqLite:
                     return $"{_tableName}";
                 default:
                     throw new ArgumentOutOfRangeException();

@@ -6,7 +6,7 @@ namespace ORM_1_21_
     ///Information for creating a specific table type, for MySql only. Example: ENGINE=InnoDB DEFAULT CHARSET=UTF8;
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public class MapTypeMysqlTableAttribute : System.Attribute
+    public class MapTypeMysqlTableAttribute : Attribute
     {
         internal string TableType { get; }
 

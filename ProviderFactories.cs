@@ -26,7 +26,7 @@ namespace ORM_1_21_
 
         public static IDbCommand GetCommand(IOtherDataBaseFactory factory, bool isDispose)
         {
-            if (isDispose == true)
+            if (isDispose)
             {
                 throw new Exception("The session has been destroyed, it is impossible to work with the session! (Dispose)");
             }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ORM_1_21_.Utils
 {
-    internal class UtilsCreateTableSqlite
+    internal class UtilsCreateTableSqLite
     {
         public static string Create<T>(ProviderName providerName)
         {

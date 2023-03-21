@@ -16,8 +16,8 @@ namespace ORM_1_21_.Linq.MySql
 
     internal sealed class QueryTranslator<T> : ExpressionVisitor, ITranslate
     {
-        private string currentMethod = null;
-        private Evolution _currentEvalytion;
+        private string _currentMethod;
+        private Evolution _currentEvolution;
         private readonly List<OneComposite> _listOne = new List<OneComposite>();
         private int _paramIndex;
         private readonly ProviderName _providerName;
@@ -47,7 +47,7 @@ namespace ORM_1_21_.Linq.MySql
 
         }
 
-        private Evolution CurrentEvalytion => _currentEvalytion;
+        private Evolution CurrentEvolution => _currentEvolution;
 
         public Dictionary<string, object> Param { get; set; }
 
@@ -59,9 +59,9 @@ namespace ORM_1_21_.Linq.MySql
 
         public string Translate(Expression expression, out Evolution ev)
         {
-            _currentEvalytion = 0;
+            _currentEvolution = 0;
             Visit(expression);
-            ev = CurrentEvalytion;
+            ev = CurrentEvolution;
             if (_providerName == ProviderName.MsSql)
             {
                 var dd = new MsSqlConstructorSql().GetStringSql<T>(_listOne, _providerName);
@@ -77,7 +77,7 @@ namespace ORM_1_21_.Linq.MySql
 
         public void Translate(Expression expression, Evolution ev, List<object> paramList)
         {
-            _currentEvalytion = ev;
+            _currentEvolution = ev;
             Visit(expression);
             //if (ev == Evolution.FindLikeEndsWith || ev == Evolution.FindLikeStartsWith || ev == Evolution.FindLikeContains)
             //{
@@ -118,8 +118,8 @@ namespace ORM_1_21_.Linq.MySql
                                 AddListOne(new OneComposite { Operand = Evolution.Limit, Body = string.Format(" Limit {0},{1}", paramList[0], paramList[1]) });
                             }
                             break;
-                        case ProviderName.Postgresql:
-                        case ProviderName.Sqlite:
+                        case ProviderName.PostgreSql:
+                        case ProviderName.SqLite:
                             {
                                 AddListOne(new OneComposite { Operand = Evolution.Limit, Body = string.Format(" Limit {1} OFFSET {0}", paramList[0], paramList[1]) });
                             }
@@ -453,7 +453,7 @@ namespace ORM_1_21_.Linq.MySql
                     case "AddYears":
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("(");
                                     Visit(m.Object);
@@ -462,7 +462,7 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" YEAR')");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("DATE(");
                                     Visit(m.Object);
@@ -497,7 +497,7 @@ namespace ORM_1_21_.Linq.MySql
 
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("(");
                                     Visit(m.Object);
@@ -506,7 +506,7 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" MONTH')");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("DATE(");
                                     Visit(m.Object);
@@ -540,7 +540,7 @@ namespace ORM_1_21_.Linq.MySql
 
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("(");
                                     Visit(m.Object);
@@ -549,7 +549,7 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" DAY')");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("DATE(");
                                     Visit(m.Object);
@@ -583,7 +583,7 @@ namespace ORM_1_21_.Linq.MySql
                     case "AddHours":
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("(");
                                     Visit(m.Object);
@@ -592,7 +592,7 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" HOUR')");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("DATETIME(");
                                     Visit(m.Object);
@@ -628,7 +628,7 @@ namespace ORM_1_21_.Linq.MySql
 
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("(");
                                     Visit(m.Object);
@@ -637,7 +637,7 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" MINUTE')");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("DATETIME(");
                                     Visit(m.Object);
@@ -671,7 +671,7 @@ namespace ORM_1_21_.Linq.MySql
 
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("(");
                                     Visit(m.Object);
@@ -680,7 +680,7 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" SECOND')");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("DATETIME(");
                                     Visit(m.Object);
@@ -715,7 +715,7 @@ namespace ORM_1_21_.Linq.MySql
 
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("(");
                                     Visit(m.Object);
@@ -724,7 +724,7 @@ namespace ORM_1_21_.Linq.MySql
                                     StringB.Append(" MICROSECOND')");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("DATE(");
                                     Visit(m.Object);
@@ -779,7 +779,7 @@ namespace ORM_1_21_.Linq.MySql
                             Visit(m.Object);
                             switch (_providerName)
                             {
-                                case ProviderName.Sqlite:
+                                case ProviderName.SqLite:
                                     {
                                         StringB.AppendFormat(" {0} ", StringConst.Like);
                                         int x = StringB.Length;
@@ -794,7 +794,7 @@ namespace ORM_1_21_.Linq.MySql
                                         break;
                                     }
                                 case ProviderName.MySql:
-                                case ProviderName.Postgresql:
+                                case ProviderName.PostgreSql:
                                     {
                                         StringB.AppendFormat(" {0} CONCAT(", StringConst.Like);
                                         Visit(m.Arguments[0]);
@@ -821,7 +821,7 @@ namespace ORM_1_21_.Linq.MySql
                         {
                             switch (_providerName)
                             {
-                                case ProviderName.Sqlite:
+                                case ProviderName.SqLite:
                                     {
                                         StringB.Append("(");
                                         Visit(m.Object);
@@ -838,7 +838,7 @@ namespace ORM_1_21_.Linq.MySql
                                         break;
                                     }
                                 case ProviderName.MySql:
-                                case ProviderName.Postgresql:
+                                case ProviderName.PostgreSql:
                                     {
                                         StringB.Append("(");
                                         Visit(m.Object);
@@ -880,7 +880,7 @@ namespace ORM_1_21_.Linq.MySql
                                         StringB.Append(",'%'))");
                                         break;
                                     }
-                                case ProviderName.Postgresql:
+                                case ProviderName.PostgreSql:
                                     {
                                         StringB.Append("(");
                                         Visit(m.Object);
@@ -889,7 +889,7 @@ namespace ORM_1_21_.Linq.MySql
                                         StringB.Append(",'%'))");
                                         break;
                                     }
-                                case ProviderName.Sqlite:
+                                case ProviderName.SqLite:
                                     {
                                         StringB.Append("(");
                                         Visit(m.Object);
@@ -913,7 +913,7 @@ namespace ORM_1_21_.Linq.MySql
                         {
                             switch (_providerName)
                             {
-                                case ProviderName.Postgresql:
+                                case ProviderName.PostgreSql:
                                     {
                                         IList<Expression> args = m.Arguments;
                                         if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit)
@@ -945,7 +945,7 @@ namespace ORM_1_21_.Linq.MySql
                                         StringB.Append(")");
                                         break;
                                     }
-                                case ProviderName.Sqlite:
+                                case ProviderName.SqLite:
                                     {
                                         IList<Expression> args = m.Arguments;
                                         if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit)
@@ -983,7 +983,7 @@ namespace ORM_1_21_.Linq.MySql
                         {
                             switch (_providerName)
                             {
-                                case ProviderName.Postgresql:
+                                case ProviderName.PostgreSql:
                                     {
                                         StringB.Append("(");
                                         Visit(m.Arguments[0]);
@@ -999,7 +999,7 @@ namespace ORM_1_21_.Linq.MySql
                                         StringB.Append(" = '')");
                                         break;
                                     }
-                                case ProviderName.Sqlite:
+                                case ProviderName.SqLite:
                                     {
                                         StringB.Append("(");
                                         Visit(m.Arguments[0]);
@@ -1155,7 +1155,7 @@ namespace ORM_1_21_.Linq.MySql
                         {
                             switch (_providerName)
                             {
-                                case ProviderName.Postgresql:
+                                case ProviderName.PostgreSql:
                                     {
                                         StringB.Append("TRIM(both from ");
                                         Visit(m.Object);
@@ -1198,7 +1198,7 @@ namespace ORM_1_21_.Linq.MySql
                                         }
                                         break;
                                     }
-                                case ProviderName.Sqlite:
+                                case ProviderName.SqLite:
                                     {
                                         StringB.Append("TRIM(");
                                         Visit(m.Object);
@@ -1274,7 +1274,7 @@ namespace ORM_1_21_.Linq.MySql
                         {
                             switch (_providerName)
                             {
-                                case ProviderName.Postgresql:
+                                case ProviderName.PostgreSql:
                                     {
                                         StringB.Append("TRIM(trailing from ");
                                         Visit(m.Object);
@@ -1321,7 +1321,7 @@ namespace ORM_1_21_.Linq.MySql
                                         StringB.Append(")");
                                         break;
                                     }
-                                case ProviderName.Sqlite:
+                                case ProviderName.SqLite:
                                     {
                                         StringB.Append("RTRIM(");
                                         Visit(m.Object);
@@ -1378,7 +1378,7 @@ namespace ORM_1_21_.Linq.MySql
                         {
                             switch (_providerName)
                             {
-                                case ProviderName.Postgresql:
+                                case ProviderName.PostgreSql:
                                     {
                                         StringB.Append("TRIM(leading from ");
                                         Visit(m.Object);
@@ -1425,7 +1425,7 @@ namespace ORM_1_21_.Linq.MySql
                                         StringB.Append(")");
                                         break;
                                     }
-                                case ProviderName.Sqlite:
+                                case ProviderName.SqLite:
                                     {
                                         StringB.Append("LTRIM(");
                                         Visit(m.Object);
@@ -1716,7 +1716,7 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "Select")
             {
-                currentMethod = "Select";
+                _currentMethod = "Select";
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
@@ -1726,7 +1726,7 @@ namespace ORM_1_21_.Linq.MySql
                     AddListOne(o);
                 }
                 StringB.Length = 0;
-                currentMethod = null;
+                _currentMethod = null;
                 return m;
             }
 
@@ -2302,7 +2302,7 @@ namespace ORM_1_21_.Linq.MySql
                 switch (Type.GetTypeCode(c.Value.GetType()))
                 {
                     case TypeCode.Boolean:
-                        if (_providerName == ProviderName.Postgresql)
+                        if (_providerName == ProviderName.PostgreSql)
                         {
                             StringB.Append(((bool)c.Value));
                         }
@@ -2477,12 +2477,12 @@ namespace ORM_1_21_.Linq.MySql
 
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("CHAR_LENGTH(");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("LENGTH(");
                                     break;
@@ -2542,14 +2542,14 @@ namespace ORM_1_21_.Linq.MySql
                     case "Day":
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("extract( day from ");
                                     Visit(m.Expression);
                                     StringB.Append(")");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("CAST(strftime('%d', ");
                                     Visit(m.Expression);
@@ -2577,14 +2577,14 @@ namespace ORM_1_21_.Linq.MySql
                     case "Month":
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("extract(MONTH from ");
                                     Visit(m.Expression);
                                     StringB.Append(")");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("CAST(strftime('%m', ");
                                     Visit(m.Expression);
@@ -2612,14 +2612,14 @@ namespace ORM_1_21_.Linq.MySql
                     case "Year":
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("extract(YEAR from ");
                                     Visit(m.Expression);
                                     StringB.Append(")");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("CAST(strftime('%Y', ");
                                     Visit(m.Expression);
@@ -2647,14 +2647,14 @@ namespace ORM_1_21_.Linq.MySql
                     case "Hour":
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("extract(HOUR from ");
                                     Visit(m.Expression);
                                     StringB.Append(")");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("CAST(strftime('%H', ");
                                     Visit(m.Expression);
@@ -2682,14 +2682,14 @@ namespace ORM_1_21_.Linq.MySql
                     case "Minute":
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("extract(MINUTE from ");
                                     Visit(m.Expression);
                                     StringB.Append(")");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("CAST(strftime('%M', ");
                                     Visit(m.Expression);
@@ -2717,14 +2717,14 @@ namespace ORM_1_21_.Linq.MySql
                     case "Second":
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("extract(SECOND from ");
                                     Visit(m.Expression);
                                     StringB.Append(")");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("CAST(strftime('%S', ");
                                     Visit(m.Expression);
@@ -2752,11 +2752,11 @@ namespace ORM_1_21_.Linq.MySql
                     case "Millisecond":
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     throw new Exception("not implemented");
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     throw new Exception("not implemented");
 
@@ -2777,14 +2777,14 @@ namespace ORM_1_21_.Linq.MySql
                     case "DayOfWeek":
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("extract( isodow from ");
                                     Visit(m.Expression);
                                     StringB.Append(")");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("CAST(strftime('%w', ");
                                     Visit(m.Expression);
@@ -2812,14 +2812,14 @@ namespace ORM_1_21_.Linq.MySql
                     case "DayOfYear":
                         switch (_providerName)
                         {
-                            case ProviderName.Postgresql:
+                            case ProviderName.PostgreSql:
                                 {
                                     StringB.Append("extract(doy from ");
                                     Visit(m.Expression);
                                     StringB.Append(")");
                                     break;
                                 }
-                            case ProviderName.Sqlite:
+                            case ProviderName.SqLite:
                                 {
                                     StringB.Append("CAST(strftime('%j', ");
                                     Visit(m.Expression);
@@ -3006,7 +3006,7 @@ namespace ORM_1_21_.Linq.MySql
         {
             if (nex.Type == typeof(Guid))
             {
-                if (_providerName == ProviderName.Postgresql)
+                if (_providerName == ProviderName.PostgreSql)
                 {
                     var str = Expression.Lambda<Func<Guid>>(nex).Compile()();
                     var p = ParamName;
@@ -3088,7 +3088,7 @@ namespace ORM_1_21_.Linq.MySql
 
         protected override Expression VisitParameter(ParameterExpression m)
         {
-            if (m.Type == typeof(Int32) && currentMethod == "Select")
+            if (m.Type == typeof(Int32) && _currentMethod == "Select")
             {
                 if (_providerName == ProviderName.MsSql)
                 {

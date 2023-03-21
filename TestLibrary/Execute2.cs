@@ -15,7 +15,7 @@ namespace TestLibrary
         }
          static void TestTimeStampPostgresql()
         {
-            Console.WriteLine($@"**********************Test TimeStamp Postgresql***********************");
+            Console.WriteLine($@"**********************Test TimeStamp PostgreSQL***********************");
             var session = Configure.GetSession<MyDbPostgres>();
             if (session.TableExists<TSPostgres>()) 
                 session.DropTable<TSPostgres>();
@@ -73,7 +73,7 @@ namespace TestLibrary
 
          static void TestTimeStampSqlie()
         {
-            Console.WriteLine($@"**********************Test TimeStamp Sqlite ***********************");
+            Console.WriteLine($@"**********************Test TimeStamp SqLite ***********************");
             var session = Configure.GetSession<MyDbSqlite>();
             if (session.TableExists<TSSqlite>())
                 session.DropTable<TSSqlite>();

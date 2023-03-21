@@ -54,7 +54,7 @@ namespace ORM_1_21_
             _connect = factory.GetDbProviderFactories().CreateConnection();
             if (_connect == null) throw new Exception("Can't connect to another database");
             _connect.ConnectionString = factory.GetConnectionString();
-            if (factory.GetProviderName() == ProviderName.Postgresql)
+            if (factory.GetProviderName() == ProviderName.PostgreSql)
             {
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);

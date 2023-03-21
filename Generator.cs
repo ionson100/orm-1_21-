@@ -6,7 +6,7 @@
     public enum Generator
     {
         /// <summary>
-        /// Database assignable as autoincrement field
+        /// Database assignable as auto increment field
         /// </summary>
         Native = 0,
         /// <summary>

@@ -37,7 +37,7 @@ namespace TestLibrary
           new Lazy<DbProviderFactory>(() => Npgsql.NpgsqlFactory.Instance);
       public ProviderName GetProviderName()
       {
-          return ProviderName.Postgresql;
+          return ProviderName.PostgreSql;
       }
       public string GetConnectionString()
       {
@@ -73,7 +73,7 @@ namespace TestLibrary
           new Lazy<DbProviderFactory>(() => System.Data.SQLite.SQLiteFactory.Instance);
       public ProviderName GetProviderName()
       {
-          return ProviderName.Sqlite;
+          return ProviderName.SqLite;
       }
       public string GetConnectionString()
       {

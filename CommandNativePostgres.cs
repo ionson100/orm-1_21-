@@ -90,7 +90,7 @@ namespace ORM_1_21_
 
             if (type == typeof(bool?) || type == typeof(bool))
             {
-                if (_providerName == ProviderName.Postgresql) return o.ToString();
+                if (_providerName == ProviderName.PostgreSql) return o.ToString();
                 var v = Convert.ToBoolean(o);
                 return v ? 0.ToString() : 1.ToString();
             }

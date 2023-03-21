@@ -6,16 +6,10 @@ using System.Linq.Expressions;
 
 namespace ORM_1_21_.Linq
 {
-    /// <summary>
-    /// 
-    /// </summary>
+ 
     internal abstract class ExpressionVisitor
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="exp"></param>
-        /// <returns></returns>
+       
         protected Expression Visit(Expression exp)
         {
             if (exp == null)
@@ -181,11 +175,7 @@ namespace ORM_1_21_.Linq
             var exp = Visit(memberExpression.Expression);
             return exp != memberExpression.Expression ? Expression.MakeMemberAccess(exp, memberExpression.Member) : memberExpression;
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="methodCallExpression"></param>
-        /// <returns></returns>
+        
         protected virtual Expression VisitMethodCall(MethodCallExpression methodCallExpression)
         {
             var obj = Visit(methodCallExpression.Object);
@@ -244,9 +234,9 @@ namespace ORM_1_21_.Linq
         private MemberListBinding
           VisitMemberListBinding(MemberListBinding binding)
         {
-            var initializers =
+            var initializer =
               VisitElementInitializerList(binding.Initializers);
-            return initializers != binding.Initializers ? Expression.ListBind(binding.Member, initializers) : binding;
+            return initializer != binding.Initializers ? Expression.ListBind(binding.Member, initializer) : binding;
         }
 
         private IEnumerable<MemberBinding>
@@ -337,11 +327,11 @@ namespace ORM_1_21_.Linq
         private Expression VisitListInit(ListInitExpression init)
         {
             var n = VisitNew(init.NewExpression);
-            var initializers =
+            var initializer =
               VisitElementInitializerList(init.Initializers);
-            if (n != init.NewExpression || initializers != init.Initializers)
+            if (n != init.NewExpression || initializer != init.Initializers)
             {
-                return Expression.ListInit(n, initializers);
+                return Expression.ListInit(n, initializer);
             }
             return init;
         }

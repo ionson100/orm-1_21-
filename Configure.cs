@@ -58,7 +58,7 @@ namespace ORM_1_21_
             ActivateLogger(logFileName);
             switch (provider)
             {
-                case ProviderName.Postgresql:
+                case ProviderName.PostgreSql:
                     {
                         try
                         {
@@ -106,7 +106,7 @@ namespace ORM_1_21_
                      
                         break;
                     }
-                case ProviderName.Sqlite:
+                case ProviderName.SqLite:
                     {
                         try
                         {

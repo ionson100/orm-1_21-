@@ -21,13 +21,13 @@ namespace ORM_1_21_.Linq
     {
         private readonly List<object> _paramFree = new List<object>();
         private readonly List<ParameterStoredPr> _paramFreeStoredPr = new List<ParameterStoredPr>();
-        private CancellationToken _cancellationToken = default;
+        private CancellationToken _cancellationToken;
 
 
         private readonly Dictionary<string, object> _parOut = new Dictionary<string, object>();
         private readonly Sessione _sessione;
         private IDbCommand _com;
-        private ProviderName _providerName;
+        private readonly ProviderName _providerName;
 
         
 
@@ -95,12 +95,7 @@ namespace ORM_1_21_.Linq
                 return CacheState.NoCache;
             }
         }
-       
-
-       
-
-       
-       
+      
         List<TResult> ActionCoreGroupBy<TResult>(Expression expression)
         {
             List<TResult> resList = new List<TResult>();
@@ -112,19 +107,16 @@ namespace ORM_1_21_.Linq
             return resList;
         }
 
-
         public override object Execute(Expression expression)
         {
             return null;
         }
-
         public override object ExecuteSpp<TS>(Expression expression)
         { 
             IDataReader dataReader = null;
             try
             {
                 var sb = new StringBuilder();
-               
                 var services = (IServiceSessions)Sessione;
                 _com = services.CommandForLinq;
                 _com.CommandType = CommandType.StoredProcedure;
@@ -152,7 +144,6 @@ namespace ORM_1_21_.Linq
                     pr.Value = p.Value;
                     _com.Parameters.Add(pr);
                 }
-
 
                 _sessione.OpenConnectAndTransaction(_com);
                 dataReader = _com.ExecuteReader();
@@ -253,9 +244,6 @@ namespace ORM_1_21_.Linq
             {
                 _paramFree.AddRange(param);
             }
-
-            var ss = typeof(T);
-            var ssa = typeof(TS);
             var res= Execute<TS>(expression);
             return (TS)res;
         }
@@ -281,13 +269,11 @@ namespace ORM_1_21_.Linq
         {
             //Thread.Sleep(5000);
             CancellationTokenRegistration? registration = null;
-          
-            var t1 = typeof(T);
-            var t2 = typeof(TS);
+         
             bool isCacheUsage = CacheState == CacheState.CacheUsage || CacheState == CacheState.CacheOver || CacheState == CacheState.CacheKey;
             var services = (IServiceSessions)Sessione;
             var re = TranslateE(expression);
-            string sql = re.Item1;//Translate(expression, out _).Replace("FROM", " FROM ");
+            string sql = re.Item1;
             List<OneComposite> listCore = re.Item2;
             listCore.AddRange(ListOuterOneComposites);
             if (PingCompositeE(Evolution.GroupBy, listCore) && _isAsync)
@@ -548,7 +534,7 @@ namespace ORM_1_21_.Linq
                 if (PingCompositeE(Evolution.TableExists, listCore))
                 {
                     _com.CommandText = listCore.First(a => a.Operand == Evolution.TableExists).Body;
-                    if (_providerName == ProviderName.Postgresql)
+                    if (_providerName == ProviderName.PostgreSql)
                     {
                         var r = (long)_com.ExecuteScalar();
                         return r != 0;
@@ -566,7 +552,7 @@ namespace ORM_1_21_.Linq
                             _com.ExecuteNonQuery();
                             return true;
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             return false;
                         }
@@ -596,7 +582,6 @@ namespace ORM_1_21_.Linq
                                 var val = Pizdaticus.MethodFree(_providerName, list[i], dataReader[i]);
                                 par.Add(dataReader[i] == DBNull.Value ? null : val);
                             }
-
                             var e = ci.Invoke(par.ToArray());
                             resDis.Add((TS)e);
                         }
@@ -807,8 +792,8 @@ namespace ORM_1_21_.Linq
                 if (PingCompositeE(Evolution.DistinctCore, listCore))
                 {
 
-                    var sas = this.ListCastExpression.Single(a => a.TypeRevalytion == Evolution.DistinctCore);
-                    IList resT = sas.ListDistict;
+                    var sas = ListCastExpression.Single(a => a.TypeRevalytion == Evolution.DistinctCore);
+                    IList resT = sas.ListDistinct;
                     dataReader = _com.ExecuteReader();
                     if (PingCompositeE(Evolution.SelectNew, listCore))
                     {
@@ -822,7 +807,7 @@ namespace ORM_1_21_.Linq
                         var resDis = resT;
                         while (dataReader.Read())
                         {
-                            var val = Pizdaticus.MethodFree(_providerName, sas.TypeRetyrn, dataReader[0]);
+                            var val = Pizdaticus.MethodFree(_providerName, sas.TypeReturn, dataReader[0]);
                             resDis.Add(val);
                         }
 
@@ -941,7 +926,7 @@ namespace ORM_1_21_.Linq
                         (List<TS>)Execute<TS>(expression), cancellationToken, TaskCreationOptions.LongRunning)
                     .ConfigureAwait(false);
             }
-            catch (GroupException e)
+            catch (GroupException)
             {
                 return await Task.Factory.StartNew((a) =>
                         ActionCoreGroupBy<TS>(expression), cancellationToken, TaskCreationOptions.LongRunning)
@@ -961,7 +946,7 @@ namespace ORM_1_21_.Linq
 
             _param = sq.Param;
 
-            ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
+            ListCastExpression.ForEach(a => sq.Translate(a.CustomExpression, a.TypeRevalytion, a.ParamList));
             string res = sq.Translate(expression, out _);
             var sdd = sq.GetListOne();
             Thread.MemoryBarrier();
@@ -975,7 +960,7 @@ namespace ORM_1_21_.Linq
         {
             ITranslate sq = new QueryTranslator<T>(_providerName);
             _param = sq.Param;
-            ListCastExpression.ForEach(a => sq.Translate(a.CastomExpression, a.TypeRevalytion, a.ParamList));
+            ListCastExpression.ForEach(a => sq.Translate(a.CustomExpression, a.TypeRevalytion, a.ParamList));
             string res = sq.Translate(expression, out ev1);
 
 

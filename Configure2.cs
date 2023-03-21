@@ -18,7 +18,7 @@ namespace ORM_1_21_
 
         }
         /// <summary>
-        /// Util
+        /// Utilities
         /// </summary>
         public static class Utils
         {
@@ -50,7 +50,7 @@ namespace ORM_1_21_
                 return UtilsCore.ObjectToByteArray(obj);
             }
             /// <summary>
-            /// Deserialization
+            /// De serialization
             /// </summary>
             public static object ByteArrayToObject(byte[] arrBytes)
             {
@@ -81,7 +81,7 @@ namespace ORM_1_21_
             }
 
             /// <summary>
-            /// ake the object persistent - obtained from the database.
+            /// As the object persistent - obtained from the database.
             /// </summary>
             /// <param name="obj"></param>
             public static void SetPersistent(object obj)

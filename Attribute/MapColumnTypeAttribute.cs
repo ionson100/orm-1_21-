@@ -6,12 +6,12 @@ namespace ORM_1_21_
     /// Field type when creating a table (set by the user)
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class MapColumnTypeAttribute : System.Attribute
+    public sealed class MapColumnTypeAttribute : Attribute
     {
         /// <summary>
         /// 
         /// </summary>
-        internal string TypeString { get; private set; }
+        internal string TypeString { get; }
 
         /// <summary>
         /// 

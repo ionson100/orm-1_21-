@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace ORM_1_21_.Linq
 {
     /// <summary>
-    /// 
+    /// Request Provider  abstract
     /// </summary>
     public abstract class QueryProvider : IQueryProvider
     {
@@ -72,6 +72,11 @@ namespace ORM_1_21_.Linq
         /// <param name="expression"></param>
         /// <returns></returns>
         public abstract object Execute(Expression expression);
+
+        /// <summary>
+        /// Execute For Extension
+        /// </summary>
+        /// <param name="expression"></param>
 
         public abstract Task<T> ExecuteExtensionAsync<T>(Expression expression, object[] param,
             CancellationToken cancellationToken);

@@ -230,7 +230,7 @@ namespace ORM_1_21_.Linq.MySql
             sbb.Append(ee);
             if (PingComposite(Evolution.ElementAt))
             {
-                if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
+                if (_providerName == ProviderName.PostgreSql || _providerName == ProviderName.SqLite)
                     sbb.AppendFormat(" LIMIT 1 OFFSET {0}", listOne.First(a => a.Operand == Evolution.ElementAt).Body);
                 else
                     sbb.AppendFormat(" LIMIT {0},1", listOne.First(a => a.Operand == Evolution.ElementAt).Body);
@@ -238,7 +238,7 @@ namespace ORM_1_21_.Linq.MySql
 
             if (PingComposite(Evolution.ElementAtOrDefault))
             {
-                if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
+                if (_providerName == ProviderName.PostgreSql || _providerName == ProviderName.SqLite)
                     sbb.AppendFormat(" LIMIT 1  OFFSET {0} ", listOne.First(a => a.Operand == Evolution.ElementAtOrDefault).Body);
                 else
                     sbb.AppendFormat(" LIMIT {0},1",
@@ -247,7 +247,7 @@ namespace ORM_1_21_.Linq.MySql
 
             if (PingComposite(Evolution.First))
             {
-                if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
+                if (_providerName == ProviderName.PostgreSql || _providerName == ProviderName.SqLite)
                 {
                     if (PingComposite(Evolution.Single) || PingComposite(Evolution.SingleOrDefault))
                         sbb.Append(" LIMIT 2 ");
@@ -277,7 +277,7 @@ namespace ORM_1_21_.Linq.MySql
                 }
                 else
                 {
-                    if (_providerName == ProviderName.Postgresql)
+                    if (_providerName == ProviderName.PostgreSql)
                     {
                         sbb.Append(" OFFSET ").Append(isk).Append(" ");
                     }
@@ -333,9 +333,8 @@ namespace ORM_1_21_.Linq.MySql
                                         orderby.ToString().Trim(','));
             }
             // todo ion100 Replace("''", "'")
-            var ssd = sbb+";";
             return sbb.ToString().Replace("  ", " ").Replace("Average", "AVG")
-                .Replace("LongCount", "Count");
+                .Replace("LongCount", "Count")+";";
         }
     }
 }

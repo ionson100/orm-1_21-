@@ -60,7 +60,7 @@ namespace ORM_1_21_
             {
                 List<TableColumn> tc = new List<TableColumn>();
                 string key = null;
-                if (providerName == ProviderName.Postgresql)
+                if (providerName == ProviderName.PostgreSql)
                 {
                     while (reader.Read())
                     {
@@ -108,7 +108,7 @@ namespace ORM_1_21_
                             }
                         }
 
-                        if (providerName == ProviderName.Sqlite)
+                        if (providerName == ProviderName.SqLite)
                         {
                             int d = reader.GetInt32(5);
                             if (d == 1)
@@ -135,7 +135,7 @@ namespace ORM_1_21_
         {
             switch (providerName)
             {
-                case ProviderName.Postgresql:
+                case ProviderName.PostgreSql:
                     {
                         return ForPostgres(tableName, command, providerName);
                     }
@@ -147,7 +147,7 @@ namespace ORM_1_21_
                     {
                         return ForMsSql(tableName, command, providerName);
                     }
-                case ProviderName.Sqlite:
+                case ProviderName.SqLite:
                     {
                         return ForSqlite(tableName, command, providerName);
                     }

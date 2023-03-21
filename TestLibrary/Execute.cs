@@ -348,7 +348,7 @@ namespace TestLibrary
 
                 dynamic di = session.FreeSql<dynamic>($"select age, name from {session.TableName<T>()}");
                 Configure.WriteLogFile($"{47} {di.Count == 5}");
-                if (s.GetProviderName() == ProviderName.Sqlite)
+                if (s.GetProviderName() == ProviderName.SqLite)
                 {
                     var anon = TempSql(new { age = 3L, name = "asss" }, session,
                         $"select age,name from {session.TableName<T>()}");
@@ -766,7 +766,7 @@ namespace TestLibrary
             session.Save(new T());
             var tttest = session.Query<T>().First();
 
-            if (s.GetProviderName() == ProviderName.Postgresql || s.GetProviderName() == ProviderName.MsSql)
+            if (s.GetProviderName() == ProviderName.PostgreSql || s.GetProviderName() == ProviderName.MsSql)
             {
                 var res = (tttest.V5 == null
                            || tttest.V6 == null
@@ -827,7 +827,7 @@ namespace TestLibrary
                 tttest1.V14 = 1;
                 session.Save(tttest1);
             }
-            if (s.GetProviderName() == ProviderName.Sqlite)
+            if (s.GetProviderName() == ProviderName.SqLite)
             {
                 ClassNullSqlite tttest1 = tttest as ClassNullSqlite;
                 var res = (tttest1.V5 == null
@@ -863,7 +863,7 @@ namespace TestLibrary
             }
             tttest = session.Query<T>().First();
 
-            if (s.GetProviderName() == ProviderName.Sqlite)
+            if (s.GetProviderName() == ProviderName.SqLite)
             {
                 ClassNullSqlite tttest1 = tttest as ClassNullSqlite;
                 var res = (tttest1.V5 != null
@@ -902,7 +902,7 @@ namespace TestLibrary
                            || tttest1.V14 != null);
                 Configure.WriteLogFile($"{2} {res} is not null");
             }
-            if (s.GetProviderName() == ProviderName.Postgresql || s.GetProviderName() == ProviderName.MsSql)
+            if (s.GetProviderName() == ProviderName.PostgreSql || s.GetProviderName() == ProviderName.MsSql)
             {
                 var res = (tttest.V5 != null
                            || tttest.V6 != null

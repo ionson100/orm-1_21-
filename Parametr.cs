@@ -13,7 +13,7 @@ namespace ORM_1_21_
         /// <summary>
         /// Parameter name
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
         /// <summary>
         /// Parameter value
         /// </summary>

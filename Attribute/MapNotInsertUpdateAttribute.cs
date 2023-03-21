@@ -6,7 +6,7 @@ namespace ORM_1_21_
     /// Fields are not included in the query Insert Update
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class MapNotInsertUpdateAttribute : System.Attribute
+    public class MapNotInsertUpdateAttribute : Attribute
     {
     }
 }

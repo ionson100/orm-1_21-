@@ -249,11 +249,11 @@ namespace ORM_1_21_
             else if (type == typeof(DateTime))
             {
                 
-                return providerName == ProviderName.Sqlite ? DateTime.Parse(e.ToString()) : e;
+                return providerName == ProviderName.SqLite ? DateTime.Parse(e.ToString()) : e;
             }
             else if (type == typeof(DateTime?))
             {
-                if (providerName == ProviderName.Sqlite)
+                if (providerName == ProviderName.SqLite)
                 {
                     DateTime? dateTime = null;
                     if (e != DBNull.Value)

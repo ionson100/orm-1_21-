@@ -4,7 +4,6 @@ using ORM_1_21_.Transaction;
 using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -157,7 +156,7 @@ namespace ORM_1_21_
             {
                 switch (MyProviderName)
                 {
-                    case ProviderName.Postgresql:
+                    case ProviderName.PostgreSql:
                     {
                         var tableName = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
                         sql = $"SELECT count(*) FROM pg_tables WHERE   tablename  = '{tableName}';";
@@ -171,7 +170,7 @@ namespace ORM_1_21_
                         break;
                     }
                     case ProviderName.MySql:
-                    case ProviderName.Sqlite:
+                    case ProviderName.SqLite:
                     {
                         sql = $"select 1 from {AttributesOfClass<TSource>.TableName(MyProviderName)};";
                         break;
@@ -202,7 +201,7 @@ namespace ORM_1_21_
             {
                 switch (MyProviderName)
                 {
-                    case ProviderName.Postgresql:
+                    case ProviderName.PostgreSql:
                     {
                         var tableName = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
                         sql = $"SELECT count(*) FROM pg_tables WHERE   tablename  = '{tableName}';";
@@ -216,7 +215,7 @@ namespace ORM_1_21_
                         break;
                     }
                     case ProviderName.MySql:
-                    case ProviderName.Sqlite:
+                    case ProviderName.SqLite:
                     {
                         sql = $"select 1 from {AttributesOfClass<TSource>.TableName(MyProviderName)};";
                         break;
@@ -399,7 +398,7 @@ namespace ORM_1_21_
 
             switch (MyProviderName)
             {
-                case ProviderName.Sqlite:
+                case ProviderName.SqLite:
                     {
                         index = 0;
                         com.CommandText = "SELECT name FROM sqlite_master WHERE type='table';";
@@ -427,7 +426,7 @@ namespace ORM_1_21_
                         break;
                     }
 
-                case ProviderName.Postgresql:
+                case ProviderName.PostgreSql:
                     {
                         index = 0;
                         com.CommandText = "SELECT table_name FROM information_schema.tables where table_schema='public'";
@@ -485,10 +484,10 @@ namespace ORM_1_21_
                     case ProviderName.MySql:
                         com.CommandText = $"CREATE DATABASE [IF NOT EXISTS] {baseName}";
                         break;
-                    case ProviderName.Postgresql:
+                    case ProviderName.PostgreSql:
                         com.CommandText = $"CREATE DATABASE {baseName};";
                         return -1;
-                    case ProviderName.Sqlite:
+                    case ProviderName.SqLite:
                         if (File.Exists(baseName) == false)
                         {
                             com.Connection.GetType().GetMethod("CreateFile", BindingFlags.Static | BindingFlags.Public)
@@ -532,11 +531,11 @@ namespace ORM_1_21_
                 case ProviderName.MySql:
                     com.CommandText = new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable);
                     break;
-                case ProviderName.Postgresql:
-                    com.CommandText = new UtilsBulkPostgres(ProviderName.Postgresql).GetSql(enumerable);
+                case ProviderName.PostgreSql:
+                    com.CommandText = new UtilsBulkPostgres(ProviderName.PostgreSql).GetSql(enumerable);
                     break;
-                case ProviderName.Sqlite:
-                    com.CommandText = new UtilsBulkMySql(ProviderName.Sqlite).GetSql(enumerable);
+                case ProviderName.SqLite:
+                    com.CommandText = new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -580,11 +579,11 @@ namespace ORM_1_21_
                 case ProviderName.MySql:
                     com.CommandText = new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable);
                     break;
-                case ProviderName.Postgresql:
-                    com.CommandText = new UtilsBulkPostgres(ProviderName.Postgresql).GetSql(enumerable);
+                case ProviderName.PostgreSql:
+                    com.CommandText = new UtilsBulkPostgres(ProviderName.PostgreSql).GetSql(enumerable);
                     break;
-                case ProviderName.Sqlite:
-                    com.CommandText = new UtilsBulkMySql(ProviderName.Sqlite).GetSql(enumerable);
+                case ProviderName.SqLite:
+                    com.CommandText = new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -636,10 +635,10 @@ namespace ORM_1_21_
                 case ProviderName.MySql:
                     com.CommandText = UtilsBulkMySql.InsertFile<TSource>(fileCsv, fieldterminator, MyProviderName);
                     break;
-                case ProviderName.Postgresql:
+                case ProviderName.PostgreSql:
                     com.CommandText = UtilsBulkPostgres.InsertFile<TSource>(fileCsv, fieldterminator, MyProviderName);
                     break;
-                case ProviderName.Sqlite:
+                case ProviderName.SqLite:
                     com.CommandText = UtilsBulkMySql.InsertFile<TSource>(fileCsv, fieldterminator, MyProviderName);
                     break;
                 default:
@@ -716,7 +715,7 @@ namespace ORM_1_21_
         int ISession.TruncateTable<TSource>()
         {
             string sql;
-            if (MyProviderName == ProviderName.Sqlite)
+            if (MyProviderName == ProviderName.SqLite)
                 sql = $"DELETE FROM {AttributesOfClass<TSource>.TableName(MyProviderName)};";
             else
                 sql = $"TRUNCATE TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)};";
@@ -731,7 +730,7 @@ namespace ORM_1_21_
          Task<int> ISession.TruncateTableAsync<TSource>(CancellationToken cancellationToken)
         {
             string sql;
-            if (MyProviderName == ProviderName.Sqlite)
+            if (MyProviderName == ProviderName.SqLite)
                 sql = $"DELETE FROM {AttributesOfClass<TSource>.TableName(MyProviderName)};";
             else
                 sql = $"TRUNCATE TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)};";
@@ -779,7 +778,7 @@ namespace ORM_1_21_
             return provider.ExecuteExtension<int>(callExpr,param);
         }
 
-        Task<int> ISession.ExecuteNonQueryAsync(string sql,  object[] param,CancellationToken cancellationToken=default)
+        Task<int> ISession.ExecuteNonQueryAsync(string sql,  object[] param,CancellationToken cancellationToken)
         {
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var p = new V(sql);
@@ -849,18 +848,18 @@ namespace ORM_1_21_
                 switch (MyProviderName)
                 {
                     case ProviderName.MsSql:
-                        throw new Exception("не рализовано");
+                        throw new Exception("Not implemented");
                     case ProviderName.MySql:
-                        throw new Exception("не рализовано");
-                    case ProviderName.Postgresql:
-                        return new CommandNativePostgres(ProviderName.Postgresql).GetInsertSql(source);
-                    case ProviderName.Sqlite:
-                        throw new Exception("не рализовано");
+                        throw new Exception("Not implemented");
+                    case ProviderName.PostgreSql:
+                        return new CommandNativePostgres(ProviderName.PostgreSql).GetInsertSql(source);
+                    case ProviderName.SqLite:
+                        throw new Exception("Not implemented");
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Transactionale.isError = true;
                 throw;
@@ -876,18 +875,18 @@ namespace ORM_1_21_
                 switch (MyProviderName)
                 {
                     case ProviderName.MsSql:
-                        throw new Exception("not implemented");
+                        throw new Exception("Not implemented");
                     case ProviderName.MySql:
-                        throw new Exception("not implemented");
-                    case ProviderName.Postgresql:
-                        return new CommandNativePostgres(ProviderName.Postgresql).GetDeleteSql(source);
-                    case ProviderName.Sqlite:
-                        throw new Exception("not implemented");
+                        throw new Exception("Not implemented");
+                    case ProviderName.PostgreSql:
+                        return new CommandNativePostgres(ProviderName.PostgreSql).GetDeleteSql(source);
+                    case ProviderName.SqLite:
+                        throw new Exception("Not implemented");
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Transactionale.isError = true;
                 throw;
@@ -972,15 +971,15 @@ namespace ORM_1_21_
                         return new UtilsBulkMsSql(ProviderName.MsSql).GetSql(enumerable);
                     case ProviderName.MySql:
                         return new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable);
-                    case ProviderName.Postgresql:
-                        return new UtilsBulkPostgres(ProviderName.Postgresql).GetSql(enumerable);
-                    case ProviderName.Sqlite:
-                        return new UtilsBulkMySql(ProviderName.Sqlite).GetSql(enumerable);
+                    case ProviderName.PostgreSql:
+                        return new UtilsBulkPostgres(ProviderName.PostgreSql).GetSql(enumerable);
+                    case ProviderName.SqLite:
+                        return new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable);
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Transactionale.isError = true;
                 throw;
@@ -1035,7 +1034,7 @@ namespace ORM_1_21_
                 if (UtilsCore.IsPersistent(source))
                 {
                     NotificBefore(source, ActionMode.Update);
-                    if (MyProviderName == ProviderName.Postgresql || MyProviderName == ProviderName.Sqlite)
+                    if (MyProviderName == ProviderName.PostgreSql || MyProviderName == ProviderName.SqLite)
                         AttributesOfClass<TSource>.CreateUpdateCommandPostgres(com, source, MyProviderName,
                             whereObjects);
                     else
@@ -1115,7 +1114,7 @@ namespace ORM_1_21_
                 if (UtilsCore.IsPersistent(source))
                 {
                     NotificBefore(source, ActionMode.Update);
-                    if (MyProviderName == ProviderName.Postgresql || MyProviderName == ProviderName.Sqlite)
+                    if (MyProviderName == ProviderName.PostgreSql || MyProviderName == ProviderName.SqLite)
                         AttributesOfClass<TSource>.CreateUpdateCommandPostgres(com, source, MyProviderName,
                             whereObjects);
                     else

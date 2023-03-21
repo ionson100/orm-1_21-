@@ -442,7 +442,7 @@ namespace ORM_1_21_
             var sb = new StringBuilder();
             sb.Append(StringConst.Select + " ");
             foreach (var type in AttributeDall.Value.Keys.Reverse())
-                if (providerName == ORM_1_21_.ProviderName.Postgresql)
+                if (providerName == ORM_1_21_.ProviderName.PostgreSql)
                 {
                     foreach (var a in AttributeDall.Value[type])
                         sb.AppendFormat($" {a.GetColumnName(providerName)},");
@@ -603,7 +603,7 @@ namespace ORM_1_21_
                     else
                         pr.DbType = pra.DbType();
 
-                    if (prCore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.Sqlite)
+                    if (prCore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.SqLite)
                     {
                         pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
                         pr.Value = GetValue.Value[prCore.Name](item).ToString();
@@ -663,7 +663,7 @@ namespace ORM_1_21_
                 where = new StringBuilder(" WHERE " + where.ToString().Trim("AND".ToArray()));
             var from = si.Substring(si.IndexOf("FROM", StringComparison.Ordinal) + 4);
 
-            if (providerName == ORM_1_21_.ProviderName.Postgresql || providerName == ORM_1_21_.ProviderName.Sqlite)
+            if (providerName == ORM_1_21_.ProviderName.PostgreSql || providerName == ORM_1_21_.ProviderName.SqLite)
             {
                 var str = string.Format("UPDATE {0} SET {1}  {2};", from, sb.ToString().Trim(','),
                     where.ToString().Trim(','));
@@ -864,8 +864,8 @@ namespace ORM_1_21_
 
                     if (pk.Generator != Generator.Assigned) continue;
 
-                    if (providerName == ORM_1_21_.ProviderName.Postgresql ||
-                        providerName == ORM_1_21_.ProviderName.Sqlite)
+                    if (providerName == ORM_1_21_.ProviderName.PostgreSql ||
+                        providerName == ORM_1_21_.ProviderName.SqLite)
                         sb.AppendFormat($"{pk.GetColumnName(providerName)}, ");
                     else
                         sb.AppendFormat("{0}.{1}, ", TableNameAllLazy.Value[type], pk.GetColumnName(providerName));
@@ -892,8 +892,8 @@ namespace ORM_1_21_
                 {
                     if (rtp.IsNotUpdateInsert) continue;
 
-                    if (providerName == ORM_1_21_.ProviderName.Postgresql ||
-                        providerName == ORM_1_21_.ProviderName.Sqlite)
+                    if (providerName == ORM_1_21_.ProviderName.PostgreSql ||
+                        providerName == ORM_1_21_.ProviderName.SqLite)
                         sb.AppendFormat($"{rtp.GetColumnName(providerName)}, ");
                     else
                         sb.AppendFormat("{0}.{1},", TableNameAllLazy.Value[type], rtp.GetColumnName(providerName));
@@ -933,7 +933,7 @@ namespace ORM_1_21_
                             val = GetValue.Value[prCore.Name](obj);
                         }
 
-                        if (prCore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.Sqlite)
+                        if (prCore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.SqLite)
                         {
                             pr.Value = val.ToString();
                             pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
@@ -967,12 +967,12 @@ namespace ORM_1_21_
                         allSb.Append($" SELECT IDENT_CURRENT ('{TableNameAllLazy.Value[typeof(T)]}')");
                         break;
                     }
-                    case ORM_1_21_.ProviderName.Postgresql:
+                    case ORM_1_21_.ProviderName.PostgreSql:
                     {
                         allSb.Append($" RETURNING {PkAttribute(providerName).GetColumnName(providerName)}");
                         break;
                     }
-                    case ORM_1_21_.ProviderName.Sqlite:
+                    case ORM_1_21_.ProviderName.SqLite:
                     {
                         allSb.Append(";select last_insert_rowid()");
                         break;
@@ -1013,12 +1013,5 @@ namespace ORM_1_21_
             Provider = providerName;
             return TableNameAllLazy.Value[type] + "." + ColumnName.Value[member];
         }
-
-        //private static readonly Lazy<bool> _isUserSerialization = new Lazy<bool>(() =>
-        //{
-        //   return typeof(IMapSerializable).IsAssignableFrom(typeof(T));
-        //}, LazyThreadSafetyMode.PublicationOnly);
-        //
-        //public static bool IsUserSerialization = _isUserSerialization.Value;
     }
 }

@@ -7,9 +7,6 @@ namespace ORM_1_21_
 {
     internal static class DbTypeConverter
     {
-        //case TypeCode.DBNull:return DbType.Object;
-        //          return DbType.Object;
-
         public static DbType ConvertFrom(Type type)
         {
 

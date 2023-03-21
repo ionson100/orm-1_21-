@@ -67,7 +67,7 @@ namespace ORM_1_21_.Linq.MsSql
             if (ev == Evolution.Limit)
                 if (paramList != null && paramList.Count == 2)
                 {
-                    if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
+                    if (_providerName == ProviderName.PostgreSql || _providerName == ProviderName.SqLite)
                     {
                         ListOne.Add(new OneComposite
                         {
@@ -157,7 +157,7 @@ namespace ORM_1_21_.Linq.MsSql
                 };
                 ListOne.Add(o);
                 Visit(m.Arguments[1]);
-                if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
+                if (_providerName == ProviderName.PostgreSql || _providerName == ProviderName.SqLite)
                 {
                     ListOne.Add(new OneComposite
                     {
@@ -227,7 +227,7 @@ namespace ORM_1_21_.Linq.MsSql
                 };
                 ListOne.Add(o);
                 Visit(m.Arguments[1]);
-                if (_providerName == ProviderName.Postgresql || _providerName == ProviderName.Sqlite)
+                if (_providerName == ProviderName.PostgreSql || _providerName == ProviderName.SqLite)
                 {
                     ListOne.Add(new OneComposite
                     {
@@ -1584,7 +1584,7 @@ namespace ORM_1_21_.Linq.MsSql
         {
             if (nex.Type == typeof(Guid))
             {
-                if (_providerName == ProviderName.Postgresql)
+                if (_providerName == ProviderName.PostgreSql)
                 {
                     string str = StringB.ToString().TrimEnd(' ', '=');
                     StringB.Clear().Append(str);

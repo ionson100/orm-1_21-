@@ -8,7 +8,7 @@ namespace ORM_1_21_
     /// Indexed fields are marked
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class MapIndexAttribute : System.Attribute
+    public class MapIndexAttribute : Attribute
     {
     }
 }

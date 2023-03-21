@@ -9,7 +9,7 @@ namespace ORM_1_21_.Linq
         private string _alias;
         public string GetAlias(Expression m)
         {
-            base.Visit(m);
+            Visit(m);
             return _alias;
         }
         protected override Expression VisitUnary(UnaryExpression u)

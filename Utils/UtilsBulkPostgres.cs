@@ -12,13 +12,13 @@ namespace ORM_1_21_.Utils
 
         public UtilsBulkPostgres(ProviderName providerName)
         {
-            this._providerName = providerName;
+            _providerName = providerName;
         }
 
-        public string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
+        public string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldTerminator)
         {
             if (fileCsv != null)
-                return SqlFile(list, fileCsv, fieldterminator);
+                return SqlFile(list, fileCsv, fieldTerminator);
             return SqlSimple(list);
         }
         public string GetSql<T>(IEnumerable<T> list)
@@ -143,7 +143,7 @@ namespace ORM_1_21_.Utils
 
             if (type == typeof(bool?) || type == typeof(bool))
             {
-                if (_providerName == ProviderName.Postgresql) return o.ToString();
+                if (_providerName == ProviderName.PostgreSql) return o.ToString();
                 var v = Convert.ToBoolean(o);
                 return v ? 0.ToString() : 1.ToString();
             }

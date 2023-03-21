@@ -84,7 +84,7 @@ namespace ORM_1_21_
         ///  Getting ExecuteReader
         /// </summary>
         /// <param name="sql">request string</param>
-        /// <param name="params">parameters array( param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
+        /// <param name="params">parameters array( parameters name: mysql-?,PostgreSQL-@,msSql-@,SqLite-@)</param>
         IDataReader ExecuteReader(string sql, params object[] @params);
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="sql">request string</param>
         /// <param name="timeOut">timeout connection</param>
-        /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
+        /// <param name="param">parameters array (parameters name: mysql-?,PostgreSQL-@,msSql-@,SqLite-@)</param>
         IDataReader ExecuteReader(string sql, int timeOut = 30, params object[] param);
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="sql">sql text</param>
         /// <param name="timeout">timeout connection</param>
-        /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
+        /// <param name="param">parameters array (parameters name: mysql-?,PostgreSQL-@,msSql-@,SqLite-@)</param>
         DataTable GetDataTable(string sql, int timeout = 30, params object[] param);
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace ORM_1_21_
         /// Returns the first element of the request
         /// </summary>
         /// <param name="sql">sql text</param>
-        /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
+        /// <param name="param">parameters array (parameters name: mysql-?,PostgreSQL-@,msSql-@,SqLite-@)</param>
         /// <returns></returns>
         object ExecuteScalar(string sql, params object[] param);
 
@@ -156,7 +156,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="sql">sql text</param>
         /// <param name="timeOut">timeout connection</param>
-        /// <param name="param">parameter array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
+        /// <param name="param">parameter array (parameters name: mysql-?,PostgreSQL-@,msSql-@,SqLite-@)</param>
         object ExecuteScalar(string sql, int timeOut = 30, params object[] param);
 
 
@@ -217,10 +217,10 @@ namespace ORM_1_21_
         string GetConnectionString();
 
         /// <summary>
-        /// executes the query and returns the number of records affected
+        /// Executes the query and returns the number of records affected
         /// </summary>
         /// <param name="sql">sql text</param>
-        /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
+        /// <param name="param">parameters array (parameters name: mysql-?,postgresql-@,msSql-@,SqLite-@)</param>
         int ExecuteNonQuery(string sql, params object[] param);
 
 
@@ -231,7 +231,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="sql">sql text</param>
         /// <param name="timeOut">timeout connection</param>
-        /// <param name="param">parameters array (param name: mysql-?,postgresql-@,mssql-@,sqlite-@)</param>
+        /// <param name="param">parameters array (parameters name: mysql-?,postgresql-@,msSql-@,SqLite-@)</param>
         int ExecuteNonQuery(string sql, int timeOut = 30, params object[] param);
 
 
@@ -285,31 +285,73 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="source">object for update</param>
         /// <param name="whereObjects">list condition</param>
-        /// <returns>Query result: 1 - ok  0-Record not updated</returns>
+        /// <returns>Query result: 1 - Aptly  0-Record not updated</returns>
         int Update<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class;
 
+        /// <summary>
+        /// Delete table asynchronously
+        /// </summary>
         Task<int> DropTableAsync<TSource>(CancellationToken cancellationToken = default) where  TSource:class;
+
+        /// <summary>
+        /// Delete table if exists asynchronously
+        /// </summary>
         Task<int> DropTableIfExistsAsync<TSource>(CancellationToken cancellationToken = default) where TSource : class;
+
+        /// <summary>
+        /// Create table asynchronously
+        /// </summary>
         Task<int> TableCreateAsync<TSource>(CancellationToken cancellationToken = default) where TSource : class;
+
+        /// <summary>
+        /// Request ExecuteReader asynchronously
+        /// </summary>
         Task<IDataReader> ExecuteReaderAsync(string sql, object[] param, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        ///Get ExecuteReader asynchronously
+        /// </summary>
         Task<IDataReader> ExecuteReaderAsync(string sql, int timeOut, object[] param,
             CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Returns the first element of the request asynchronously
+        /// </summary>
         Task<object> ExecuteScalarAsync(string sql, object[] param, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Returns the first element of the request asynchronously
+        /// </summary>
         Task<object> ExecuteScalarAsync(string sql, int timeOut, object[] param,
             CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Executes the query and returns the number of records affected asynchronously
+        /// </summary>
         Task<int> ExecuteNonQueryAsync(string sql, object[] param, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Get DataTable  asynchronously
+        /// </summary>
         Task<DataTable> GetDataTableAsync(string sql, int timeOut, object[] param,
             CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Get DataTable
+        /// </summary>
         DataTable GetDataTable(string sql, params object[] param);
+        /// <summary>
+        ///  Get DataTable  asynchronously
+        /// </summary>
         Task<DataTable> GetDataTableAsync(string sql, object[] param, CancellationToken cancellationToken=default);
+        /// <summary>
+        /// Insert or Update   asynchronously
+        /// </summary>
         Task<int> SaveAsync<TSource>(TSource source, CancellationToken cancellationToken = default) where TSource : class;
 
+        /// <summary>
+        /// Update   asynchronously
+        /// </summary>
         Task<int> UpdateAsync<TSource>(TSource source, AppenderWhere[] whereObjects,
             CancellationToken cancellationToken = default) where TSource : class;
     }

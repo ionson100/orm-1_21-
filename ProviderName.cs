@@ -14,12 +14,12 @@
         ///</summary>
         MySql,
         /// <summary>
-        ///  PostgreSql database
+        ///  PostgreSQL database
         /// </summary>
-        Postgresql,
+        PostgreSql,
         /// <summary>
-        /// Sqlite database
+        /// SqLite database
         /// </summary>
-        Sqlite
+        SqLite
     }
 }

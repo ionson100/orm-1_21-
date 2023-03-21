@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ORM_1_21_
+﻿namespace ORM_1_21_
 {
     /// <summary>
-    /// container to add update condition: Where
+    /// Container to add update condition: Where
     /// </summary>
     public class AppenderWhere
     {
 
         /// <summary>
-        /// Table column
+        /// Table column Name
         /// </summary>
         public string ColumnName { get; }
         /// <summary>
@@ -22,9 +16,9 @@ namespace ORM_1_21_
         public object Value { get; }
 
         /// <summary>
-        /// 
+        /// Constructor
         /// </summary>
-        /// <param name="columnName">Table column</param>
+        /// <param name="columnName">Table column Name</param>
         /// <param name="value">Column value</param>
         public AppenderWhere(string columnName, object value)
         {

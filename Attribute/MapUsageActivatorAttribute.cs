@@ -7,7 +7,7 @@ namespace ORM_1_21_
     /// without this attribute, an object from the base is created without a constructor and an initializer
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class MapUsageActivatorAttribute : System.Attribute
+    public sealed class MapUsageActivatorAttribute : Attribute
     {
     }
 }

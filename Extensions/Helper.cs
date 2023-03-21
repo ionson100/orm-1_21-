@@ -41,7 +41,7 @@ namespace ORM_1_21_.Extensions
         public static IEnumerable<TResult> Distinct<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> exp) where TSource : class
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { CastomExpression = exp, TypeRevalytion = Evolution.DistinctCore, TypeRetyrn = typeof(TResult), ListDistict = new List<TResult>() });
+            { CustomExpression = exp, TypeRevalytion = Evolution.DistinctCore, TypeReturn = typeof(TResult), ListDistinct = new List<TResult>() });
             return source.Provider.Execute<IEnumerable<TResult>>(source.Expression);
         }
 
@@ -54,7 +54,7 @@ namespace ORM_1_21_.Extensions
         public static int Delete<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> exp = null) where TSource : class
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { CastomExpression = exp, TypeRevalytion = Evolution.Delete });
+            { CustomExpression = exp, TypeRevalytion = Evolution.Delete });
             return source.Provider.Execute<int>(source.Expression);
         }
         /// <summary>
@@ -63,7 +63,7 @@ namespace ORM_1_21_.Extensions
         public static Task<int> DeleteAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> exp = null) where TSource : class
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { CastomExpression = exp, TypeRevalytion = Evolution.Delete });
+                { CustomExpression = exp, TypeRevalytion = Evolution.Delete });
              return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(source.Expression,null, CancellationToken.None);
             
         }
@@ -153,7 +153,7 @@ namespace ORM_1_21_.Extensions
         {
            
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { CastomExpression = param, TypeRevalytion = Evolution.Update });
+            { CustomExpression = param, TypeRevalytion = Evolution.Update });
             return source.Provider.Execute<int>(source.Expression);
         }
 
@@ -168,7 +168,7 @@ namespace ORM_1_21_.Extensions
         {
 
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { CastomExpression = param, TypeRevalytion = Evolution.Update });
+                { CustomExpression = param, TypeRevalytion = Evolution.Update });
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(source.Expression,null, CancellationToken.None);
           
         }

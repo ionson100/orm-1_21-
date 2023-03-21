@@ -6,8 +6,8 @@ namespace ORM_1_21_
     /// <summary>
     /// 
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-    public abstract class BaseAttribute : System.Attribute
+    [AttributeUsage(AttributeTargets.Property)]
+    public abstract class BaseAttribute : Attribute
     {
         private readonly string _columnName;
 
@@ -24,10 +24,10 @@ namespace ORM_1_21_
 
                     case ProviderName.MySql:
                         return $"`{_columnName}`";
-                    case ProviderName.Postgresql:
+                    case ProviderName.PostgreSql:
                         return $"\"{_columnName}\"";
 
-                    case ProviderName.Sqlite:
+                    case ProviderName.SqLite:
                         return $"{_columnName}";
                     default:
                         throw new ArgumentOutOfRangeException();

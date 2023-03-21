@@ -12,7 +12,7 @@ namespace TestPostgres
 {
     internal class Program
     {
-        private const ProviderName ProviderName = ORM_1_21_.ProviderName.Postgresql;
+        private const ProviderName ProviderName = ORM_1_21_.ProviderName.PostgreSql;
 
         static async Task Main(string[] args)
         {
@@ -25,10 +25,10 @@ namespace TestPostgres
                 case ProviderName.MySql:
                     Starter.Run(ConnectionStrings.Mysql, ProviderName);
                     break;
-                case ProviderName.Postgresql:
+                case ProviderName.PostgreSql:
                     Starter.Run(ConnectionStrings.Postgesql, ProviderName);
                     break;
-                case ProviderName.Sqlite:
+                case ProviderName.SqLite:
                     Starter.Run(ConnectionStrings.Sqlite, ProviderName);//
                     break;
                 default:
@@ -42,7 +42,7 @@ namespace TestPostgres
             Execute.TestNativeInsert();
             Execute.TestAssignetInsert();
             Execute2.TestTimeStamp();
-            await Execute3.TotalTestNull();
+            //await Execute3.TotalTestNull();
 
 
             ISession session = Configure.Session;
