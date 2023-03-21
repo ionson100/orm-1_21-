@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
 using TestLibrary;
 
@@ -44,7 +42,8 @@ namespace TestPostgres
             Execute.TestNativeInsert();
             Execute.TestAssignetInsert();
             Execute2.TestTimeStamp();
-            
+            await Execute3.TotalTestNull();
+
 
             ISession session = Configure.Session;
             var count = session.InsertBulk(new List<MyClass>()
@@ -56,18 +55,7 @@ namespace TestPostgres
                 new MyClass(1) { Age = 60, Name = "name", MyTest = new MyTest { Name = "simple" } },
                 new MyClass(1) { Age = 10, Name = "name", MyTest = new MyTest { Name = "simple" } },
             });
-            var dd = await session.Query<MyClass>().FirstOrDefaultAsync();
-            var  edd = await session.GetDataTableAsync("select * from my_class5 where age =@1", 40,new object[] { 40 });
-
-            var res = await session.FreeSqlAsync<MyClass>(
-                $"select * from {session.TableName<MyClass>()} where {session.ColumnName<MyClass>(a => a.Age)} = @1",
-                40);
-
-
-            var e = await session.TableExistsAsync<MyClass>();
-
-
-            dynamic di = session.FreeSql<dynamic>($"select age, name from {session.TableName<MyClass>()}");
+            var f = await session.Query<MyClass>().Where(a => a.Age > 0).OrderBy(d => d.Age).SingleOrDefaultAsync(t => t.Age == 100);
             Console.ReadKey();
         }
 
@@ -82,7 +70,7 @@ namespace TestPostgres
 
 
     }
-   [MapTableName("test_list")]
+    [MapTableName("test_list")]
     class TestList
     {
         [MapPrimaryKey("id", Generator.Native)]
@@ -100,12 +88,12 @@ namespace TestPostgres
 
 
 
-       
+
         [MapNotInsertUpdate]
-        [MapColumnType("rowversion")]   
+        [MapColumnType("rowversion")]
         [MapDefaultValue(" ")]
         [MapColumnName("ts")]
-        public byte[] Date { get; set; } =new byte[]{0};
+        public byte[] Date { get; set; } = new byte[] { 0 };
 
     }
 

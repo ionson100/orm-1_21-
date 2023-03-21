@@ -281,23 +281,7 @@ namespace ORM_1_21_.Linq
         {
             //Thread.Sleep(5000);
             CancellationTokenRegistration? registration = null;
-            void FunCancel()
-            {
-                try
-                {
-                    _com.Cancel();
-
-                }
-                catch (Exception ex)
-                {
-                    MySqlLogger.Error("cancellationToken", ex);
-                }
-                finally
-                {
-                    _sessione.Transactionale.isError = true;
-                    _cancellationToken.ThrowIfCancellationRequested();
-                }
-            }
+          
             var t1 = typeof(T);
             var t2 = typeof(TS);
             bool isCacheUsage = CacheState == CacheState.CacheUsage || CacheState == CacheState.CacheOver || CacheState == CacheState.CacheKey;
@@ -306,10 +290,16 @@ namespace ORM_1_21_.Linq
             string sql = re.Item1;//Translate(expression, out _).Replace("FROM", " FROM ");
             List<OneComposite> listCore = re.Item2;
             listCore.AddRange(ListOuterOneComposites);
+            if (PingCompositeE(Evolution.GroupBy, listCore) && _isAsync)
+            {
+                _isAsync = false;
+                throw new GroupException();
+            }
 
-            /*usage cache*/
 
-            int hashCode = -1;
+                /*usage cache*/
+
+                int hashCode = -1;
             if (isCacheUsage)
             {
                 var b = new StringBuilder(sql);
@@ -352,10 +342,7 @@ namespace ORM_1_21_.Linq
 
 
             _com = services.CommandForLinq;
-            if (_cancellationToken != default)
-            {
-                registration = _cancellationToken.Register(FunCancel);
-            }
+         
             var to = GetTimeout();
             if (to >= 0)
             {
@@ -413,6 +400,12 @@ namespace ORM_1_21_.Linq
             try
             {
                 _sessione.OpenConnectAndTransaction(_com);
+
+                if (_cancellationToken != default)
+                {
+                    registration = _cancellationToken.Register(UtilsCore.CancellRegistr(_com,_cancellationToken,_sessione.Transactionale,_providerName));
+                }
+
                 if (PingCompositeE(Evolution.All, listCore))
                 {
                     var reader = _com.ExecuteReader();
@@ -489,16 +482,18 @@ namespace ORM_1_21_.Linq
                     return res;
                 }
 
-               
+
 
                 #region dataReader
-                if(PingCompositeE(Evolution.TableCreate,listCore))
+
+                if (PingCompositeE(Evolution.TableCreate, listCore))
                 {
                     if (AttributesOfClass<T>.IsValid == false)
                     {
                         throw new Exception(
                             $"I can't create a table from type {typeof(T)}, it doesn't have attrubute: MapTableNameAttribute");
                     }
+
                     _com.CommandText = listCore.First(a => a.Operand == Evolution.TableCreate).Body;
                     int res = _com.ExecuteNonQuery();
                     return res;
@@ -524,13 +519,14 @@ namespace ORM_1_21_.Linq
                     return table;
 
                 }
+
                 if (PingCompositeE(Evolution.ExecuteNonQuery, listCore))
                 {
                     _com.CommandText = listCore.First(a => a.Operand == Evolution.ExecuteNonQuery).Body;
                     int res = _com.ExecuteNonQuery();
                     return res;
                 }
-                
+
 
                 if (PingCompositeE(Evolution.TruncateTable, listCore))
                 {
@@ -538,6 +534,7 @@ namespace ORM_1_21_.Linq
                     int res = _com.ExecuteNonQuery();
                     return res;
                 }
+
                 if (PingCompositeE(Evolution.ExecuteScalar, listCore))
                 {
 
@@ -574,7 +571,7 @@ namespace ORM_1_21_.Linq
                             return false;
                         }
                     }
-                
+
                 }
 
                 if (PingCompositeE(Evolution.FreeSql, listCore) &&
@@ -887,6 +884,7 @@ namespace ORM_1_21_.Linq
                 {
                     registration.Value.Dispose();
                 }
+
                 if (listCore.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
                 {
                     var lResult = AttributesOfClass<TS>.GetEnumerableObjectsGroupBy<T>(dataReader,
@@ -909,6 +907,10 @@ namespace ORM_1_21_.Linq
 
                 return ress2;
             }
+            catch (GroupException)
+            {
+                throw;
+            }
 
             catch (Exception ex)
             {
@@ -927,19 +929,26 @@ namespace ORM_1_21_.Linq
             }
         }
 
+        private bool _isAsync;
         public override  async Task<List<TS>> ExecuteToListAsync<TS>(Expression expression, CancellationToken cancellationToken)
         {
+            _isAsync = true;
             _cancellationToken = cancellationToken;
-            var isGroup = typeof(TS).Name.StartsWith("IGrouping");
-            if (isGroup)
+
+            try
+            {
+                return await Task.Factory.StartNew((a) =>
+                        (List<TS>)Execute<TS>(expression), cancellationToken, TaskCreationOptions.LongRunning)
+                    .ConfigureAwait(false);
+            }
+            catch (GroupException e)
             {
                 return await Task.Factory.StartNew((a) =>
                         ActionCoreGroupBy<TS>(expression), cancellationToken, TaskCreationOptions.LongRunning)
                     .ConfigureAwait(false);
             }
-            return await Task.Factory.StartNew((a) =>
-                    (List<TS>)Execute<TS>(expression), cancellationToken, TaskCreationOptions.LongRunning)
-                .ConfigureAwait(false);
+           
+          
         }
 
 

@@ -4,6 +4,7 @@ using ORM_1_21_.Transaction;
 using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -77,6 +78,12 @@ namespace ORM_1_21_
         {
             Check.NotNull(source, "source", () => Transactionale.isError = true);
             return SaveNew(source);
+        }
+
+        Task<int> ISession.SaveAsync<TSource>(TSource source,CancellationToken cancellationToken)
+        {
+            Check.NotNull(source, "source", () => Transactionale.isError = true);
+            return SaveNewAsync(source,null,cancellationToken);
         }
 
         int ISession.TableCreate<TSource>()
@@ -291,7 +298,7 @@ namespace ORM_1_21_
                 if (cancellationToken != default)
                 {
                     registration =
-                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale));
+                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale,MyProviderName));
                 }
 
                 tk.SetResult(com.ExecuteReader());
@@ -329,7 +336,7 @@ namespace ORM_1_21_
                 if (cancellationToken != default)
                 {
                     registration =
-                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale));
+                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale,MyProviderName));
                 }
 
                 tk.SetResult(com.ExecuteReader());
@@ -589,23 +596,8 @@ namespace ORM_1_21_
                 com.CommandTimeout = timeOut;
                 if (cancellationToken != default)
                 {
-                    registration = cancellationToken.Register(() =>
-                    {
-                        try
-                        {
-                            com.Cancel();
-
-                        }
-                        catch (Exception ex)
-                        {
-                            MySqlLogger.Error("cancellationToken", ex);
-                        }
-                        finally
-                        {
-                            Transactionale.isError = true;
-                            cancellationToken.ThrowIfCancellationRequested();
-                        }
-                    });
+                    
+                    registration = cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale,MyProviderName));
                 }
                 var res = com.ExecuteNonQuery();
                 if (registration.HasValue)
@@ -996,7 +988,7 @@ namespace ORM_1_21_
 
         }
 
-        public int Update<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class
+         int ISession.Update<TSource>(TSource source, params AppenderWhere[] whereObjects)
         {
             Check.NotNull(source, "source", () => Transactionale.isError = true);
             if (!UtilsCore.IsPersistent(source))
@@ -1005,6 +997,17 @@ namespace ORM_1_21_
                 throw new Exception("You are trying to update an object not obtained from database");
             }
             return SaveNew(source, whereObjects);
+        }
+
+         Task<int> ISession.UpdateAsync<TSource>(TSource source, AppenderWhere[] whereObjects,CancellationToken cancellationToken) 
+        {
+            Check.NotNull(source, "source", () => Transactionale.isError = true);
+            if (!UtilsCore.IsPersistent(source))
+            {
+                Transactionale.isError = true;
+                throw new Exception("You are trying to update an object not obtained from database");
+            }
+            return SaveNewAsync(source,whereObjects,cancellationToken);
         }
 
         private void SetTimeOut(IDbCommand com, int timeOut)
@@ -1089,6 +1092,90 @@ namespace ORM_1_21_
             }
 
             return res;
+        }
+
+        private Task<int> SaveNewAsync<TSource>(TSource source, AppenderWhere[] whereObjects,CancellationToken cancellationToken) where TSource : class
+        {
+            var tk = new TaskCompletionSource<int>();
+            CancellationTokenRegistration? registration = null;
+            var res = 0;
+            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            com.CommandText = string.Empty;
+           
+
+            try
+            {
+                OpenConnectAndTransaction(com);
+                if (cancellationToken != default)
+                {
+                    registration =
+                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale,MyProviderName));
+                }
+                if (UtilsCore.IsPersistent(source))
+                {
+                    NotificBefore(source, ActionMode.Update);
+                    if (MyProviderName == ProviderName.Postgresql || MyProviderName == ProviderName.Sqlite)
+                        AttributesOfClass<TSource>.CreateUpdateCommandPostgres(com, source, MyProviderName,
+                            whereObjects);
+                    else
+                        AttributesOfClass<TSource>.CreateUpdateCommandMysql(com, source, MyProviderName, whereObjects);
+
+
+                   
+                    res = com.ExecuteNonQuery();
+                    if (res == 1)
+                    {
+                        this.CacheClear<TSource>();
+                        NotificAfter(source, ActionMode.Update);
+                    }
+                }
+                else
+                {
+                    NotificBefore(source, ActionMode.Insert);
+                    AttributesOfClass<TSource>.CreateInsetCommand(com, source, MyProviderName);
+                    if (AttributesOfClass<TSource>.PkAttribute(MyProviderName).Generator == Generator.Assigned)
+                    {
+                        var val = com.ExecuteNonQuery();
+                        if (val == 1)
+                        {
+                            ((ISession)this).ToPersistent(source);
+                            res = 1;
+                            this.CacheClear<TSource>();
+                            NotificAfter(source, ActionMode.Insert);
+                        }
+                    }
+                    else
+                    {
+                        var val = com.ExecuteScalar();
+                        if (val != null)
+                        {
+                            AttributesOfClass<TSource>.RedefiningPrimaryKey(source, val, MyProviderName);
+                            ((ISession)this).ToPersistent(source);
+                            res = 1;
+                            this.CacheClear<TSource>();
+                            NotificAfter(source, ActionMode.Insert);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Transactionale.isError = true;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
+            }
+            finally
+            {
+                if (registration.HasValue)
+                {
+                    registration.Value.Dispose();
+                }
+                ComDisposable(com);
+            }
+            tk.SetResult(res);
+            return tk.Task;
+
         }
 
 

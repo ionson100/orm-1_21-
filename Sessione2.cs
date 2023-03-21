@@ -122,6 +122,7 @@ namespace ORM_1_21_
             Transactionale.MyStateTransaction = StateTransaction.Begin;
             Transactionale.IsolationLevel = null;
             Transactionale.Connection = _connect;
+            Transactionale.isError = false;
             return Transactionale;
         }
 
@@ -136,6 +137,7 @@ namespace ORM_1_21_
             Transactionale.MyStateTransaction = StateTransaction.Begin;
             Transactionale.Connection = _connect;
             Transactionale.IsolationLevel = value;
+            Transactionale.isError = false;
             return Transactionale;
         }
 

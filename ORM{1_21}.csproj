@@ -137,6 +137,7 @@
     <Compile Include="ColumnsTableFactory.cs" />
     <Compile Include="Extensions\HeplerAsync.cs" />
     <Compile Include="Interface\IMapSerializable.cs" />
+    <Compile Include="Linq\GroupException.cs" />
     <Compile Include="Linq\MsSql\ITranslate.cs" />
     <Compile Include="MyCache.cs" />
     <Compile Include="StorageOtherBaseFactory.cs" />

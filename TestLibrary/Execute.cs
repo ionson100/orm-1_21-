@@ -43,11 +43,11 @@ namespace TestLibrary
 
         public static void TotalTest()
         {
-
             NewExe<MyClassPostgres, MyDbPostgres>();
             NewExe<MyClassMysql, MyDbMySql>();
             NewExe<MyClassMsSql, MyDbMsSql>();
             NewExe<MyClassSqlite, MyDbSqlite>();
+
         }
 
         public static void TotalTestNull()
@@ -935,7 +935,7 @@ namespace TestLibrary
         static void TestNativeInser<T,Tb>() where Tb: IOtherDataBaseFactory, new() where T : TestInsertBaseNative, new()
         {
             IOtherDataBaseFactory s = Activator.CreateInstance<Tb>();
-            Console.WriteLine($"*********************NativeInser {s.GetProviderName()} **********************");
+            Console.WriteLine($@"*********************NativeInser {s.GetProviderName()} **********************");
 
             ISession session = Configure.GetSession<Tb>();
             if (session.TableExists<T>())
@@ -945,19 +945,19 @@ namespace TestLibrary
             session.TableCreate<T>();
             T t = new T();
             var i=session.Save(t);
-            Console.WriteLine($"{1} {i == 1}");
-            Console.WriteLine($"{2} {t.Id==1}");
-            Console.WriteLine($"{3} {session.IsPersistent(t)}");
+            Console.WriteLine($@"{1} {i == 1}");
+            Console.WriteLine($@"{2} {t.Id==1}");
+            Console.WriteLine($@"{3} {session.IsPersistent(t)}");
             List<T> list = new List<T>
             {
                 new T(), new T(), new T()
             };
             i = session.InsertBulk(list);
-            Console.WriteLine($"{4} {i==3}");
+            Console.WriteLine($@"{4} {i==3}");
             i=list.Where(a => session.IsPersistent(a)).Count();
-            Console.WriteLine($"{5} {i == 3}");
+            Console.WriteLine($@"{5} {i == 3}");
             i = session.Query<T>().Count();
-            Console.WriteLine($"{6} {i == 4}");
+            Console.WriteLine($@"{6} {i == 4}");
         }
         public static void TestAssignetInsert()
         {
@@ -970,7 +970,7 @@ namespace TestLibrary
         static void TestAssignetInser<T, Tb>() where Tb : IOtherDataBaseFactory, new() where T : TestInsertBaseAssignet, new()
         {
             IOtherDataBaseFactory s = Activator.CreateInstance<Tb>();
-            Console.WriteLine($"********************* AssignetInser {s.GetProviderName()} **********************");
+            Console.WriteLine($@"********************* AssignetInser {s.GetProviderName()} **********************");
 
             ISession session = Configure.GetSession<Tb>();
             if (session.TableExists<T>())
@@ -980,19 +980,19 @@ namespace TestLibrary
             session.TableCreate<T>();
             T t = new T();
             var i = session.Save(t);
-            Console.WriteLine($"{1} {i == 1}");
+            Console.WriteLine($@"{1} {i == 1}");
           
-            Console.WriteLine($"{3} {session.IsPersistent(t)}");
+            Console.WriteLine($@"{3} {session.IsPersistent(t)}");
             List<T> list = new List<T>
             {
                 new T(), new T(), new T()
             };
             i = session.InsertBulk(list);
-            Console.WriteLine($"{4} {i == 3}");
+            Console.WriteLine($@"{4} {i == 3}");
             i = list.Where(a => session.IsPersistent(a)).Count();
-            Console.WriteLine($"{5} {i == 3}");
+            Console.WriteLine($@"{5} {i == 3}");
             i = session.Query<T>().Count();
-            Console.WriteLine($"{6} {i == 4}");
+            Console.WriteLine($@"{6} {i == 4}");
         }
 
 

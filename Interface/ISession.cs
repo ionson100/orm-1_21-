@@ -307,6 +307,10 @@ namespace ORM_1_21_
             CancellationToken cancellationToken = default);
 
         DataTable GetDataTable(string sql, params object[] param);
-        Task<DataTable> GetDataTableAsync(string sql, object[] param, CancellationToken cancellationToken);
+        Task<DataTable> GetDataTableAsync(string sql, object[] param, CancellationToken cancellationToken=default);
+        Task<int> SaveAsync<TSource>(TSource source, CancellationToken cancellationToken = default) where TSource : class;
+
+        Task<int> UpdateAsync<TSource>(TSource source, AppenderWhere[] whereObjects,
+            CancellationToken cancellationToken = default) where TSource : class;
     }
 }

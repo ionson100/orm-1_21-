@@ -42,6 +42,7 @@ namespace ORM_1_21_.Transaction
             Transaction?.Commit();
             //Transaction = null;
             InnerTransaction();
+            isError = false;
         }
 
         public void Rollback()
@@ -50,6 +51,7 @@ namespace ORM_1_21_.Transaction
             Transaction?.Rollback();
             _connection.Close();
             InnerTransaction();
+            isError = false;
         }
 
         #endregion ITransaction Members
@@ -79,6 +81,7 @@ namespace ORM_1_21_.Transaction
                 }
             }
             Transaction?.Dispose();
+            isError = false;
         }
     }
     internal enum StateTransaction

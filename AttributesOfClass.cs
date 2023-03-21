@@ -457,6 +457,7 @@ namespace ORM_1_21_
                             TableNameAllLazy.Value[type],
                             a.GetColumnName(providerName),
                             UtilsCore.GetAsAlias(TableNameAllLazy.Value[type], a.GetColumnName(providerName)));
+
                     foreach (var pk in PrimaryKeyLazy.Value[type])
                         sb.AppendFormat(" {0}.{1} AS {2},",
                             TableNameAllLazy.Value[type],

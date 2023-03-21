@@ -505,13 +505,23 @@ namespace ORM_1_21_.Utils
             }
         }
 
-        public static Action CancellRegistr(IDbCommand com,CancellationToken cancellationToken,Transaction.Transactionale transactionale)
+        public static Action CancellRegistr(IDbCommand com,CancellationToken cancellationToken,Transaction.Transactionale transactionale,ProviderName  providerName)
         {
             return () =>
             {
                 try
                 {
-                    com.Cancel();
+                    if (providerName == ProviderName.MySql)
+                    {
+                        dynamic s = com;
+                        s.ExecuteNonQuery(cancellationToken);
+                    }
+                    else
+                    {
+                        com.Cancel();
+                    }
+                  
+                  
 
                 }
                 catch (Exception ex)
