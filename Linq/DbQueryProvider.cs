@@ -252,7 +252,7 @@ namespace ORM_1_21_.Linq
 
         public override Task<TS> ExecuteExtensionAsync<TS>(Expression expression, object[] param,CancellationToken cancellationToken)
         {
-            var tk = new TaskCompletionSource<TS>();
+            var tk = new TaskCompletionSource<TS>(TaskCreationOptions.RunContinuationsAsynchronously);
             
             _cancellationToken = cancellationToken;
             if (param != null && param.Length > 0)
@@ -261,7 +261,7 @@ namespace ORM_1_21_.Linq
             }
             var r= (TS)Execute<TS>(expression);
             tk.SetResult(r);
-            tk.Task.ConfigureAwait(false);
+            //tk.Task.ConfigureAwait(false);
             return tk.Task;
         }
 

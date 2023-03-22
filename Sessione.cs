@@ -284,7 +284,7 @@ namespace ORM_1_21_
 
         public Task<IDataReader> ExecuteReaderAsync(string sql, object[] param, CancellationToken cancellationToken = default)
         {
-            var tk = new TaskCompletionSource<IDataReader>();
+            var tk = new TaskCompletionSource<IDataReader>(TaskCreationOptions.RunContinuationsAsynchronously);
             CancellationTokenRegistration? registration = null;
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
@@ -321,7 +321,7 @@ namespace ORM_1_21_
 
         public Task<IDataReader> ExecuteReaderAsync(string sql, int timeOut, object[] param, CancellationToken cancellationToken = default)
         {
-            var tk = new TaskCompletionSource<IDataReader>();
+            var tk = new TaskCompletionSource<IDataReader>(TaskCreationOptions.RunContinuationsAsynchronously);
             CancellationTokenRegistration? registration = null;
             Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
@@ -460,7 +460,6 @@ namespace ORM_1_21_
             {
                 ComDisposable(com);
             }
-
             return result;
         }
 
@@ -564,7 +563,7 @@ namespace ORM_1_21_
         public Task<int> InsertBulkAsync<TSource>(IEnumerable<TSource> list, int timeOut, CancellationToken cancellationToken = default) where TSource : class
         {
 
-            var tcs = new TaskCompletionSource<int>();
+            var tcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
             CancellationTokenRegistration? registration = null;
             var enumerable = list as TSource[] ?? list.ToArray();
             Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
@@ -1095,7 +1094,7 @@ namespace ORM_1_21_
 
         private Task<int> SaveNewAsync<TSource>(TSource source, AppenderWhere[] whereObjects,CancellationToken cancellationToken) where TSource : class
         {
-            var tk = new TaskCompletionSource<int>();
+            var tk = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
             CancellationTokenRegistration? registration = null;
             var res = 0;
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);

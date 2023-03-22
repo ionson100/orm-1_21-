@@ -42,7 +42,7 @@ namespace TestPostgres
             Execute.TestNativeInsert();
             Execute.TestAssignetInsert();
             Execute2.TestTimeStamp();
-            //await Execute3.TotalTestNull();
+            await Execute3.TotalTestNull();
 
 
             ISession session = Configure.Session;

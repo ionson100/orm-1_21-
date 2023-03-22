@@ -201,7 +201,7 @@ namespace ORM_1_21_.Extensions
         /// <param name="param">Request parameters</param>
         public static Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params object[] param)
         {
-            var tk = new TaskCompletionSource<IEnumerable<TResult>>();
+            var tk = new TaskCompletionSource<IEnumerable<TResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
             var p = new V(sql);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));

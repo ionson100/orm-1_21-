@@ -258,7 +258,23 @@ namespace ORM_1_21_
             Check.NotEmpty(tableName, "tableName",() => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
             com.Connection = _connect;
-            return ColumnsTableFactory.GeTableColumns(MyProviderName, com, UtilsCore.ClearTrim(tableName.Trim()));
+
+
+            try
+            {
+                return ColumnsTableFactory.GeTableColumns(MyProviderName, com, UtilsCore.ClearTrim(tableName.Trim()));
+            }
+            catch (Exception ex)
+            {
+                Transactionale.isError = true;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
+            }
+            finally
+            {
+                ComDisposable(com);
+            }
+           
         }
     }
 }
