@@ -24,8 +24,7 @@ namespace TestLibrary
         public Guid Id { get; set; } = Guid.NewGuid();
 
 
-        [MapColumnName("my_test")]
-        public MyTest MyTest { get; set; }
+      
 
         [MapColumnName("name")]
         public string Name { get; set; }
@@ -44,8 +43,6 @@ namespace TestLibrary
         [MapColumnName("date")]
         public DateTime DateTime { get; set; } = DateTime.Now;
 
-        [MapColumnName("test")]
-        public List<MyTest> Test23 { get; set; } = new List<MyTest>() { new MyTest() { Name = "simple" } };
         [MapColumnName("test1")]
         public int? ValInt { get; set; }
         [MapColumnName("test3")]

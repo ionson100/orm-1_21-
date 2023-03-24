@@ -78,7 +78,7 @@ namespace ORM_1_21_.Utils
                 rowHead.Append($"\"{UtilsCore.ClearTrim(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))}\"").Append(",");
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
             {
-                if (map.TypeColumn == typeof(Image) || map.TypeColumn == typeof(byte[])) continue;
+                if ( map.TypeColumn == typeof(byte[])) continue;
                 rowHead.Append($"\"{UtilsCore.ClearTrim(map.GetColumnName(_providerName))}\"").Append(",");
             }
 
@@ -99,7 +99,7 @@ namespace ORM_1_21_.Utils
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    if (type == typeof(Image) || type == typeof(byte[])) continue;
+                    if (type == typeof(byte[])) continue;
                     var str = new UtilsBulkMySql(_providerName).GetValue(o, type);
                     row.Append(str).Append(",");
                 }
@@ -137,8 +137,6 @@ namespace ORM_1_21_.Utils
             if (type == typeof(DateTime) || type == typeof(DateTime?))
                 return $"'{(DateTime)o:yyyy-MM-dd HH:mm:ss.fff}'";
 
-            if (type == typeof(Image)) return "null";
-
             if (type.IsEnum) return Convert.ToInt32(o).ToString();
 
             if (type == typeof(bool?) || type == typeof(bool))
@@ -149,10 +147,7 @@ namespace ORM_1_21_.Utils
             }
 
             var st = UtilsCore.GetSerializeType(type);
-            if (st == SerializeType.Self)
-            {
-                return $"'{UtilsCore.ObjectToJson(o)}'";
-            }
+         
 
             if (st == SerializeType.User)
             {

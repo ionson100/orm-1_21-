@@ -70,7 +70,7 @@ namespace ORM_1_21_.Utils
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    if (type == typeof(Image) || type == typeof(byte[]))
+                    if ( type == typeof(byte[]))
                     {
                         continue;
                     }
@@ -103,7 +103,7 @@ namespace ORM_1_21_.Utils
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
             {
 
-                if (map.TypeColumn == typeof(Image) || map.TypeColumn == typeof(byte[]))
+                if ( map.TypeColumn == typeof(byte[]))
                 {
                     continue;
                 }
@@ -130,7 +130,7 @@ namespace ORM_1_21_.Utils
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    if (type == typeof(Image) || type == typeof(byte[]))
+                    if (type == typeof(byte[]))
                     {
                         continue;
                     }
@@ -182,11 +182,6 @@ namespace ORM_1_21_.Utils
                 return $"'{(DateTime)o:yyyy-MM-dd HH:mm:ss.fff}'";
             }
 
-            if (type == typeof(Image))
-            {
-                return "null";
-            }
-
             if (type.IsEnum)
             {
                 return Convert.ToInt32(o).ToString();
@@ -203,18 +198,19 @@ namespace ORM_1_21_.Utils
             }
 
             var st = UtilsCore.GetSerializeType(type);
-            if (st==SerializeType.Self||st==SerializeType.User)
+            if (st==SerializeType.User)
             {
+                var str= ((IMapSerializable)o).Serialize();
                 switch (_providerName)
                 {
                     case ProviderName.MsSql:
-                        return $"'{UtilsCore.ObjectToJson(o).Replace("'", "''")}'";
+                        return $"'{str.Replace("'", "''")}'";
                     case ProviderName.MySql:
-                        return $"'{UtilsCore.ObjectToJson(o).Replace("\\", "\\\\").Replace("'", "''")}'";
+                        return $"'{str.Replace("\\", "\\\\").Replace("'", "''")}'";
                     case ProviderName.PostgreSql:
-                        return $"'{UtilsCore.ObjectToJson(o).Replace("'", "''")}'";
+                        return $"'{str.Replace("'", "''")}'";
                     case ProviderName.SqLite:
-                        return $"'{UtilsCore.ObjectToJson(o).Replace("'", "''")}'";
+                        return $"'{str.Replace("'", "''")}'";
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

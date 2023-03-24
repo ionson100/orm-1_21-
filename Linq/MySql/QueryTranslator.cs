@@ -9,7 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using System.Text.Json;
+
 
 namespace ORM_1_21_.Linq.MySql
 {
@@ -2511,15 +2511,7 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Member.MemberType == MemberTypes.Field)
             {
                 var st = UtilsCore.GetSerializeType(((FieldInfo)m.Member).FieldType);
-                if (st == SerializeType.Self)
-                {
-
-                    var o = Expression.Lambda<Func<object>>(m).Compile()();
-                    var v = JsonSerializer.Serialize(o);
-                    AddParameter(v);
-                    return;
-                }
-
+                
                 if (st == SerializeType.User)
                 {
                     var o = Expression.Lambda<Func<object>>(m).Compile()();
@@ -2873,9 +2865,7 @@ namespace ORM_1_21_.Linq.MySql
                         case SerializeType.None:
                             value = fieldInfo.GetValue(str);
                             break;
-                        case SerializeType.Self:
-                            value = JsonSerializer.Serialize(str);
-                            break;
+                      
                         case SerializeType.User:
                             value = ((IMapSerializable)str).Serialize();
                             break;
@@ -3033,16 +3023,7 @@ namespace ORM_1_21_.Linq.MySql
             switch (st)
             {
 
-                case SerializeType.Self:
-                    {
-                        var str = Expression.Lambda<Func<object>>(nex).Compile()();
-                        var p = ParamName;
-                        StringB.Append(p);
-                        var value = JsonSerializer.Serialize(str);
-                        Param.Add(p, value);
-                        return nex;
-                    }
-
+              
                 case SerializeType.User:
                     {
                         var str = Expression.Lambda<Func<object>>(nex).Compile()();

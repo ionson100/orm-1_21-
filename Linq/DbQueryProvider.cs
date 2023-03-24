@@ -121,7 +121,7 @@ namespace ORM_1_21_.Linq
                 _com = services.CommandForLinq;
                 _com.CommandType = CommandType.StoredProcedure;
                 var re = TranslateE(expression);
-                _com.CommandText = re.Item1;
+                _com.CommandText = re.Sql;
                 if (_providerName == ProviderName.MsSql)
                 {
                     var mat = new Regex(@"TOP\s@p\d").Matches(_com.CommandText);
@@ -273,8 +273,8 @@ namespace ORM_1_21_.Linq
             bool isCacheUsage = CacheState == CacheState.CacheUsage || CacheState == CacheState.CacheOver || CacheState == CacheState.CacheKey;
             var services = (IServiceSessions)Sessione;
             var re = TranslateE(expression);
-            string sql = re.Item1;
-            List<OneComposite> listCore = re.Item2;
+            string sql = re.Sql;
+            List<OneComposite> listCore = re.Composites;
             listCore.AddRange(ListOuterOneComposites);
             if (PingCompositeE(Evolution.GroupBy, listCore) && _isAsync)
             {
@@ -939,7 +939,7 @@ namespace ORM_1_21_.Linq
 
 
 
-        private (string, List<OneComposite>) TranslateE(Expression expression)
+        private MyTuple TranslateE(Expression expression)
         {
             //QueryTranslatorMsSql
             ITranslate sq = new QueryTranslator<T>(_providerName);
@@ -952,7 +952,7 @@ namespace ORM_1_21_.Linq
             Thread.MemoryBarrier();
 
 
-            return (res, sdd);
+            return new MyTuple(){Sql = res,Composites =  sdd};
 
         }
 
@@ -995,5 +995,11 @@ namespace ORM_1_21_.Linq
         {
             return typeof(T);
         }
+    }
+
+    class MyTuple
+    {
+        public string Sql { get; set; }
+        public List<OneComposite> Composites { get; set; } = new List<OneComposite>();
     }
 }

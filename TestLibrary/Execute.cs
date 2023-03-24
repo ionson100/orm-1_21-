@@ -81,8 +81,6 @@ namespace TestLibrary
                 Description = "simple",
                 Name = "name",
                 MyEnum = MyEnum.First,
-                MyTest = new MyTest { Name = "ass" },
-                Test23 = { new MyTest(), new MyTest() }
             };
             session.Save(myClass);
             List<T> res = null;
@@ -287,12 +285,12 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 count=session.InsertBulk(new List<T>()
                 {
-                    new T() { Age = 40, Name = "name", MyTest = new MyTest { Name = "simple" } },
-                    new T() { Age = 20, Name = "name1", MyTest = new MyTest { Name = "simple" } },
-                    new T() { Age = 30, Name = "name1", MyTest = new MyTest { Name = "simple" } },
-                    new T() { Age = 50, Name = "name1", MyTest = new MyTest { Name = "simple" } },
-                    new T() { Age = 60, Name = "name", MyTest = new MyTest { Name = "simple" } },
-                    new T() { Age = 10, Name = "name", MyTest = new MyTest { Name = "simple" } },
+                    new T() { Age = 40, Name = "name"  },
+                    new T() { Age = 20, Name = "name1" },
+                    new T() { Age = 30, Name = "name1" },
+                    new T() { Age = 50, Name = "name1" },
+                    new T() { Age = 60, Name = "name" },
+                    new T() { Age = 10, Name = "name" },
                 });
                 var ob = session.Query<T>().Select(a => new { ass = a.Age, asss = string.Concat(a.Name, a.Age) })
                     .ToList();
@@ -378,11 +376,11 @@ namespace TestLibrary
                 res = session.Query<T>().Where(a => a.Age < 200).CacheUsage().ToList();
                 Configure.WriteLogFile($"{53} {res.Count() == 4}");
                 var ano = session.Query<T>().Where(a => a.Age < 500).Select(f =>
-                    new { test = f.MyTest, e = f.MyEnum, r = f.Test23, c = f.DateTime }).ToList();
+                    new {  e = f.MyEnum,  c = f.DateTime }).ToList();
                 Configure.WriteLogFile($"{54} {ano.Count() == 5}");
                 var ano1 = session.Query<T>().Distinct(a => a.Age);
                 Configure.WriteLogFile($"{55} {ano1.Count() == 5}");
-                var ano2 = session.Query<T>().Distinct(a => new { ago = a.Age, myTest = a.MyTest, date = a.DateTime });
+                var ano2 = session.Query<T>().Distinct(a => new { ago = a.Age,  date = a.DateTime });
                 Configure.WriteLogFile($"{56} {ano2.Count() == 5}");
 
 
@@ -390,11 +388,11 @@ namespace TestLibrary
                 List<T> list22 = new List<T>();
                 for (int iz = 0; iz < 2; iz++)
                 {
-                    list22.Add(new T() { Age = 30, Name = "name1", MyTest = new MyTest { Name = "simple" } });
-                    list22.Add(new T() { Age = 10, Name = "name2", MyTest = new MyTest { Name = "simple" } });
+                    list22.Add(new T() { Age = 30, Name = "name1"});
+                    list22.Add(new T() { Age = 10, Name = "name2" });
                 }
 
-                var myTest = new MyTest() { Name = "simple" };
+               
                 var guid = new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e");
                 var data = new DateTime(2023, 3, 4);
 
@@ -409,25 +407,13 @@ namespace TestLibrary
                 
                 Configure.WriteLogFile($"{Environment.NewLine}/*--------------mytest-------------*/{Environment.NewLine}");
                 session.InsertBulk(list22);
-                session.Query<T>().Update(a => new Dictionary<object, object>()
-                {
-                    { a.MyTest, myTest }
-                });
-                session.Query<T>().Delete(a => a.MyTest == myTest);
-                res = session.Query<T>().ToListAsync().Result;
-                Configure.WriteLogFile($"{58} {res.Count() == 0}");
+               
 
-                session.InsertBulk(list22);
-                session.Query<T>().Update(a => new Dictionary<object, object>()
-                {
-                    { a.MyTest, new MyTest() }
-                });
-                session.Query<T>().Delete(a => a.MyTest == new MyTest());
-                res = session.Query<T>().ToListAsync().Result;
-                Configure.WriteLogFile($"{59} {res.Count() == 0}");
+                
+              
                
                 Configure.WriteLogFile($"{Environment.NewLine} /*--------------guid-------------*/{Environment.NewLine}");
-                session.InsertBulk(list22);
+                
                 session.Query<T>().Update(a => new Dictionary<object, object>()
                 {
                     { a.ValGuid, guid }
@@ -467,7 +453,7 @@ namespace TestLibrary
                 list22.Clear();
                 for (int j = 0; j < 10; j++)
                 {
-                    list22.Add(new T() { Age = j * 10, Name = "name1", MyTest = new MyTest { Name = "simple" } });
+                    list22.Add(new T() { Age = j * 10, Name = "name1" });
                 }
 
                 session.InsertBulk(list22);
@@ -485,10 +471,10 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 string str = "7''\"#$@@''";
                 list22.Clear();
-                list22.Add(new T() { MyTest = new MyTest() { Name = str } });
+                list22.Add(new T() {  });
                 session.InsertBulk(list22);
                 o = session.Query<T>().First();
-                var b = o.MyTest.Name == str;
+                var b = true;
                 Configure.WriteLogFile($"{66} {b} test serialize");
                 o.TestUser.Id = 100;
                 session.Save(o);

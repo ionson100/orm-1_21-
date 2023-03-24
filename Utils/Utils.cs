@@ -12,7 +12,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using ORM_1_21_.Linq;
@@ -185,22 +184,6 @@ namespace ORM_1_21_.Utils
                 .Trim().ToLower();
         }
 
-        internal static byte[] ImageToByte(Image img)
-        {
-            if (img == null) return null;
-            var converter = new ImageConverter();
-            return (byte[])converter.ConvertTo(img, typeof(byte[]));
-        }
-
-
-        internal static Image ImageFromByte(byte[] bytes)
-        {
-            if (bytes == null) return null;
-            var converter = new ImageConverter();
-            return (Image)converter.ConvertFrom(bytes);
-        }
-
-
         internal static bool IsPersistent(object obj)
         {
             return TypeDescriptor.GetAttributes(obj).Contains(new PersistentAttribute());
@@ -340,18 +323,9 @@ namespace ORM_1_21_.Utils
                 return SerializeType.None;
             if (SerializeTypes.ContainsKey(type) == false)
             {
-                var t = type.GetCustomAttribute(typeof(MapSerializableAttribute));
-                if (t != null)
-                {
-                    SerializeTypes.TryAdd(type, SerializeType.Self);
-                }
-                else if (type.GetInterfaces().Contains(typeof(IMapSerializable)))
+                if (type.GetInterfaces().Contains(typeof(IMapSerializable)))
                 {
                     SerializeTypes.TryAdd(type, SerializeType.User);
-                }
-                else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
-                {
-                    SerializeTypes.TryAdd(type, SerializeType.Self);
                 }
                 else
                 {
@@ -364,17 +338,7 @@ namespace ORM_1_21_.Utils
             return SerializeTypes[type];
         }
 
-        public static string ObjectToJson(object o)
-        {
-            string json = JsonSerializer.Serialize(o);
-            return json.Replace("'", "''");
-        }
-
-        public static object JsonToObject(string o, Type type)
-        {
-            if (string.IsNullOrWhiteSpace(o)) return null;
-            return JsonSerializer.Deserialize(o, type);
-        }
+      
 
         public static string ClearTrim(string tableName)
         {
@@ -434,8 +398,7 @@ namespace ORM_1_21_.Utils
 
         public static T Clone<T>(T ob) where T : class
         {
-            var str = JsonSerializer.Serialize(ob);
-            return JsonSerializer.Deserialize<T>(str);
+            return default;
         }
 
         public static void AddParamsForCache(StringBuilder b, string sql, ProviderName providerName, List<object> param)
@@ -530,7 +493,7 @@ namespace ORM_1_21_.Utils
 
     internal enum SerializeType
     {
-        None, Self, User
+        None,  User
     }
 }
 

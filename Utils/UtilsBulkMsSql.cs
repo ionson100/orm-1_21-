@@ -94,7 +94,7 @@ namespace ORM_1_21_.Utils
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
             {
-                if (map.TypeColumn == typeof(Image) || map.TypeColumn == typeof(byte[]))
+                if ( map.TypeColumn == typeof(byte[]))
                 {
                     continue;
                 }
@@ -117,7 +117,7 @@ namespace ORM_1_21_.Utils
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    if (type == typeof(Image) || type == typeof(byte[]))
+                    if ( type == typeof(byte[]))
                     {
                         continue;
                     }

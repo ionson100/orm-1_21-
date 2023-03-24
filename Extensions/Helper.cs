@@ -83,16 +83,6 @@ namespace ORM_1_21_.Extensions
             return source;
         }
 
-       
-
-
-
-        internal static Image GetImage(this byte[] coll)
-        {
-            return UtilsCore.ImageFromByte(coll);
-        }
-
-
         /// <summary>
         /// Partitioning a sequence
         /// </summary>

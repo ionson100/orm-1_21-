@@ -202,11 +202,7 @@ namespace ORM_1_21_
         public static object MethodFree(ProviderName providerName, Type type, object e)
         {
             var st = UtilsCore.GetSerializeType(type);
-            if (st == SerializeType.Self)
-            {
-                if (e == DBNull.Value) return null;
-                return UtilsCore.JsonToObject(e.ToString(), type);
-            }
+         
             if (st == SerializeType.User)
             {
                 var o=FormatterServices.GetSafeUninitializedObject(type);
@@ -216,11 +212,6 @@ namespace ORM_1_21_
                 return o;
             }
 
-            if (type == typeof(Image))
-            {
-
-                return e == DBNull.Value ? null : UtilsCore.ImageFromByte((byte[])e);
-            }
 
             if (type == typeof(bool))
             {

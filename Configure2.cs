@@ -22,15 +22,7 @@ namespace ORM_1_21_
         /// </summary>
         public static class Utils
         {
-            /// <summary>
-            /// Getting System.Drawing.Image from file
-            /// </summary>
-            /// <param name="path">The path to the file</param>
-            /// <returns></returns>
-            public static Image GetImageFromFile(string path)
-            {
-                return Image.FromFile(path);
-            }
+           
             /// <summary>
             /// Convert date to SQL format
             /// </summary>
@@ -57,21 +49,6 @@ namespace ORM_1_21_
                return UtilsCore.ByteArrayToObject(arrBytes);
             }
 
-            /// <summary>
-            /// Getting an array of bytes from an Image
-            /// </summary>
-            public static byte[] ImageToByte(Image img)
-            {
-                return UtilsCore.ImageToByte(img);
-            }
-
-            /// <summary>
-            /// Getting an Image from an array of bytes
-            /// </summary>
-            public static Image ImageFromByte(byte[]  bytes)
-            {
-                return UtilsCore.ImageFromByte(bytes);
-            }
             /// <summary>
             /// Check if the object is received from the database (true) - the object is received from the database
             /// </summary>

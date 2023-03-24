@@ -114,7 +114,7 @@ namespace ORM_1_21_.Utils
                 return "TEXT";
             }
 
-            if (type == typeof(System.Drawing.Image) || type == typeof(byte[]))
+            if (type == typeof(byte[]))
             {
                 return "BLOB";
             }

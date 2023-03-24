@@ -120,12 +120,12 @@ namespace ORM_1_21_.Utils
                 return "[uniqueidentifier]";
             }
             var st = UtilsCore.GetSerializeType(type);
-            if (st==SerializeType.Self||st==SerializeType.User)
+            if (st==SerializeType.User)
             {
                 return "[nvarchar] (max)";
             }
 
-            if (type == typeof(Image) || type == typeof(byte[]))
+            if ( type == typeof(byte[]))
             {
                 return "varbinary(MAX)";
             }

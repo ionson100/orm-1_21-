@@ -67,12 +67,7 @@ namespace ORM_1_21_
             }
 
             var st = UtilsCore.GetSerializeType(type);
-            if (st==SerializeType.User||st==SerializeType.Self)
-            {
-                return "NULL";
-            }
-
-
+          
             return "NULL";
 
         }

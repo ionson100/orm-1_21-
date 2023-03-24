@@ -46,7 +46,7 @@ namespace ORM_1_21_
             {
                 var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, t);
                 var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                if (type == typeof(Image) || type == typeof(byte[])) continue;
+                if ( type == typeof(byte[])) continue;
                 var str = GetValue(o, type);
                 builder.Append(str).Append(",");
             }
@@ -84,7 +84,6 @@ namespace ORM_1_21_
             if (type == typeof(DateTime) || type == typeof(DateTime?))
                 return $"'{((DateTime)o):yyyy-MM-dd HH:mm:ss.fff}'";
 
-            if (type == typeof(Image)) return "null";
 
             if (type.IsEnum) return Convert.ToInt32(o).ToString();
 
@@ -97,10 +96,7 @@ namespace ORM_1_21_
 
             switch (UtilsCore.GetSerializeType(type))
             {
-                case SerializeType.Self:
-                {
-                    return $"'{UtilsCore.ObjectToJson(o)}'";
-                }
+               
                 case SerializeType.User:
                 {
                    return $"{((IMapSerializable)o).Serialize()}";

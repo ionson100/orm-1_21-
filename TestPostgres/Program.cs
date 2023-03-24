@@ -48,12 +48,12 @@ namespace TestPostgres
             ISession session = Configure.Session;
             var count = session.InsertBulk(new List<MyClass>()
             {
-                new MyClass(1) { Age = 40, Name = "name", MyTest = new MyTest { Name = "simple" } },
-                new MyClass(1) { Age = 20, Name = "name1", MyTest = new MyTest { Name = "simple" } },
-                new MyClass(1) { Age = 30, Name = "name1", MyTest = new MyTest { Name = "simple" } },
-                new MyClass(1) { Age = 50, Name = "name1", MyTest = new MyTest { Name = "simple" } },
-                new MyClass(1) { Age = 60, Name = "name", MyTest = new MyTest { Name = "simple" } },
-                new MyClass(1) { Age = 10, Name = "name", MyTest = new MyTest { Name = "simple" } },
+                new MyClass(1) { Age = 40, Name = "name",   },
+                new MyClass(1) { Age = 20, Name = "name1",  },
+                new MyClass(1) { Age = 30, Name = "name1",  },
+                new MyClass(1) { Age = 50, Name = "name1",  },
+                new MyClass(1) { Age = 60, Name = "name",   },
+                new MyClass(1) { Age = 10, Name = "name",   },
             });
             var f = await session.Query<MyClass>().Where(a => a.Age > 0).OrderBy(d => d.Age).SingleOrDefaultAsync(t => t.Age == 100);
             Console.ReadKey();
@@ -77,8 +77,7 @@ namespace TestPostgres
         public long Id { get; set; }
 
 
-        [MapColumnName("mytest")]
-        public MyTest MyTest { get; set; } = new MyTest() { Name = "123" };
+       
 
         [MapColumnName("list")]
         public List<int> List { get; set; } = new List<int>() { 1, 2, 3 };

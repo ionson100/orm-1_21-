@@ -21,10 +21,6 @@ namespace ORM_1_21_
             {
                 return DbType.DateTimeOffset;
             }
-            if (type == typeof(Image))
-            {
-                return DbType.Binary;
-            }
 
             if (type == typeof(Byte[]))
             {
@@ -114,7 +110,7 @@ namespace ORM_1_21_
             }
 
             var st = UtilsCore.GetSerializeType(type);
-            if (st == SerializeType.Self || st == SerializeType.User)
+            if ( st == SerializeType.User)
             {
                 return DbType.String;
 
