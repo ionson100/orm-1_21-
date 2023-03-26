@@ -448,7 +448,7 @@ namespace ORM_1_21_.Utils
             }
         }
 
-        public static Action CancellRegistr(IDbCommand com,CancellationToken cancellationToken,Transaction.Transactionale transactionale,ProviderName  providerName)
+        public static Action CancellRegistr(IDbCommand com,CancellationToken cancellationToken,Transactionale transactionale,ProviderName  providerName)
         {
             return () =>
             {

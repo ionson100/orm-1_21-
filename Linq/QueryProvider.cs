@@ -76,11 +76,8 @@ namespace ORM_1_21_.Linq
         /// <summary>
         /// Execute For Extension
         /// </summary>
-        /// <param name="expression"></param>
-
         public abstract Task<T> ExecuteExtensionAsync<T>(Expression expression, object[] param,
             CancellationToken cancellationToken);
-
 
     }
 

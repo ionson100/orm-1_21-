@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
+using ORM_1_21_.Extensions;
 
-namespace ORM_1_21_.Transaction
+namespace ORM_1_21_
 {
    
     internal class Transactionale : ITransaction
@@ -38,32 +40,80 @@ namespace ORM_1_21_.Transaction
 
         public void Commit()
         {
+            NewMethodExceptionTransaction(StateTransaction.Commit);
             MyStateTransaction = StateTransaction.Commit;
             Transaction?.Commit();
-            //Transaction = null;
             InnerTransaction();
-            isError = false;
+            //isError = false;
+        }
+        public async Task CommitAsync()
+        {
+            NewMethodExceptionTransaction(StateTransaction.Commit);
+
+            MyStateTransaction = StateTransaction.Commit;
+            if (Transaction != null)
+            {
+                await Transaction.CommitAsync();
+
+            }
+            await InnerTransactionAsync();
+            //isError = false;
         }
 
         public void Rollback()
         {
+            NewMethodExceptionTransaction(StateTransaction.Rollback);
             MyStateTransaction = StateTransaction.Rollback;
             Transaction?.Rollback();
-            _connection.Close();
             InnerTransaction();
-            isError = false;
+            //isError = false;
+        }
+
+        private void NewMethodExceptionTransaction(StateTransaction currenTransaction)
+        {
+            if (MyStateTransaction != StateTransaction.Begin)
+            {
+                throw new Exception(
+                    $"The transaction state is {MyStateTransaction}, which means that the transaction is used. " +
+                    $"Possible you try more one times change transactions");
+            }
+        }
+
+        public async Task RollbackAsync()
+        {
+            NewMethodExceptionTransaction(StateTransaction.Rollback);
+            MyStateTransaction = StateTransaction.Rollback;
+            if (Transaction != null)
+            {
+               await Transaction.RollbackAsync();
+            }
+            await InnerTransactionAsync();
+            //isError = false;
         }
 
         #endregion ITransaction Members
 
         private void InnerTransaction()
         {
-            //IsOccupied = false;
             if (_connection?.State == ConnectionState.Open)
             {
                 _connection.Close();
             }
             _listDispose.ForEach(a => a.Dispose());
+            _listDispose.Clear();
+        }
+        private async Task InnerTransactionAsync()
+        {
+            if (_connection!=null&&_connection?.State == ConnectionState.Open)
+            {
+                await _connection.CloseAsync();
+            }
+
+            foreach (IDisposable disposable in _listDispose)
+            {
+                 await disposable.DisposeAsync();
+            }
+            
             _listDispose.Clear();
         }
 

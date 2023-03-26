@@ -23,6 +23,7 @@ namespace TestLibrary
         }
         public string GetConnectionString()
         {
+           //var e= new MySqlClientFactory().CreateConnection().ConnectionString = "";
             return ConnectionStrings.Mysql;
         }
 

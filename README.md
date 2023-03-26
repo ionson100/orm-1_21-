@@ -205,29 +205,8 @@ UPDATE [TS2] SET  [TS2].[name] = @p1 WHERE [TS2].[id] = @p2   AND [ts] = @p3; pa
 ```[MapPrimaryKey("id", Generator.Native)]``` - Designates a database as an auto-increment column
 
 ###### Serialization to JSON
-```C#
- class Foo
- {
-     [MapColumnName("mylist")]
-     public List<MyItem> MyList { get; set; } = new List<MyItem>() { new MyItem() { Name = "simple" }
- }
-ORM serializes the property type List<> as a JSON into a table with a text column
-```
 
-```C#
-class Foo
-{
-  [MapColumnName("my_test")]
-  public MyTest MyTest { get; set; }
-}
 
-[MapSerializable]
-class MyTest 
-{
-  public string Name { get; set; }
-}
-The ORM serializes the type marked with MapSerializableAttribute as JSON into a table with a text column.
-```
 
 ```C#
 class Foo

@@ -13,11 +13,12 @@ namespace TestLibrary
             TestTimeStampMySql();
             TestTimeStampSqlie();
         }
-         static void TestTimeStampPostgresql()
+
+        private static void TestTimeStampPostgresql()
         {
-            Console.WriteLine($@"**********************Test TimeStamp PostgreSQL***********************");
+            Console.WriteLine(@"**********************Test TimeStamp PostgreSQL***********************");
             var session = Configure.GetSession<MyDbPostgres>();
-            if (session.TableExists<TSPostgres>()) 
+            if (session.TableExists<TSPostgres>())
                 session.DropTable<TSPostgres>();
 
             session.TableCreate<TSPostgres>();
@@ -26,17 +27,17 @@ namespace TestLibrary
             var t = session.Query<TSPostgres>().Single();
 
             var s = session.Update(t, new AppenderWhere(session.ColumnName<TSPostgres>(d => d.Ts), t.Ts));
-            Console.WriteLine($@"1 {s == 1}");
+            Execute.Log(1, s == 1);
             t.Ts = DateTime.Now.AddMilliseconds(1);
             s = session.Update(t, new AppenderWhere(session.ColumnName<TSPostgres>(d => d.Ts), t.Ts));
-            Console.WriteLine($@"2 {s == 0}");
+            Execute.Log(2, s == 0);
         }
 
-         static void TestTimeStampMsSql()
+        private static void TestTimeStampMsSql()
         {
-            Console.WriteLine($@"**********************Test TimeStamp MsSql rowversion***********************");
+            Console.WriteLine(@"**********************Test TimeStamp MsSql rowversion***********************");
             var session = Configure.GetSession<MyDbMsSql>();
-            if (session.TableExists<TSMsSql>()) 
+            if (session.TableExists<TSMsSql>())
                 session.DropTable<TSMsSql>();
 
             session.TableCreate<TSMsSql>();
@@ -45,15 +46,15 @@ namespace TestLibrary
             var t = session.Query<TSMsSql>().Single();
 
             var s = session.Update(t, new AppenderWhere(session.ColumnName<TSMsSql>(d => d.Ts), t.Ts));
-            Console.WriteLine($@"1 {s == 1}");
-           
+            Execute.Log(1, s == 1);
+
             s = session.Update(t, new AppenderWhere(session.ColumnName<TSMsSql>(d => d.Ts), t.Ts));
-            Console.WriteLine($@"2 {s == 0}");
+            Execute.Log(0, s == 0);
         }
 
-         static void TestTimeStampMySql()
+        private static void TestTimeStampMySql()
         {
-            Console.WriteLine($@"**********************Test TimeStamp MySql ***********************");
+            Console.WriteLine(@"**********************Test TimeStamp MySql ***********************");
             var session = Configure.GetSession<MyDbMySql>();
             if (session.TableExists<TSMySql>())
                 session.DropTable<TSMySql>();
@@ -65,15 +66,15 @@ namespace TestLibrary
 
             t.Name = "111";
             var s = session.Update(t, new AppenderWhere(session.ColumnName<TSMySql>(d => d.Ts), t.Ts));
-            Console.WriteLine($@"1 {s == 1}");
+            Execute.Log(1, s == 1);
             t.Name = "222";
             s = session.Update(t, new AppenderWhere(session.ColumnName<TSMySql>(d => d.Ts), t.Ts));
-            Console.WriteLine($@"2 {s == 0}");
+            Execute.Log(0, s == 0, "Can not coincide");
         }
 
-         static void TestTimeStampSqlie()
+        private static void TestTimeStampSqlie()
         {
-            Console.WriteLine($@"**********************Test TimeStamp SqLite ***********************");
+            Console.WriteLine(@"**********************Test TimeStamp SqLite ***********************");
             var session = Configure.GetSession<MyDbSqlite>();
             if (session.TableExists<TSSqlite>())
                 session.DropTable<TSSqlite>();
@@ -85,11 +86,11 @@ namespace TestLibrary
 
             t.Name = "111";
             var s = session.Update(t, new AppenderWhere(session.ColumnName<TSSqlite>(d => d.Ts), t.Ts));
-            Console.WriteLine($@"1 {s == 1}");
+            Execute.Log(1, s == 1);
             t.Name = "222";
             t.Ts = t.Ts.AddMilliseconds(1);
             s = session.Update(t, new AppenderWhere(session.ColumnName<TSSqlite>(d => d.Ts), t.Ts));
-            Console.WriteLine($@"2 {s == 0}");
+            Execute.Log(0, s == 0);
         }
     }
 
@@ -99,8 +100,7 @@ namespace TestLibrary
         [MapPrimaryKey("id", Generator.Assigned)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        [MapIndex]
-        [MapColumnName("name")] public string Name { get; set; }
+        [MapIndex] [MapColumnName("name")] public string Name { get; set; }
     }
 
     [MapTableName("TS1")]
@@ -119,7 +119,7 @@ namespace TestLibrary
         [MapColumnName("ts")]
         [MapColumnType("rowversion")]
         [MapDefaultValue("")]
-        public byte[] Ts { get; set; } 
+        public byte[] Ts { get; set; }
     }
 
     [MapTableName("TS3")]
@@ -131,6 +131,7 @@ namespace TestLibrary
         [MapDefaultValue(" DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")]
         public DateTime Ts { get; set; }
     }
+
     [MapTableName("TS4")]
     public class TSSqlite : TestTSBase
     {

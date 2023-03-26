@@ -2,7 +2,7 @@
 using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
-
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -285,7 +285,7 @@ namespace ORM_1_21_.Extensions
 
             return null;
         }
-        public static IEnumerable<MethodInfo> GetDeclaredMethods(this Type type, string name)
+        internal static IEnumerable<MethodInfo> GetDeclaredMethods(this Type type, string name)
         {
             return type.GetTypeInfo().GetDeclaredMethods(name);
         }
@@ -735,6 +735,9 @@ namespace ORM_1_21_.Extensions
 
 
 
+        /// <summary>
+        /// Asynchronously computes the sum of a sequence of Int32 values.
+        /// </summary>
         public static Task<int> SumAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, int>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -748,6 +751,9 @@ namespace ORM_1_21_.Extensions
         }
 
 
+        /// <summary>
+        /// Asynchronously computes the sum of a sequence of Int32? values.
+        /// </summary>
         public static Task<int?> SumAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, int?>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -761,6 +767,9 @@ namespace ORM_1_21_.Extensions
         }
 
 
+        /// <summary>
+        /// Asynchronously computes the sum of a sequence of Int64 values.
+        /// </summary>
         public static Task<long> SumAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, long>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -774,6 +783,10 @@ namespace ORM_1_21_.Extensions
         }
 
 
+        /// <summary>
+        /// Asynchronously computes the sum of a sequence of Int64? values.
+        /// </summary>
+      
         public static Task<long?> SumAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, long?>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -786,7 +799,9 @@ namespace ORM_1_21_.Extensions
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<long?>(ex,null, cancellationToken);
         }
 
-
+        /// <summary>
+        /// Asynchronously computes the sum of a sequence of Decimal values.
+        /// </summary>
         public static Task<decimal> SumAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, decimal>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -799,7 +814,9 @@ namespace ORM_1_21_.Extensions
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<decimal>(ex, null, cancellationToken);
         }
 
-
+        /// <summary>
+        /// Asynchronously computes the sum of a sequence of Decimal? values.
+        /// </summary>
         public static Task<decimal?> SumAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, decimal?>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -813,7 +830,9 @@ namespace ORM_1_21_.Extensions
         }
 
 
-
+        /// <summary>
+        /// Asynchronously computes the sum of a sequence of Float values.
+        /// </summary>
         public static Task<float> SumAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, float>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -826,7 +845,9 @@ namespace ORM_1_21_.Extensions
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<float>(ex, null, cancellationToken);
         }
 
-
+        /// <summary>
+        /// Asynchronously computes the sum of a sequence of Float? values.
+        /// </summary>
         public static Task<float?> SumAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, float?>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -839,7 +860,9 @@ namespace ORM_1_21_.Extensions
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<float?>(ex, null, cancellationToken);
         }
 
-
+        /// <summary>
+        /// Asynchronously computes the sum of a sequence of Double values.
+        /// </summary>
         public static Task<double> SumAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, double>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -853,7 +876,9 @@ namespace ORM_1_21_.Extensions
         }
 
 
-
+        /// <summary>
+        /// Asynchronously computes the sum of a sequence of Double? values.
+        /// </summary>
         public static Task<double?> SumAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, double?>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -867,6 +892,9 @@ namespace ORM_1_21_.Extensions
         }
 
 
+        /// <summary>
+        /// Asynchronously computes the average of a sequence of Int32 values.
+        /// </summary>
         public static Task<int> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, int>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -880,6 +908,9 @@ namespace ORM_1_21_.Extensions
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(ex, null, cancellationToken);
 
         }
+        /// <summary>
+        /// Asynchronously computes the average of a sequence of Int32? values.
+        /// </summary>
         public static Task<int?> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, int?>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -893,7 +924,9 @@ namespace ORM_1_21_.Extensions
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int?>(ex, null, cancellationToken);
 
         }
-
+        /// <summary>
+        /// Asynchronously computes the average of a sequence of Double values.
+        /// </summary>
         public static Task<double> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, double>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -907,6 +940,10 @@ namespace ORM_1_21_.Extensions
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<double>(ex, null, cancellationToken);
 
         }
+
+        /// <summary>
+        /// Asynchronously computes the average of a sequence of Double? values.
+        /// </summary>
         public static Task<double?> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, double?>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -921,7 +958,9 @@ namespace ORM_1_21_.Extensions
 
         }
 
-
+        /// <summary>
+        /// Asynchronously computes the average of a sequence of Decimal values.
+        /// </summary>
         public static Task<decimal> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, decimal>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -935,6 +974,9 @@ namespace ORM_1_21_.Extensions
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<decimal>(ex, null, cancellationToken);
 
         }
+        /// <summary>
+        /// Asynchronously computes the average of a sequence of Decimal? values.
+        /// </summary>
         public static Task<decimal?> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, decimal?>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -949,6 +991,9 @@ namespace ORM_1_21_.Extensions
 
         }
 
+        /// <summary>
+        /// Asynchronously computes the average of a sequence of Float values.
+        /// </summary>
         public static Task<float> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, float>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -962,6 +1007,10 @@ namespace ORM_1_21_.Extensions
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<float>(ex, null, cancellationToken);
 
         }
+
+        /// <summary>
+        /// Asynchronously computes the average of a sequence of Float? values.
+        /// </summary>
         public static Task<float?> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, float?>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -976,6 +1025,9 @@ namespace ORM_1_21_.Extensions
 
         }
 
+        /// <summary>
+        /// Asynchronously computes the average of a sequence of Int64 values.
+        /// </summary>
         public static Task<long> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, long>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -990,6 +1042,9 @@ namespace ORM_1_21_.Extensions
 
         }
 
+        /// <summary>
+        /// Asynchronously computes the average of a sequence of Int64? values.
+        /// </summary>
         public static Task<long?> AverageAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, long?>> selector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, "source");
@@ -1038,6 +1093,155 @@ namespace ORM_1_21_.Extensions
         {
             return f.Method;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        public static Task<IDataReader> ExecuteReaderAsync(this IDbCommand  command)
+        {
+            var tk = new TaskCompletionSource<IDataReader>(TaskCreationOptions.RunContinuationsAsynchronously);
+            tk.SetResult(command.ExecuteReader());
+            return tk.Task;
+        }
+        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        public static Task<object> ExecuteScalarAsync(this IDbCommand command)
+        {
+            var tk = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
+            tk.SetResult(command.ExecuteScalar());
+            return tk.Task;
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        public static Task<int> ExecuteNonQueryAsync(this IDbCommand command)
+        {
+            var tk = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+            tk.SetResult(command.ExecuteNonQuery());
+            return tk.Task;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        public static async Task OpenAsync(this IDbConnection connection)
+        {
+            await Task.Run(connection.Open).ConfigureAwait(false);
+
+        }
+        /// <summary>
+        /// This method begins a database connect transaction asynchronously
+        /// </summary>
+        public static  Task<IDbTransaction> BeginTransactionAsync(this IDbConnection connection)
+        {
+            var tk = new TaskCompletionSource<IDbTransaction>(TaskCreationOptions.RunContinuationsAsynchronously);
+            tk.SetResult(connection.BeginTransaction());
+            return tk.Task;
+        }
+
+        /// <summary>
+        /// This method begins a database connect transaction asynchronously
+        /// </summary>
+        public static Task<IDbTransaction> BeginTransactionAsync(this IDbConnection connection, IsolationLevel il)
+        {
+            var tk = new TaskCompletionSource<IDbTransaction>(TaskCreationOptions.RunContinuationsAsynchronously);
+            tk.SetResult(connection.BeginTransaction(il));
+            return tk.Task;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="transaction"></param>
+        public static async Task CommitAsync(this IDbTransaction transaction)
+        {
+            await Task.Run(transaction.Commit).ConfigureAwait(false);
+
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="transaction"></param>
+        public static async Task RollbackAsync(this IDbTransaction transaction)
+        {
+            await Task.Run(transaction.Rollback).ConfigureAwait(false);
+
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connection"></param>
+        public static async Task CloseAsync(this IDbConnection connection)
+        {
+            await Task.Run(connection.Close).ConfigureAwait(false);
+
+        }
+
+
+
+
+        /// <summary>
+        /// Performs application-defined tasks that remove,
+        /// release, or reset unmanaged resources asynchronously
+        /// </summary>
+        /// <param name="disposable"></param>
+        public static async Task DisposeAsync(this IDisposable disposable)
+        {
+            if (disposable is Sessione session)
+            {
+                await session.DisposeAsync();
+            }
+            else
+            {
+                await Task.Run(disposable.Dispose).ConfigureAwait(false);
+            }
+        }
+        /// <summary>
+        /// Reverts all changes made to the database in the current transaction asynchronously.
+        /// </summary>
+        public static async Task RollbackAsync(this ITransaction transaction)
+        {
+            if (transaction is Transactionale trans)
+            {
+                await trans.RollbackAsync();
+            }
+            else
+            {
+                await Task.Run(transaction.Rollback).ConfigureAwait(false);
+            }
+        }
+        /// <summary>
+        /// Asynchronously commits all changes made to the database in the current transaction.
+        /// </summary>
+        /// <param name="transaction"></param>
+        public static async Task CommitAsync(this ITransaction transaction)
+        {
+            if (transaction is Transactionale trans)
+            {
+                await trans.CommitAsync();
+            }
+            else
+            {
+                await Task.Run(transaction.Commit).ConfigureAwait(false);
+            }
+        }
+
+
+
+
+
+
+
 
     }
 }

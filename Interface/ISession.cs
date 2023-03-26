@@ -15,7 +15,7 @@ namespace ORM_1_21_
     public interface ISession : IDisposable
     {
         /// <summary>
-        /// Dispose?
+        /// iS call Dispose
         /// </summary>
         bool IsDispose { get; }
 
@@ -354,5 +354,22 @@ namespace ORM_1_21_
         /// </summary>
         Task<int> UpdateAsync<TSource>(TSource source, AppenderWhere[] whereObjects,
             CancellationToken cancellationToken = default) where TSource : class;
+
+        /// <summary>
+        /// This method begins a database transaction asynchronously
+        /// </summary>
+        /// <returns></returns>
+        Task<ITransaction> BeginTransactionAsync();
+        /// <summary>
+        /// This method begins a database transaction asynchronously
+        /// </summary>
+        /// <param name="value">Isolation Level</param>
+        /// <returns></returns>
+        Task<ITransaction> BeginTransactionAsync(IsolationLevel? value);
+
+        /// <summary>
+        /// Session ID
+        /// </summary>
+        string IdSession { get; }
     }
 }

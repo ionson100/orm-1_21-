@@ -55,7 +55,7 @@
     <DocumentationFile>bin\Debug\ORM{1_21}.XML</DocumentationFile>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -106,6 +106,7 @@
     <Compile Include="ColumnsTableFactory.cs" />
     <Compile Include="Extensions\HeplerAsync.cs" />
     <Compile Include="Interface\IMapSerializable.cs" />
+    <Compile Include="Linq\DbQueryPProviderAsync.cs" />
     <Compile Include="Linq\GroupException.cs" />
     <Compile Include="Linq\MsSql\ITranslate.cs" />
     <Compile Include="MyCache.cs" />

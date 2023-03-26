@@ -1,13 +1,15 @@
-﻿using ORM_1_21_.Transaction;
-using ORM_1_21_.Utils;
+﻿using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
+using ORM_1_21_.Extensions;
 
 namespace ORM_1_21_
 {
     internal sealed partial class Sessione
     {
+        private readonly Guid _id;
         private readonly IOtherDataBaseFactory _factory;
         private bool _isDispose;
         internal readonly Transactionale Transactionale = new Transactionale();
@@ -40,6 +42,7 @@ namespace ORM_1_21_
         /// <param name="connectionString">Connection string</param>
         public Sessione(string connectionString)
         {
+            _id= Guid.NewGuid();
             Check.NotEmpty(connectionString, "connectionString");
             _connect = ProviderFactories.GetConnect(null);
             _connect.ConnectionString = connectionString;
@@ -111,7 +114,7 @@ namespace ORM_1_21_
             }
 
         }
-
+        
         ITransaction ISession.BeginTransaction()
         {
             if (Transactionale.MyStateTransaction == StateTransaction.Begin)
@@ -124,6 +127,21 @@ namespace ORM_1_21_
             Transactionale.Connection = _connect;
             Transactionale.isError = false;
             return Transactionale;
+        }
+        Task<ITransaction> ISession.BeginTransactionAsync()
+        {
+            var tk = new TaskCompletionSource<ITransaction>(TaskCreationOptions.RunContinuationsAsynchronously);
+            if (Transactionale.MyStateTransaction == StateTransaction.Begin)
+            {
+                Transactionale.isError = true;
+                throw new Exception("Transaction opened earlier");
+            }
+            Transactionale.MyStateTransaction = StateTransaction.Begin;
+            Transactionale.IsolationLevel = null;
+            Transactionale.Connection = _connect;
+            Transactionale.isError = false;
+            tk.SetResult(Transactionale);
+            return tk.Task ;
         }
 
 
@@ -141,12 +159,64 @@ namespace ORM_1_21_
             return Transactionale;
         }
 
+        Task<ITransaction> ISession.BeginTransactionAsync(IsolationLevel? value)
+        {
+            var tk = new TaskCompletionSource<ITransaction>(TaskCreationOptions.RunContinuationsAsynchronously);
+            if (Transactionale.MyStateTransaction == StateTransaction.Begin)
+            {
+                Transactionale.isError = true;
+                throw new Exception("Transaction opened earlier");
+            }
+            Transactionale.MyStateTransaction = StateTransaction.Begin;
+            Transactionale.Connection = _connect;
+            Transactionale.IsolationLevel = value;
+            Transactionale.isError = false;
+            tk.SetResult(Transactionale);
+            return tk.Task;
+        }
+
+        string ISession.IdSession => _id.ToString();
+
         ///<summary>
         /// Disposing
         ///</summary>
         public void Dispose()
         {
             InnerDispose();
+        }
+        public async Task DisposeAsync()
+        {
+          await  InnerDisposeAsync();
+        }
+
+
+        internal async Task OpenConnectAndTransactionAsync(IDbCommand com)
+        {
+            if (com.Connection.State == ConnectionState.Closed)
+            {
+                await com.Connection.OpenAsync();
+                if (Transactionale.MyStateTransaction == StateTransaction.Begin)
+                {
+
+                    if (Transactionale.IsolationLevel == null)
+                    {
+                        Transaction = await _connect.BeginTransactionAsync();
+                    }
+                    else
+                    {
+                        Transaction = await _connect.BeginTransactionAsync(Transactionale.IsolationLevel.Value);
+                    }
+                    Transactionale.ListDispose.Add(com);
+                    com.Transaction = Transaction;
+                }
+            }
+            else
+            {
+                if (Transactionale.MyStateTransaction == StateTransaction.Begin)
+                {
+                    com.Transaction = Transaction;
+                }
+            }
         }
 
         internal void OpenConnectAndTransaction(IDbCommand com)
@@ -209,6 +279,37 @@ namespace ORM_1_21_
                 foreach (var dbCommand in _dbCommands)
                 {
                     dbCommand.Dispose();
+                }
+                _dbCommands.Clear();
+                if (isFinalize == false)
+                    GC.SuppressFinalize(this);
+            }
+            catch (Exception)
+            {
+                //ignored
+            }
+        }
+
+        async Task InnerDisposeAsync(bool isFinalize = false)
+        {
+            if (_isDispose) return;
+            try
+            {
+                if (Transactionale.Transaction != null)
+                {
+                    if (Transactionale.MyStateTransaction == StateTransaction.Begin)
+                    {
+                        Transactionale.Transaction.Rollback();
+                    }
+                }
+                Transactionale?.ListDispose.ForEach(a => a.Dispose());
+                if (_connect != null)
+                    await _connect.DisposeAsync();
+
+                _isDispose = true;
+                foreach (var dbCommand in _dbCommands)
+                {
+                   await dbCommand.DisposeAsync();
                 }
                 _dbCommands.Clear();
                 if (isFinalize == false)

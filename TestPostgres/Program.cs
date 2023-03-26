@@ -1,11 +1,13 @@
 ﻿using ORM_1_21_;
-using ORM_1_21_.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
+using ORM_1_21_.Extensions;
 using TestLibrary;
+using static System.Collections.Specialized.BitVector32;
 
 
 namespace TestPostgres
@@ -37,26 +39,35 @@ namespace TestPostgres
             //Execute.RunThread();
             //Console.ReadKey();
             //Console.ReadKey();
-            Execute.TotalTest();
-            Execute.TotalTestNull();
-            Execute.TestNativeInsert();
-            Execute.TestAssignetInsert();
-            Execute2.TestTimeStamp();
-            await Execute3.TotalTestNull();
-
-
-            ISession session = Configure.Session;
-            var count = session.InsertBulk(new List<MyClass>()
+           // Execute.TotalTest();
+           // //Execute.TotalTestAsync();
+           // Execute.TestNativeInsert();
+           // Execute.TestAssignetInsert();
+           // Execute2.TestTimeStamp();
+           // await Execute3.TotalTestAsync();
+           
+            Stopwatch stopwatch = new Stopwatch();
+            //засекаем время начала операции
+            var dt = DateTime.Now;
+            using (ISession session = Configure.Session)
             {
-                new MyClass(1) { Age = 40, Name = "name",   },
-                new MyClass(1) { Age = 20, Name = "name1",  },
-                new MyClass(1) { Age = 30, Name = "name1",  },
-                new MyClass(1) { Age = 50, Name = "name1",  },
-                new MyClass(1) { Age = 60, Name = "name",   },
-                new MyClass(1) { Age = 10, Name = "name",   },
-            });
-            var f = await session.Query<MyClass>().Where(a => a.Age > 0).OrderBy(d => d.Age).SingleOrDefaultAsync(t => t.Age == 100);
-            Console.ReadKey();
+                try
+                {
+                    using (var tr = await session.BeginTransactionAsync())
+                    {
+                        await session.SaveAsync(new MyClass(1));
+                        await session.SaveAsync(new MyClass(1));
+                        await tr.CommitAsync();
+                        await tr.CommitAsync();
+                    }
+                }
+                catch (Exception e)
+                {
+                    Execute.Log(38, true, e.Message);
+                }
+            }
+
+          
         }
 
         static int GetInt()
@@ -77,7 +88,7 @@ namespace TestPostgres
         public long Id { get; set; }
 
 
-       
+
 
         [MapColumnName("list")]
         public List<int> List { get; set; } = new List<int>() { 1, 2, 3 };

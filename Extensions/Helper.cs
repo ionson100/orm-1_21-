@@ -189,7 +189,7 @@ namespace ORM_1_21_.Extensions
         /// <param name="ses">ISession</param>
         /// <param name="sql">Request string</param>
         /// <param name="param">Request parameters</param>
-        public static Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params object[] param)
+        public static async Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params object[] param)
         {
             var tk = new TaskCompletionSource<IEnumerable<TResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
             var p = new V(sql);
@@ -200,8 +200,10 @@ namespace ORM_1_21_.Extensions
             {
                 db.GetParamFree().AddRange(param);
             }
-            tk.SetResult((IEnumerable<TResult>)db.Execute<TResult>(callExpr));
-            return tk.Task;
+
+            var res =(IEnumerable<TResult>) await db.ExecuteAsync<TResult>(callExpr, null, CancellationToken.None);
+            tk.SetResult(res);
+            return await tk.Task;
         }
 
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
@@ -172,6 +173,22 @@ namespace ORM_1_21_
                 return _configure.GetInnerSession();
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="Exception"></exception>
+        public static Task<ISession> SessionAsync
+        {
+            get
+            {
+                if (_configure == null)
+                {
+                    MySqlLogger.Info($" {Environment.NewLine}\"ISession GetInnerSession error _configure==null\"{Environment.NewLine}");
+                    throw new Exception("ISession GetInnerSession error _configure==null");
+                }
+                return _configure.GetInnerSessionAsync();
+            }
+        }
 
         /// <summary>
         /// Getting a session to work with another database
@@ -187,21 +204,25 @@ namespace ORM_1_21_
                 throw new Exception("ISession GetInnerSession error _configure==null");
             }
 
-            Type type = typeof(TF);
-            var any = type.GetInterfaces().Any(si => si == typeof(IOtherDataBaseFactory));
-            if (any == false)
-            {
-                throw new Exception($"Type {type.Name} does not implement an interface IOtherDataBaseFactory");
-            }
-            var isExistCtor = type.GetConstructor(Type.EmptyTypes);
-            if (isExistCtor == null)
-            {
-                throw new Exception($"Type {type.Name} does not have a default constructor");
-            }
-
             return _configure.GetInnerSession<TF>();
         }
-       
+
+        /// <summary>
+        /// Getting a session to work with another database
+        /// </summary>
+        /// <typeparam name="TF">The type that the interface must implement IOtherDataBaseFactory and
+        /// have a default constructor</typeparam>
+        public static async Task<ISession> GetSessionSync<TF>() where TF : IOtherDataBaseFactory, new()
+        {
+            if (_configure == null)
+            {
+                MySqlLogger.Info($" {Environment.NewLine}ISession GetInnerSession error _configure==null");
+                throw new Exception("ISession GetInnerSession error _configure==null");
+            }
+
+            return await _configure.GetInnerSessionAsync<TF>();
+        }
+
 
         private static void ActivateLogger(string fileNameLogFile)
         {
@@ -223,10 +244,27 @@ namespace ORM_1_21_
                 return new Sessione(ConnectionString);
             }
         }
+
+        private Task<ISession> GetInnerSessionAsync()
+        {
+            var tk = new TaskCompletionSource<ISession>(TaskCreationOptions.RunContinuationsAsynchronously);
+            lock (Locker)
+            {
+                tk.SetResult(new Sessione(ConnectionString));
+                return  tk.Task;
+            }
+        }
         private ISession GetInnerSession<TF>()
         {
             var res = GetDataBaseFactory<TF>(); 
             return new Sessione(res);
+        }
+        private Task<ISession> GetInnerSessionAsync<TF>()
+        {
+            var tk = new TaskCompletionSource<ISession>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var res = GetDataBaseFactory<TF>();
+            tk.SetResult(new Sessione(res));
+            return tk.Task;
         }
 
         private IOtherDataBaseFactory GetDataBaseFactory<TF>()
