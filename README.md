@@ -87,15 +87,8 @@ using ORM_1_21_.Extensions;
      [MapColumnName("test")] 
       public List<MyTest> Test23 { get; set; } = new List<MyTest>() { new MyTest() { Name = "simple" }
       
-     [MapColumnName("my_test")]
-      public MyTest MyTest { get; set; }
  }
 
- [MapSerializable]
- class MyTest 
- {
-     public string Name { get; set; }
- }
 ```
 #### Attribute.
 ###### Table name:

@@ -1,10 +1,10 @@
-﻿using System;
+﻿using ORM_1_21_;
+using ORM_1_21_.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_;
-using ORM_1_21_.Extensions;
 
 namespace TestLibrary
 {
@@ -248,7 +248,7 @@ namespace TestLibrary
             }
             catch (Exception e)
             {
-                Execute.Log(37, true,e.Message);
+                Execute.Log(37, true, e.Message);
             }
             try
             {
@@ -267,6 +267,24 @@ namespace TestLibrary
 
             count = await session.Query<T>().CountAsync();
             Execute.Log(39, count == 2);
+
+
+            if (await session.TableExistsAsync<T>())
+            {
+                await session.DropTableAsync<T>();
+            }
+
+            await session.TableCreateAsync<T>();
+            await session.InsertBulkAsync(new List<T>()
+                {
+                    new T()
+                }, 30);
+            var u = await session.Query<T>().SingleAsync();
+            u.TestUser = new TestUser() { Name = "asas", Id = 2 };
+            await session.SaveAsync(u);
+            u = await session.Query<T>().SingleAsync();
+            Execute.Log(40,  u.TestUser!=null&&u.TestUser.Name=="asas");
+
 
 
             await session.DisposeAsync();

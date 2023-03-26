@@ -142,6 +142,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Starter.cs" />
     <Compile Include="TestInsertBase.cs" />
+    <Compile Include="TestSerialize.cs" />
     <Compile Include="TestUser.cs" />
   </ItemGroup>
   <ItemGroup>

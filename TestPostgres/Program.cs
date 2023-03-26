@@ -39,32 +39,32 @@ namespace TestPostgres
             //Execute.RunThread();
             //Console.ReadKey();
             //Console.ReadKey();
-           // Execute.TotalTest();
-           // //Execute.TotalTestAsync();
-           // Execute.TestNativeInsert();
-           // Execute.TestAssignetInsert();
-           // Execute2.TestTimeStamp();
-           // await Execute3.TotalTestAsync();
+            //Execute.TotalTest();
+            ////Execute.TotalTestAsync();
+            //Execute.TestNativeInsert();
+            //Execute.TestAssignetInsert();
+            //Execute2.TestTimeStamp();
+            await Execute3.TotalTestAsync();
            
             Stopwatch stopwatch = new Stopwatch();
-            //засекаем время начала операции
+           
             var dt = DateTime.Now;
-            using (ISession session = Configure.Session)
+            using (ISession session = await Configure.SessionAsync)
             {
-                try
+                if (await session.TableExistsAsync<TestSerialize>())
                 {
-                    using (var tr = await session.BeginTransactionAsync())
-                    {
-                        await session.SaveAsync(new MyClass(1));
-                        await session.SaveAsync(new MyClass(1));
-                        await tr.CommitAsync();
-                        await tr.CommitAsync();
-                    }
+                    await session.DropTableAsync<TestSerialize>();
                 }
-                catch (Exception e)
+
+                await session.TableCreateAsync<TestSerialize>();
+                await session.InsertBulkAsync(new List<TestSerialize>()
                 {
-                    Execute.Log(38, true, e.Message);
-                }
+                    new TestSerialize()
+                },30);
+                var u = await session.Query<TestSerialize>().SingleAsync();
+                u.User = new TestUser() { Name = "asas", Id = 2 };
+                await session.SaveAsync(u);
+                 u = await session.Query<TestSerialize>().SingleAsync();
             }
 
           
@@ -81,42 +81,11 @@ namespace TestPostgres
 
 
     }
-    [MapTableName("test_list")]
-    class TestList
-    {
-        [MapPrimaryKey("id", Generator.Native)]
-        public long Id { get; set; }
+  
 
 
 
-
-        [MapColumnName("list")]
-        public List<int> List { get; set; } = new List<int>() { 1, 2, 3 };
-
-        [MapColumnName("testuser")]
-        public TestUser TestUser { get; set; } = new TestUser { Id = 23, Name = "23" };
-
-
-
-
-        [MapNotInsertUpdate]
-        [MapColumnType("rowversion")]
-        [MapDefaultValue(" ")]
-        [MapColumnName("ts")]
-        public byte[] Date { get; set; } = new byte[] { 0 };
-
-    }
-
-
-
-    [MapTableName("image_my")]
-    class MyImage
-    {
-        [MapPrimaryKey("id", Generator.Native)]
-        public long Id { get; set; }
-        [MapColumnName("image")]
-        public Image Image { get; set; }
-    }
+   
 
 
 }
