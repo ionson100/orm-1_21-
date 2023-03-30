@@ -10,6 +10,8 @@ namespace ORM_1_21_.Linq.MsSql
         string Translate(Expression expression, out Evolution ev1);
         string Translate(Expression expression, out Evolution ev1, string par);
         void Translate(Expression expression, Evolution ev, List<object> paramList);
+        void Translate(Expression expression);
+
         List<OneComposite> GetListOne();
     }
 }

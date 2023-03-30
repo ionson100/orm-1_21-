@@ -14,7 +14,7 @@ namespace ORM_1_21_.Utils
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
             builder.AppendLine(
                 $" \"{UtilsCore.ClearTrim(pk.ColumnNameForRider(providerName))}\" {GetTypePgPk(pk.TypeColumn, pk.Generator)}  PRIMARY KEY,");
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 if (map.TypeString == null)
                 {
@@ -34,7 +34,7 @@ namespace ORM_1_21_.Utils
             builder.Append(str2);
             builder.AppendLine(");");
 
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
                 if (map.IsIndex)
                 {
                     var colName = map.GetColumnNameRaw();

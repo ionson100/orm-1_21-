@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 namespace ORM_1_21_
 {
     ///<summary>
@@ -30,7 +31,8 @@ namespace ORM_1_21_
             }
         }
 
-        ProviderName IServiceSessions.CurrentProviderName => MyProviderName;
+        internal ProviderName GetProviderName => MyProviderName;
+       ProviderName IServiceSessions.CurrentProviderName => MyProviderName;
 
         object IServiceSessions.Locker { get; } = new object();
 
@@ -92,7 +94,7 @@ namespace ORM_1_21_
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("TableCreate"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return (int)provider.ExecuteExtension<int>(callExpr); ;
+            return (int)provider.ExecuteExtension<int>(callExpr); 
         }
         Task<int> ISession.TableCreateAsync<TSource>(CancellationToken cancellationToken)
         {
@@ -101,7 +103,7 @@ namespace ORM_1_21_
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("TableCreate"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return provider.ExecuteExtensionAsync<int>(callExpr,null, cancellationToken); ;
+            return provider.ExecuteExtensionAsync<int>(callExpr,null, cancellationToken); 
         }
 
      
@@ -118,7 +120,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return (int)provider.ExecuteExtension<int>(callExpr); ;
+            return (int)provider.ExecuteExtension<int>(callExpr); 
 
         }
 
@@ -137,7 +139,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return (int)provider.ExecuteExtension<int>(callExpr); ;
+            return (int)provider.ExecuteExtension<int>(callExpr); 
         }
 
         Task<int> ISession.DropTableIfExistsAsync<TSource>(CancellationToken cancellationToken)
@@ -189,7 +191,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("TableExists"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return (bool)provider.ExecuteExtension<bool>(callExpr); ;
+            return (bool)provider.ExecuteExtension<bool>(callExpr); 
 
           
         }
@@ -234,7 +236,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("TableExists"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return provider.ExecuteExtensionAsync<bool>(callExpr,null,cancellationToken); ;
+            return provider.ExecuteExtensionAsync<bool>(callExpr,null,cancellationToken); 
         }
 
         #region ExecuteReader
@@ -692,7 +694,7 @@ namespace ORM_1_21_
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteScalar"));
             DbQueryProvider<object> provider = new DbQueryProvider<object>(this);
             provider.ListCastExpression.Add(new ContainerCastExpression
-                { Timeout = timeOut, TypeRevalytion = Evolution.Timeout });
+                { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
             return provider.ExecuteExtension<object>(callExpr, param);
         }
 
@@ -704,7 +706,7 @@ namespace ORM_1_21_
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteScalar"));
             DbQueryProvider<object> provider = new DbQueryProvider<object>(this);
             provider.ListCastExpression.Add(new ContainerCastExpression
-                { Timeout = timeOut, TypeRevalytion = Evolution.Timeout });
+                { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
             return provider.ExecuteExtensionAsync<object>(callExpr, param,cancellationToken);
         }
 
@@ -745,6 +747,8 @@ namespace ORM_1_21_
             QueryProvider p = new DbQueryProvider<TSource>(this);
             return new Query<TSource>(p);
         }
+
+       
 
         IDbCommand ISession.GetCommand()
         {
@@ -794,7 +798,7 @@ namespace ORM_1_21_
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteNonQuery"));
             var provider = new DbQueryProvider<object>(this);
             provider.ListCastExpression.Add(new ContainerCastExpression
-                { Timeout = timeOut, TypeRevalytion = Evolution.Timeout });
+                { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
             return provider.ExecuteExtension<int>(callExpr, param);
         }
 
@@ -830,7 +834,7 @@ namespace ORM_1_21_
             }
 
             var name = ((PropertyInfo)memberExpression.Member).Name;
-            foreach (var dal in AttributesOfClass<TSource>.CurrentTableAttributeDall(MyProviderName))
+            foreach (var dal in AttributesOfClass<TSource>.CurrentTableAttributeDal(MyProviderName))
                 if (dal.PropertyName == name)
                     return dal.GetColumnName(MyProviderName);
             if (AttributesOfClass<TSource>.PkAttribute(MyProviderName).PropertyName == name)
@@ -906,7 +910,7 @@ namespace ORM_1_21_
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DataTable"));
             var provider = new DbQueryProvider<object>(this);
             provider.ListCastExpression.Add(new ContainerCastExpression
-                { Timeout = timeOut, TypeRevalytion = Evolution.Timeout });
+                { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
             return provider.ExecuteExtension<DataTable>(callExpr, param);
         }
 
@@ -926,7 +930,7 @@ namespace ORM_1_21_
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DataTable"));
             var provider = new DbQueryProvider<object>(this);
             provider.ListCastExpression.Add(new ContainerCastExpression
-                { Timeout = timeOut, TypeRevalytion = Evolution.Timeout });
+                { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
             return provider.ExecuteExtensionAsync<DataTable>(callExpr, param,cancellationToken);
         }
 

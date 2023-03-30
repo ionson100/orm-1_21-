@@ -92,17 +92,23 @@ namespace ORM_1_21_.Linq.MsSql
                 ListOne.Add(new OneComposite { Operand = Evolution.Update, Body = StringB.ToString() });
             //if (ev == Evolution.OverCache) ListOne.Add(new OneComprosite {Operand = Evolution.OverCache});
 
-            if (ev == Evolution.Join)
-                if (paramList != null)
-                {
-                    foreach (var d in (Dictionary<string, object>)paramList[0]) Param.Add(d.Key, d.Value);
-
-                    ListOne.Add(new OneComposite
-                    { Operand = Evolution.Join, Body = paramList[1].ToString(), NewConstructor = paramList[2] });
-                }
+           // if (ev == Evolution.Join)
+           //     if (paramList != null)
+           //     {
+           //         foreach (var d in (Dictionary<string, object>)paramList[0]) Param.Add(d.Key, d.Value);
+           //
+           //         ListOne.Add(new OneComposite
+           //         { Operand = Evolution.Join, Body = paramList[1].ToString(), NewConstructor = paramList[2] });
+           //     }
 
             StringB.Length = 0;
         }
+
+        public void Translate(Expression expression)
+        {
+            throw new NotImplementedException();
+        }
+
 
         public List<OneComposite> GetListOne()
         {

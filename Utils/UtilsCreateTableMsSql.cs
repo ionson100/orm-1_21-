@@ -25,7 +25,7 @@ namespace ORM_1_21_.Utils
             }
 
 
-            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
+            foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 var typeUser = map.TypeString;
                 if (typeUser == null)
@@ -41,7 +41,7 @@ namespace ORM_1_21_.Utils
 
             string res = builder.ToString().Trim(' ', ',') + ");";
             builder.Clear().Append(res);
-            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
+            foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 if (map.IsIndex)
                 {

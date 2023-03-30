@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using ORM_1_21_.Linq;
+using ORM_1_21_.Linq.MySql;
 using ORM_1_21_.Utils;
 
 namespace ORM_1_21_.Extensions
@@ -21,7 +24,7 @@ namespace ORM_1_21_.Extensions
         /// <summary>
         ///  Iterating over a collection
         /// </summary>
-        public static void  ForEach<TSource>(this IQueryable<TSource> source, Action<TSource> action)
+        public static void ForEach<TSource>(this IQueryable<TSource> source, Action<TSource> action)
         {
             Query<TSource> res = (Query<TSource>)source;
             res.ForEach(action);
@@ -38,34 +41,42 @@ namespace ORM_1_21_.Extensions
         /// <summary>
         /// Array of non-recurring values, by selected field
         /// </summary>
-        public static IEnumerable<TResult> Distinct<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> exp) where TSource : class
+        public static IEnumerable<TResult> Distinct<TSource, TResult>(this IQueryable<TSource> source,
+            Expression<Func<TSource, TResult>> exp) where TSource : class
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { CustomExpression = exp, TypeRevalytion = Evolution.DistinctCore, TypeReturn = typeof(TResult), ListDistinct = new List<TResult>() });
+            {
+                CustomExpression = exp, TypeEvolution = Evolution.DistinctCore, TypeReturn = typeof(TResult),
+                ListDistinct = new List<TResult>()
+            });
             return source.Provider.Execute<IEnumerable<TResult>>(source.Expression);
         }
 
-        
+
 
 
         /// <summary>
         /// Execution to delete a record from a table
         /// </summary>
-        public static int Delete<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> exp = null) where TSource : class
+        public static int Delete<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> exp = null)
+            where TSource : class
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { CustomExpression = exp, TypeRevalytion = Evolution.Delete });
+                { CustomExpression = exp, TypeEvolution = Evolution.Delete });
             return source.Provider.Execute<int>(source.Expression);
         }
+
         /// <summary>
         /// Execution to delete a record from a table
         /// </summary>
-        public static Task<int> DeleteAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> exp = null) where TSource : class
+        public static Task<int> DeleteAsync<TSource>(this IQueryable<TSource> source,
+            Expression<Func<TSource, bool>> exp = null) where TSource : class
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { CustomExpression = exp, TypeRevalytion = Evolution.Delete });
-             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(source.Expression,null, CancellationToken.None);
-            
+                { CustomExpression = exp, TypeEvolution = Evolution.Delete });
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(source.Expression, null,
+                CancellationToken.None);
+
         }
 
 
@@ -79,7 +90,7 @@ namespace ORM_1_21_.Extensions
         public static IQueryable<TSource> Limit<TSource>(this IQueryable<TSource> source, int start, int length)
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { TypeRevalytion = Evolution.Limit, ParamList = new List<object> { start, length } });
+                { TypeEvolution = Evolution.Limit, ParamList = new List<object> { start, length } });
             return source;
         }
 
@@ -103,14 +114,15 @@ namespace ORM_1_21_.Extensions
         /// </summary>
         /// <param name="source">An System.Linq.IQueryable`1 to return the first element of</param>
         /// <param name="chunkSize">Quantity per piece</param>
-        public static Task<List<List<TSource>>> SplitQueryableAsync<TSource>(this IQueryable<TSource> source, int chunkSize)
+        public static Task<List<List<TSource>>> SplitQueryableAsync<TSource>(this IQueryable<TSource> source,
+            int chunkSize)
         {
             return InnerSplitQueryable(source, chunkSize);
         }
 
         private static async Task<List<List<T>>> InnerSplitQueryable<T>(this IQueryable<T> coll, int chunkSize)
         {
-           return  await Task.Run(() =>
+            return await Task.Run(() =>
             {
                 var enumerable = coll.ToList();
                 return enumerable
@@ -118,7 +130,7 @@ namespace ORM_1_21_.Extensions
                     .GroupBy(x => x.Index / chunkSize)
                     .Select(x => x.Select(v => v.Value).ToList())
                     .ToList();
-            });
+            }).ConfigureAwait(false);
         }
 
 
@@ -126,11 +138,12 @@ namespace ORM_1_21_.Extensions
         /// Asynchronously enumerates the query results and performs the specified action
         /// on each element.
         /// </summary>
-        public static async Task ForEachAsync<TSource>(this IQueryable<TSource> source, Action<TSource> action)
+        public static async Task ForEachAsync<TSource>(this IQueryable<TSource> source, Action<TSource> action,
+            CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, "source" );
+            Check.NotNull(source, "source");
             Check.NotNull(action, "action");
-            var res = await source.ToListAsync();
+            var res = await source.ToListAsync(cancellationToken: cancellationToken);
             res.ForEach(action);
         }
 
@@ -139,28 +152,31 @@ namespace ORM_1_21_.Extensions
         ///  </summary>
         ///  <param name="source">IQueryable</param>
         ///  <param name="param">field-value dictionary</param>
-        public static int Update<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, Dictionary<object, object>>> param) where TSource : class
+        public static int Update<TSource>(this IQueryable<TSource> source,
+            Expression<Func<TSource, Dictionary<object, object>>> param) where TSource : class
         {
-           
+
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { CustomExpression = param, TypeRevalytion = Evolution.Update });
+                { CustomExpression = param, TypeEvolution = Evolution.Update });
             return source.Provider.Execute<int>(source.Expression);
         }
 
-      
+
 
         ///  <summary>
         /// Query to update table
         ///  </summary>
         ///  <param name="source">IQueryable</param>
         ///  <param name="param">field-value dictionary</param>
-        public static Task<int> UpdateAsync<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, Dictionary<object, object>>> param) where TSource : class
+        public static Task<int> UpdateAsync<TSource>(this IQueryable<TSource> source,
+            Expression<Func<TSource, Dictionary<object, object>>> param) where TSource : class
         {
 
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { CustomExpression = param, TypeRevalytion = Evolution.Update });
-            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(source.Expression,null, CancellationToken.None);
-          
+                { CustomExpression = param, TypeEvolution = Evolution.Update });
+            return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(source.Expression, null,
+                CancellationToken.None);
+
         }
 
         /// <summary>
@@ -180,6 +196,7 @@ namespace ORM_1_21_.Extensions
             {
                 db.GetParamFree().AddRange(param);
             }
+
             return (IEnumerable<TResult>)db.Execute<TResult>(callExpr);
         }
 
@@ -189,7 +206,8 @@ namespace ORM_1_21_.Extensions
         /// <param name="ses">ISession</param>
         /// <param name="sql">Request string</param>
         /// <param name="param">Request parameters</param>
-        public static async Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql, params object[] param)
+        public static async Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql,
+            params object[] param)
         {
             var tk = new TaskCompletionSource<IEnumerable<TResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
             var p = new V(sql);
@@ -201,7 +219,7 @@ namespace ORM_1_21_.Extensions
                 db.GetParamFree().AddRange(param);
             }
 
-            var res =(IEnumerable<TResult>) await db.ExecuteAsync<TResult>(callExpr, null, CancellationToken.None);
+            var res = (IEnumerable<TResult>)await db.ExecuteAsync<TResult>(callExpr, null, CancellationToken.None);
             tk.SetResult(res);
             return await tk.Task;
         }
@@ -228,7 +246,8 @@ namespace ORM_1_21_.Extensions
         /// <param name="sql">Request string</param>
         /// <param name="param">Request parameters</param>
         /// <typeparam name="TResult">Return type enumerable</typeparam>
-        public static IEnumerable<TResult> ProcedureCallParam<TResult>(this ISession ses, string sql, params ParameterStoredPr[] param)
+        public static IEnumerable<TResult> ProcedureCallParam<TResult>(this ISession ses, string sql,
+            params ParameterStoredPr[] param)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(
@@ -237,13 +256,15 @@ namespace ORM_1_21_.Extensions
         }
 
         /// <summary>
-        /// Asynchronous request execution
+        /// Getting List Asynchronous
         /// </summary>
-        public static Task<List<TResult>> ToListAsync<TResult>(this IQueryable<TResult> source, CancellationToken cancellationToken = default)
+        public static Task<List<TResult>> ToListAsync<TResult>(this IQueryable<TResult> source,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                var res = ((QueryProvider)source.Provider).ExecuteToListAsync<TResult>(source.Expression, cancellationToken);
+                var res = ((QueryProvider)source.Provider).ExecuteToListAsync<TResult>(source.Expression,
+                    cancellationToken);
                 return res;
 
             }
@@ -255,7 +276,28 @@ namespace ORM_1_21_.Extensions
 
         }
 
-     
+        /// <summary>
+        /// Getting Array Asynchronous
+        /// </summary>
+        public static Task<Array> ToArrayAsync<TResult>(this IQueryable<TResult> source,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var res = ((QueryProvider)source.Provider).ExecuteToArray<TResult>(source.Expression,
+                    cancellationToken);
+                return res;
+
+            }
+            catch (Exception ex)
+            {
+                MySqlLogger.Info($" {Environment.NewLine}{source}{Environment.NewLine}{ex}");
+                throw;
+            }
+
+        }
+
+
 
         /// <summary>
         /// Set command timeout for one request 
@@ -267,7 +309,7 @@ namespace ORM_1_21_.Extensions
         public static IQueryable<TSource> SetTimeOut<TSource>(this IQueryable<TSource> source, int value)
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-            { Timeout = value, TypeRevalytion = Evolution.Timeout });
+                { Timeout = value, TypeEvolution = Evolution.Timeout });
             return source;
         }
 
@@ -280,9 +322,10 @@ namespace ORM_1_21_.Extensions
         public static IQueryable<TSource> CacheUsage<TSource>(this IQueryable<TSource> source)
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { TypeRevalytion = Evolution.CacheUsage });
+                { TypeEvolution = Evolution.CacheUsage });
             return source;
         }
+
         /// <summary>
         /// Request with cache rewrite, if there is no cache, the cache will be created,
         /// the old cache will be overwritten
@@ -290,9 +333,10 @@ namespace ORM_1_21_.Extensions
         public static IQueryable<TSource> CacheOver<TSource>(this IQueryable<TSource> source)
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { TypeRevalytion = Evolution.CacheOver });
+                { TypeEvolution = Evolution.CacheOver });
             return source;
         }
+
         /// <summary>
         /// Clears the cache for a type :TSource
         /// </summary>
@@ -309,20 +353,106 @@ namespace ORM_1_21_.Extensions
         {
             ISession ses = ((ISqlComposite)source.Provider).Sessione;
             var provider = new DbQueryProvider<TSource>((Sessione)ses);
-           provider.ListCastExpression.Add(new ContainerCastExpression
-                { TypeRevalytion = Evolution.CacheKey });
+            provider.ListCastExpression.Add(new ContainerCastExpression
+                { TypeEvolution = Evolution.CacheKey });
             return (int)provider.Execute<int>(source.Expression);
 
         }
+
         /// <summary>
         /// Get value from cache by key
         /// </summary>
-        public static object CacheGetValue<TSource>(this ISession session,int key)
+        public static object CacheGetValue<TSource>(this ISession session, int key)
         {
             return MyCache<TSource>.GetValue(key);
         }
 
+        /// <summary>
+        /// The BETWEEN operator selects values within a given range. 
+        /// </summary>
+        public static IQueryable<TSource> Between<TSource, T>(this IQueryable<TSource> source,
+            Expression<Func<TSource, T>> func, T left, T right)
+        {
+            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
+            {
+                TypeEvolution = Evolution.Between, CustomExpression = func, ParamList = new List<object>
+                {
+                    Expression.Constant(left, typeof(object)),
+                    Expression.Constant(right, typeof(object))
+                }
+            });
+            return source;
+        }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static IQueryable<TResult> Join<TOuter, TInner, TKey, TResult>(
+            this IQueryable<TOuter> outer,
+            IQueryable<TInner> inner,
+            Expression<Func<TOuter, TKey>> outerKeySelector,
+            Expression<Func<TInner, TKey>> innerKeySelector,
+            Expression<Func<TOuter, TInner, TResult>> resultSelector)
+        {
+
+            AttributesOfClass<TInner>.Init();
+            return outer.Provider.CreateQuery<TResult>(Expression.Call(null, 
+                GetMethodInfo4<IQueryable<TOuter>, 
+                    IQueryable<TInner>,
+                    Expression<Func<TOuter, TKey>>,
+                    Expression<Func<TInner, TKey>>,
+                    Expression<Func<TOuter, TInner, TResult>>, IQueryable<TResult>>
+                    (Queryable.Join), outer.Expression, inner.Expression,
+                Expression.Quote(outerKeySelector), Expression.Quote(innerKeySelector), Expression.Quote(resultSelector)));
+        }
+
+        private static Expression GetSourceExpression<TSource>(IEnumerable<TSource> source) =>
+            source is IQueryable<TSource> queryable
+                ? queryable.Expression
+                : (Expression)Expression.Constant((object)source, typeof(IEnumerable<TSource>));
+
+        private static MethodInfo GetMethodInfo4<T, T1, T2, T3, T4, T5>(Func<T, T1, T2, T3, T4, T5> func)
+        {
+            return func.Method;
+        }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="outer"></param>
+        /// <param name="inner"></param>
+        /// <param name="outerKeySelector"></param>
+        /// <param name="innerKeySelector"></param>
+        /// <param name="resultSelector"></param>
+        /// <typeparam name="TOuter"></typeparam>
+        /// <typeparam name="TInner"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns></returns>
+        public static IQueryable<TResult> GroupJoin<TOuter, TInner, TKey, TResult>(
+            this IQueryable<TOuter> outer,
+            IQueryable<TInner> inner,
+            Expression<Func<TOuter, TKey>> outerKeySelector,
+            Expression<Func<TInner, TKey>> innerKeySelector,
+            Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector)
+        {
+            AttributesOfClass<TInner>.Init();
+            return outer.Provider.CreateQuery<TResult>(Expression.Call(null,
+                GetMethodInfo2<IQueryable<TOuter>, IQueryable<TInner>, Expression<Func<TOuter, TKey>>, Expression<Func<TInner, TKey>>, Expression<Func<TOuter, IEnumerable<TInner>, TResult>>, IQueryable<TResult>>(Queryable.GroupJoin), outer.Expression, GetSourceExpression(inner), Expression.Quote(outerKeySelector),
+                Expression.Quote(innerKeySelector), Expression.Quote(resultSelector)));
+        }
+
+        private static MethodInfo GetMethodInfo2<T, T1, T2, T3, T4, T5>(Func<T, T1, T2, T3, T4, T5> func)
+        {
+            return func.Method;
+        }
     }
 
-  
+     
+
+
 }

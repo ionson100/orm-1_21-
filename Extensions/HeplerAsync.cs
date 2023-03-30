@@ -1237,6 +1237,101 @@ namespace ORM_1_21_.Extensions
         }
 
 
+        /// <summary>
+        /// Creates a Dictionary&lt;TKey,TValue&gt; from an IQueryable&lt;TSource&gt;
+        /// according to specified key selector and element selector functions asynchronously
+        /// </summary>
+        public static async Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TSource, TKey, TElement>(
+            this IQueryable<TSource> source,
+            Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector,CancellationToken  cancellationToken=default)
+        {
+            var d = new Dictionary<TKey, TElement>();
+            await source.ForEachAsync(element =>
+            {
+                d.Add(keySelector(element), elementSelector(element));
+            }, cancellationToken: cancellationToken);
+            return d;
+        }
+        /// <summary>
+        /// Creates a Dictionary&lt;TKey,TValue&gt; from an IQueryable&lt;TSource&gt;
+        /// according to specified key selector  asynchronously
+        /// </summary>
+        public static async Task<Dictionary<TKey, TSource>> ToDictionaryAsync<TSource, TKey>(
+            this IQueryable<TSource> source,
+            Func<TSource, TKey> keySelector,CancellationToken cancellationToken = default)
+        {
+            var d = new Dictionary<TKey, TSource>();
+            await source.ForEachAsync(element =>
+            {
+                d.Add(keySelector(element), element);
+            }, cancellationToken: cancellationToken);
+            return d;
+        }
+
+
+        /// <summary>
+        /// Creates a Dictionary&lt;TKey,TValue&gt; from an IQueryable&lt;TSource&gt;
+        /// according to specified key selector and element selector functions asynchronously
+        /// </summary>
+        public static async Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TSource, TKey, TElement>(
+            this IQueryable<TSource> source,
+            Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector,IEqualityComparer<TKey> comparer, CancellationToken cancellationToken = default)
+        {
+            var d = new Dictionary<TKey, TElement>(comparer);
+            await source.ForEachAsync(element =>
+            {
+                d.Add(keySelector(element), elementSelector(element));
+            }, cancellationToken: cancellationToken);
+            return d;
+        }
+
+      
+
+        /// <summary>
+        /// Asynchronously enumerates a query and uses a key selector and an element selector to construct a Lookup&lt;TKey,TElement&gt;﻿
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="keySelector">A function that acquires each persistent object’s key.</param>
+        /// <param name="elementSelector">A function that returns a result value for each persistent object.</param>
+        /// <param name="cancellationToken">token cancelling the action</param>
+        public static async Task<ILookup<TKey, TElement>> ToLookupAsync<TSource, TKey, TElement>(
+            this IQueryable<TSource> query,
+            Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector,
+            CancellationToken cancellationToken = default
+        )
+        {
+            var tk = new TaskCompletionSource<ILookup<TKey, TElement>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var s = await query.ToListAsync(cancellationToken);
+            var res = s.ToLookup(keySelector, elementSelector);
+            tk.SetResult(res);
+            return await tk.Task;
+        }
+
+        /// <summary>
+        /// Asynchronously enumerates a query and uses a key selector and an element selector to construct a Lookup&lt;TKey,TElement&gt;﻿
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="keySelector">A function that acquires each persistent object’s key.</param>
+        /// <param name="cancellationToken">token cancelling the action</param>
+        public static async Task<ILookup<TKey, TSource>> ToLookupAsync<TSource, TKey>(
+            this IQueryable<TSource> query,
+            Func<TSource, TKey> keySelector,
+            CancellationToken cancellationToken = default
+        )
+        {
+            var tk = new TaskCompletionSource<ILookup<TKey, TSource>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var s = await query.ToListAsync(cancellationToken);
+            var res = s.ToLookup(keySelector);
+            tk.SetResult(res);
+            return await tk.Task;
+        }
+
+
+
+
 
 
 

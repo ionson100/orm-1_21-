@@ -8,7 +8,7 @@ namespace ORM_1_21_
     /// Field name in the table
     /// </summary>
 
-    public sealed class MapColumnNameAttribute : BaseAttribute
+    public sealed class MapColumnAttribute : BaseAttribute
     {
        
         internal bool IsIndex { get; set; }
@@ -16,10 +16,19 @@ namespace ORM_1_21_
         internal string TypeString { get; set; }
 
         /// <summary>
-        /// Ctor.
+        /// This property is involved in creating the table,
+        /// the name of the table field is specified by the user
         /// </summary>
-        /// <param name="nameColumnTable">field name</param>
-        public MapColumnNameAttribute(string nameColumnTable) : base(nameColumnTable)
+        /// <param name="nameColumnTable">field table name</param>
+        public MapColumnAttribute(string nameColumnTable) : base(nameColumnTable)
+        {
+        }
+
+        /// <summary>
+        /// This property is involved in creating the table,
+        /// field table name equals property name
+        /// </summary>
+        public MapColumnAttribute() : base()
         {
         }
 

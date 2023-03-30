@@ -2,12 +2,12 @@
 
 namespace TestLibrary
 {
-    [MapTableName("test_list")]
+    [MapTable("test_list")]
     public class TestSerialize
     {
         [MapPrimaryKey("id", Generator.Native)]
         public long Id { get; set; }
-        [MapColumnName("sdd")]
+        [MapColumn("sdd")]
         public TestUser User { get; set; }
 
     }

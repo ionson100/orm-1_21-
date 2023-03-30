@@ -1,13 +1,13 @@
 ﻿using ORM_1_21_;
+using ORM_1_21_.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_.Extensions;
 using TestLibrary;
-using static System.Collections.Specialized.BitVector32;
 
 
 namespace TestPostgres
@@ -39,36 +39,68 @@ namespace TestPostgres
             //Execute.RunThread();
             //Console.ReadKey();
             //Console.ReadKey();
-            //Execute.TotalTest();
-            ////Execute.TotalTestAsync();
-            //Execute.TestNativeInsert();
-            //Execute.TestAssignetInsert();
-            //Execute2.TestTimeStamp();
-            await Execute3.TotalTestAsync();
-           
+         //Execute.TotalTest();
+         ////Execute.TotalTestAsync();
+         //Execute.TestNativeInsert();
+         //Execute.TestAssignetInsert();
+         //Execute2.TestTimeStamp();
+         //await Execute3.TotalTestAsync();
+
             Stopwatch stopwatch = new Stopwatch();
-           
-            var dt = DateTime.Now;
-            using (ISession session = await Configure.SessionAsync)
+
+            using (ISession session = Configure.Session)
             {
-                if (await session.TableExistsAsync<TestSerialize>())
+                session.InsertBulk(new List<MyClass>(){
+                        new MyClass(1) { Age = 40, Name = "name" },
+                        new MyClass(1) { Age = 401, Name = "name" },
+                        new MyClass(1) { Age = 201, Name = "name" },
+                        new MyClass(1) { Age = 202, Name = "name" },
+                        new MyClass(1) { Age = 203, Name = "name" },
+                        new MyClass(1) { Age = 40, Name = "name" },
+                       
+                    }
+                );
+                if (session.TableExists<MyClassJoinPostgres>())
                 {
-                    await session.DropTableAsync<TestSerialize>();
+                    session.DropTable<MyClassJoinPostgres>();
                 }
 
-                await session.TableCreateAsync<TestSerialize>();
-                await session.InsertBulkAsync(new List<TestSerialize>()
-                {
-                    new TestSerialize()
-                },30);
-                var u = await session.Query<TestSerialize>().SingleAsync();
-                u.User = new TestUser() { Name = "asas", Id = 2 };
-                await session.SaveAsync(u);
-                 u = await session.Query<TestSerialize>().SingleAsync();
+                session.TableCreate<MyClassJoinPostgres>();
+
+                session.InsertBulk(new List<MyClassJoinPostgres>(){
+                        new MyClassJoinPostgres() { Age = 40, Name = "name11" },
+                        new MyClassJoinPostgres() { Age = 40, Name = "name11" },
+                        new MyClassJoinPostgres() { Age = 40, Name = "name11" },
+                        new MyClassJoinPostgres() { Age = 40, Name = "name11" },
+                        new MyClassJoinPostgres() { Age = 40, Name = "name11" },
+                        new MyClassJoinPostgres() { Age = 40, Name = "name11" },
+
+                    }
+                );
+
+                var groupBy = session.Query<MyClass>().GroupBy(a => a.Age).ToList();
+
+                var myClasses =
+                    session.Query<MyClass>().Where(a => a.Name=="name").Join(
+                        session.Query<MyClassJoinPostgres>().Where(d => d.Name == "name11"),
+                        a => a.Age,
+                        d => d.Age,
+                        (w, e) => new { s = w.Age, d = e.Age, dd = e.Name }).ToList();
+                var list1 = session.Query<MyClass>().ToList();
+                var list2 = session.Query<MyClassJoinPostgres>();
+                //
+                //var groupJoin = session.Query<MyClass>().Where(a=>a.Age>0).GroupJoin
+                //    (session.Query<MyClassJoinPostgres>(), a => a.Age, b => b.Age, (ff, dd) => new { ff.Age, dd }).ToList();
+                //var groupJoin = list1.GroupJoin(list2, a => a.Age, b => b.Age, (ff, dd) => new { ff.Age, dd });
             }
 
-          
+
+
+
+
         }
+
+    
 
         static int GetInt()
         {
@@ -81,11 +113,36 @@ namespace TestPostgres
 
 
     }
-  
+
+    [MapTable]
+    public class TestSerialize1
+    {
+        [MapPrimaryKey(Generator.Native)]
+        public long Id { get; set; }
+        [MapColumn]
+        public TestUser User { get; set; }
+        [MapColumn]
+        public int IdCore { get; set; }
+       
+
+    }
+
+    [MapTable]
+    public class TestSerialize2
+    {
+        [MapPrimaryKey(Generator.Native)]
+        public long Id { get; set; }
+        [MapColumn]
+        public TestUser User { get; set; }
+        [MapColumn]
+        public int IdCore { get; set; }
+
+    }
 
 
 
-   
+
+
 
 
 }

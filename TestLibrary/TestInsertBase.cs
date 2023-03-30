@@ -11,58 +11,58 @@ namespace TestLibrary
     {
         [MapPrimaryKey("id", Generator.Native)]
         public int Id { get; set; }
-        [MapColumnName("name")]
+        [MapColumn("name")]
         public string Name { get; set; }
     }
     class TestInsertBaseAssignet
     {
         [MapPrimaryKey("id", Generator.Assigned)]
         public Guid Id { get; set; } = Guid.NewGuid();
-        [MapColumnName("name")]
+        [MapColumn("name")]
         public string Name { get; set; }
     }
 
-    [MapTableName("TT1")]
+    [MapTable("TT1")]
     class TiPostgresNative:TestInsertBaseNative
     {
        
     }
-    [MapTableName("TT2")]
+    [MapTable("TT2")]
     class TiPostgresAssignet : TestInsertBaseAssignet
     {
         [MapPrimaryKey("id",Generator.Assigned)]
         public Guid Id { get; set; }=Guid.NewGuid();
     }
-    [MapTableName("TT11")]
+    [MapTable("TT11")]
     class TiMysqlNative : TestInsertBaseNative
     {
        
     }
-    [MapTableName("TT21")]
+    [MapTable("TT21")]
     class TiMysqlAssignet : TestInsertBaseAssignet
     {
         [MapPrimaryKey("id", Generator.Assigned)]
         public Guid Id { get; set; } = Guid.NewGuid();
     }
 
-    [MapTableName("TT111")]
+    [MapTable("TT111")]
     class TiMsSqlNative : TestInsertBaseNative
     {
       
     }
-    [MapTableName("TT211")]
+    [MapTable("TT211")]
     class TiMsSqlAssignet : TestInsertBaseAssignet
     {
         [MapPrimaryKey("id", Generator.Assigned)]
         public Guid Id { get; set; } = Guid.NewGuid();
     }
 
-    [MapTableName("TT1111")]
+    [MapTable("TT1111")]
     class TiSqliteNative : TestInsertBaseNative
     {
       
     }
-    [MapTableName("TT2111")]
+    [MapTable("TT2111")]
     class TiSqliteAssignet : TestInsertBaseAssignet
     {
       

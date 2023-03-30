@@ -9,7 +9,7 @@ namespace ORM_1_21_
     [AttributeUsage(AttributeTargets.Property)]
     public abstract class BaseAttribute : Attribute
     {
-        private readonly string _columnName;
+        private string _columnName;
 
         /// <summary>
         /// Field name in the table  as sql
@@ -44,6 +44,11 @@ namespace ORM_1_21_
         {
             return _columnName;
         }
+
+        internal void SetColumnNameRaw(string name)
+        {
+            _columnName = name;
+        }
         internal bool IsNotUpdateInsert { get; set; }
       
         internal string PropertyName { get; set; }
@@ -55,6 +60,14 @@ namespace ORM_1_21_
         {
             if (string.IsNullOrWhiteSpace(columnName)) throw new ArgumentException("column name zero");
             _columnName = UtilsCore.ClearTrim(columnName);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected BaseAttribute()
+        {
+
         }
 
         internal string DefaultValue { get; set; }

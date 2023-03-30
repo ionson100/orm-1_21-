@@ -4,14 +4,14 @@ using System;
 
 namespace TestLibrary
 {
-    [MapTableName("nomap")]
+    [MapTable("nomap")]
     class MyClassTemp
     {
-        [MapColumnName("id")]
+        [MapColumn("id")]
         public Guid Id { get; set; } = Guid.NewGuid();
-        [MapColumnName("enum1")]
+        [MapColumn("enum1")]
         public MyEnum MyEnum { get; set; }
-        [MapColumnName("age")]
+        [MapColumn("age")]
         public int Age { get; set; }
         public override string ToString()
         {

@@ -99,7 +99,7 @@
     <Compile Include="Attribute\MapNotInsertUpdateAttribute.cs" />
     <Compile Include="Attribute\MapReceiverFreeSqlAttribute.cs" />
     <Compile Include="Attribute\MapSerializableAttribute.cs" />
-    <Compile Include="Attribute\MapTableNameAttribute.cs" />
+    <Compile Include="Attribute\MapTableAttribute.cs" />
     <Compile Include="Attribute\MapTypeMysqlTableAttribute.cs" />
     <Compile Include="Attribute\MapUsageActivatorAttribute.cs" />
     <Compile Include="CacheState.cs" />
@@ -107,6 +107,7 @@
     <Compile Include="Extensions\HeplerAsync.cs" />
     <Compile Include="Interface\IMapSerializable.cs" />
     <Compile Include="Linq\DbQueryPProviderAsync.cs" />
+    <Compile Include="Linq\DbQueryPrividerExecute.cs" />
     <Compile Include="Linq\GroupException.cs" />
     <Compile Include="Linq\MsSql\ITranslate.cs" />
     <Compile Include="MyCache.cs" />
@@ -134,7 +135,7 @@
     <Compile Include="Extensions\Helper.cs" />
     <Compile Include="Generator.cs" />
     <Compile Include="Attribute\MapPrimaryKeyAttribute.cs" />
-    <Compile Include="Attribute\MapColumnNameAttribute.cs" />
+    <Compile Include="Attribute\MapColumnAttribute.cs" />
     <Compile Include="Interface\ISession.cs" />
     <Compile Include="Linq\Creator.cs" />
     <Compile Include="Linq\DbQueryProvider.cs" />
@@ -198,6 +199,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="LICENSE.md" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup />

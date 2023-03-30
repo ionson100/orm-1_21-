@@ -16,7 +16,7 @@ namespace ORM_1_21_
     {
         public static IEnumerable<TObj> GetRiderToList<TObj>(IDataReader reader, ProviderName providerName)
         {
-            var isLegalese = AttributesOfClass<TObj>.IsUssageActivator(providerName);
+            var isLegalese = AttributesOfClass<TObj>.IsUsageActivator(providerName);
             bool? field = null;
             var res = new List<TObj>();
             while (reader.Read())

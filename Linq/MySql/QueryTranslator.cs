@@ -18,24 +18,34 @@ namespace ORM_1_21_.Linq.MySql
     {
         private string _currentMethod;
         private Evolution _currentEvolution;
-        private readonly List<OneComposite> _listOne = new List<OneComposite>();
         private int _paramIndex;
         private readonly ProviderName _providerName;
 
         private bool PingComposite(Evolution eval)
         {
-            return _listOne.Any(a => a.Operand == eval);
+            return ListOne.Any(a => a.Operand == eval);
         }
 
         private void AddListOne(OneComposite composite)
         {
-            _listOne.Add(composite);
+            ListOne.Add(composite);
         }
 
-        public QueryTranslator(ProviderName name)
+        public QueryTranslator(ProviderName name, int paramIndex = 0)
         {
             _providerName = name;
             Param = new Dictionary<string, object>();
+            _paramIndex = paramIndex;
+        }
+
+        public int GetParamIndex()
+        {
+            return _paramIndex;
+        }
+
+        public string FieldOne()
+        {
+            return StringB.ToString();
         }
 
         private string ParamName => string.Format("{0}{1}", string.Format("{1}{0}", ParamStringName, UtilsCore.PrefParam(_providerName)), ++_paramIndex);
@@ -51,7 +61,7 @@ namespace ORM_1_21_.Linq.MySql
 
         public Dictionary<string, object> Param { get; set; }
 
-        public List<OneComposite> ListOne => _listOne;
+        public List<OneComposite> ListOne { get; } = new List<OneComposite>();
 
         private string ParamStringName { get; set; } = "p";
 
@@ -64,12 +74,12 @@ namespace ORM_1_21_.Linq.MySql
             ev = CurrentEvolution;
             if (_providerName == ProviderName.MsSql)
             {
-                var dd = new MsSqlConstructorSql().GetStringSql<T>(_listOne, _providerName);
+                var dd = new MsSqlConstructorSql().GetStringSql<T>(ListOne, _providerName);
                 return dd;
             }
             else
             {
-                var dd = new MySqlConstructorSql(_providerName).GetStringSql<T>(_listOne, _providerName);//,_joinCapital
+                var dd = new MySqlConstructorSql(_providerName).GetStringSql<T>(ListOne, _providerName);//,_joinCapital
                 return dd;
             }
 
@@ -77,12 +87,21 @@ namespace ORM_1_21_.Linq.MySql
 
         public void Translate(Expression expression, Evolution ev, List<object> paramList)
         {
+
             _currentEvolution = ev;
             Visit(expression);
-            //if (ev == Evolution.FindLikeEndsWith || ev == Evolution.FindLikeStartsWith || ev == Evolution.FindLikeContains)
-            //{
-            //    AddListOne(new OneComprosite { Operand = Evolution.Where, Body = _sb.ToString() });
-            //}
+
+            if (ev == Evolution.Between)
+            {
+                StringB.Append(" BETWEEN ");
+                Visit((Expression)paramList[0]);
+                StringB.Append(" AND ");
+                Visit((Expression)paramList[1]);
+                var str = StringB.ToString();
+                AddListOne(new OneComposite { Operand = Evolution.Where, Body = StringB.ToString() });
+
+            }
+
             if (ev == Evolution.Delete)
             {
                 AddListOne(new OneComposite { Operand = Evolution.Delete });
@@ -104,7 +123,7 @@ namespace ORM_1_21_.Linq.MySql
                     {
                         case ProviderName.MsSql:
                             {
-                                ListOne.Add(new OneComposite
+                                AddListOne(new OneComposite
                                 {
                                     Operand = Evolution.Limit,
                                     Body =
@@ -134,22 +153,22 @@ namespace ORM_1_21_.Linq.MySql
                 AddListOne(new OneComposite { Operand = Evolution.Update, Body = StringB.ToString() });
             }
 
-            if (ev == Evolution.Join)
-            {
-                if (paramList != null)
-                {
-                    foreach (var d in (Dictionary<string, object>)paramList[0])
-                    {
-                        Param.Add(d.Key, d.Value);
-                    }
-
-                    AddListOne(new OneComposite { Operand = Evolution.Join, Body = paramList[1].ToString(), NewConstructor = paramList[2] });
-                }
-                else
-                {
-                    throw new Exception("paramList bad");
-                }
-            }
+            // if (ev == Evolution.Join)
+            // {
+            //     if (paramList != null)
+            //     {
+            //         foreach (var d in (Dictionary<string, object>)paramList[0])
+            //         {
+            //             Param.Add(d.Key, d.Value);
+            //         }
+            //
+            //         AddListOne(new OneComposite { Operand = Evolution.Join, Body = paramList[1].ToString(), NewConstructor = paramList[2] });
+            //     }
+            //     else
+            //     {
+            //         throw new Exception("paramList bad");
+            //     }
+            // }
 
 
 
@@ -158,10 +177,16 @@ namespace ORM_1_21_.Linq.MySql
             StringB.Length = 0;
         }
 
+        public void Translate(Expression expression)
+        {
+            Visit(expression);
+        }
+
+
         public List<OneComposite> GetListOne()
         {
             List<OneComposite> list = new List<OneComposite>();
-            foreach (var item in _listOne)
+            foreach (var item in ListOne)
             {
                 list.Add(item);
             }
@@ -177,8 +202,74 @@ namespace ORM_1_21_.Linq.MySql
             return e;
         }
 
+       
+
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
+
+            if (m.Method.Name == "Join")
+            {
+
+                List<string> list = new List<string>();
+
+                var tt = (NewExpression)((LambdaExpression)((UnaryExpression)m.Arguments[4]).Operand).Body;
+                foreach (Expression argument in tt.Arguments)
+                {
+                    var et = ((MemberExpression)argument).Expression.Type;
+                    var fieldName = StorageTypeAttribute.DictionaryAttribute[et].Translation(_providerName, argument, 0).FieldName;
+                    list.Add(fieldName);
+                }
+                AddListOne(new OneComposite(){Operand = Evolution.SelectJoin,Body = string.Join(",",list)});
+                StringBuilder builder = new StringBuilder();
+               
+                builder.AppendLine().Append(" JOIN ");
+
+                var ee = m.Arguments[1].Type.GenericTypeArguments[0];
+                var tableName = StorageTypeAttribute.DictionaryAttribute[ee].GetTableName(_providerName);
+                builder.Append(tableName).AppendLine(" ");
+                builder.Append(" ON ( ");
+                string field = StorageTypeAttribute.DictionaryAttribute[typeof(T)].Translation(_providerName, m.Arguments[2], 0).FieldName;
+                builder.Append(field).Append(" = ");
+                field = StorageTypeAttribute.DictionaryAttribute[ee].Translation(_providerName, m.Arguments[3], 0).FieldName;
+                builder.Append(field).Append(") ").AppendLine();
+                string sql = builder.ToString();
+                AddListOne(new OneComposite(){Operand = Evolution.Join,Body = sql});
+                
+                int pi;
+                {
+                    var r = StorageTypeAttribute.DictionaryAttribute[typeof(T)];
+                    var res = r.Translation(_providerName, m.Arguments[0], 0);
+                    ListOne.AddRange(res.ListOneComposite);
+                    Param = res.Params;
+                    pi = res.ParamsIndex;
+                }
+                {
+                    ee = m.Arguments[1].Type.GenericTypeArguments[0];
+                    var r = StorageTypeAttribute.DictionaryAttribute[ee];
+                    var res = r.Translation(_providerName, m.Arguments[1], pi);
+                    foreach (OneComposite composite in res.ListOneComposite)
+                    {
+                        if (composite.Operand == Evolution.Where)
+                        {
+                            AddListOne(composite);
+                        }
+                    }
+                    foreach (var keyValuePair in res.Params)
+                    {
+                        if (Param.ContainsKey(keyValuePair.Key) == false)
+                        {
+                            Param.Add(keyValuePair.Key,keyValuePair.Value);
+                        }
+                    }
+
+                }
+
+                _currentMethod = "join";
+                
+                return m;
+
+
+            }
 
             if (m.Method.DeclaringType == typeof(V)
                 && m.Method.Name == "FreeSql")
@@ -201,7 +292,7 @@ namespace ORM_1_21_.Linq.MySql
                 AddListOne(new OneComposite { Body = val.ToString(), Operand = Evolution.TableCreate });
                 return m;
             }
-            
+
             if (m.Method.DeclaringType == typeof(V)
                 && m.Method.Name == "DropTable")
             {
@@ -242,7 +333,7 @@ namespace ORM_1_21_.Linq.MySql
                 AddListOne(new OneComposite { Body = val.ToString(), Operand = Evolution.TruncateTable });
                 return m;
             }
-            
+
             if (m.Method.DeclaringType == typeof(V)
                 && m.Method.Name == "ExecuteNonQuery")
             {
@@ -281,7 +372,7 @@ namespace ORM_1_21_.Linq.MySql
                 Visit(m.Arguments[1]);
                 if (_providerName == ProviderName.MsSql)
                 {
-                    ListOne.Add(new OneComposite
+                    AddListOne(new OneComposite
                     {
                         Operand = Evolution.Limit,
                         Body = string.Format(" LIMIT {0},1", StringB)
@@ -353,9 +444,9 @@ namespace ORM_1_21_.Linq.MySql
                     {
                         Operand = Evolution.ElementAtOrDefault
                     };
-                    ListOne.Add(o);
+                    AddListOne(o);
                     Visit(m.Arguments[1]);
-                    ListOne.Add(new OneComposite
+                    AddListOne(new OneComposite
                     {
                         Operand = Evolution.Limit,
                         Body = $" LIMIT {StringB},1"
@@ -395,44 +486,44 @@ namespace ORM_1_21_.Linq.MySql
                 }
             }
 
-            if ((m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "Join") ||
-                (m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "GroupJoin"))
-            {
-
-                for (var i = 0; i < m.Arguments.Count; i++)
-                {
-                    StringB.Length = 0;
-                    if (i == 0)
-                    {
-                        Visit(m.Arguments[0]);
-                    }
-
-                    if (i == 1)
-                    {
-                        Visit(m.Arguments[1]);
-                    }
-
-                    if (i == 2)
-                    {
-                        StringB.Length = 0;
-                        Visit(m.Arguments[2]);
-                    }
-                    if (i == 3)
-                    {
-                        StringB.Length = 0;
-                        Visit(m.Arguments[3]);
-                    }
-
-                    if (i == 4)
-                    {
-                        StringB.Length = 0;
-                        Visit(m.Arguments[4]);
-                    }
-
-                }
-
-                return m;
-            }
+            //if ((m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "Join") ||
+            //    (m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "GroupJoin"))
+            //{
+            //
+            //    for (var i = 0; i < m.Arguments.Count; i++)
+            //    {
+            //        StringB.Length = 0;
+            //        if (i == 0)
+            //        {
+            //            Visit(m.Arguments[0]);
+            //        }
+            //
+            //        if (i == 1)
+            //        {
+            //            Visit(m.Arguments[1]);
+            //        }
+            //
+            //        if (i == 2)
+            //        {
+            //            StringB.Length = 0;
+            //            Visit(m.Arguments[2]);
+            //        }
+            //        if (i == 3)
+            //        {
+            //            StringB.Length = 0;
+            //            Visit(m.Arguments[3]);
+            //        }
+            //
+            //        if (i == 4)
+            //        {
+            //            StringB.Length = 0;
+            //            Visit(m.Arguments[4]);
+            //        }
+            //
+            //    }
+            //
+            //    return m;
+            //}
 
 
             if (m.Method.DeclaringType == typeof(DateTime))
@@ -1622,7 +1713,7 @@ namespace ORM_1_21_.Linq.MySql
                 Delegate tt;
 
                 var typew = ((MemberExpression)lambda.Body).Expression.Type;
-                if (typew != typeof(T) && UtilsCore.IsAnonymousType(typew) && _listOne.Any(a => a.Operand == Evolution.SelectNew))
+                if (typew != typeof(T) && UtilsCore.IsAnonymousType(typew) && ListOne.Any(a => a.Operand == Evolution.SelectNew))
                 {
 
                     tt = ((LambdaExpression)StripQuotes(m.Arguments[1])).Compile();
@@ -1660,7 +1751,7 @@ namespace ORM_1_21_.Linq.MySql
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
                 var o = new OneComposite { Operand = Evolution.OrderBy, Body = StringB.ToString().Trim(' ', ',') };
-                var tSelect = _listOne.Where(a => a.Operand == Evolution.OrderBy).Select(d => d.Body);
+                var tSelect = ListOne.Where(a => a.Operand == Evolution.OrderBy).Select(d => d.Body);
                 if (tSelect.Contains(o.Body) == false)
                 {
                     AddListOne(o);
@@ -1675,14 +1766,14 @@ namespace ORM_1_21_.Linq.MySql
             {
                 Visit(m.Arguments[0]);
                 var sb = new StringBuilder();
-                if (_listOne.Any(a => a.Operand == Evolution.OrderBy))
+                if (ListOne.Any(a => a.Operand == Evolution.OrderBy))
                 {
-                    _listOne.Where(a => a.Operand == Evolution.OrderBy).
+                    ListOne.Where(a => a.Operand == Evolution.OrderBy).
                         ToList().ForEach(a =>
 
                          {
                              sb.AppendFormat(" {0},", a.Body);
-                             _listOne.Remove(a);
+                             ListOne.Remove(a);
                          });
 
                 }
@@ -1837,7 +1928,7 @@ namespace ORM_1_21_.Linq.MySql
                             Operand = Evolution.Where,
                             Body = StringB.ToString()
                         };
-                        ListOne.Add(o1);
+                        AddListOne(o1);
                         StringB.Length = 0;
                     }
 
@@ -1857,7 +1948,7 @@ namespace ORM_1_21_.Linq.MySql
                             Body = $" {AttributesOfClass<T>.TableName(_providerName)}." +
                                    $"{AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName)} DESC "
                         };
-                        ListOne.Add(o);
+                        AddListOne(o);
                     }
 
                     var o13 = new OneComposite
@@ -1866,7 +1957,7 @@ namespace ORM_1_21_.Linq.MySql
                         Operand = pizda,
                         Body = "1"
                     };
-                    ListOne.Add(o13);
+                    AddListOne(o13);
 
                     return m;
                 }
@@ -1888,9 +1979,9 @@ namespace ORM_1_21_.Linq.MySql
                         StringB.Length = 0;
 
                     }
-                    if (_listOne.Any(a => a.Operand == Evolution.OrderBy))
+                    if (ListOne.Any(a => a.Operand == Evolution.OrderBy))
                     {
-                        foreach (var body in _listOne.Where(a => a.Operand == Evolution.OrderBy))
+                        foreach (var body in ListOne.Where(a => a.Operand == Evolution.OrderBy))
                         {
                             if (body.Body.IndexOf("DESC", StringComparison.Ordinal) != -1)
                             {
@@ -1902,7 +1993,7 @@ namespace ORM_1_21_.Linq.MySql
                             }
                         }
                         if (PingComposite(Evolution.Limit) == false)
-                            _listOne.Last(a => a.Operand == Evolution.OrderBy).Body += " LIMIT 1";
+                            ListOne.Last(a => a.Operand == Evolution.OrderBy).Body += " LIMIT 1";
 
                     }
                     else
@@ -2511,7 +2602,7 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Member.MemberType == MemberTypes.Field)
             {
                 var st = UtilsCore.GetSerializeType(((FieldInfo)m.Member).FieldType);
-                
+
                 if (st == SerializeType.User)
                 {
                     var o = Expression.Lambda<Func<object>>(m).Compile()();
@@ -2865,7 +2956,7 @@ namespace ORM_1_21_.Linq.MySql
                         case SerializeType.None:
                             value = fieldInfo.GetValue(str);
                             break;
-                      
+
                         case SerializeType.User:
                             value = ((IMapSerializable)str).Serialize();
                             break;
@@ -3023,17 +3114,17 @@ namespace ORM_1_21_.Linq.MySql
             switch (st)
             {
 
-              
+
                 case SerializeType.User:
                     {
                         var str = Expression.Lambda<Func<object>>(nex).Compile()();
                         var p = ParamName;
                         StringB.Append(p);
-                        var value =((IMapSerializable)str).Serialize();
+                        var value = ((IMapSerializable)str).Serialize();
                         Param.Add(p, value);
                         return nex;
                     }
-               
+
             }
 
 

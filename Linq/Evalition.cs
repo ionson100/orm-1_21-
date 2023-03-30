@@ -47,7 +47,10 @@
         ExecuteScalar,
         TruncateTable,
         ExecuteNonQuery,
-        DataTable
+        DataTable,
+        Between,
+        SelectJoin,
+        SelectNewGroup
     }
 
 }

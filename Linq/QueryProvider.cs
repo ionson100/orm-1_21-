@@ -79,6 +79,10 @@ namespace ORM_1_21_.Linq
         public abstract Task<T> ExecuteExtensionAsync<T>(Expression expression, object[] param,
             CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Query async
+        /// </summary>
+        public abstract Task<Array> ExecuteToArray<TS>(Expression expression, CancellationToken cancellationToken);
     }
 
 

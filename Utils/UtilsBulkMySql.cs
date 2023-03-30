@@ -47,7 +47,7 @@ namespace ORM_1_21_.Utils
                 rowHead.Append(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
                     .Append(";");
             }
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
             {
                 rowHead.Append(map.GetColumnName(_providerName)).Append(";");
             }
@@ -66,7 +66,7 @@ namespace ORM_1_21_.Utils
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
                     row.Append(GetValue(o, type)).Append(";");
                 }
-                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
+                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
@@ -100,7 +100,7 @@ namespace ORM_1_21_.Utils
                 rowHead.Append(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
                     .Append(",");
             }
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
             {
 
                 if ( map.TypeColumn == typeof(byte[]))
@@ -126,7 +126,7 @@ namespace ORM_1_21_.Utils
 
 
                 }
-                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
+                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;

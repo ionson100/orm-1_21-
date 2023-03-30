@@ -22,7 +22,7 @@ namespace ORM_1_21_.Utils
                 builder.AppendLine($" '{pk.GetColumnName(providerName)}'  BLOB PRIMARY KEY,");
             }
 
-            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
+            foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 builder.AppendLine(
                     $" '{map.GetColumnName(providerName)}' {GetTypeColumn(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
@@ -34,7 +34,7 @@ namespace ORM_1_21_.Utils
             builder.Append(str2);
             builder.AppendLine(");");
 
-            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
+            foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 if (map.IsIndex)
                 {

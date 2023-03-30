@@ -16,7 +16,7 @@ namespace ORM_1_21_.Utils
 
             builder.AppendLine($" `{pk.ColumnNameForRider(providerName)}` {GetTypeMySql(pk.TypeColumn)}  " +
                                $"PRIMARY KEY {(pk.Generator == Generator.Native ? "AUTO_INCREMENT" : "")},");
-            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
+            foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 string typeColumn = map.TypeString ?? GetTypeMySql(map.TypeColumn);
                 string sd =
@@ -30,7 +30,7 @@ namespace ORM_1_21_.Utils
             builder.Append(str2);
             builder.AppendLine(");").Append(AttributesOfClass<T>.GetTypeTable(providerName));
 
-            foreach (MapColumnNameAttribute map in AttributesOfClass<T>.CurrentTableAttributeDall(providerName))
+            foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 if (map.IsIndex)
                 {

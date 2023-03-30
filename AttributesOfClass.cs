@@ -1,24 +1,66 @@
-﻿using System;
+﻿using ORM_1_21_.Linq;
+using ORM_1_21_.Utils;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using ORM_1_21_.Linq;
-using ORM_1_21_.Utils;
+using ORM_1_21_.Linq.MySql;
 
 namespace ORM_1_21_
 {
+    class WrapperVisitor
+    {
+        public List<OneComposite> ListOneComposite { get; set; } = new List<OneComposite>();
+        public Dictionary<string, object> Params { get; set; } = new Dictionary<string, object>();
+        public int ParamsIndex { get; set; }
+        public string FieldName { get; set; }
+    }
+   internal class StorageTypeAttribute
+    {
+        public static ConcurrentDictionary<Type, IProxy> DictionaryAttribute = new ConcurrentDictionary<Type, IProxy>();
+    }
+   internal interface IProxy
+    {
+        string GetTableName(ProviderName providerName);
+        WrapperVisitor Translation(ProviderName providerName, Expression expression,int paramIndex);
+    }
+    internal class ProxyAttribute<T>:IProxy
+    {
+        public string GetTableName(ProviderName providerName)
+        {
+            return AttributesOfClass<T>.TableName(providerName);
+        }
+
+        public WrapperVisitor Translation(ProviderName providerName,Expression expression, int paramIndex)
+        {
+            var res = new QueryTranslator<T>(providerName,paramIndex);
+           res.Translate(expression);
+           WrapperVisitor visitor = new WrapperVisitor
+           {
+               ListOneComposite = res.GetListOne(),
+               Params = res.Param,
+               ParamsIndex = res.GetParamIndex(),
+               FieldName = res.FieldOne()
+           };
+           return visitor;
+
+        }
+    }
     internal static class AttributesOfClass<T>
     {
+        static AttributesOfClass()
+        {
+            StorageTypeAttribute.DictionaryAttribute.TryAdd(typeof(T), new ProxyAttribute<T>());
+        }
+
+
         internal static readonly object LockO = new object();
-
-       
-
         public static Lazy<bool> IsUssageActivatorInner = new Lazy<bool>(() =>
         {
             var t = typeof(T).GetCustomAttribute(typeof(MapUsageActivatorAttribute), true);
@@ -37,8 +79,8 @@ namespace ORM_1_21_
                 : null;
         }, LazyThreadSafetyMode.PublicationOnly);
 
-        private static readonly Lazy<Dictionary<Type, List<MapColumnNameAttribute>>> AttributeDall =
-            new Lazy<Dictionary<Type, List<MapColumnNameAttribute>>>(ActivateDallAll,
+        private static readonly Lazy<Dictionary<Type, List<MapColumnAttribute>>> AttributeDall =
+            new Lazy<Dictionary<Type, List<MapColumnAttribute>>>(ActivateDallAll,
                 LazyThreadSafetyMode.PublicationOnly);
 
         private static readonly Lazy<Dictionary<Type, string>> TableNameAllLazy =
@@ -138,7 +180,7 @@ namespace ORM_1_21_
                 }, LazyThreadSafetyMode.PublicationOnly);
 
         private static readonly Lazy<bool> _isValid = new Lazy<bool>(() =>
-                typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), false).Any(),
+                typeof(T).GetCustomAttribute<MapTableAttribute>(false) != null,
             LazyThreadSafetyMode.PublicationOnly);
 
 
@@ -183,7 +225,7 @@ namespace ORM_1_21_
 
         private static ProviderName? ProviderName { get; set; }
 
-        public static bool IsUssageActivator(ProviderName providerName)
+        public static bool IsUsageActivator(ProviderName providerName)
         {
             Provider = providerName;
             return IsUssageActivatorInner.Value;
@@ -215,7 +257,7 @@ namespace ORM_1_21_
             SetValueFreeSql.Value[name](t, a);
         }
 
-        public static List<MapColumnNameAttribute> CurrentTableAttributeDall(ProviderName providerName)
+        public static List<MapColumnAttribute> CurrentTableAttributeDal(ProviderName providerName)
         {
             Provider = providerName;
             return AttributeDall.Value[typeof(T)];
@@ -223,8 +265,16 @@ namespace ORM_1_21_
 
         public static MapPrimaryKeyAttribute PkAttribute(ProviderName providerName)
         {
-            Provider = providerName;
-            return PrimaryKeyLazy.Value[typeof(T)].First();
+            try
+            {
+                Provider = providerName;
+                return PrimaryKeyLazy.Value[typeof(T)].First();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Perhaps you forgot to use the MapPrimaryKeyAttribute, for a class property", e);
+            }
+          
         }
 
         public static string TableName(ProviderName providerName)
@@ -244,10 +294,10 @@ namespace ORM_1_21_
             return SimpleSelect(providerName);
         }
 
-        private static Dictionary<Type, List<MapColumnNameAttribute>> ActivateDallAll()
+        private static Dictionary<Type, List<MapColumnAttribute>> ActivateDallAll()
         {
-            var dictionary = new Dictionary<Type, List<MapColumnNameAttribute>>
-                { { typeof(T), ActivateADall(CurProviderName) } };
+            var dictionary = new Dictionary<Type, List<MapColumnAttribute>>
+                { { typeof(T), ActivateADal(CurProviderName) } };
             return dictionary;
         }
 
@@ -256,13 +306,13 @@ namespace ORM_1_21_
             try
             {
                 var providerName = CurProviderName;
+                var d = typeof(T).GetCustomAttribute<MapTableAttribute>(false);
+                if (d.IsTableNameEmpty()) d.SetTableName(typeof(T).Name);
                 var dictionary = new Dictionary<Type, string>
                 {
+
                     {
-                        typeof(T),
-                        ((MapTableNameAttribute)
-                            typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), false).First())
-                        .TableName(providerName)
+                        typeof(T),d.TableName(providerName)
                     }
                 };
                 if (typeof(T).BaseType != null)
@@ -271,18 +321,16 @@ namespace ORM_1_21_
             }
             catch (Exception ex)
             {
-                throw new Exception($"Perhaps you forgot to put the table name attribute (MapTableNameAttribute) in the type: {typeof(T)}", ex);
+                throw new Exception($"Perhaps you forgot to put the table name attribute (MapTableAttribute) in the type: {typeof(T)}", ex);
             }
-           
+
         }
 
         public static string GetTypeTable(ProviderName providerName)
         {
             Provider = providerName;
-            var o = typeof(T).GetCustomAttributes(typeof(MapTypeMysqlTableAttribute), true);
-            if (o.Any()) return ((MapTypeMysqlTableAttribute)o.First()).TableType;
-
-            return "";
+            var o = typeof(T).GetCustomAttribute<MapTypeMysqlTableAttribute>( true);
+            return o!=null ? o.TableType : string.Empty;
         }
 
         private static void RecursionTableName(IDictionary<Type, string> dictionary, Type type,
@@ -290,9 +338,12 @@ namespace ORM_1_21_
         {
             while (true)
             {
-                var d = type.GetCustomAttributes(typeof(MapTableNameAttribute), false);
-                if (!d.Any()) return;
-                dictionary.Add(type, ((MapTableNameAttribute)d.First()).TableName(providerName));
+                var d = type.GetCustomAttribute<MapTableAttribute>(false);
+
+                if (d == null) return;
+                if (d.IsTableNameEmpty()) d.SetTableName(typeof(T).Name);
+
+                dictionary.Add(type, d.TableName(providerName));
                 if (type.BaseType != null)
                 {
                     type = type.BaseType;
@@ -308,9 +359,7 @@ namespace ORM_1_21_
             var lazy = new Dictionary<Type, string>
             {
                 {
-                    typeof(T),
-                    ((MapTableNameAttribute)
-                        typeof(T).GetCustomAttributes(typeof(MapTableNameAttribute), false).First()).SqlWhere
+                    typeof(T), typeof(T).GetCustomAttribute<MapTableAttribute>(false).SqlWhere
                 }
             };
 
@@ -331,9 +380,12 @@ namespace ORM_1_21_
             var l1 = new List<MapPrimaryKeyAttribute>();
             foreach (var f in type.GetProperties())
             {
-                var oPk = f.GetCustomAttributes(typeof(MapPrimaryKeyAttribute), true);
-                if (!oPk.Any()) continue;
-                var pr = (MapPrimaryKeyAttribute)oPk[0];
+                var pr = f.GetCustomAttribute<MapPrimaryKeyAttribute>( true);
+                if (pr==null) continue;
+                if (string.IsNullOrWhiteSpace(pr.GetColumnNameRaw()))
+                {
+                    pr.SetColumnNameRaw(f.Name);
+                }
                 pr.IsBaseKey = false;
                 pr.IsForeignKey = false;
                 pr.PropertyName = f.Name;
@@ -347,41 +399,48 @@ namespace ORM_1_21_
             dictionary.Add(type, l1);
         }
 
-        private static List<MapColumnNameAttribute> ActivateADall(ProviderName providerName)
+        private static List<MapColumnAttribute> ActivateADal(ProviderName providerName)
         {
-            var res = new List<MapColumnNameAttribute>();
+            var res = new List<MapColumnAttribute>();
             var fields = typeof(T).GetProperties();
             foreach (var f in fields)
             {
-                var o3 = f.GetCustomAttributes(typeof(MapDefaultValueAttribute), true);
-                var o1 = f.GetCustomAttributes(typeof(MapColumnNameAttribute), true);
-                if (!o1.Any()) continue;
+                var o3 = f.GetCustomAttribute<MapDefaultValueAttribute>( true);
+                var columnAttribute = f.GetCustomAttribute<MapColumnAttribute>( true);
+                if (columnAttribute == null) continue;
+             
+                var s = columnAttribute.GetColumnNameRaw();
+                if (string.IsNullOrWhiteSpace(s))
+                {
+                    var n = f.Name;
+                    columnAttribute.SetColumnNameRaw(n);
+                }
 
-                var o2 = f.GetCustomAttributes(typeof(MapIndexAttribute), true);
-                ((MapColumnNameAttribute)o1.First()).IsBaseKey = false;
-                ((MapColumnNameAttribute)o1.First()).IsForeignKey = false;
-                if (o2.Any()) ((MapColumnNameAttribute)o1.First()).IsIndex = true;
+                var o2 = f.GetCustomAttribute<MapIndexAttribute>( true);
+                columnAttribute.IsBaseKey = false;
+                columnAttribute.IsForeignKey = false;
+                if (o2!=null) columnAttribute.IsIndex = true;
 
-                ((MapColumnNameAttribute)o1.First()).PropertyName = f.Name;
-                ((MapColumnNameAttribute)o1.First()).TypeColumn = f.PropertyType;
-                ((MapColumnNameAttribute)o1.First()).DeclareType = typeof(T);
-                if (o3.Any())
-                    ((MapColumnNameAttribute)o1.First()).DefaultValue = ((MapDefaultValueAttribute)o3.First()).Value;
+                columnAttribute.PropertyName = f.Name;
+                columnAttribute.TypeColumn = f.PropertyType;
+                columnAttribute.DeclareType = typeof(T);
+                if (o3!=null)
+                    columnAttribute.DefaultValue = o3.Value;
 
-                ((MapColumnNameAttribute)o1.First()).ColumnNameAlias = UtilsCore.GetAsAlias(
+                columnAttribute.ColumnNameAlias = UtilsCore.GetAsAlias(
                     TableNameAllLazy.Value[typeof(T)],
-                    ((MapColumnNameAttribute)o1.First())
+                    columnAttribute
                     .GetColumnName(providerName));
 
-                var o4 = f.GetCustomAttributes(typeof(MapColumnTypeAttribute), true);
-                if (o4.Any())
-                    ((MapColumnNameAttribute)o1.First()).TypeString = ((MapColumnTypeAttribute)o4.First()).TypeString;
+                var o4 = f.GetCustomAttribute<MapColumnTypeAttribute>( true);
+                if (o4!=null)
+                    columnAttribute.TypeString = o4.TypeString;
 
-                var o5 = f.GetCustomAttributes(typeof(MapNotInsertUpdateAttribute), true);
-                if (o5.Any()) ((MapColumnNameAttribute)o1.First()).IsNotUpdateInsert = true;
+                var o5 = f.GetCustomAttribute<MapNotInsertUpdateAttribute>( true);
+                if (o5!=null) columnAttribute.IsNotUpdateInsert = true;
 
 
-                res.Add((MapColumnNameAttribute)o1.First());
+                res.Add(columnAttribute);
             }
 
             return res;
@@ -498,7 +557,7 @@ namespace ORM_1_21_
                     pr.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
                     var prcore = item.GetType().GetProperties().First(a => a.Name == pra.PropertyName);
                     object vall;
-                    var st = UtilsCore.GetSerializeType(prcore.PropertyType); 
+                    var st = UtilsCore.GetSerializeType(prcore.PropertyType);
                     if (st == SerializeType.User)
                         vall = ((IMapSerializable)GetValue.Value[prcore.Name](item)).Serialize();
                     else if (prcore.PropertyType.BaseType == typeof(Enum))
@@ -668,9 +727,9 @@ namespace ORM_1_21_
 
 
             var r = new StringBuilder();
-            foreach (var oneComprosite in listOne.Where(a => a.Operand == Evolution.Update))
+            foreach (var oneComposite in listOne.Where(a => a.Operand == Evolution.Update))
             {
-                var ee = UtilsCore.MySplit(oneComprosite.Body); // oneComprosite.Body.Trim().Trim(',').Split(',');
+                var ee = UtilsCore.MySplit(oneComposite.Body); 
                 //  var eee = ee.Split(2).ToList();
                 foreach (var s in ee.Split(2))
                 {
@@ -896,7 +955,7 @@ namespace ORM_1_21_
                         pr.ParameterName = $"{UtilsCore.PrefParam(providerName)}{par}{i}";
                         var prCore = obj.GetType().GetProperty(rtp.PropertyName);
                         object val;
-                        var st = UtilsCore.GetSerializeType(prCore.PropertyType); 
+                        var st = UtilsCore.GetSerializeType(prCore.PropertyType);
                         if (prCore.PropertyType.BaseType == typeof(Enum))
                         {
                             val = (int)GetValue.Value[prCore.Name](obj);
@@ -940,33 +999,33 @@ namespace ORM_1_21_
                 switch (providerName)
                 {
                     case ORM_1_21_.ProviderName.MsSql:
-                    {
-                       
-                        allSb.Append($" SELECT IDENT_CURRENT ('{TableNameAllLazy.Value[typeof(T)]}')");
-                        break;
-                    }
+                        {
+
+                            allSb.Append($" SELECT IDENT_CURRENT ('{TableNameAllLazy.Value[typeof(T)]}')");
+                            break;
+                        }
                     case ORM_1_21_.ProviderName.PostgreSql:
-                    {
-                        allSb.Append($" RETURNING {PkAttribute(providerName).GetColumnName(providerName)}");
-                        break;
-                    }
+                        {
+                            allSb.Append($" RETURNING {PkAttribute(providerName).GetColumnName(providerName)}");
+                            break;
+                        }
                     case ORM_1_21_.ProviderName.SqLite:
-                    {
-                        allSb.Append(";select last_insert_rowid()");
-                        break;
-                    }
+                        {
+                            allSb.Append(";select last_insert_rowid()");
+                            break;
+                        }
                     case ORM_1_21_.ProviderName.MySql:
-                    {
-                        allSb.Append("; SELECT LAST_INSERT_ID()");
-                        break;
-                    }
+                        {
+                            allSb.Append("; SELECT LAST_INSERT_ID()");
+                            break;
+                        }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            
 
-            command.CommandText = allSb+";";
+
+            command.CommandText = allSb + ";";
         }
 
         public static void CreateDeleteCommand(IDbCommand command, T obj, ProviderName providerName)
@@ -988,8 +1047,24 @@ namespace ORM_1_21_
 
         public static string GetNameFieldForQuery(string member, Type type, ProviderName providerName)
         {
-            Provider = providerName;
-            return TableNameAllLazy.Value[type] + "." + ColumnName.Value[member];
+            try
+            {
+                Provider = providerName;
+                return TableNameAllLazy.Value[type] + "." + ColumnName.Value[member];
+            }
+            catch (Exception e)
+            {
+                throw new Exception(
+                    $"Perhaps you forgot to mark the {member} property with the MapColumnAttribute, in the {type.Name} type",
+                    e);
+                
+            }
+           
+        }
+
+        public static void Init()
+        {
+            
         }
     }
 }

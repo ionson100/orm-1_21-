@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ORM_1_21_.Linq
 {
-   internal class GroupException:Exception
-    {
-    }
+  internal class GroupException:Exception
+   {
+   }
 }

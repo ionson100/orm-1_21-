@@ -10,25 +10,20 @@ using System.Linq.Expressions;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using ORM_1_21_.Extensions;
 
 namespace ORM_1_21_.Linq
 {
-    internal partial class DbQueryProvider<T> 
+    internal partial class DbQueryProvider<T>
     {
-        public async Task<object> ExecuteAsync<TS>(Expression expression, object[] param, CancellationToken cancellationToken)
+        public override object Execute<TS>(Expression expression)
         {
-            var tk = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
-         
-            CancellationTokenRegistration? registration = null;
-
             bool isCacheUsage = CacheState == CacheState.CacheUsage || CacheState == CacheState.CacheOver || CacheState == CacheState.CacheKey;
             var services = (IServiceSessions)Sessione;
             var re = TranslateE(expression);
             string sql = re.Sql;
             var paramJon = re.Param;
+          
+          
             List<OneComposite> listCore = re.Composites;
             listCore.AddRange(ListOuterOneComposites);
             if (PingCompositeE(Evolution.GroupBy, listCore) && _isAsync)
@@ -40,7 +35,7 @@ namespace ORM_1_21_.Linq
 
             /*usage cache*/
 
-            var hashCode = -1;
+            int hashCode = -1;
             if (isCacheUsage)
             {
                 var b = new StringBuilder(sql);
@@ -63,8 +58,7 @@ namespace ORM_1_21_.Linq
                 hashCode = str.GetHashCode();
                 if (CacheState == CacheState.CacheKey)
                 {
-                    
-                    return await Task.FromResult(hashCode);
+                    return hashCode;
                 }
                 if (CacheState == CacheState.CacheOver)
                 {
@@ -75,8 +69,7 @@ namespace ORM_1_21_.Linq
                 if (r != null)
                 {
                     MySqlLogger.Info($"CACHE: {str}");
-                    return   await Task.FromResult(r);
-                    
+                    return r;
                 }
 
 
@@ -142,16 +135,11 @@ namespace ORM_1_21_.Linq
             IDataReader dataReader = null;
             try
             {
-                await _sessione.OpenConnectAndTransactionAsync(_com);
-
-                if (cancellationToken != default)
-                {
-                    registration = cancellationToken.Register(UtilsCore.CancellRegistr(_com, cancellationToken, _sessione.Transactionale, _providerName));
-                }
+                _sessione.OpenConnectAndTransaction(_com);
 
                 if (PingCompositeE(Evolution.All, listCore))
                 {
-                    var reader = await  _com.ExecuteReaderAsync();
+                    var reader = _com.ExecuteReader();
                     try
                     {
                         while (reader.Read())
@@ -163,8 +151,8 @@ namespace ORM_1_21_.Linq
                             {
                                 MyCache<T>.Push(hashCode, res);
                             }
-                            tk.SetResult(res);
-                            return await tk.Task;
+
+                            return res;
                         }
                     }
                     finally
@@ -176,61 +164,54 @@ namespace ORM_1_21_.Linq
 
                 if (PingCompositeE(Evolution.LongCount, listCore))
                 {
-                    var ee = await _com.ExecuteScalarAsync();
-                    long res = Convert.ToInt64(ee, CultureInfo.CurrentCulture);
+                    var ee = _com.ExecuteScalar();
+                    var res = Convert.ToInt64(ee, CultureInfo.CurrentCulture);
                     if (isCacheUsage)
                     {
                         MyCache<T>.Push(hashCode, res);
                     }
 
-                    tk.SetResult(res);
-                    return await tk.Task;
+                    return res;
                 }
 
                 if (PingCompositeE(Evolution.Count, listCore))
                 {
-                    var ee = await _com.ExecuteScalarAsync();
+                    var ee = _com.ExecuteScalar();
                     var res = Convert.ToInt32(ee, CultureInfo.CurrentCulture);
                     if (isCacheUsage)
                     {
                         MyCache<T>.Push(hashCode, res);
                     }
 
-                    tk.SetResult(res);
-                    return await tk.Task;
+                    return res;
                 }
 
 
                 if (PingCompositeE(Evolution.Delete, listCore))
                 {
-                    var res = await _com.ExecuteNonQueryAsync();
+                    var ee = _com.ExecuteNonQuery();
                     MyCache<T>.Clear();
-                    tk.SetResult(res);
-                    return await tk.Task;
+                    return ee;
                 }
 
                 if (PingCompositeE(Evolution.Update, listCore))
                 {
-                    var res =  await _com.ExecuteNonQueryAsync();
+                    var ee = _com.ExecuteNonQuery();
                     MyCache<T>.Clear();
-                    tk.SetResult(res);
-                    return await tk.Task;
+                    return ee;
                 }
 
                 if (PingCompositeE(Evolution.Any, listCore))
                 {
-                    var ee = await _com.ExecuteScalarAsync();
+                    var ee = _com.ExecuteScalar();
                     var res = Convert.ToInt32(ee, CultureInfo.CurrentCulture) != 0;
                     if (isCacheUsage)
                     {
                         MyCache<T>.Push(hashCode, res);
                     }
 
-                    tk.SetResult(res);
-                    return await tk.Task;
+                    return res;
                 }
-
-
 
                 #region dataReader
 
@@ -239,105 +220,114 @@ namespace ORM_1_21_.Linq
                     if (AttributesOfClass<T>.IsValid == false)
                     {
                         throw new Exception(
-                            $"I can't create a table from type {typeof(T)}, it doesn't have attrubute: MapTableAttribute");
+                            $"I can't create a table from type {typeof(T)}, it doesn't have attribute: MapTableAttribute");
                     }
 
                     _com.CommandText = listCore.First(a => a.Operand == Evolution.TableCreate).Body;
-                    int res = await _com.ExecuteNonQueryAsync();
-                    tk.SetResult(res);
-                    return await tk.Task;
-
+                    int res = _com.ExecuteNonQuery();
+                    return res;
                 }
 
                 if (PingCompositeE(Evolution.DropTable, listCore))
                 {
                     _com.CommandText = listCore.First(a => a.Operand == Evolution.DropTable).Body;
-                    int res =  await _com.ExecuteNonQueryAsync();
-                    tk.SetResult(res);
-                    return await tk.Task;
-
+                    int res = _com.ExecuteNonQuery();
+                    return res;
                 }
 
                 if (PingCompositeE(Evolution.DataTable, listCore))
                 {
                     _com.CommandText = listCore.First(a => a.Operand == Evolution.DataTable).Body;
                     var table = new DataTable();
-                    var reader = await _com.ExecuteReaderAsync();
+                    var reader = _com.ExecuteReader();
                     table.BeginLoadData();
                     table.Load(reader);
                     table.EndLoadData();
-                    tk.SetResult(table);
-                    return await tk.Task;
-
+                    return table;
                 }
 
                 if (PingCompositeE(Evolution.ExecuteNonQuery, listCore))
                 {
                     _com.CommandText = listCore.First(a => a.Operand == Evolution.ExecuteNonQuery).Body;
-                    int res = await _com.ExecuteNonQueryAsync();
-                    tk.SetResult(res);
-                    return await tk.Task;
+                    int res = _com.ExecuteNonQuery();
+                    return res;
                 }
-
 
                 if (PingCompositeE(Evolution.TruncateTable, listCore))
                 {
                     _com.CommandText = listCore.First(a => a.Operand == Evolution.TruncateTable).Body;
-                    int res = await _com.ExecuteNonQueryAsync();
-                    tk.SetResult(res);
-                    return await tk.Task;
+                    int res = _com.ExecuteNonQuery();
+                    return res;
                 }
 
                 if (PingCompositeE(Evolution.ExecuteScalar, listCore))
                 {
 
                     _com.CommandText = listCore.First(a => a.Operand == Evolution.ExecuteScalar).Body;
-                    object res = await _com.ExecuteScalarAsync();
-                    tk.SetResult(res);
-                    return await tk.Task;
-
+                    object res = _com.ExecuteScalar();
+                    return res;
                 }
-
 
                 if (PingCompositeE(Evolution.TableExists, listCore))
                 {
                     _com.CommandText = listCore.First(a => a.Operand == Evolution.TableExists).Body;
                     if (_providerName == ProviderName.PostgreSql)
                     {
-                        var r = (long)await _com.ExecuteScalarAsync();
-                        var res= r != 0;
-                        tk.SetResult(res);
-                        return await tk.Task;
+                        var r = (long)_com.ExecuteScalar();
+                        return r != 0;
                     }
-
                     if (_providerName == ProviderName.MsSql)
                     {
-                        var r =await _com.ExecuteScalarAsync();
-                        var res= !(r is DBNull);
-                        tk.SetResult(res);
-                        return await tk.Task;
+                        var r = _com.ExecuteScalar();
+                        return !(r is DBNull);
                     }
                     else
                     {
                         try
                         {
-                            await _com.ExecuteNonQueryAsync();
-                            tk.SetResult(true);
-                            return await tk.Task;
+                            _com.ExecuteNonQuery();
+                            return true;
                         }
                         catch (Exception)
                         {
-                            tk.SetResult(false);
-                            return await tk.Task;
+                            return false;
                         }
                     }
+                }
+
+                if (PingCompositeE(Evolution.Join, listCore))
+                {
+                    dataReader = _com.ExecuteReader();
+                    var count = dataReader.FieldCount;
+                    var list = new List<Type>();
+                    for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
+                    var resDis = new List<TS>();
+
+                    var ci = typeof(TS).GetConstructor(list.ToArray());
+                    if (ci == null)
+                    {
+                        throw new Exception($"Can't find constructor for anonymous type: {typeof(TS).Name}");
+                    }
+                    while (dataReader.Read())
+                    {
+                        var par = new List<object>();
+                        for (var i = 0; i < count; i++)
+                        {
+                            var val = Pizdaticus.MethodFree(_providerName, list[i], dataReader[i]);
+                            par.Add(dataReader[i] == DBNull.Value ? null : val);
+                        }
+                        var e = ci.Invoke(par.ToArray());
+                        resDis.Add((TS)e);
+                    }
+
+                    return resDis;
 
                 }
 
                 if (PingCompositeE(Evolution.FreeSql, listCore) &&
                     AttributesOfClass<TS>.IsValid == false)
                 {
-                    dataReader = await _com.ExecuteReaderAsync();
+                    dataReader = _com.ExecuteReader();
                     var count = dataReader.FieldCount;
                     var list = new List<Type>();
                     for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
@@ -349,7 +339,6 @@ namespace ORM_1_21_.Linq
                         {
                             throw new Exception($"Can't find constructor for anonymous type: {typeof(TS).Name}");
                         }
-
                         while (dataReader.Read())
                         {
                             var par = new List<object>();
@@ -361,7 +350,6 @@ namespace ORM_1_21_.Linq
                             var e = ci.Invoke(par.ToArray());
                             resDis.Add((TS)e);
                         }
-
                     }
                     else if (AttributesOfClass<TS>.IsReceiverFreeSql)
                     {
@@ -457,13 +445,12 @@ namespace ORM_1_21_.Linq
                         MyCache<T>.Push(hashCode, resDis);
                     }
 
-                    tk.SetResult(resDis);
-                    return await tk.Task;
+                    return resDis;
                 }
 
                 if (listCore.Any(a => a.Operand == Evolution.Select && a.IsAggregate))
                 {
-                    dataReader = await _com.ExecuteReaderAsync();
+                    dataReader = _com.ExecuteReader();
                     object rObj = null;
                     while (dataReader.Read())
                     {
@@ -471,62 +458,52 @@ namespace ORM_1_21_.Linq
                         break;
                     }
 
-
                     dataReader.Dispose();
                     var res = UtilsCore.Convertor<TS>(rObj);
                     if (isCacheUsage)
                     {
                         MyCache<T>.Push(hashCode, res);
                     }
-
-                    tk.SetResult(res);
-                    return await tk.Task;
+                    return res;
                 }
 
-
-
-               // if (PingCompositeE(Evolution.Join, listCore))
-               // {
-               //     dataReader = await _com.ExecuteReaderAsync();
-               //     var res = new List<TS>();
-               //     var ss = listCore.Single(a => a.Operand == Evolution.Join).NewConstructor;
-               //     if (ss == null)
-               //         while (dataReader.Read())
-               //             res.Add((TS)dataReader[0]);
-               //     else
-               //         res = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss, _providerName);
-               //
-               //     if (isCacheUsage)
-               //     {
-               //         MyCache<T>.Push(hashCode, res);
-               //     }
-               //
-               //     tk.SetResult(res);
-               //     return await tk.Task;
-               // }
-
+                //if (PingCompositeE(Evolution.Join, listCore))
+                //{
+                //    dataReader = _com.ExecuteReader();
+                //    var res = new List<TS>();
+                //    var ss = listCore.Single(a => a.Operand == Evolution.Join).NewConstructor;
+                //    if (ss == null)
+                //        while (dataReader.Read())
+                //            res.Add((TS)dataReader[0]);
+                //    else
+                //        res = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss, _providerName);
+                //
+                //    if (isCacheUsage)
+                //    {
+                //        MyCache<T>.Push(hashCode, res);
+                //    }
+                //    return res;
+                //}
 
                 if (PingCompositeE(Evolution.Select, listCore) &&
                     !PingCompositeE(Evolution.SelectNew, listCore))
                 {
-                    var lees = new List<TS>();
-                    dataReader = await _com.ExecuteReaderAsync();
-                    while (dataReader.Read()) lees.Add((TS)UtilsCore.Convertor<TS>(dataReader[0]));
+                    var lres = new List<TS>();
+                    dataReader = _com.ExecuteReader();
+                    while (dataReader.Read()) lres.Add((TS)UtilsCore.Convertor<TS>(dataReader[0]));
                     dataReader.Dispose();
-                    var devastatingly1 = Pizdaticus.SingleData(listCore, lees, out var active1);
-                    var res = !active1 ? (object)lees : devastatingly1;
+                    var devastatingly1 = Pizdaticus.SingleData(listCore, lres, out var isactive1);
+                    var res = !isactive1 ? (object)lres : devastatingly1;
                     if (isCacheUsage)
                     {
                         MyCache<T>.Push(hashCode, res);
                     }
-
-                    tk.SetResult(res);
-                    return await tk.Task;
+                    return res;
                 }
 
                 if (PingCompositeE(Evolution.ElementAt, listCore))
                 {
-                    dataReader = await _com.ExecuteReaderAsync();
+                    dataReader = _com.ExecuteReader();
                     var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                     var enumerable = r as T[] ?? r.ToArray();
                     if (enumerable.Any())
@@ -536,17 +513,14 @@ namespace ORM_1_21_.Linq
                         {
                             MyCache<T>.Push(hashCode, res);
                         }
-
-                        tk.SetResult(res);
-                        return await tk.Task;
+                        return res;
                     }
-
                     throw new Exception("Element not in selection.");
                 }
 
                 if (PingCompositeE(Evolution.ElementAtOrDefault, listCore))
                 {
-                    dataReader = await _com.ExecuteReaderAsync();
+                    dataReader = _com.ExecuteReader();
                     var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                     var enumerable = r as T[] ?? r.ToArray();
 
@@ -556,36 +530,26 @@ namespace ORM_1_21_.Linq
                         {
                             MyCache<T>.Push(hashCode, enumerable.First());
                         }
-
-                        var res= enumerable.First();
-                        tk.SetResult(res);
-                        return await tk.Task;
+                        return enumerable.First();
                     }
 
                     if (isCacheUsage)
                     {
                         MyCache<T>.Push(hashCode, null);
                     }
-
-                  
-                    tk.SetResult(enumerable.FirstOrDefault());
-                    return await tk.Task;
-
+                    return enumerable.FirstOrDefault();
                 }
 
                 if (PingCompositeE(Evolution.DistinctCore, listCore))
                 {
-
                     var sas = ListCastExpression.Single(a => a.TypeEvolution == Evolution.DistinctCore);
                     IList resT = sas.ListDistinct;
-                    dataReader = await _com.ExecuteReaderAsync();
+                    dataReader = _com.ExecuteReader();
                     if (PingCompositeE(Evolution.SelectNew, listCore))
                     {
                         var ss = listCore.Single(a => a.Operand == Evolution.SelectNew).NewConstructor;
                         Pizdaticus.GetListAnonymousObjDistinct(dataReader, ss, resT, _providerName);
-
-                        tk.SetResult(resT);
-                        return await tk.Task;
+                        return resT;
 
                     }
                     else
@@ -602,11 +566,8 @@ namespace ORM_1_21_.Linq
                         {
                             MyCache<T>.Push(hashCode, resDis);
                         }
-
-                        tk.SetResult(resDis);
-                        return await tk.Task;
+                        return resDis;
                     }
-
                 }
 
                 if (PingCompositeE(Evolution.SelectNew, listCore))
@@ -614,7 +575,7 @@ namespace ORM_1_21_.Linq
                     //todo ion100
                     var ss = listCore.Single(a => a.Operand == Evolution.SelectNew).NewConstructor;
                     _com.CommandText = _com.CommandText.Replace(",?p", "?p");
-                    dataReader = await _com.ExecuteReaderAsync();
+                    dataReader = _com.ExecuteReader();
                     if (UtilsCore.IsAnonymousType(typeof(TS)))
                     {
                         var lRes = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss, _providerName);
@@ -624,39 +585,28 @@ namespace ORM_1_21_.Linq
                         {
                             MyCache<T>.Push(hashCode, res);
                         }
-
-                        tk.SetResult(res);
-                        return await tk.Task;
+                        return res;
                     }
                     else
                     {
                         if (listCore.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
                         {
                             var lRes = Pizdaticus.GetListAnonymousObj<object>(dataReader, ss, _providerName);
-                            var dataSingle = Pizdaticus.SingleData(listCore, lRes, out var isActive1);
-                            var res = !isActive1 ? lRes : dataSingle;
+                            var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isActive1);
+                            var res = !isActive1 ? lRes : dataSing1;
                             if (isCacheUsage)
                             {
                                 MyCache<T>.Push(hashCode, res);
                             }
-
-                            tk.SetResult(res);
-                            return await tk.Task;
+                            return res;
                         }
-
                         throw new Exception("Not implemented");
                     }
                 }
 
                 #endregion
 
-
-                ////////////////////////////////////////////////////////////////////////////////////////////////
-                dataReader = await _com.ExecuteReaderAsync();
-                if (registration.HasValue)
-                {
-                    registration.Value.Dispose();
-                }
+                dataReader = _com.ExecuteReader();
 
                 if (listCore.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
                 {
@@ -666,21 +616,18 @@ namespace ORM_1_21_.Linq
                     {
                         MyCache<T>.Push(hashCode, lResult);
                     }
-                    tk.SetResult(lResult);
-                    return await tk.Task;
 
+                    return lResult;
                 }
 
-                var resd = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
-                var dataSing = Pizdaticus.SingleData(listCore, resd, out var isActive);
-                var ress2 = !isActive ? (object)resd : dataSing;
+                var res1 = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
+                var dataSingle = Pizdaticus.SingleData(listCore, res1, out var isActive);
+                var res2 = !isActive ? (object)res1 : dataSingle;
                 if (isCacheUsage)
                 {
-                    MyCache<T>.Push(hashCode, ress2);
+                    MyCache<T>.Push(hashCode, res2);
                 }
-                tk.SetResult(ress2);
-                return await tk.Task;
-
+                return res2;
             }
             catch (GroupException)
             {
@@ -695,13 +642,13 @@ namespace ORM_1_21_.Linq
 
             finally
             {
-                await _sessione.ComDisposableAsync(_com);
+                _sessione.ComDisposable(_com);
                 if (dataReader != null)
                 {
-                    await dataReader.DisposeAsync();
+                    dataReader.Close();
+                    dataReader.Dispose();
                 }
             }
-
         }
     }
 }

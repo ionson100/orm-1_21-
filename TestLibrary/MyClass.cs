@@ -4,7 +4,7 @@
 namespace TestLibrary
 {
     
-    [MapTableName("my_class5")]
+    [MapTable("my_class5")]
     public class MyClass : MyClassBase
     {
         public MyClass(int t)
@@ -12,25 +12,36 @@ namespace TestLibrary
 
         }
     }
-    [MapTableName("my_class5")]
+    [MapTable("my_class5")]
    public class MyClassMysql : MyClassBase
     {
        
     }
-    [MapTableName("my_class5")]
+    [MapTable("my_class5")]
     class MyClassPostgres : MyClassBase
     {
     
     }
 
-    [MapTableName("my_class5")]
+    [MapTable()]
     class MyClassMsSql : MyClassBase
     {
 
     }
-    [MapTableName("my_class5")]
+    [MapTable("my_class5")]
     public class MyClassSqlite : MyClassBase
     {
 
     }
+
+    [MapTable("my_class5_join")]
+    public class MyClassJoinPostgres : MyClassBase
+    {
+        public MyClassJoinPostgres()
+        {
+
+        }
+    }
+
+
 }

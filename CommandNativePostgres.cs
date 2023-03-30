@@ -24,7 +24,7 @@ namespace ORM_1_21_
             {
                 builder.Append($" {pk.GetColumnName(_providerName)},");
             }
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
             {
 
                 builder.Append($" {map.GetColumnName(_providerName)},");
@@ -42,7 +42,7 @@ namespace ORM_1_21_
 
             }
 
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
             {
                 var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, t);
                 var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;

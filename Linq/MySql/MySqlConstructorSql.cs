@@ -30,12 +30,20 @@ namespace ORM_1_21_.Linq.MySql
         {
          
             _listOne = listOne;
-            var sqlBody = UtilsCore.CheckAny(listOne, Evolution.FreeSql, 
-                Evolution.TableCreate, Evolution.TableExists,Evolution.ExecuteScalar, Evolution.TruncateTable,Evolution.ExecuteNonQuery, Evolution.DataTable);
+            var sqlBody = UtilsCore.CheckAny(listOne, 
+                Evolution.FreeSql, 
+                Evolution.TableCreate, 
+                Evolution.TableExists,
+                Evolution.ExecuteScalar,
+                Evolution.TruncateTable,
+                Evolution.ExecuteNonQuery,
+                Evolution.DataTable);
             if (sqlBody != null)
             {
                 return sqlBody;
             }
+
+         
             if (!string.IsNullOrWhiteSpace(AttributesOfClass<T>.SqlWhere))
             {
                 _listOne.Add(new OneComposite
@@ -126,7 +134,10 @@ namespace ORM_1_21_.Linq.MySql
             else
             {
                 sbb.Append(StringConst.Select + " ");
-
+                if (PingComposite(Evolution.SelectNewGroup))
+                {
+                    sbb.Append(listOne.First(a => a.Operand == Evolution.SelectNewGroup).Body);
+                }else
 
                 if (PingComposite(Evolution.Select))
                 {
@@ -154,8 +165,13 @@ namespace ORM_1_21_.Linq.MySql
 
                     else
                     {
+                        if (PingComposite(Evolution.SelectJoin) && PingComposite(Evolution.Count) == false)
+                        {
+                            sbb.Append(" ").Append(_listOne.Single(a => a.Operand == Evolution.SelectJoin).Body)
+                                .Append(" ");
+                        }else
                         if (!PingComposite(Evolution.Count))
-                            foreach (var i in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
+                            foreach (var i in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                             {
                                 if (ii == 0)
                                     sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
@@ -182,8 +198,15 @@ namespace ORM_1_21_.Linq.MySql
                 }
             }
 
+          
+
             sbb.Append(" FROM ");
-            sbb.Append(AttributesOfClass<T>.TableName(providerName));
+            sbb.Append(AttributesOfClass<T>.TableName(providerName)).Append(" ");
+            if (PingComposite(Evolution.Join))
+            {
+                sbb.Append(_listOne.Single(a => a.Operand == Evolution.Join).Body).Append(" ");
+            }
+           
 
             var ss = listOne.Where(a => a.Operand == Evolution.Where);
             foreach (var i in ss)
@@ -297,44 +320,49 @@ namespace ORM_1_21_.Linq.MySql
 
             
 
-            if (PingComposite(Evolution.Join))
-            {
-                var whereSb = new StringBuilder();
-                foreach (var str in _listOne.Where(a => a.Operand == Evolution.Where).Select(a => a.Body))
-                {
-                    var str1 = str.Replace("`", "").Replace("[", "").Replace("]", "");
-                    var eew = str1;
-                    var matsup = new Regex(@"[aA-zZаА-яЯ\d[_]*]*\.[aA-zZаА-яЯ\d[_]*]*").Matches(str1);
-                    foreach (var s in matsup)
-                        eew = str1.Replace(s.ToString(),
-                            UtilsCore.TanslycatorFieldParam1(s.ToString(), UtilsCore.Table1AliasForJoin));
-                    whereSb.Append(eew + " AND ");
-                }
-
-                if (!string.IsNullOrEmpty(whereSb.ToString()))
-                    whereSb.Insert(0, " WHERE ");
-
-                var orderby = new StringBuilder();
-                foreach (var str in _listOne.Where(a => a.Operand == Evolution.OrderBy).Select(a => a.Body))
-                {
-                    if (str == _listOne.First(a => a.Operand == Evolution.OrderBy).Body)
-                    {
-                        orderby.AppendFormat(" ORDER BY {0},",
-                            UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
-                        continue;
-                    }
-
-                    orderby.AppendFormat(" {0},", UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
-                }
-
-
-                var dfggf = _listOne.Single(a => a.Operand == Evolution.Join);
-                sbb = new StringBuilder(dfggf.Body + whereSb.ToString().Trim("AND ".ToArray()) +
-                                        orderby.ToString().Trim(','));
-            }
+           // if (PingComposite(Evolution.Join))
+           // {
+           //     var whereSb = new StringBuilder();
+           //     foreach (var str in _listOne.Where(a => a.Operand == Evolution.Where).Select(a => a.Body))
+           //     {
+           //         var str1 = str.Replace("`", "").Replace("[", "").Replace("]", "");
+           //         var eew = str1;
+           //         var matsup = new Regex(@"[aA-zZаА-яЯ\d[_]*]*\.[aA-zZаА-яЯ\d[_]*]*").Matches(str1);
+           //         foreach (var s in matsup)
+           //             eew = str1.Replace(s.ToString(),
+           //                 UtilsCore.TanslycatorFieldParam1(s.ToString(), UtilsCore.Table1AliasForJoin));
+           //         whereSb.Append(eew + " AND ");
+           //     }
+           //
+           //     if (!string.IsNullOrEmpty(whereSb.ToString()))
+           //         whereSb.Insert(0, " WHERE ");
+           //
+           //     var orderby = new StringBuilder();
+           //     foreach (var str in _listOne.Where(a => a.Operand == Evolution.OrderBy).Select(a => a.Body))
+           //     {
+           //         if (str == _listOne.First(a => a.Operand == Evolution.OrderBy).Body)
+           //         {
+           //             orderby.AppendFormat(" ORDER BY {0},",
+           //                 UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
+           //             continue;
+           //         }
+           //
+           //         orderby.AppendFormat(" {0},", UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
+           //     }
+           //
+           //
+           //     var dfggf = _listOne.Single(a => a.Operand == Evolution.Join);
+           //     sbb = new StringBuilder(dfggf.Body + whereSb.ToString().Trim("AND ".ToArray()) +
+           //                             orderby.ToString().Trim(','));
+           // }
             // todo ion100 Replace("''", "'")
-            return sbb.ToString().Replace("  ", " ").Replace("Average", "AVG")
+            var res= sbb.ToString().Replace("  ", " ").Replace("Average", "AVG")
                 .Replace("LongCount", "Count")+";";
+            if (_listOne.Any(a => a.Operand == Evolution.Join))
+            {
+
+            }
+            return res;
         }
     }
 }

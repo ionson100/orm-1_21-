@@ -47,7 +47,7 @@ namespace ORM_1_21_.Utils
                     row.Append(GetValueE(o, type)).Append($"{fieldterminator}");
                 }
 
-                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
+                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
@@ -76,7 +76,7 @@ namespace ORM_1_21_.Utils
             var rowHead = new StringBuilder();
             if (isAddPk)
                 rowHead.Append($"\"{UtilsCore.ClearTrim(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))}\"").Append(",");
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
+            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
             {
                 if ( map.TypeColumn == typeof(byte[])) continue;
                 rowHead.Append($"\"{UtilsCore.ClearTrim(map.GetColumnName(_providerName))}\"").Append(",");
@@ -95,7 +95,7 @@ namespace ORM_1_21_.Utils
                     row.Append(new UtilsBulkMySql(_providerName).GetValue(o, type)).Append(",");
                 }
 
-                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDall(_providerName))
+                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;

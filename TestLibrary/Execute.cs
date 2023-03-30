@@ -394,7 +394,8 @@ namespace TestLibrary
                     Log(48, anon.Count() == 5);
                 }
 
-                var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {session.TableName<T>()}");
+                var tempFree = session.FreeSql<MyFreeSql>($"select {session.ColumnName<T>(a=>a.Id)}," +
+                                                          $"name,age,enum from {session.TableName<T>()}");
 
                 Log(49, tempFree.Count() == 5);
                 res = session.Query<T>().Where(a => a.Age < 200).CacheUsage().ToList();
@@ -956,19 +957,19 @@ namespace TestLibrary
             session.TableCreate<T>();
             T t = new T();
             var i = session.Save(t);
-            Console.WriteLine($@"{1} {i == 1}");
-            Console.WriteLine($@"{2} {t.Id == 1}");
-            Console.WriteLine($@"{3} {session.IsPersistent(t)}");
+            Log(1, i == 1);
+            Log(2, t.Id == 1);
+            Log(3, session.IsPersistent(t));
             List<T> list = new List<T>
             {
                 new T(), new T(), new T()
             };
             i = session.InsertBulk(list);
-            Console.WriteLine($@"{4} {i == 3}");
+            Log(4, i == 3);
             i = list.Where(a => session.IsPersistent(a)).Count();
-            Console.WriteLine($@"{5} {i == 3}");
+            Log(5, i == 3);
             i = session.Query<T>().Count();
-            Console.WriteLine($@"{6} {i == 4}");
+            Log(6, i == 4);
         }
 
         public static void TestAssignetInsert()
@@ -994,19 +995,19 @@ namespace TestLibrary
             session.TableCreate<T>();
             T t = new T();
             var i = session.Save(t);
-            Console.WriteLine($@"{1} {i == 1}");
+            Log(1, i == 1);
 
-            Console.WriteLine($@"{3} {session.IsPersistent(t)}");
+            Log(3, session.IsPersistent(t));
             List<T> list = new List<T>
             {
                 new T(), new T(), new T()
             };
             i = session.InsertBulk(list);
-            Console.WriteLine($@"{4} {i == 3}");
+            Log(4, i == 3);
             i = list.Where(a => session.IsPersistent(a)).Count();
-            Console.WriteLine($@"{5} {i == 3}");
+            Log(5, i == 3);
             i = session.Query<T>().Count();
-            Console.WriteLine($@"{6} {i == 4}");
+            Log(6, i == 4);
         }
 
        public static void Log(int i, bool b, string appen = null)

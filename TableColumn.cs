@@ -5,24 +5,24 @@ namespace ORM_1_21_
     /// <summary>
     /// Table field list element
     /// </summary>
-    [MapTableName("notdata")]
+    [MapTable("notdata")]
     public class TableColumn
     {
         /// <summary>
         /// Name field
         /// </summary>
-        [MapColumnName("name")]
+        [MapColumn("name")]
         public string ColumnName { get; set; }
         /// <summary>
         /// Type field
         /// </summary>
-        [MapColumnName("type")]
+        [MapColumn("type")]
         
         public string ColumnType { get; set; }
         /// <summary>
         /// Is primary key
         /// </summary>
-        [MapColumnName("ispk")]
+        [MapColumn("ispk")]
         public bool IsPk { get; set; }
     }
 }

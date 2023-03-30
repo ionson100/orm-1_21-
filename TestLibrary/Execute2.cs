@@ -100,42 +100,42 @@ namespace TestLibrary
         [MapPrimaryKey("id", Generator.Assigned)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        [MapIndex] [MapColumnName("name")] public string Name { get; set; }
+        [MapIndex] [MapColumn("name")] public string Name { get; set; }
     }
 
-    [MapTableName("TS1")]
+    [MapTable("TS1")]
     public class TSPostgres : TestTSBase
     {
-        [MapColumnName("ts")]
+        [MapColumn("ts")]
         [MapColumnType("timestamp ")]
         [MapDefaultValue("")]
         public DateTime Ts { get; set; } = DateTime.Now;
     }
 
-    [MapTableName("TS2")]
+    [MapTable("TS2")]
     public class TSMsSql : TestTSBase
     {
         [MapNotInsertUpdate]
-        [MapColumnName("ts")]
+        [MapColumn("ts")]
         [MapColumnType("rowversion")]
         [MapDefaultValue("")]
         public byte[] Ts { get; set; }
     }
 
-    [MapTableName("TS3")]
+    [MapTable("TS3")]
     public class TSMySql : TestTSBase
     {
         [MapNotInsertUpdate]
-        [MapColumnName("ts")]
+        [MapColumn("ts")]
         [MapColumnType("TIMESTAMP ")]
         [MapDefaultValue(" DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")]
         public DateTime Ts { get; set; }
     }
 
-    [MapTableName("TS4")]
+    [MapTable("TS4")]
     public class TSSqlite : TestTSBase
     {
-        [MapColumnName("ts")]
+        [MapColumn("ts")]
         [MapColumnType("TIMESTAMP ")]
         [MapDefaultValue(" DEFAULT CURRENT_TIMESTAMP")]
         public DateTime Ts { get; set; }

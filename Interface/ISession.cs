@@ -179,6 +179,8 @@ namespace ORM_1_21_
         /// <typeparam name="TSource"></typeparam>
         Query<TSource> Query<TSource>() where TSource : class;
 
+      
+
         /// <summary>
         /// Determines if the object is received from the database, or was created on the client
         /// </summary>

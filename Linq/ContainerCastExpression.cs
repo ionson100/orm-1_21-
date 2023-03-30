@@ -8,12 +8,17 @@ namespace ORM_1_21_.Linq
 {
     internal class ContainerCastExpression
     {
-        public Evolution TypeRevalytion { get; set; }
+        public Evolution TypeEvolution { get; set; }
         public Expression CustomExpression { get; set; }
         public List<object> ParamList { get; set; }
         public int Timeout { get; set; } = -1;
         public Type TypeReturn { get; set; }
         public IList ListDistinct { get; set; }
         public string Body { get; set; }
+        public List<Expression> ListJoinExpressions { get; set; }
+
+
     }
+
+    
 }

@@ -8,19 +8,40 @@ namespace ORM_1_21_
     ///Table names in the database.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class MapTableNameAttribute : Attribute
+    public sealed class MapTableAttribute : Attribute
     {
-        private readonly string _tableName;
+        private string _tableName;
         private readonly string _sqlWhere;
 
         /// <summary>
-        /// Ctor.
+        /// Assigning a table name.
         /// </summary>
         /// <param name="tableName">Table name</param>
-        public MapTableNameAttribute(string tableName)
+        public MapTableAttribute(string tableName)
         {
             if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentException("table name zero");
             _tableName = UtilsCore.ClearTrim(tableName);
+        }
+
+        internal bool IsTableNameEmpty()
+        {
+            return string.IsNullOrWhiteSpace(_tableName);
+        }
+
+
+
+        /// <summary>
+        /// Assigning a table name.
+        /// The table name matches the class name.
+        /// </summary>
+        public MapTableAttribute()
+        {
+          
+        }
+
+        internal void SetTableName(string name)
+        {
+            _tableName = name;
         }
 
         ///<summary>
@@ -28,7 +49,7 @@ namespace ORM_1_21_
         ///</summary>
         ///<param name="tableName">table name</param>
         ///<param name="sqlWhere">Adding a criterion (where) will be added to all requests. example- "id=2"</param>
-        public MapTableNameAttribute(string tableName, string sqlWhere)
+        public MapTableAttribute(string tableName, string sqlWhere)
         {
             if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentException("table name zero");
             _tableName = UtilsCore.ClearTrim(tableName);

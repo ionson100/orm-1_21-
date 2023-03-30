@@ -29,20 +29,22 @@ _ = new Configure("ConnectionString",ProviderName.Postgresql, path);
          ses.TableCreate<MyClass>();
        }
     } 
-   ISession session = Configure.Session;
-   ssion.InsertBulk(new List<MyClass>()
-     new MyClass() { Age = 40, Name = "name" ,MyTest = new MyTest{Name = "simple"}},
-     new MyClass() { Age = 20, Name = "name1",MyTest = new MyTest{Name = "simple"}},
-     new MyClass() { Age = 30, Name = "name2",MyTest = new MyTest{Name = "simple"}},
-     new MyClass() { Age = 50, Name = "name3",MyTest = new MyTest{Name = "simple"}},
-     new MyClass() { Age = 60, Name = "name4",MyTest = new MyTest{Name = "simple"}},
-     new MyClass() { Age = 10, Name = "name5",MyTest = new MyTest{Name = "simple"}},
-   ); 
-   session.Query<MyClass>().Where(a=>a.Age<50).ForEach(s =>
-   {
-       Console.WriteLine($@"{s.Name} - {s.Age}");
-   });
-   session.Dispose();   
+    using (ISession session = Configure.Session)
+    {
+        session.InsertBulk(new List<MyClass>(){
+                new MyClass(1) { Age = 40, Name = "name"},
+                new MyClass(1) { Age = 20, Name = "name" },
+                new MyClass(1) { Age = 30, Name = "name" },
+                new MyClass(1) { Age = 50, Name = "name" },
+                new MyClass(1) { Age = 60, Name = "name" },
+                new MyClass(1) { Age = 10, Name = "name" },
+            }
+        );
+        session.Query<MyClass>().Where(a => a.Age < 50).ForEach(s =>
+        {
+            Console.WriteLine($@"{s.Name} - {s.Age}");
+        });
+    } 
 ```
 
 
@@ -60,33 +62,29 @@ using ORM_1_21_;
 using ORM_1_21_.Extensions;
 
 
- [MapTableName("my_class")]
+ [MapTable("my_class")]// or [MapTable]
  class MyClass
  {
-     [MapPrimaryKey("id", Generator.Assigned)]
+     [MapPrimaryKey("id", Generator.Assigned)]//or [MapPrimaryKey(Generator.Assigned)]
       public Guid Id { get; set; } = Guid.NewGuid();
 
-     [MapColumnName("name")] 
+     [MapColumn("name")] //or [MapColumn]
      public string Name { get; set; }
 
-     [MapColumnName("age")] 
+     [MapColumn("age")] //or [MapColumn]
      [MapIndex]
      [MapDefaultValue("NOT NULL DEFAULT '5'")] 
       public int Age { get; set; }
 
-     [MapColumnName("desc")]
+     [MapColumn("desc")] //or [MapColumn]
      [MapColumnType("TEXT")]
       public string Description { get; set; }
 
-     [MapColumnName("enum")] 
+     [MapColumn("enum")] //or [MapColumn] 
       public MyEnum MyEnum { get; set; } = MyEnum.First;
 
-     [MapColumnName("date")] 
+     [MapColumn("date")] //or [MapColumn] 
       public DateTime DateTime { get; set; } = DateTime.Now;
-
-     [MapColumnName("test")] 
-      public List<MyTest> Test23 { get; set; } = new List<MyTest>() { new MyTest() { Name = "simple" }
-      
  }
 
 ```
@@ -101,19 +99,19 @@ class PeopleAllBase
 {
     [MapPrimaryKey("id", Generator.Native)]
     public long Id { get; set; }
-    [MapColumnName("name")]
+    [MapColumn("name")]
     public string Name { get; set; }
-    [MapColumnName("age")]
+    [MapColumn("age")]
     public int Age { get; set; }
 }
 
-[MapTableName("People")]
+[MapTable("People")]
 class PeopleAll : PeopleAllBase {}
 
-[MapTableName("People"," \"age\" < 55")]
+[MapTable("People"," \"age\" < 55")]
 class PeopleYoung :PeopleAllBase {}
 
-[MapTableName("People", " \"age\" >= 55")]
+[MapTable("People", " \"age\" >= 55")]
 class PeopleOld : PeopleAllBase { }
 .......
   ISession session = Configure.Session;
@@ -127,22 +125,22 @@ class PeopleOld : PeopleAllBase { }
   {
       session.Save(new PeopleAll() { Age = i * 10, Name = "simpleName" });
   }
-  session.Query<PeopleAll>().ForEach(all =>
+  session.Query<PeopleAll>().ForEach(a =>
   {
-      Console.WriteLine($@" {all.Name} {all.Age}");
+      Console.WriteLine($@" {a.Name} {a.Age}");
   });
   //sql:SELECT "People"."id", "People"."name", "People"."age" FROM "People"
 
-   session.Query<PeopleYoung>().Where(a => a.Name.StartsWith("simple")).ForEach(all =>
+   session.Query<PeopleYoung>().Where(a => a.Name.StartsWith("simple")).ForEach(b =>
   {
-      Console.WriteLine($@" Young {all.Name} {all.Age}");
+      Console.WriteLine($@" Young {b.Name} {b.Age}");
   });
   //sql:SELECT "People"."id", "People"."name", "People"."age" FROM "People" 
   //WHERE ("People"."name" LIKE CONCAT(@p1,'%')) and ( "age" < 55) params:  @p1 - simple 
 
-   session.Query<PeopleOld>().Where(a=>a.Name.StartsWith("simple")).ForEach(all =>
+   session.Query<PeopleOld>().Where(a=>a.Name.StartsWith("simple")).ForEach(b =>
   {
-      Console.WriteLine($@" Old {all.Name} {all.Age}");
+      Console.WriteLine($@" Old {b.Name} {b.Age}");
   });
   //sql:SELECT "People"."id", "People"."name", "People"."age" FROM "People" 
   //WHERE ("People"."name" LIKE CONCAT(@p1,'%')) and ( "age" >= 55) params:  @p1 - simple 
@@ -157,15 +155,15 @@ public class TestTSBase
     [MapPrimaryKey("id", Generator.Assigned)]
     public Guid Id { get; set; } = Guid.NewGuid();
     [MapIndex]
-    [MapColumnName("name")] 
+    [MapColumn("name")] 
     public string Name { get; set; }
 }
 
-[MapTableName("TS2")]
+[MapTable("TS2")]
 public class TSMsSql : TestTSBase
 {
     [MapNotInsertUpdate]
-    [MapColumnName("ts")]
+    [MapColumn("ts")]
     [MapColumnType("rowversion")]
     [MapDefaultValue("")]
     public byte[] Ts { get; set; } 
@@ -194,9 +192,9 @@ UPDATE [TS2] SET  [TS2].[name] = @p1 WHERE [TS2].[id] = @p2   AND [ts] = @p3; pa
 ```
 ###### Primary Key
 
-```[MapPrimaryKey("id", Generator.Assigned)]``` - Assigned by user\
-```[MapPrimaryKey("id", Generator.Native)]``` - Designates a database as an auto-increment column
-
+```[MapPrimaryKey("id", Generator.Assigned)]``` - Assigned by user.\
+```[MapPrimaryKey("id", Generator.Native)]``` - Designates a database as an auto-increment column.\
+```[MapPrimaryKey(Generator.Assigned)]``` - Assigned by user. Table name from name property 
 ###### Serialization to JSON
 
 
@@ -204,7 +202,7 @@ UPDATE [TS2] SET  [TS2].[name] = @p1 WHERE [TS2].[id] = @p2   AND [ts] = @p3; pa
 ```C#
 class Foo
 {
-  [MapColumnName("my_test")]
+  [MapColumn("my_test")]
   public F MyTest { get; set; }
 }
 
@@ -422,12 +420,12 @@ var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {sessio
  }  
 ```
 ```C#
- using (ISession session = Configure.Session)
+ using (ISession session = await Configure.SessionAsync)
  {
-   using (var tr = session.BeginTransaction())
-   {
-       // insert update 
-   }
+    using (var tr = await session.BeginTransactionAsync())
+    {
+        // insert, update 
+    }
  }
 ```
 
@@ -547,7 +545,7 @@ public class MyDbSqlite : IOtherDataBaseFactory
 ```
 <span style="color:red">Important</span>\
 The session is opened only for this database\
-Type to use only for a specific database\
+Type to use only for a specific database
 
 
 
