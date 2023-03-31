@@ -1083,7 +1083,19 @@ namespace ORM_1_21_.Extensions
 
 
 
+        private static MethodInfo GetMethodInfo<T, T1, T2, T3>(Func<T, T1, T2, T3> func)
+        {
+            return func.Method;
+        }
 
+        private static MethodInfo GetMethodInfo<T, T1, T2, T3, T4>(Func<T, T1, T2, T3, T4> func)
+        {
+            return func.Method;
+        }
+        private static MethodInfo GetMethodInfo<T, T1, T2, T3, T4, T5>(Func<T, T1, T2, T3, T4, T5> func)
+        {
+            return func.Method;
+        }
 
         private static MethodInfo GetMethodInfo<T1, T2, T3>(Func<T1, T2, T3> f, T1 unused1, T2 unused2)
         {

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
 using TestLibrary;
@@ -57,7 +58,9 @@ namespace TestPostgres
                         new MyClass(1) { Age = 202, Name = "name" },
                         new MyClass(1) { Age = 203, Name = "name" },
                         new MyClass(1) { Age = 40, Name = "name" },
-                       
+                        new MyClass(1) { Age = 40, Name = "name" },
+                        new MyClass(1) { Age = 40, Name = "name" },
+
                     }
                 );
                 if (session.TableExists<MyClassJoinPostgres>())
@@ -78,20 +81,26 @@ namespace TestPostgres
                     }
                 );
 
-                var groupBy = session.Query<MyClass>().GroupBy(a => a.Age).ToList();
+                  var list1 = session.Query<MyClass>().ToList();
+                  var list2 = session.Query<MyClassJoinPostgres>();
+                  var enumerable = list1.GroupBy(a => new { a.Age, a.Name }, d => d);
+                  //session.Query<MyClass>().
 
-                var myClasses =
-                    session.Query<MyClass>().Where(a => a.Name=="name").Join(
-                        session.Query<MyClassJoinPostgres>().Where(d => d.Name == "name11"),
-                        a => a.Age,
-                        d => d.Age,
-                        (w, e) => new { s = w.Age, d = e.Age, dd = e.Name }).ToList();
-                var list1 = session.Query<MyClass>().ToList();
-                var list2 = session.Query<MyClassJoinPostgres>();
-                //
-                //var groupJoin = session.Query<MyClass>().Where(a=>a.Age>0).GroupJoin
-                //    (session.Query<MyClassJoinPostgres>(), a => a.Age, b => b.Age, (ff, dd) => new { ff.Age, dd }).ToList();
-                //var groupJoin = list1.GroupJoin(list2, a => a.Age, b => b.Age, (ff, dd) => new { ff.Age, dd });
+                  var groupBy = session.Query<MyClass>().Where(a => a.Age > 0)
+                      .GroupByCore(a => new { a.Age, a.DateTime }, d => new { d.Age, d.Description }).ToList();
+
+                  //  var myClasses =
+                  //      session.Query<MyClass>().Where(a => a.Name=="name").Join(
+                  //          session.Query<MyClassJoinPostgres>().Where(d => d.Name == "name11"),
+                  //          a => a.Age,
+                  //          d => d.Age,
+                  //          (w, e) => new { s = w.Age, d = e.Age, dd = e.Name }).ToList();
+                  //  var list1 = session.Query<MyClass>().ToList();
+                  //  var list2 = session.Query<MyClassJoinPostgres>();
+                  //
+                  //var groupJoin = session.Query<MyClass>().Where(a=>a.Age>0).GroupJoin
+                  //    (session.Query<MyClassJoinPostgres>(), a => a.Age, b => b.Age, (ff, dd) => new { ff.Age, dd }).ToList();
+                  //var groupJoin = list1.GroupJoin(list2, a => a.Age, b => b.Age, (ff, dd) => new { ff.Age, dd });
             }
 
 

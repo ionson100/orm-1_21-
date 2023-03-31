@@ -399,7 +399,7 @@ namespace ORM_1_21_.Extensions
 
             AttributesOfClass<TInner>.Init();
             return outer.Provider.CreateQuery<TResult>(Expression.Call(null, 
-                GetMethodInfo4<IQueryable<TOuter>, 
+                GetMethodInfo<IQueryable<TOuter>, 
                     IQueryable<TInner>,
                     Expression<Func<TOuter, TKey>>,
                     Expression<Func<TInner, TKey>>,
@@ -413,10 +413,7 @@ namespace ORM_1_21_.Extensions
                 ? queryable.Expression
                 : (Expression)Expression.Constant((object)source, typeof(IEnumerable<TSource>));
 
-        private static MethodInfo GetMethodInfo4<T, T1, T2, T3, T4, T5>(Func<T, T1, T2, T3, T4, T5> func)
-        {
-            return func.Method;
-        }
+       
 
 
 
@@ -442,17 +439,110 @@ namespace ORM_1_21_.Extensions
         {
             AttributesOfClass<TInner>.Init();
             return outer.Provider.CreateQuery<TResult>(Expression.Call(null,
-                GetMethodInfo2<IQueryable<TOuter>, IQueryable<TInner>, Expression<Func<TOuter, TKey>>, Expression<Func<TInner, TKey>>, Expression<Func<TOuter, IEnumerable<TInner>, TResult>>, IQueryable<TResult>>(Queryable.GroupJoin), outer.Expression, GetSourceExpression(inner), Expression.Quote(outerKeySelector),
+                GetMethodInfo<IQueryable<TOuter>, IQueryable<TInner>, Expression<Func<TOuter, TKey>>, Expression<Func<TInner, TKey>>, Expression<Func<TOuter, IEnumerable<TInner>, TResult>>, IQueryable<TResult>>(Queryable.GroupJoin), outer.Expression, GetSourceExpression(inner), Expression.Quote(outerKeySelector),
                 Expression.Quote(innerKeySelector), Expression.Quote(resultSelector)));
         }
 
-        private static MethodInfo GetMethodInfo2<T, T1, T2, T3, T4, T5>(Func<T, T1, T2, T3, T4, T5> func)
+      
+
+    
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="keySelector"></param>
+        /// <param name="elementSelector"></param>
+        /// <param name="resultSelector"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TElement"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns></returns>
+        public static IQueryable<TResult> GroupByCore<TSource, TKey, TElement, TResult>(
+            this IQueryable<TSource> source,
+            Expression<Func<TSource, TKey>> keySelector,
+            Expression<Func<TSource, TElement>> elementSelector,
+            Expression<Func<TKey, IEnumerable<TElement>, TResult>> resultSelector) 
         {
-            return func.Method;
+         
+            return source.Provider.CreateQuery<TResult>(Expression.Call(null, GetMethodInfo<IQueryable<TSource>, Expression<Func<TSource, TKey>>, Expression<Func<TSource, TElement>>, Expression<Func<TKey, IEnumerable<TElement>, TResult>>, IQueryable<TResult>>(GroupByCore), source.Expression, Expression.Quote(keySelector), Expression.Quote(elementSelector), Expression.Quote(resultSelector)));
+        }
+     
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="keySelector"></param>
+        /// <param name="elementSelector"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TElement"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<IGrouping<TKey, TElement>> GroupByCore<TSource, TKey, TElement>(
+            this IQueryable<TSource> source,
+            Expression<Func<TSource, TKey>> keySelector,
+            Expression<Func<TSource, TElement>> elementSelector)
+        {
+           
+
+            ISession ses = ((ISqlComposite)source.Provider).Sessione;
+            var p=new DbQueryProvider<TSource>((Sessione)ses);
+            IEnumerable<TSource> sources = (IEnumerable<TSource>)p.Execute<TSource>(source.Expression);
+
+            return new GroupedEnumerable<TSource, TKey, TElement>(sources, keySelector.Compile(), elementSelector.Compile(), (IEqualityComparer<TKey>)null);
+            //return source.Provider.CreateQuery<IGrouping<TKey, TElement>>(Expression.Call(null, GetMethodInfo<IQueryable<TSource>, Expression<Func<TSource, TKey>>, Expression<Func<TSource, TElement>>, IQueryable<IGrouping<TKey, TElement>>>(GroupByCore), new[]
+            //{
+            //    source.Expression,
+            //    Expression.Quote(keySelector),
+            //    Expression.Quote(elementSelector)
+            //}));
         }
     }
 
-     
+    internal class GroupedEnumerable<TSource, TKey, TElement> :
+        IEnumerable<IGrouping<TKey, TElement>>,
+        IEnumerable
+    {
+        private IEnumerable<TSource> source;
+        private Func<TSource, TKey> keySelector;
+        private Func<TSource, TElement> elementSelector;
+        private IEqualityComparer<TKey> comparer;
+
+        public GroupedEnumerable(
+            IEnumerable<TSource> source,
+            Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector,
+            IEqualityComparer<TKey> comparer)
+        {
+         
+            this.source = source;
+            this.keySelector = keySelector;
+            this.elementSelector = elementSelector;
+            this.comparer = comparer;
+        }
+
+        public IEnumerator<IGrouping<TKey, TElement>> GetEnumerator() => Create(this.source, this.keySelector, this.elementSelector, this.comparer).GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+        internal static List<IGrouping<TKey, TElement>> Create(
+            IEnumerable<TSource> source,
+            Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector,
+            IEqualityComparer<TKey> comparer)
+        {
+            
+
+            var l = new List<TSource>();
+            var rr = source.ToLookup(keySelector,elementSelector).ToList();
+
+            return rr;
+        }
+    }
+
+
 
 
 }

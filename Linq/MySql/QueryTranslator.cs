@@ -207,6 +207,14 @@ namespace ORM_1_21_.Linq.MySql
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
 
+            if (m.Method.Name == "GroupByCore")
+            {
+                List<string> list = new List<string>();
+
+                Visit(m.Arguments[1]);
+                var rr = StringB.ToString();
+
+            }
             if (m.Method.Name == "Join")
             {
 
