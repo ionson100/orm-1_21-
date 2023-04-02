@@ -23,7 +23,7 @@ namespace ORM_1_21_.Linq
         private readonly Sessione _sessione;
         private IDbCommand _com;
         private readonly ProviderName _providerName;
-        private bool _isAsync;
+
         private bool _isStoredPr;
         private Dictionary<string, object> _param;
 
@@ -46,7 +46,7 @@ namespace ORM_1_21_.Linq
         public ISession Sessione { get; }
         public IDbTransaction Transaction { get; set; }
         public List<ContainerCastExpression> ListCastExpression { get; set; } = new List<ContainerCastExpression>();
-       
+
         private static bool PingCompositeE(Evolution eval, List<OneComposite> list)
         {
             return list.Any(a => a.Operand == eval);
@@ -242,43 +242,28 @@ namespace ORM_1_21_.Linq
             return await tk.Task;
         }
 
-       
+
         public override async Task<List<TS>> ExecuteToListAsync<TS>(Expression expression, CancellationToken cancellationToken)
         {
-            _isAsync = true;
+
             var tk = new TaskCompletionSource<List<TS>>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            try
-            {
-                object rr = await ExecuteAsync<TS>(expression, null, cancellationToken);
-                tk.SetResult((List<TS>)rr);
-                return await tk.Task;
-            }
-            catch (GroupException)
-            {
-                var res = await ActionCoreGroupBy<TS>(expression, cancellationToken);
-                tk.SetResult(res);
-                return await tk.Task;
-            }
+
+            object rr = await ExecuteAsync<TS>(expression, null, cancellationToken);
+            tk.SetResult((List<TS>)rr);
+            return await tk.Task;
+
         }
 
         public override async Task<Array> ExecuteToArray<TS>(Expression expression, CancellationToken cancellationToken)
         {
-            _isAsync = true;
+
             var tk = new TaskCompletionSource<Array>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            try
-            {
-                object rr = await ExecuteAsync<TS>(expression, null, cancellationToken);
-                tk.SetResult(((IEnumerable<TS>)rr).ToArray());
-                return await tk.Task;
-            }
-            catch (GroupException)
-            {
-                var res = await ActionCoreGroupBy<TS>(expression, cancellationToken);
-                tk.SetResult(res.ToArray());
-                return await tk.Task;
-            }
+            object rr = await ExecuteAsync<TS>(expression, null, cancellationToken);
+            tk.SetResult(((IEnumerable<TS>)rr).ToArray());
+            return await tk.Task;
+
         }
 
         private MyTuple TranslateE(Expression expression)
@@ -290,7 +275,7 @@ namespace ORM_1_21_.Linq
             _param = sq.Param;
             var sdd = sq.GetListOne();
             Thread.MemoryBarrier();
-            return new MyTuple { Sql = res, Composites = sdd,Param = sq.Param};
+            return new MyTuple { Sql = res, Composites = sdd, Param = sq.Param };
         }
 
         private string TranslateString(Expression expression)
@@ -328,6 +313,6 @@ namespace ORM_1_21_.Linq
     {
         public string Sql { get; set; }
         public List<OneComposite> Composites { get; set; } = new List<OneComposite>();
-        public Dictionary<string, object> Param { get; set; } 
+        public Dictionary<string, object> Param { get; set; }
     }
 }

@@ -25,7 +25,7 @@ namespace ORM_1_21_
         {
             get
             {
-                var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+                var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
                 com.Connection = _connect;
                 return com;
             }
@@ -41,7 +41,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source", () => Transactionale.isError = true);
             if (!UtilsCore.IsPersistent(source))
                 throw new Exception("You are trying to delete an object not obtained from database");
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             AttributesOfClass<TSource>.CreateDeleteCommand(com, source, MyProviderName);
             try
@@ -110,8 +110,8 @@ namespace ORM_1_21_
 
         IDbCommand ISession.GeDbCommand()
         {
-            if (_factory != null) return _factory.GetDbProviderFactories().CreateCommand();
-            return ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            if (_factoryOtherBase != null) return _factoryOtherBase.GetDbProviderFactories().CreateCommand();
+            return ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
         }
 
         int ISession.DropTable<TSource>()
@@ -243,7 +243,7 @@ namespace ORM_1_21_
         IDataReader ISession.ExecuteReader(string sql, object[] param)
         {
             Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = sql;
             UtilsCore.AddParam(com, MyProviderName, param);
@@ -264,7 +264,7 @@ namespace ORM_1_21_
         IDataReader ISession.ExecuteReader(string sql, int timeOut, params object[] param)
         {
             Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = sql;
             SetTimeOut(com, timeOut);
@@ -289,7 +289,7 @@ namespace ORM_1_21_
             var tk = new TaskCompletionSource<IDataReader>(TaskCreationOptions.RunContinuationsAsynchronously);
             CancellationTokenRegistration? registration = null;
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = sql;
             UtilsCore.AddParam(com, MyProviderName, param);
@@ -326,7 +326,7 @@ namespace ORM_1_21_
             var tk = new TaskCompletionSource<IDataReader>(TaskCreationOptions.RunContinuationsAsynchronously);
             CancellationTokenRegistration? registration = null;
             Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = sql;
             com.CommandTimeout = timeOut;
@@ -365,7 +365,7 @@ namespace ORM_1_21_
             Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
             var table = new DataTable();
 
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             SetTimeOut(com, timeOut);
 
@@ -394,7 +394,7 @@ namespace ORM_1_21_
 
         List<string> ISession.GetTableNames()
         {
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
 
             int index;
 
@@ -468,7 +468,7 @@ namespace ORM_1_21_
         int ISession.CreateBase(string baseName)
         {
             Check.NotEmpty(baseName, "baseName",()=>Transactionale.isError=true);
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
 
 
@@ -522,7 +522,7 @@ namespace ORM_1_21_
             var enumerable = list as TSource[] ?? list.ToArray();
             Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
             Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             switch (MyProviderName)
             {
@@ -570,7 +570,7 @@ namespace ORM_1_21_
             var enumerable = list as TSource[] ?? list.ToArray();
             Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
             Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             switch (MyProviderName)
             {
@@ -625,7 +625,7 @@ namespace ORM_1_21_
         {
             Check.NotEmpty(fileCsv, "fileCsv", () => Transactionale.isError = true);
             if (fileCsv == null) throw new ArgumentNullException(nameof(fileCsv));
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             SetTimeOut(com, timeOut);
             switch (MyProviderName)
@@ -752,19 +752,19 @@ namespace ORM_1_21_
 
         IDbCommand ISession.GetCommand()
         {
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             return com;
         }
 
         IDbConnection ISession.GetConnection()
         {
-            return ProviderFactories.GetConnect(_factory);
+            return ProviderFactories.GetConnect(_factoryOtherBase);
         }
 
         IDbDataAdapter ISession.GetDataAdapter()
         {
-            return ProviderFactories.GetDataAdapter(_factory);
+            return ProviderFactories.GetDataAdapter(_factoryOtherBase);
         }
 
         string ISession.GetConnectionString()
@@ -1012,7 +1012,9 @@ namespace ORM_1_21_
             return SaveNewAsync(source,whereObjects,cancellationToken);
         }
 
-        private void SetTimeOut(IDbCommand com, int timeOut)
+       
+
+         private void SetTimeOut(IDbCommand com, int timeOut)
         {
             Check.NotNull(com, "com", () => Transactionale.isError = true);
             if (timeOut < 0)
@@ -1026,7 +1028,7 @@ namespace ORM_1_21_
         private int SaveNew<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class
         {
             var res = 0;
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
 
 
             com.Connection = _connect;
@@ -1101,7 +1103,7 @@ namespace ORM_1_21_
             var tk = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
             CancellationTokenRegistration? registration = null;
             var res = 0;
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = string.Empty;
            

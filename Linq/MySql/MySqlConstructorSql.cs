@@ -219,18 +219,7 @@ namespace ORM_1_21_.Linq.MySql
           
             ii = 0;
 
-            if (PingComposite(Evolution.GroupBy))
-            {
-                sbb.Append(" ");
-                var sbo = new StringBuilder();
-                foreach (var i in listOne.Where(a => a.Operand == Evolution.GroupBy)) sbo.Append(" " + i.Body + ",");
-                if (listOne.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null) &&
-                    listOne.Any(s => s.Operand == Evolution.Count))
-                {
-                    sbb.AppendFormat(" GROUP BY {0} ", sbo.ToString().TrimEnd(','));
-                }
-            }
-
+          
 
             foreach (var i in listOne.Where(a => a.Operand == Evolution.OrderBy))
             {

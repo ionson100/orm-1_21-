@@ -112,10 +112,6 @@ namespace ORM_1_21_.Linq.MySql
                 AddListOne(new OneComposite { Operand = Evolution.DistinctCore, Body = StringB.ToString() });
             }
 
-            if (ev == Evolution.GroupBy)
-            {
-                AddListOne(new OneComposite { Operand = Evolution.GroupBy, Body = StringB.ToString() });
-            }
             if (ev == Evolution.Limit)
             {
                 if (paramList != null && paramList.Count == 2)
@@ -1716,38 +1712,12 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "GroupBy")
             {
+                throw new Exception("GroupBy");
+            }
+
+            if (m.Method.Name == "Union")
+            {
                 Visit(m.Arguments[0]);
-                var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-                Delegate tt;
-
-                var typew = ((MemberExpression)lambda.Body).Expression.Type;
-                if (typew != typeof(T) && UtilsCore.IsAnonymousType(typew) && ListOne.Any(a => a.Operand == Evolution.SelectNew))
-                {
-
-                    tt = ((LambdaExpression)StripQuotes(m.Arguments[1])).Compile();
-                }
-                else
-                {
-                    Expression exp = StripQuotes(m.Arguments[1]);
-                    LambdaExpression lexp = (LambdaExpression)exp;
-                    tt = GroupExpression<T>.Delegate(lexp);
-
-                }
-                Visit(lambda.Body);
-
-
-
-                var o = new OneComposite
-                {
-                    Operand = Evolution.GroupBy,
-                    Body = StringB.ToString(),
-                    ExpressionDelegate = tt
-
-                };
-
-                AddListOne(o);
-                StringB.Length = 0;
-
                 return m;
             }
 

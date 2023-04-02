@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using ORM_1_21_.Linq;
-using ORM_1_21_.Linq.MySql;
 using ORM_1_21_.Utils;
 
 namespace ORM_1_21_.Extensions
@@ -46,7 +42,9 @@ namespace ORM_1_21_.Extensions
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
             {
-                CustomExpression = exp, TypeEvolution = Evolution.DistinctCore, TypeReturn = typeof(TResult),
+                CustomExpression = exp,
+                TypeEvolution = Evolution.DistinctCore,
+                TypeReturn = typeof(TResult),
                 ListDistinct = new List<TResult>()
             });
             return source.Provider.Execute<IEnumerable<TResult>>(source.Expression);
@@ -62,7 +60,7 @@ namespace ORM_1_21_.Extensions
             where TSource : class
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { CustomExpression = exp, TypeEvolution = Evolution.Delete });
+            { CustomExpression = exp, TypeEvolution = Evolution.Delete });
             return source.Provider.Execute<int>(source.Expression);
         }
 
@@ -73,7 +71,7 @@ namespace ORM_1_21_.Extensions
             Expression<Func<TSource, bool>> exp = null) where TSource : class
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { CustomExpression = exp, TypeEvolution = Evolution.Delete });
+            { CustomExpression = exp, TypeEvolution = Evolution.Delete });
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(source.Expression, null,
                 CancellationToken.None);
 
@@ -90,7 +88,7 @@ namespace ORM_1_21_.Extensions
         public static IQueryable<TSource> Limit<TSource>(this IQueryable<TSource> source, int start, int length)
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { TypeEvolution = Evolution.Limit, ParamList = new List<object> { start, length } });
+            { TypeEvolution = Evolution.Limit, ParamList = new List<object> { start, length } });
             return source;
         }
 
@@ -157,7 +155,7 @@ namespace ORM_1_21_.Extensions
         {
 
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { CustomExpression = param, TypeEvolution = Evolution.Update });
+            { CustomExpression = param, TypeEvolution = Evolution.Update });
             return source.Provider.Execute<int>(source.Expression);
         }
 
@@ -173,7 +171,7 @@ namespace ORM_1_21_.Extensions
         {
 
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { CustomExpression = param, TypeEvolution = Evolution.Update });
+            { CustomExpression = param, TypeEvolution = Evolution.Update });
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(source.Expression, null,
                 CancellationToken.None);
 
@@ -277,6 +275,15 @@ namespace ORM_1_21_.Extensions
         }
 
         /// <summary>
+        /// Creates System.Collections.Generic.List from IQueryable.(Executes a database query)
+        /// </summary>
+        public static List<TResult> ToList<TResult>(this IQueryable<TResult> source)
+        {
+
+            return (List<TResult>)((QueryProvider)source.Provider).Execute<TResult>(source.Expression);
+        }
+
+        /// <summary>
         /// Getting Array Asynchronous
         /// </summary>
         public static Task<Array> ToArrayAsync<TResult>(this IQueryable<TResult> source,
@@ -309,7 +316,7 @@ namespace ORM_1_21_.Extensions
         public static IQueryable<TSource> SetTimeOut<TSource>(this IQueryable<TSource> source, int value)
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { Timeout = value, TypeEvolution = Evolution.Timeout });
+            { Timeout = value, TypeEvolution = Evolution.Timeout });
             return source;
         }
 
@@ -322,7 +329,7 @@ namespace ORM_1_21_.Extensions
         public static IQueryable<TSource> CacheUsage<TSource>(this IQueryable<TSource> source)
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { TypeEvolution = Evolution.CacheUsage });
+            { TypeEvolution = Evolution.CacheUsage });
             return source;
         }
 
@@ -333,7 +340,7 @@ namespace ORM_1_21_.Extensions
         public static IQueryable<TSource> CacheOver<TSource>(this IQueryable<TSource> source)
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { TypeEvolution = Evolution.CacheOver });
+            { TypeEvolution = Evolution.CacheOver });
             return source;
         }
 
@@ -354,7 +361,7 @@ namespace ORM_1_21_.Extensions
             ISession ses = ((ISqlComposite)source.Provider).Sessione;
             var provider = new DbQueryProvider<TSource>((Sessione)ses);
             provider.ListCastExpression.Add(new ContainerCastExpression
-                { TypeEvolution = Evolution.CacheKey });
+            { TypeEvolution = Evolution.CacheKey });
             return (int)provider.Execute<int>(source.Expression);
 
         }
@@ -375,7 +382,9 @@ namespace ORM_1_21_.Extensions
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
             {
-                TypeEvolution = Evolution.Between, CustomExpression = func, ParamList = new List<object>
+                TypeEvolution = Evolution.Between,
+                CustomExpression = func,
+                ParamList = new List<object>
                 {
                     Expression.Constant(left, typeof(object)),
                     Expression.Constant(right, typeof(object))
@@ -398,14 +407,15 @@ namespace ORM_1_21_.Extensions
         {
 
             AttributesOfClass<TInner>.Init();
-            return outer.Provider.CreateQuery<TResult>(Expression.Call(null, 
-                GetMethodInfo<IQueryable<TOuter>, 
-                    IQueryable<TInner>,
-                    Expression<Func<TOuter, TKey>>,
-                    Expression<Func<TInner, TKey>>,
-                    Expression<Func<TOuter, TInner, TResult>>, IQueryable<TResult>>
+            return outer.Provider.CreateQuery<TResult>(Expression.Call(null,
+                GetMethodInfo<IQueryable<TOuter>,
+                        IQueryable<TInner>,
+                        Expression<Func<TOuter, TKey>>,
+                        Expression<Func<TInner, TKey>>,
+                        Expression<Func<TOuter, TInner, TResult>>, IQueryable<TResult>>
                     (Queryable.Join), outer.Expression, inner.Expression,
-                Expression.Quote(outerKeySelector), Expression.Quote(innerKeySelector), Expression.Quote(resultSelector)));
+                Expression.Quote(outerKeySelector), Expression.Quote(innerKeySelector),
+                Expression.Quote(resultSelector)));
         }
 
         private static Expression GetSourceExpression<TSource>(IEnumerable<TSource> source) =>
@@ -413,134 +423,47 @@ namespace ORM_1_21_.Extensions
                 ? queryable.Expression
                 : (Expression)Expression.Constant((object)source, typeof(IEnumerable<TSource>));
 
-       
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="outer"></param>
-        /// <param name="inner"></param>
-        /// <param name="outerKeySelector"></param>
-        /// <param name="innerKeySelector"></param>
-        /// <param name="resultSelector"></param>
-        /// <typeparam name="TOuter"></typeparam>
-        /// <typeparam name="TInner"></typeparam>
-        /// <typeparam name="TKey"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <returns></returns>
-        public static IQueryable<TResult> GroupJoin<TOuter, TInner, TKey, TResult>(
-            this IQueryable<TOuter> outer,
-            IQueryable<TInner> inner,
-            Expression<Func<TOuter, TKey>> outerKeySelector,
-            Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector)
-        {
-            AttributesOfClass<TInner>.Init();
-            return outer.Provider.CreateQuery<TResult>(Expression.Call(null,
-                GetMethodInfo<IQueryable<TOuter>, IQueryable<TInner>, Expression<Func<TOuter, TKey>>, Expression<Func<TInner, TKey>>, Expression<Func<TOuter, IEnumerable<TInner>, TResult>>, IQueryable<TResult>>(Queryable.GroupJoin), outer.Expression, GetSourceExpression(inner), Expression.Quote(outerKeySelector),
-                Expression.Quote(innerKeySelector), Expression.Quote(resultSelector)));
-        }
 
-      
+        // /// <summary>
+        // /// 
+        // /// </summary>
+        // /// <param name="outer"></param>
+        // /// <param name="inner"></param>
+        // /// <param name="outerKeySelector"></param>
+        // /// <param name="innerKeySelector"></param>
+        // /// <param name="resultSelector"></param>
+        // /// <typeparam name="TOuter"></typeparam>
+        // /// <typeparam name="TInner"></typeparam>
+        // /// <typeparam name="TKey"></typeparam>
+        // /// <typeparam name="TResult"></typeparam>
+        // /// <returns></returns>
+        // public static IQueryable<TResult> GroupJoin<TOuter, TInner, TKey, TResult>(
+        //     this IQueryable<TOuter> outer,
+        //     IQueryable<TInner> inner,
+        //     Expression<Func<TOuter, TKey>> outerKeySelector,
+        //     Expression<Func<TInner, TKey>> innerKeySelector,
+        //     Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector)
+        // {
+        //     AttributesOfClass<TInner>.Init();
+        //     return outer.Provider.CreateQuery<TResult>(Expression.Call(null,
+        //         GetMethodInfo<IQueryable<TOuter>, IQueryable<TInner>, Expression<Func<TOuter, TKey>>,
+        //             Expression<Func<TInner, TKey>>, Expression<Func<TOuter, IEnumerable<TInner>, TResult>>,
+        //             IQueryable<TResult>>(Queryable.GroupJoin), outer.Expression, GetSourceExpression(inner),
+        //         Expression.Quote(outerKeySelector),
+        //         Expression.Quote(innerKeySelector), Expression.Quote(resultSelector)));
+        // }
 
-    
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="keySelector"></param>
-        /// <param name="elementSelector"></param>
-        /// <param name="resultSelector"></param>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TKey"></typeparam>
-        /// <typeparam name="TElement"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <returns></returns>
-        public static IQueryable<TResult> GroupByCore<TSource, TKey, TElement, TResult>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector,
-            Expression<Func<TSource, TElement>> elementSelector,
-            Expression<Func<TKey, IEnumerable<TElement>, TResult>> resultSelector) 
-        {
-         
-            return source.Provider.CreateQuery<TResult>(Expression.Call(null, GetMethodInfo<IQueryable<TSource>, Expression<Func<TSource, TKey>>, Expression<Func<TSource, TElement>>, Expression<Func<TKey, IEnumerable<TElement>, TResult>>, IQueryable<TResult>>(GroupByCore), source.Expression, Expression.Quote(keySelector), Expression.Quote(elementSelector), Expression.Quote(resultSelector)));
-        }
-     
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="keySelector"></param>
-        /// <param name="elementSelector"></param>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TKey"></typeparam>
-        /// <typeparam name="TElement"></typeparam>
-        /// <returns></returns>
-        public static IEnumerable<IGrouping<TKey, TElement>> GroupByCore<TSource, TKey, TElement>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector,
-            Expression<Func<TSource, TElement>> elementSelector)
-        {
-           
-
-            ISession ses = ((ISqlComposite)source.Provider).Sessione;
-            var p=new DbQueryProvider<TSource>((Sessione)ses);
-            IEnumerable<TSource> sources = (IEnumerable<TSource>)p.Execute<TSource>(source.Expression);
-
-            return new GroupedEnumerable<TSource, TKey, TElement>(sources, keySelector.Compile(), elementSelector.Compile(), (IEqualityComparer<TKey>)null);
-            //return source.Provider.CreateQuery<IGrouping<TKey, TElement>>(Expression.Call(null, GetMethodInfo<IQueryable<TSource>, Expression<Func<TSource, TKey>>, Expression<Func<TSource, TElement>>, IQueryable<IGrouping<TKey, TElement>>>(GroupByCore), new[]
-            //{
-            //    source.Expression,
-            //    Expression.Quote(keySelector),
-            //    Expression.Quote(elementSelector)
-            //}));
-        }
+        
     }
 
-    internal class GroupedEnumerable<TSource, TKey, TElement> :
-        IEnumerable<IGrouping<TKey, TElement>>,
-        IEnumerable
-    {
-        private IEnumerable<TSource> source;
-        private Func<TSource, TKey> keySelector;
-        private Func<TSource, TElement> elementSelector;
-        private IEqualityComparer<TKey> comparer;
 
-        public GroupedEnumerable(
-            IEnumerable<TSource> source,
-            Func<TSource, TKey> keySelector,
-            Func<TSource, TElement> elementSelector,
-            IEqualityComparer<TKey> comparer)
-        {
-         
-            this.source = source;
-            this.keySelector = keySelector;
-            this.elementSelector = elementSelector;
-            this.comparer = comparer;
-        }
 
-        public IEnumerator<IGrouping<TKey, TElement>> GetEnumerator() => Create(this.source, this.keySelector, this.elementSelector, this.comparer).GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-        internal static List<IGrouping<TKey, TElement>> Create(
-            IEnumerable<TSource> source,
-            Func<TSource, TKey> keySelector,
-            Func<TSource, TElement> elementSelector,
-            IEqualityComparer<TKey> comparer)
-        {
-            
 
-            var l = new List<TSource>();
-            var rr = source.ToLookup(keySelector,elementSelector).ToList();
-
-            return rr;
-        }
-    }
 
 
 

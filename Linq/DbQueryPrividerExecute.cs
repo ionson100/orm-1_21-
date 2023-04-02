@@ -26,13 +26,7 @@ namespace ORM_1_21_.Linq
           
             List<OneComposite> listCore = re.Composites;
             listCore.AddRange(ListOuterOneComposites);
-            if (PingCompositeE(Evolution.GroupBy, listCore) && _isAsync)
-            {
-                _isAsync = false;
-                throw new GroupException();
-            }
-
-
+           
             /*usage cache*/
 
             int hashCode = -1;
@@ -589,17 +583,7 @@ namespace ORM_1_21_.Linq
                     }
                     else
                     {
-                        if (listCore.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
-                        {
-                            var lRes = Pizdaticus.GetListAnonymousObj<object>(dataReader, ss, _providerName);
-                            var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isActive1);
-                            var res = !isActive1 ? lRes : dataSing1;
-                            if (isCacheUsage)
-                            {
-                                MyCache<T>.Push(hashCode, res);
-                            }
-                            return res;
-                        }
+                       
                         throw new Exception("Not implemented");
                     }
                 }
@@ -608,17 +592,7 @@ namespace ORM_1_21_.Linq
 
                 dataReader = _com.ExecuteReader();
 
-                if (listCore.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
-                {
-                    var lResult = AttributesOfClass<TS>.GetEnumerableObjectsGroupBy<T>(dataReader,
-                        listCore.First(a => a.Operand == Evolution.GroupBy).ExpressionDelegate, _providerName);
-                    if (isCacheUsage)
-                    {
-                        MyCache<T>.Push(hashCode, lResult);
-                    }
-
-                    return lResult;
-                }
+               
 
                 var res1 = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                 var dataSingle = Pizdaticus.SingleData(listCore, res1, out var isActive);
@@ -628,13 +602,7 @@ namespace ORM_1_21_.Linq
                     MyCache<T>.Push(hashCode, res2);
                 }
                 return res2;
-            }
-            catch (GroupException)
-            {
-                throw;
-            }
-
-            catch (Exception ex)
+            }catch (Exception ex)
             {
                 _sessione.Transactionale.isError = true;
                 throw new Exception(ex.Message + Environment.NewLine + _com.CommandText, ex);

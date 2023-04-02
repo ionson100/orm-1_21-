@@ -9,8 +9,7 @@ namespace ORM_1_21_.Linq
  
     internal abstract class ExpressionVisitor
     {
-       
-        protected Expression Visit(Expression exp)
+        public Expression Visit(Expression exp)
         {
             if (exp == null)
                 return null;

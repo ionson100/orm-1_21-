@@ -7,12 +7,15 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ORM_1_21_.Linq.MsSql
 {
+    
     internal sealed class QueryTranslatorMsSql<T> : ExpressionVisitor, ITranslate
     {
-       
+      
+      
         private readonly ProviderName _providerName;
         private int _paramIndex;
 
@@ -62,8 +65,6 @@ namespace ORM_1_21_.Linq.MsSql
             if (ev == Evolution.DistinctCore)
                 ListOne.Add(new OneComposite { Operand = Evolution.DistinctCore, Body = StringB.ToString() });
 
-            if (ev == Evolution.GroupBy)
-                ListOne.Add(new OneComposite { Operand = Evolution.GroupBy, Body = StringB.ToString() });
             if (ev == Evolution.Limit)
                 if (paramList != null && paramList.Count == 2)
                 {
@@ -114,6 +115,8 @@ namespace ORM_1_21_.Linq.MsSql
         {
             return ListOne;
         }
+
+       
 
 
         private bool PingComposite(Evolution eval)
@@ -721,28 +724,8 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "GroupBy")
             {
-                Visit(m.Arguments[0]);
-                var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-                Delegate tt;
-
-                var typew = ((MemberExpression)lambda.Body).Expression.Type;
-                if (typew != typeof(T) && UtilsCore.IsAnonymousType(typew) &&
-                    ListOne.Any(a => a.Operand == Evolution.SelectNew))
-                {
-                    throw new Exception("Not implemented.");
-                }
-                tt = (Func<T, object>)((LambdaExpression)StripQuotes(m.Arguments[1])).Compile();
-                Visit(lambda.Body);
-                var o = new OneComposite
-                {
-                    Operand = Evolution.GroupBy,
-                    Body = StringB.ToString(),
-                    ExpressionDelegate = tt
-                };
-
-                ListOne.Add(o);
-                StringB.Length = 0;
-                return m;
+                throw new Exception("GroupBy");
+                
             }
 
             if (m.Method.DeclaringType == typeof(Queryable)
@@ -797,13 +780,14 @@ namespace ORM_1_21_.Linq.MsSql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "Select")
             {
-
+            
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 Visit(lambda.Body);
                 var o = new OneComposite { Operand = Evolution.Select, Body = StringB.ToString().Trim(' ', ',') };
                 if (!string.IsNullOrEmpty(StringB.ToString())) ListOne.Add(o);
                 StringB.Length = 0;
+              
                 return m;
             }
 

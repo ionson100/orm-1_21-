@@ -31,13 +31,7 @@ namespace ORM_1_21_.Linq
             var paramJon = re.Param;
             List<OneComposite> listCore = re.Composites;
             listCore.AddRange(ListOuterOneComposites);
-            if (PingCompositeE(Evolution.GroupBy, listCore) && _isAsync)
-            {
-                _isAsync = false;
-                throw new GroupException();
-            }
-
-
+           
             /*usage cache*/
 
             var hashCode = -1;
@@ -630,19 +624,6 @@ namespace ORM_1_21_.Linq
                     }
                     else
                     {
-                        if (listCore.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
-                        {
-                            var lRes = Pizdaticus.GetListAnonymousObj<object>(dataReader, ss, _providerName);
-                            var dataSingle = Pizdaticus.SingleData(listCore, lRes, out var isActive1);
-                            var res = !isActive1 ? lRes : dataSingle;
-                            if (isCacheUsage)
-                            {
-                                MyCache<T>.Push(hashCode, res);
-                            }
-
-                            tk.SetResult(res);
-                            return await tk.Task;
-                        }
 
                         throw new Exception("Not implemented");
                     }
@@ -658,18 +639,7 @@ namespace ORM_1_21_.Linq
                     registration.Value.Dispose();
                 }
 
-                if (listCore.Any(a => a.Operand == Evolution.GroupBy && a.ExpressionDelegate != null))
-                {
-                    var lResult = AttributesOfClass<TS>.GetEnumerableObjectsGroupBy<T>(dataReader,
-                        listCore.First(a => a.Operand == Evolution.GroupBy).ExpressionDelegate, _providerName);
-                    if (isCacheUsage)
-                    {
-                        MyCache<T>.Push(hashCode, lResult);
-                    }
-                    tk.SetResult(lResult);
-                    return await tk.Task;
-
-                }
+                
 
                 var resd = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                 var dataSing = Pizdaticus.SingleData(listCore, resd, out var isActive);
@@ -682,10 +652,7 @@ namespace ORM_1_21_.Linq
                 return await tk.Task;
 
             }
-            catch (GroupException)
-            {
-                throw;
-            }
+           
 
             catch (Exception ex)
             {

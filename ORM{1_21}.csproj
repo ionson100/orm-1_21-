@@ -104,6 +104,9 @@
     <Compile Include="Attribute\MapUsageActivatorAttribute.cs" />
     <Compile Include="CacheState.cs" />
     <Compile Include="ColumnsTableFactory.cs" />
+    <Compile Include="Extensions\HelperGroupBy.cs" />
+    <Compile Include="Extensions\HelperJoin.cs" />
+    <Compile Include="Extensions\HelpUnion.cs" />
     <Compile Include="Extensions\HeplerAsync.cs" />
     <Compile Include="Interface\IMapSerializable.cs" />
     <Compile Include="Linq\DbQueryPProviderAsync.cs" />

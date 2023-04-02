@@ -373,5 +373,11 @@ namespace ORM_1_21_
         /// Session ID
         /// </summary>
         string IdSession { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        ISession SessionCloneForTask();
     }
 }

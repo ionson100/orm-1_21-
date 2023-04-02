@@ -10,9 +10,10 @@ namespace ORM_1_21_
     internal sealed partial class Sessione
     {
         private readonly Guid _id;
-        private readonly IOtherDataBaseFactory _factory;
+        private readonly IOtherDataBaseFactory _factoryOtherBase;
         private bool _isDispose;
         internal readonly Transactionale Transactionale = new Transactionale();
+        private string _connectionString;
 
         internal IDbTransaction Transaction
         {
@@ -24,13 +25,13 @@ namespace ORM_1_21_
         {
             get
             {
-                if (_factory == null)
+                if (_factoryOtherBase == null)
                 {
                     return Configure.Provider;
                 }
                 else
                 {
-                    return _factory.GetProviderName();
+                    return _factoryOtherBase.GetProviderName();
                 }
             }
         }
@@ -42,6 +43,7 @@ namespace ORM_1_21_
         /// <param name="connectionString">Connection string</param>
         public Sessione(string connectionString)
         {
+            _connectionString = connectionString;
             _id= Guid.NewGuid();
             Check.NotEmpty(connectionString, "connectionString");
             _connect = ProviderFactories.GetConnect(null);
@@ -50,19 +52,28 @@ namespace ORM_1_21_
         /// <summary>
         /// Constructor for connecting to another database
         /// </summary>
-        /// <param name="factory">Object implementing IOtherDataBaseFactory</param>
-        public Sessione(IOtherDataBaseFactory factory)
+        /// <param name="factoryOtherBase">Object implementing IOtherDataBaseFactory</param>
+        public Sessione(IOtherDataBaseFactory factoryOtherBase)
         {
-            _factory = factory;
-            _connect = factory.GetDbProviderFactories().CreateConnection();
+            _factoryOtherBase = factoryOtherBase;
+            _connect = factoryOtherBase.GetDbProviderFactories().CreateConnection();
             if (_connect == null) throw new Exception("Can't connect to another database");
-            _connect.ConnectionString = factory.GetConnectionString();
-            if (factory.GetProviderName() == ProviderName.PostgreSql)
+            _connect.ConnectionString = factoryOtherBase.GetConnectionString();
+            _connectionString= factoryOtherBase.GetConnectionString();
+            if (factoryOtherBase.GetProviderName() == ProviderName.PostgreSql)
             {
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
             }
 
+        }
+        public ISession SessionCloneForTask()
+        {
+            if (_factoryOtherBase == null)
+            {
+                return new Sessione(_connectionString) { Transaction = this.Transaction };
+            }
+            return new Sessione(_factoryOtherBase) { Transaction = this.Transaction };
         }
 
         private readonly IDbConnection _connect;
@@ -357,7 +368,7 @@ namespace ORM_1_21_
         IEnumerable<TableColumn> ISession.GetTableColumns(string tableName)
         {
             Check.NotEmpty(tableName, "tableName",() => Transactionale.isError = true);
-            var com = ProviderFactories.GetCommand(_factory, ((ISession)this).IsDispose);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
 
 

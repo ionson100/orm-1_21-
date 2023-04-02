@@ -321,8 +321,8 @@ namespace TestLibrary
                 count = session.Query<T>().Where(a => a.Name == "name").OrderBy(r => r.Age).ToList().Sum(a => a.Age);
                 Log(36, count == 110);
 
-                var groupList = session.Query<T>().GroupBy(r => r.Name).ToListAsync().Result;
-                Log(37, groupList.Count() == 2 && groupList[0].Count() == 3 && groupList[1].Count() == 3);
+               // var groupList = session.Query<T>().GroupBy(r => r.Name).ToListAsync().Result;
+               // Log(37, groupList.Count() == 2 && groupList[0].Count() == 3 && groupList[1].Count() == 3);
 
 
                 o = session.Query<T>().OrderBy(a => a.Age).First();

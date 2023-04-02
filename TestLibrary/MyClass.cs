@@ -1,4 +1,5 @@
-﻿using ORM_1_21_;
+﻿using System.Collections.Generic;
+using ORM_1_21_;
 
 
 namespace TestLibrary
@@ -35,11 +36,26 @@ namespace TestLibrary
     }
 
     [MapTable("my_class5_join")]
-    public class MyClassJoinPostgres : MyClassBase
+    public class MyClassJoinPostgres : MyClassBase, IEqualityComparer<MyClassJoinPostgres>
     {
         public MyClassJoinPostgres()
         {
 
+        }
+
+        public bool Equals(MyClassJoinPostgres x, MyClassJoinPostgres y)
+        {
+            if (y != null && x != null && x.Age == y.Age)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public int GetHashCode(MyClassJoinPostgres obj)
+        {
+            return 0;
         }
     }
 

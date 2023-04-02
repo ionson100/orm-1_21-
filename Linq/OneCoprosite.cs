@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 
 namespace ORM_1_21_.Linq
 {
@@ -9,7 +10,7 @@ namespace ORM_1_21_.Linq
         internal Evolution Operand { get; set; }
         private string _body;
 
-        public object NewConstructor { get; set; }
+        public Expression NewConstructor { get; set; }
 
         public bool IsAggregate { get; set; }
 

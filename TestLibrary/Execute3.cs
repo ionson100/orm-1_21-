@@ -42,8 +42,8 @@ namespace TestLibrary
             Execute.Log(2, count == 2);
             var list = await session.Query<T>().Where(s => s.Age > 0).ToListAsync();
             Execute.Log(3, list.Count == 3);
-            var gb = await session.Query<T>().Where(s => s.Age > 0).GroupBy(d => d.Age).ToListAsync();
-            Execute.Log(4, gb.Count == 2);
+            //var gb = await session.Query<T>().Where(s => s.Age > 0).GroupBy(d => d.Age).ToListAsync();
+            //Execute.Log(4, gb.Count == 2);
             await session.Query<T>().Where(a => a.Age > 0).OrderByDescending(s => s.Age).ForEachAsync(d =>
             {
                 Console.WriteLine($@"{d.Age}");
