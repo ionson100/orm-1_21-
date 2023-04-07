@@ -21,6 +21,11 @@ namespace ORM_1_21_.Linq
             var services = (IServiceSessions)Sessione;
             var re = TranslateE(expression);
             string sql = re.Sql;
+            List<PostExpression> postExpressions = re.ListPostExpression;
+            if (postExpressions.Count > 0)
+            {
+
+            }
             var paramJon = re.Param;
           
           
@@ -574,6 +579,7 @@ namespace ORM_1_21_.Linq
                     {
                         var lRes = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss, _providerName);
                         var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
+                       
                         var res = !isaActive1 ? (object)lRes : dataSing1;
                         if (isCacheUsage)
                         {
@@ -591,16 +597,21 @@ namespace ORM_1_21_.Linq
                 #endregion
 
                 dataReader = _com.ExecuteReader();
+                IEnumerable<T> res1 = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
 
-               
-
-                var res1 = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
+               // if (postExpressions.Count > 0)
+               // {
+               //     FactoryExpression.GetData(res1, postExpressions);
+               // }
+               //
                 var dataSingle = Pizdaticus.SingleData(listCore, res1, out var isActive);
                 var res2 = !isActive ? (object)res1 : dataSingle;
                 if (isCacheUsage)
                 {
                     MyCache<T>.Push(hashCode, res2);
                 }
+
+               
                 return res2;
             }catch (Exception ex)
             {

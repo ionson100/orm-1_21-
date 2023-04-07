@@ -16,6 +16,14 @@ namespace ORM_1_21_.Linq.MySql
 
     internal sealed class QueryTranslator<T> : ExpressionVisitor, ITranslate
     {
+        //private bool isAddPost=false;
+        private readonly List<PostExpression> _postExpressions = new List<PostExpression>();
+
+        public void AddPostExpression(Evolution evolution, MethodCallExpression expression)
+        {
+            _postExpressions.Add(new PostExpression(evolution,expression));
+        }
+
         private string _currentMethod;
         private Evolution _currentEvolution;
         private int _paramIndex;
@@ -187,6 +195,11 @@ namespace ORM_1_21_.Linq.MySql
                 list.Add(item);
             }
             return list;
+        }
+
+        public List<PostExpression> GetListPostExpression()
+        {
+            return _postExpressions;
         }
 
         private static Expression StripQuotes(Expression e)
@@ -1712,7 +1725,12 @@ namespace ORM_1_21_.Linq.MySql
             if (m.Method.DeclaringType == typeof(Queryable)
                 && m.Method.Name == "GroupBy")
             {
-                throw new Exception("GroupBy");
+                var rr=typeof(T);
+                //throw new Exception("Method GroupBy for IQueryable is not implemented, use method GroupByCore");
+                Visit(m.Arguments[0]);
+               
+                AddPostExpression(Evolution.GroupBy, m);
+                return m;
             }
 
             if (m.Method.Name == "Union")
@@ -1787,7 +1805,15 @@ namespace ORM_1_21_.Linq.MySql
             {
                 _currentMethod = "Select";
                 Visit(m.Arguments[0]);
+                var sss = ListOne;
+
+               //if (isAddPost)
+               //{
+                //  AddPostExpression(Evolution.Select,m);
+               //    return m;
+               //}
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
+                AddPostExpression(Evolution.Select, m);
                 Visit(lambda.Body);
                 var o = new OneComposite { Operand = Evolution.Select, Body = StringB.ToString().Trim(new[] { ' ', ',' }) };
                 if (!string.IsNullOrEmpty(StringB.ToString()))
@@ -1796,6 +1822,7 @@ namespace ORM_1_21_.Linq.MySql
                 }
                 StringB.Length = 0;
                 _currentMethod = null;
+               // isAddPost = true;
                 return m;
             }
 
@@ -3152,6 +3179,12 @@ namespace ORM_1_21_.Linq.MySql
             }
             return m;
         }
+    }
+
+    class MyClass
+    {
+        public int Age { get; set; }
+        public string Name { get; set; }
     }
 
 }

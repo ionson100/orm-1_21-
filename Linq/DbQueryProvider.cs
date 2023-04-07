@@ -255,14 +255,12 @@ namespace ORM_1_21_.Linq
 
         }
 
-        public override async Task<Array> ExecuteToArray<TS>(Expression expression, CancellationToken cancellationToken)
+        public override async Task<TS[]> ExecuteToArray<TS>(Expression expression, CancellationToken cancellationToken)
         {
 
-            var tk = new TaskCompletionSource<Array>(TaskCreationOptions.RunContinuationsAsynchronously);
-
             object rr = await ExecuteAsync<TS>(expression, null, cancellationToken);
-            tk.SetResult(((IEnumerable<TS>)rr).ToArray());
-            return await tk.Task;
+             return ((IEnumerable<TS>)rr).ToArray();
+          
 
         }
 
@@ -275,7 +273,8 @@ namespace ORM_1_21_.Linq
             _param = sq.Param;
             var sdd = sq.GetListOne();
             Thread.MemoryBarrier();
-            return new MyTuple { Sql = res, Composites = sdd, Param = sq.Param };
+            var ss = sq.GetListPostExpression();
+            return new MyTuple { Sql = res, Composites = sdd, Param = sq.Param ,ListPostExpression=sq.GetListPostExpression() };
         }
 
         private string TranslateString(Expression expression)
@@ -314,5 +313,6 @@ namespace ORM_1_21_.Linq
         public string Sql { get; set; }
         public List<OneComposite> Composites { get; set; } = new List<OneComposite>();
         public Dictionary<string, object> Param { get; set; }
+        public List<PostExpression> ListPostExpression { get; set; }
     }
 }

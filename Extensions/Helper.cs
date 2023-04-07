@@ -1,12 +1,12 @@
-﻿using System;
+﻿using ORM_1_21_.Linq;
+using ORM_1_21_.Utils;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_.Linq;
-using ORM_1_21_.Utils;
 
 namespace ORM_1_21_.Extensions
 {
@@ -286,14 +286,14 @@ namespace ORM_1_21_.Extensions
         /// <summary>
         /// Getting Array Asynchronous
         /// </summary>
-        public static Task<Array> ToArrayAsync<TResult>(this IQueryable<TResult> source,
+        public static async Task<TResult[]> ToArrayAsync<TResult>(this IQueryable<TResult> source,
             CancellationToken cancellationToken = default)
         {
             try
             {
-                var res = ((QueryProvider)source.Provider).ExecuteToArray<TResult>(source.Expression,
+                var res = await ((QueryProvider)source.Provider).ExecuteToArray<TResult>(source.Expression,
                     cancellationToken);
-                return res;
+                return res.ToArray();
 
             }
             catch (Exception ex)
@@ -313,7 +313,7 @@ namespace ORM_1_21_.Extensions
         /// <param name="source"></param>
         /// <param name="value">>=0</param>
         /// <returns></returns>
-        public static IQueryable<TSource> SetTimeOut<TSource>(this IQueryable<TSource> source, int value)
+        public static IQueryable<TSource> SetTimeOut<TSource>(this IQueryable<TSource> source, int value) 
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
             { Timeout = value, TypeEvolution = Evolution.Timeout });
@@ -374,9 +374,17 @@ namespace ORM_1_21_.Extensions
             return MyCache<TSource>.GetValue(key);
         }
 
+
         /// <summary>
         /// The BETWEEN operator selects values within a given range. 
         /// </summary>
+        /// <param name="source">An IEnumerable&lt;TSource&gt; whose elements to predicate between</param>
+        /// <param name="func">property for predicate</param>
+        /// <param name="left">Left value</param>
+        /// <param name="right">Right value</param>
+        /// <typeparam name="TSource">The type of the elements of source.</typeparam>
+        /// <typeparam name="T">Property type</typeparam>
+        /// <returns></returns>
         public static IQueryable<TSource> Between<TSource, T>(this IQueryable<TSource> source,
             Expression<Func<TSource, T>> func, T left, T right)
         {
@@ -395,69 +403,662 @@ namespace ORM_1_21_.Extensions
 
 
 
+        //   /// <summary>
+        //   /// 
+        //   /// </summary>
+        //   public static IQueryable<TResult> Join<TOuter, TInner, TKey, TResult>(
+        //       this IQueryable<TOuter> outer,
+        //       IQueryable<TInner> inner,
+        //       Expression<Func<TOuter, TKey>> outerKeySelector,
+        //       Expression<Func<TInner, TKey>> innerKeySelector,
+        //       Expression<Func<TOuter, TInner, TResult>> resultSelector)
+        //   {
+        //
+        //       AttributesOfClass<TInner>.Init();
+        //       return outer.Provider.CreateQuery<TResult>(Expression.Call(null,
+        //           GetMethodInfo<IQueryable<TOuter>,
+        //                   IQueryable<TInner>,
+        //                   Expression<Func<TOuter, TKey>>,
+        //                   Expression<Func<TInner, TKey>>,
+        //                   Expression<Func<TOuter, TInner, TResult>>, IQueryable<TResult>>
+        //               (Queryable.Join), outer.Expression, inner.Expression,
+        //           Expression.Quote(outerKeySelector), Expression.Quote(innerKeySelector),
+        //           Expression.Quote(resultSelector)));
+        //   }
+        //
+        //   private static Expression GetSourceExpression<TSource>(IEnumerable<TSource> source) =>
+        //       source is IQueryable<TSource> queryable
+        //           ? queryable.Expression
+        //           : (Expression)Expression.Constant((object)source, typeof(IEnumerable<TSource>));
+        //
+
+
+
+
+        /// <summary>
+        /// Projects each element of a sequence into a new form.
+        /// </summary>
+        /// <param name="source">A sequence of values to invoke a transform function on.</param>
+        /// <param name="selector">A transform function to apply to each element.</param>
+        /// <typeparam name="TSource">The type of the elements of source.</typeparam>
+        /// <typeparam name="TResult">The type of the value returned by selector.</typeparam>
+        /// <returns>An IEnumerable&lt;T&gt; whose elements are the result of invoking the transform function on each element of source.</returns>
+        public static IEnumerable<TResult> SelectCore<TSource, TResult>(
+            this IQueryable<TSource> source,
+            Func<TSource, TResult> selector)
+        {
+            Check.NotNull(source, nameof(source));
+            Check.NotNull(selector, nameof(selector));
+            var d = ((Query<TSource>)source).ToList();
+            foreach (var source1 in d)
+            {
+                yield return selector(source1);
+            }
+
+        }
+
+
+
+        private static async Task<IEnumerable<TResult>> QueryableToListAsync<TSource, TResult>(
+            Func<TSource, TResult> selector, IQueryable proxySource, CancellationToken cancellationToken)
+        {
+            List<TResult> list = new List<TResult>();
+            var ss = await ((Query<TSource>)proxySource).ToListAsync(cancellationToken: cancellationToken);
+            ss.ForEach(a =>
+              {
+                  list.Add(selector(a));
+              });
+            return list;
+
+        }
+
+        private static async Task<IEnumerable<TResult>> QueryableToListIntAsync<TSource, TResult>(Func<TSource, int,
+            TResult> selector, IQueryable proxySource, CancellationToken cancellationToken)
+        {
+
+            List<TResult> list = new List<TResult>();
+            var ss = await ((Query<TSource>)proxySource).ToListAsync(cancellationToken: cancellationToken);
+            int index = -1;
+            ss.ForEach(a =>
+            {
+                checked { ++index; }
+                list.Add(selector(a, index));
+            });
+            return list;
+
+        }
+
+        #region Select
+
+
+
+
+
+        /// <summary>
+        /// Asynchronous projects each element of a sequence into a new form.
+        /// </summary>
+        /// <param name="source">A sequence of values to invoke a transform function on.</param>
+        /// <param name="selector">A transform function to apply to each element.</param>
+        /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
+        /// <typeparam name="TSource">The type of the elements of source.</typeparam>
+        /// <typeparam name="TResult">The type of the value returned by selector.</typeparam>
+        /// <returns>An IEnumerable&lt;T&gt; whose elements are the result of invoking the transform function on each element of source.</returns>
+        public static async Task<IEnumerable<TResult>> SelectCoreAsync<TSource, TResult>(
+            this IQueryable<TSource> source,
+            Func<TSource, TResult> selector,
+            CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(source, nameof(source));
+            Check.NotNull(selector, nameof(selector));
+            return await QueryableToListAsync(selector, source, cancellationToken);
+        }
+
+        /// <summary>
+        ///  Projects each element of a sequence into a new form by incorporating the element's index.
+        /// </summary>
+        /// <param name="source">A sequence of values to invoke a transform function on.</param>
+        /// <param name="selector">A transform function to apply to each source element;
+        /// the second parameter of the function represents the index of the source element.</param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<TResult> SelectCore<TSource, TResult>(
+            this IEnumerable<TSource> source,
+            Func<TSource, int, TResult> selector)
+        {
+            Check.NotNull(source, nameof(source));
+            Check.NotNull(selector, nameof(selector));
+            var d = ((Query<TSource>)source).ToList();
+            int index = -1;
+            foreach (var source1 in d)
+            {
+                checked { ++index; }
+                yield return selector(source1, index);
+            }
+        }
+
+        /// <summary>
+        /// Asynchronous  projects of a sequence into a new form by incorporating the element's index.
+        /// </summary>
+        /// <param name="source">A sequence of values to invoke a transform function on.</param>
+        /// <param name="selector">A transform function to apply to each source element;
+        /// the second parameter of the function represents the index of the source element.</param>
+        /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
+        /// <typeparam name="TSource">The type of the elements of source.</typeparam>
+        /// <typeparam name="TResult">The type of the value returned by selector.</typeparam>
+        /// <returns>An IEnumerable&lt;T&gt; whose elements are the result of invoking the transform function on each element of source.</returns>
+        public static async Task<IEnumerable<TResult>> SelectCoreAsync<TSource, TResult>(
+            this IQueryable source,
+            Func<TSource, int, TResult> selector,
+            CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(source, nameof(source));
+            Check.NotNull(selector, nameof(selector));
+            return await QueryableToListIntAsync(selector, source, cancellationToken);
+        }
+        #endregion
+
+
+        #region AggregateCore
+
+
+
+
+
+
         /// <summary>
         /// 
         /// </summary>
-        public static IQueryable<TResult> Join<TOuter, TInner, TKey, TResult>(
-            this IQueryable<TOuter> outer,
-            IQueryable<TInner> inner,
-            Expression<Func<TOuter, TKey>> outerKeySelector,
-            Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, TInner, TResult>> resultSelector)
+        /// <param name="source"></param>
+        /// <param name="func"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static TSource AggregateCore<TSource>(
+            this IQueryable<TSource> source,
+            Func<TSource, TSource, TSource> func)
         {
-
-            AttributesOfClass<TInner>.Init();
-            return outer.Provider.CreateQuery<TResult>(Expression.Call(null,
-                GetMethodInfo<IQueryable<TOuter>,
-                        IQueryable<TInner>,
-                        Expression<Func<TOuter, TKey>>,
-                        Expression<Func<TInner, TKey>>,
-                        Expression<Func<TOuter, TInner, TResult>>, IQueryable<TResult>>
-                    (Queryable.Join), outer.Expression, inner.Expression,
-                Expression.Quote(outerKeySelector), Expression.Quote(innerKeySelector),
-                Expression.Quote(resultSelector)));
+            using (IEnumerator<TSource> enumerator = source.GetEnumerator())
+            {
+                TSource source1 = enumerator.MoveNext() ? enumerator.Current : throw new InvalidOperationException(" Element Empty"); ;
+                while (enumerator.MoveNext())
+                    source1 = func(source1, enumerator.Current);
+                return source1;
+            }
         }
 
-        private static Expression GetSourceExpression<TSource>(IEnumerable<TSource> source) =>
-            source is IQueryable<TSource> queryable
-                ? queryable.Expression
-                : (Expression)Expression.Constant((object)source, typeof(IEnumerable<TSource>));
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="func"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static async Task<TSource> AggregateCoreAsync<TSource>(
+            this IQueryable<TSource> source,
+            Func<TSource, TSource, TSource> func, CancellationToken cancellationToken = default)
+        {
+            var list =
+                await ((QueryProvider)source.Provider).ExecuteExtensionAsync<List<TSource>>(source.Expression,
+                    null, cancellationToken);
+            using (IEnumerator<TSource> enumerator = list.GetEnumerator())
+            {
+                var source1 = enumerator.MoveNext() ? enumerator.Current : throw new InvalidOperationException(" Element Empty"); ;
+                while (enumerator.MoveNext())
+                    source1 = func(source1, enumerator.Current);
+                return source1;
+            }
+        }
 
 
 
 
 
-        // /// <summary>
-        // /// 
-        // /// </summary>
-        // /// <param name="outer"></param>
-        // /// <param name="inner"></param>
-        // /// <param name="outerKeySelector"></param>
-        // /// <param name="innerKeySelector"></param>
-        // /// <param name="resultSelector"></param>
-        // /// <typeparam name="TOuter"></typeparam>
-        // /// <typeparam name="TInner"></typeparam>
-        // /// <typeparam name="TKey"></typeparam>
-        // /// <typeparam name="TResult"></typeparam>
-        // /// <returns></returns>
-        // public static IQueryable<TResult> GroupJoin<TOuter, TInner, TKey, TResult>(
-        //     this IQueryable<TOuter> outer,
-        //     IQueryable<TInner> inner,
-        //     Expression<Func<TOuter, TKey>> outerKeySelector,
-        //     Expression<Func<TInner, TKey>> innerKeySelector,
-        //     Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector)
-        // {
-        //     AttributesOfClass<TInner>.Init();
-        //     return outer.Provider.CreateQuery<TResult>(Expression.Call(null,
-        //         GetMethodInfo<IQueryable<TOuter>, IQueryable<TInner>, Expression<Func<TOuter, TKey>>,
-        //             Expression<Func<TInner, TKey>>, Expression<Func<TOuter, IEnumerable<TInner>, TResult>>,
-        //             IQueryable<TResult>>(Queryable.GroupJoin), outer.Expression, GetSourceExpression(inner),
-        //         Expression.Quote(outerKeySelector),
-        //         Expression.Quote(innerKeySelector), Expression.Quote(resultSelector)));
-        // }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="seed"></param>
+        /// <param name="func"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TAccumulate"></typeparam>
+        /// <returns></returns>
+        public static TAccumulate AggregateCore<TSource, TAccumulate>(
+            this IQueryable<TSource> source,
+            TAccumulate seed,
+            Func<TAccumulate, TSource, TAccumulate> func)
+        {
+            TAccumulate accumulate = seed;
+            foreach (TSource source1 in source)
+                accumulate = func(accumulate, source1);
+            return accumulate;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="seed"></param>
+        /// <param name="func"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TAccumulate"></typeparam>
+        /// <returns></returns>
+        public static async Task<TAccumulate> AggregateCoreAsync<TSource, TAccumulate>(
+            this IQueryable<TSource> source,
+            TAccumulate seed,
+            Func<TAccumulate, TSource, TAccumulate> func, CancellationToken cancellationToken = default)
+        {
+            TAccumulate accumulate = seed;
+            List<TSource> res = await ((QueryProvider)source.Provider).ExecuteExtensionAsync<List<TSource>>(source.Expression, null,
+                cancellationToken);
+
+            foreach (TSource source1 in res)
+                accumulate = func(accumulate, source1);
+            return accumulate;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="seed"></param>
+        /// <param name="func"></param>
+        /// <param name="resultSelector"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TAccumulate"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns></returns>
+        public static TResult AggregateCore<TSource, TAccumulate, TResult>(
+            this IQueryable<TSource> source,
+            TAccumulate seed,
+            Func<TAccumulate, TSource, TAccumulate> func,
+            Func<TAccumulate, TResult> resultSelector)
+        {
+
+            TAccumulate accumulate = seed;
+            foreach (TSource source1 in source)
+                accumulate = func(accumulate, source1);
+            return resultSelector(accumulate);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="seed"></param>
+        /// <param name="func"></param>
+        /// <param name="resultSelector"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TAccumulate"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns></returns>
+        public static async Task<TResult> AggregateCoreAsync<TSource, TAccumulate, TResult>(
+            this IQueryable<TSource> source,
+            TAccumulate seed,
+            Func<TAccumulate, TSource, TAccumulate> func,
+            Func<TAccumulate, TResult> resultSelector, CancellationToken cancellationToken = default)
+        {
+            List<TSource> res = await ((QueryProvider)source.Provider).ExecuteExtensionAsync<List<TSource>>(source.Expression, null,
+                cancellationToken);
+            TAccumulate accumulate = seed;
+            foreach (TSource source1 in res)
+                accumulate = func(accumulate, source1);
+            return resultSelector(accumulate);
+        }
+
+        #endregion
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        ///
+        ///
+        public static async Task<IEnumerable<TSource>> AsEnumerableAsync<TSource>(
+            this IQueryable<TSource> source, CancellationToken cancellationToken = default)
+        {
+            var res = await ((QueryProvider)source.Provider).ExecuteExtensionAsync<List<TSource>>(source.Expression, null,
+                cancellationToken);
+            return res.AsEnumerable();
+        }
+
+
+        #region CastCore
 
         
+
+        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<TResult> CastCore<TResult>(this IQueryable source)
+        {
+            return source.Cast<TResult>();
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns></returns>
+        public static Task<IEnumerable<TResult>> CastCoreAsync<TResult>(this IQueryable source, CancellationToken cancellationToken = default)
+        {
+            var tk = new TaskCompletionSource<IEnumerable<TResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            tk.SetResult(source.Cast<TResult>());
+            return tk.Task;
+        }
+
+        #endregion
+
+        #region ExceptCore
+
+
+
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<TSource> ExceptCore<TSource>(
+            this IQueryable<TSource> first,
+            IQueryable<TSource> second)
+        {
+            var pFirst = (QueryProvider)first.Provider;
+            var pSecond = new DbQueryProvider<TSource>((Sessione)((ISqlComposite)second.Provider).Sessione.SessionCloneForTask());
+            var t1 = pFirst.ExecuteExtensionAsync<IEnumerable<TSource>>(first.Expression, null, CancellationToken.None);
+            var t2 = pSecond.ExecuteExtensionAsync<IEnumerable<TSource>>(second.Expression, null, CancellationToken.None);
+            Task.WaitAll(t1, t2);
+            var first1 = t1.Result;
+            var second1 = t2.Result;
+            return ExceptIterator(first1, second1, null);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <param name="comparer"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<TSource> ExceptCore<TSource>(
+            this IQueryable<TSource> first,
+            IQueryable<TSource> second,
+            IEqualityComparer<TSource> comparer) where TSource : class
+        {
+            var pFirst = (QueryProvider)first.Provider;
+            var pSecond = new DbQueryProvider<TSource>((Sessione)((ISqlComposite)second.Provider).Sessione.SessionCloneForTask());
+            var t1 = pFirst.ExecuteExtensionAsync<IEnumerable<TSource>>(first.Expression, null, CancellationToken.None);
+            var t2 = pSecond.ExecuteExtensionAsync<IEnumerable<TSource>>(second.Expression, null, CancellationToken.None);
+            Task.WaitAll(t1, t2);
+            var first1 = t1.Result;
+            var second1 = t2.Result;
+            return ExceptIterator(first1, second1, comparer);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<TSource> ExceptCore<TSource>(
+            this IQueryable<TSource> first,
+            IEnumerable<TSource> second) where TSource : class
+        {
+            return ExceptIterator(first, second, null);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <param name="comparer"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<TSource> ExceptCore<TSource>(
+            this IQueryable<TSource> first,
+            IEnumerable<TSource> second,
+            IEqualityComparer<TSource> comparer) where TSource : class
+        {
+            return ExceptIterator(first, second, comparer);
+        }
+
+        private static IEnumerable<TSource> ExceptIterator<TSource>(
+            IEnumerable<TSource> first,
+            IEnumerable<TSource> second,
+            IEqualityComparer<TSource> comparer)
+        {
+            Set<TSource> set = new Set<TSource>(comparer);
+            foreach (TSource source in second)
+                set.Add(source);
+            foreach (TSource source in first)
+            {
+                if (set.Add(source))
+                    yield return source;
+            }
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static Task<IEnumerable<TSource>> ExceptCoreAsync<TSource>(
+            this IQueryable<TSource> first,
+            IQueryable<TSource> second,
+            CancellationToken cancellationToken=default) where TSource : class
+        {
+            var tk = new TaskCompletionSource<IEnumerable<TSource>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var pFirst = (QueryProvider)first.Provider;
+            var pSecond = new DbQueryProvider<TSource>((Sessione)((ISqlComposite)second.Provider).Sessione.SessionCloneForTask());
+            var t1 = pFirst.ExecuteExtensionAsync<IEnumerable<TSource>>(first.Expression, null, cancellationToken);
+            var t2 = pSecond.ExecuteExtensionAsync<IEnumerable<TSource>>(second.Expression, null, cancellationToken);
+            Task.WaitAll(t1, t2);
+            var first1 = t1.Result;
+            var second1 = t2.Result;
+            tk.SetResult(ExceptIterator(first1, second1, null));
+            return tk.Task;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <param name="comparer"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static Task<IEnumerable<TSource>> ExceptCoreAsync<TSource>(
+            this IQueryable<TSource> first,
+            IQueryable<TSource> second,
+            IEqualityComparer<TSource> comparer,
+            CancellationToken cancellationToken = default) where TSource : class
+        {
+            var tk = new TaskCompletionSource<IEnumerable<TSource>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var pFirst = (QueryProvider)first.Provider;
+            var pSecond = new DbQueryProvider<TSource>((Sessione)((ISqlComposite)second.Provider).Sessione.SessionCloneForTask());
+            var t1 = pFirst.ExecuteExtensionAsync<IEnumerable<TSource>>(first.Expression, null, cancellationToken);
+            var t2 = pSecond.ExecuteExtensionAsync<IEnumerable<TSource>>(second.Expression, null, cancellationToken);
+            Task.WaitAll(t1, t2);
+            var first1 = t1.Result;
+            var second1 = t2.Result;
+            tk.SetResult(ExceptIterator(first1, second1, comparer));
+            return tk.Task;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static async Task<IEnumerable<TSource>> ExceptCoreAsync<TSource>(
+            this IQueryable<TSource> first,
+            IEnumerable<TSource> second,
+            CancellationToken cancellationToken=default) where TSource : class
+        {
+            var res = await ((QueryProvider)first.Provider).ExecuteExtensionAsync<IEnumerable<TSource>>(first.Expression,
+                null, cancellationToken);
+            return ExceptIterator(res, second, null);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <param name="comparer"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static async Task<IEnumerable<TSource>> ExceptCoreAsync<TSource>(
+            this IQueryable<TSource> first,
+            IEnumerable<TSource> second,
+            IEqualityComparer<TSource> comparer,
+            CancellationToken cancellationToken = default) where TSource : class
+        {
+            var res = await ((QueryProvider)first.Provider).ExecuteExtensionAsync<IEnumerable<TSource>>(first.Expression,
+                null, cancellationToken);
+            return ExceptIterator(res, second, comparer);
+        }
+
+        #endregion
+
+        #region ConcatCore
+
+
+
+       
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<TSource> ConcatCore<TSource>(
+            this IQueryable<TSource> first,
+            IQueryable<TSource> second) where TSource : class
+        {
+
+           // var tk = new TaskCompletionSource<IEnumerable<TSource>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var pFirst = (QueryProvider)first.Provider;
+            var pSecond = new DbQueryProvider<TSource>((Sessione)((ISqlComposite)second.Provider).Sessione.SessionCloneForTask());
+            var t1 = pFirst.ExecuteExtensionAsync<IEnumerable<TSource>>(first.Expression, null, CancellationToken.None);
+            var t2 = pSecond.ExecuteExtensionAsync<IEnumerable<TSource>>(second.Expression, null, CancellationToken.None);
+            Task.WaitAll(t1, t2);
+            return ConcatIterator<TSource>(t1.Result, t2.Result);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static Task<IEnumerable<TSource>> ConcatCoreAsync<TSource>(
+            this IQueryable<TSource> first,
+            IQueryable<TSource> second,CancellationToken cancellationToken = default) where TSource : class
+        {
+
+            var tk = new TaskCompletionSource<IEnumerable<TSource>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var pFirst = (QueryProvider)first.Provider;
+            var pSecond = new DbQueryProvider<TSource>((Sessione)((ISqlComposite)second.Provider).Sessione.SessionCloneForTask());
+            var t1 = pFirst.ExecuteExtensionAsync<IEnumerable<TSource>>(first.Expression, null, cancellationToken);
+            var t2 = pSecond.ExecuteExtensionAsync<IEnumerable<TSource>>(second.Expression, null, cancellationToken);
+            Task.WaitAll(t1, t2);
+            tk.SetResult(ConcatIterator(t1.Result, t2.Result));
+            return tk.Task;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<TSource> ConcatCore<TSource>(
+            this IQueryable<TSource> first,
+            IEnumerable<TSource> second) where TSource : class
+        {
+            return ConcatIterator<TSource>(first, second);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static async Task<IEnumerable<TSource>> ConcatCoreCoreAsync<TSource>(
+            this IQueryable<TSource> first,
+            IEnumerable<TSource> second,CancellationToken cancellationToken=default) where TSource : class
+        {
+            var res = await ((QueryProvider)first.Provider).ExecuteExtensionAsync<IEnumerable<TSource>>(first.Expression,
+                null, cancellationToken);
+            return ConcatIterator<TSource>(res, second);
+        }
+
+        private static IEnumerable<TSource> ConcatIterator<TSource>(
+            IEnumerable<TSource> first,
+            IEnumerable<TSource> second)
+        {
+            foreach (TSource source in first)
+                yield return source;
+            foreach (TSource source in second)
+                yield return source;
+        }
+        #endregion
+
+
+
+
     }
+
+
+
+
 
 
 

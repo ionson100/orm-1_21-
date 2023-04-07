@@ -18,6 +18,8 @@ namespace ORM_1_21_.Utils
             return value;
         }
 
+      
+
         public static T? NotNull<T>(T? value, string parameterName) where T : struct
         {
             if (!value.HasValue)

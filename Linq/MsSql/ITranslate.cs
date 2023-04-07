@@ -13,6 +13,7 @@ namespace ORM_1_21_.Linq.MsSql
         void Translate(Expression expression);
 
         List<OneComposite> GetListOne();
-       
+        List<PostExpression> GetListPostExpression();
+
     }
 }

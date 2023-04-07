@@ -133,6 +133,7 @@
     <Compile Include="Execute.cs" />
     <Compile Include="Execute2.cs" />
     <Compile Include="Execute3.cs" />
+    <Compile Include="ExecuteLinqAll.cs" />
     <Compile Include="MyClass.cs" />
     <Compile Include="MyClassBase.cs" />
     <Compile Include="MyClassNull.cs" />

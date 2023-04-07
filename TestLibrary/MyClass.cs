@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using ORM_1_21_;
+﻿using ORM_1_21_;
+using System.Collections.Generic;
 
 
 namespace TestLibrary
 {
-    
+
     [MapTable("my_class5")]
     public class MyClass : MyClassBase
     {
@@ -14,26 +14,25 @@ namespace TestLibrary
         }
     }
     [MapTable("my_class5")]
-   public class MyClassMysql : MyClassBase
-    {
-       
-    }
+    public class MyClassMysql : MyClassBase { }
     [MapTable("my_class5")]
-    class MyClassPostgres : MyClassBase
-    {
-    
-    }
+    class MyClassPostgres : MyClassBase { }
 
     [MapTable()]
-    class MyClassMsSql : MyClassBase
-    {
-
-    }
+    class MyClassMsSql : MyClassBase { }
     [MapTable("my_class5")]
-    public class MyClassSqlite : MyClassBase
-    {
+    public class MyClassSqlite : MyClassBase { }
 
-    }
+
+    [MapTable("my_class51")]
+    public class MyClassMysql1 : MyClassBase { }
+    [MapTable("my_class51")]
+    class MyClassPostgres1 : MyClassBase { }
+
+    [MapTable()]
+    class MyClassMsSql1 : MyClassBase { }
+    [MapTable("my_class51")]
+    public class MyClassSqlite1 : MyClassBase { }
 
     [MapTable("my_class5_join")]
     public class MyClassJoinPostgres : MyClassBase, IEqualityComparer<MyClassJoinPostgres>

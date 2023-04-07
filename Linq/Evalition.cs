@@ -8,7 +8,7 @@
         Last,
         Count,
         Where,
-        //GroupBy,
+        GroupBy,
         OrderBy,
         Select,
         DistinctCore,

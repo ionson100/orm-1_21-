@@ -82,7 +82,7 @@ namespace ORM_1_21_.Linq
         /// <summary>
         /// Query async
         /// </summary>
-        public abstract Task<Array> ExecuteToArray<TS>(Expression expression, CancellationToken cancellationToken);
+        public abstract Task<TS[]> ExecuteToArray<TS>(Expression expression, CancellationToken cancellationToken);
     }
 
 

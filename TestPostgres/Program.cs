@@ -2,11 +2,8 @@
 using ORM_1_21_.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Security.Policy;
-using System.Threading;
 using System.Threading.Tasks;
 using TestLibrary;
 
@@ -40,18 +37,20 @@ namespace TestPostgres
             //Execute.RunThread();
             //Console.ReadKey();
             //Console.ReadKey();
-         Execute.TotalTest();
-         //Execute.TotalTestAsync();
-         Execute.TestNativeInsert();
-         Execute.TestAssignetInsert();
-         Execute2.TestTimeStamp();
-         await Execute3.TotalTestAsync();
+            //xecute.TotalTest();
+            //xecute.TestNativeInsert();
+            //xecute.TestAssignetInsert();
+            //xecute2.TestTimeStamp();
+             await ExecuteLinqAll.Run();
+            //await Execute3.TotalTestAsync();
 
             Stopwatch stopwatch = new Stopwatch();
 
+
             using (ISession session = Configure.Session)
             {
-                session.InsertBulk(new List<MyClass>(){
+                session.InsertBulk(new List<MyClass>
+                    {
                         new MyClass(1) { Age = 40, Name = "name" },
                         new MyClass(1) { Age = 401, Name = "name" },
                         new MyClass(1) { Age = 201, Name = "name" },
@@ -70,46 +69,57 @@ namespace TestPostgres
 
                 session.TableCreate<MyClassJoinPostgres>();
 
-                session.InsertBulk(new List<MyClassJoinPostgres>(){
-                        new MyClassJoinPostgres() { Age = 40, Name = "name11" },
-                        new MyClassJoinPostgres() { Age = 40, Name = "name11" },
-                        new MyClassJoinPostgres() { Age = 20, Name = "name11" },
-                        new MyClassJoinPostgres() { Age = 20, Name = "name11" },
-                        new MyClassJoinPostgres() { Age = 20, Name = "name11" },
-                        new MyClassJoinPostgres() { Age = 20, Name = "name11" },
+                session.InsertBulk(new List<MyClassJoinPostgres>
+                    {
+                        new MyClassJoinPostgres { Age = 40, Name = "name11" },
+                        new MyClassJoinPostgres { Age = 40, Name = "name11" },
+                        new MyClassJoinPostgres { Age = 20, Name = "name11" },
+                        new MyClassJoinPostgres { Age = 20, Name = "name11" },
+                        new MyClassJoinPostgres { Age = 20, Name = "name11" },
+                        new MyClassJoinPostgres { Age = 20, Name = "name11" },
 
                     }
                 );
-                //var asas = session.Query<MyClass>().Select(a=>new{a.Age,a.Name}).Select(s=>s.Age).ToList();
-                var tt = session.Query<MyClassJoinPostgres>().Where(a=>a.Age==20);
+                var sss = session.Query<MyClassJoinPostgres>().GroupBy(a => a.Age).GroupBy(s => s.Key).ToList();
+                //var ee =  session.Query<MyClass>().Where(a => a.Age > 0).Where(a => a.Name != null)
+                //    .SelectCore(a => new {a.Age,a.Name} ).Select(s=>s.Age);
+                //foreach (var x1 in ee)
+                //{
+                //    Console.WriteLine(x1);
+                //}
+
+                var wer = session.Query<MyClassJoinPostgres>().Where(a => a.Age > 0).
+                    GroupByCore(a => a.Age, null).ToList();
+                var asas = session.Query<MyClass>().SelectCore(a => new { a.Name, a.Age }).Select(s => s.Age).ToList();
+                var tt = session.Query<MyClassJoinPostgres>().Where(a => a.Age == 20);
                 var rer = session.Query<MyClassJoinPostgres>().UnionCore(tt).ToList();
-                  var list1 = session.Query<MyClass>().ToList();
-                  var list2 = session.Query<MyClassJoinPostgres>();
-                  var enumerable = list1.GroupBy(a => new { a.Age, a.Name }, d => d);
-                  //session.Query<MyClass>().
+                var list1 = session.Query<MyClass>().ToList();
+                var list2 = session.Query<MyClassJoinPostgres>();
+                var enumerable = list1.GroupBy(a => new { a.Age, a.Name }, d => d);
+                //session.Query<MyClass>().
 
-                  var groupBy = session.Query<MyClass>().Where(a => a.Age > 0)
-                      .GroupByCore(a => new { a.Age, a.DateTime }, d => new { d.Age, d.Description }).ToList();
+                var groupBy = session.Query<MyClass>().Where(a => a.Age > 0)
+                    .GroupByCore(a => new { a.Age, a.DateTime }, d => new { d.Age, d.Description }).ToList();
 
-                  //  var myClasses =
-                  //      session.Query<MyClass>().Where(a => a.Name=="name").Join(
-                  //          session.Query<MyClassJoinPostgres>().Where(d => d.Name == "name11"),
-                  //          a => a.Age,
-                  //          d => d.Age,
-                  //          (w, e) => new { s = w.Age, d = e.Age, dd = e.Name }).ToList();
-                  //  var list1 = session.Query<MyClass>().ToList();
-                  //  var list2 = session.Query<MyClassJoinPostgres>();
-                  //
-                  var groupJoin = session.Query<MyClass>().Where(a=>a.Age>0).GroupJoinCore
-                      (session.Query<MyClassJoinPostgres>(), a => a.Age, b => b.Age, (ff, dd) => new { ff.Age, dd }).ToList();
-                  var sas=session.Query<MyClass>().GroupJoinCore(session.Query<MyClassJoinPostgres>(),
-                      a=>a.Age,
-                      b=>b.Age,
-                      (m, ss) =>ss );
-                  var ssas = session.Query<MyClass>().GroupByCore(a => a.Age);
-                  var ssas1 =  await session.Query<MyClass>().GroupByCoreAsync(a => a.Age,d=>d.DateTime);
-                  var ssas2 = session.Query<MyClass>().GroupByCore(a =>a.Age,
-                      (i, classes) =>classes.Sum(f=>f.Age) );
+                //  var myClasses =
+                //      session.Query<MyClass>().Where(a => a.Name=="name").Join(
+                //          session.Query<MyClassJoinPostgres>().Where(d => d.Name == "name11"),
+                //          a => a.Age,
+                //          d => d.Age,
+                //          (w, e) => new { s = w.Age, d = e.Age, dd = e.Name }).ToList();
+                //  var list1 = session.Query<MyClass>().ToList();
+                //  var list2 = session.Query<MyClassJoinPostgres>();
+                //
+                var groupJoin = session.Query<MyClass>().Where(a => a.Age > 0).GroupJoinCore
+                    (session.Query<MyClassJoinPostgres>(), a => a.Age, b => b.Age, (ff, dd) => new { ff.Age, dd }).ToList();
+                var sas = session.Query<MyClass>().GroupJoinCore(session.Query<MyClassJoinPostgres>(),
+                    a => a.Age,
+                    b => b.Age,
+                    (m, ss) => ss);
+                var ssas = session.Query<MyClass>().GroupByCore(a => a.Age);
+                var ssas1 = await session.Query<MyClass>().GroupByCoreAsync(a => a.Age, d => d.DateTime);
+                var ssas2 = session.Query<MyClass>().GroupByCore(a => a.Age,
+                    (i, classes) => classes.Sum(f => f.Age));
 
             }
 
@@ -119,7 +129,7 @@ namespace TestPostgres
 
         }
 
-    
+
 
         static int GetInt()
         {
@@ -142,7 +152,7 @@ namespace TestPostgres
         public TestUser User { get; set; }
         [MapColumn]
         public int IdCore { get; set; }
-       
+
 
     }
 

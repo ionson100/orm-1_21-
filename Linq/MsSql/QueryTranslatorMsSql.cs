@@ -116,7 +116,10 @@ namespace ORM_1_21_.Linq.MsSql
             return ListOne;
         }
 
-       
+        public List<PostExpression> GetListPostExpression()
+        {
+            throw new NotImplementedException();
+        }
 
 
         private bool PingComposite(Evolution eval)

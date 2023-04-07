@@ -4,7 +4,7 @@ using System.Data;
 
 namespace ORM_1_21_.Linq
 {
-    interface ISqlComposite
+    internal interface ISqlComposite
     {
        
         ISession Sessione { get; }
