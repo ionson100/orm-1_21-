@@ -44,6 +44,9 @@ namespace ORM_1_21_.Linq
         }
 
         public ISession Sessione { get; }
+
+        public ISessionInner SessioneInner => _sessione;
+
         public IDbTransaction Transaction { get; set; }
         public List<ContainerCastExpression> ListCastExpression { get; set; } = new List<ContainerCastExpression>();
 

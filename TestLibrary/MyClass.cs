@@ -35,27 +35,13 @@ namespace TestLibrary
     public class MyClassSqlite1 : MyClassBase { }
 
     [MapTable("my_class5_join")]
-    public class MyClassJoinPostgres : MyClassBase, IEqualityComparer<MyClassJoinPostgres>
+    public class MyClassJoinPostgres : MyClassBase
     {
         public MyClassJoinPostgres()
         {
 
         }
 
-        public bool Equals(MyClassJoinPostgres x, MyClassJoinPostgres y)
-        {
-            if (y != null && x != null && x.Age == y.Age)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        public int GetHashCode(MyClassJoinPostgres obj)
-        {
-            return 0;
-        }
     }
 
 

@@ -294,34 +294,34 @@ namespace ORM_1_21_.Linq
                     }
                 }
 
-                if (PingCompositeE(Evolution.Join, listCore))
-                {
-                    dataReader = _com.ExecuteReader();
-                    var count = dataReader.FieldCount;
-                    var list = new List<Type>();
-                    for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
-                    var resDis = new List<TS>();
-
-                    var ci = typeof(TS).GetConstructor(list.ToArray());
-                    if (ci == null)
-                    {
-                        throw new Exception($"Can't find constructor for anonymous type: {typeof(TS).Name}");
-                    }
-                    while (dataReader.Read())
-                    {
-                        var par = new List<object>();
-                        for (var i = 0; i < count; i++)
-                        {
-                            var val = Pizdaticus.MethodFree(_providerName, list[i], dataReader[i]);
-                            par.Add(dataReader[i] == DBNull.Value ? null : val);
-                        }
-                        var e = ci.Invoke(par.ToArray());
-                        resDis.Add((TS)e);
-                    }
-
-                    return resDis;
-
-                }
+               // if (PingCompositeE(Evolution.Join, listCore))
+               // {
+               //     dataReader = _com.ExecuteReader();
+               //     var count = dataReader.FieldCount;
+               //     var list = new List<Type>();
+               //     for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
+               //     var resDis = new List<TS>();
+               //
+               //     var ci = typeof(TS).GetConstructor(list.ToArray());
+               //     if (ci == null)
+               //     {
+               //         throw new Exception($"Can't find constructor for anonymous type: {typeof(TS).Name}");
+               //     }
+               //     while (dataReader.Read())
+               //     {
+               //         var par = new List<object>();
+               //         for (var i = 0; i < count; i++)
+               //         {
+               //             var val = Pizdaticus.MethodFree(_providerName, list[i], dataReader[i]);
+               //             par.Add(dataReader[i] == DBNull.Value ? null : val);
+               //         }
+               //         var e = ci.Invoke(par.ToArray());
+               //         resDis.Add((TS)e);
+               //     }
+               //
+               //     return resDis;
+               //
+               // }
 
                 if (PingCompositeE(Evolution.FreeSql, listCore) &&
                     AttributesOfClass<TS>.IsValid == false)
@@ -589,8 +589,8 @@ namespace ORM_1_21_.Linq
                     }
                     else
                     {
-                       
-                        throw new Exception("Not implemented");
+                        throw new Exception($"Method Select for IQueryable is not implemented, use method SelectCore or ...toList().Select()");
+                        
                     }
                 }
 

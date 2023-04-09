@@ -13,7 +13,7 @@ namespace ORM_1_21_
         private readonly IOtherDataBaseFactory _factoryOtherBase;
         private bool _isDispose;
         internal readonly Transactionale Transactionale = new Transactionale();
-        private string _connectionString;
+        private readonly string _connectionString;
 
         internal IDbTransaction Transaction
         {

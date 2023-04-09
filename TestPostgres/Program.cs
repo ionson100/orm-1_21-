@@ -37,12 +37,13 @@ namespace TestPostgres
             //Execute.RunThread();
             //Console.ReadKey();
             //Console.ReadKey();
-            //xecute.TotalTest();
-            //xecute.TestNativeInsert();
-            //xecute.TestAssignetInsert();
-            //xecute2.TestTimeStamp();
-             await ExecuteLinqAll.Run();
-            //await Execute3.TotalTestAsync();
+            Execute.TotalTest();
+            Execute.TestNativeInsert();
+            Execute.TestAssignetInsert();
+            Execute2.TestTimeStamp();
+             
+            await Execute3.TotalTestAsync();
+            await ExecuteLinqAll.Run();
 
             Stopwatch stopwatch = new Stopwatch();
 
@@ -80,13 +81,7 @@ namespace TestPostgres
 
                     }
                 );
-                var sss = session.Query<MyClassJoinPostgres>().GroupBy(a => a.Age).GroupBy(s => s.Key).ToList();
-                //var ee =  session.Query<MyClass>().Where(a => a.Age > 0).Where(a => a.Name != null)
-                //    .SelectCore(a => new {a.Age,a.Name} ).Select(s=>s.Age);
-                //foreach (var x1 in ee)
-                //{
-                //    Console.WriteLine(x1);
-                //}
+                //var sss = session.Query<MyClassJoinPostgres>(). 
 
                 var wer = session.Query<MyClassJoinPostgres>().Where(a => a.Age > 0).
                     GroupByCore(a => a.Age, null).ToList();

@@ -111,6 +111,7 @@
     <Compile Include="Extensions\HeplerAsync.cs" />
     <Compile Include="Extensions\IdentityFunction.cs" />
     <Compile Include="Extensions\Set.cs" />
+    <Compile Include="Extensions\Sweetmeat.cs" />
     <Compile Include="Interface\IMapSerializable.cs" />
     <Compile Include="Linq\DbQueryPProviderAsync.cs" />
     <Compile Include="Linq\DbQueryPrividerExecute.cs" />

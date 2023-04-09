@@ -198,14 +198,42 @@ namespace TestLibrary
             Execute.Log(30, listT.Count() == 8, " ConcatCore");
 
             var res = await session.Query<T>().ConcatCoreAsync(session.Query<T>());
-            Execute.Log(30, res.Count() == 8, " ConcatCore");
+            Execute.Log(301, res.Count() == 8, " ConcatCore");
 
-            
+            listT = session.Query<T>().Where(a => a.Age == 30).UnionCore(session.Query<T>()).ToList();
+            Execute.Log(31, listT.Count == 4, " UnionCore");
+
+            var en = session.Query<T>().AsEnumerable();
+            listT = session.Query<T>().Where(a => a.Age == 30).UnionCore(en).ToList();
+            Execute.Log(32, listT.Count == 4, " UnionCore");
+
+            en = await session.Query<T>().Where(a => a.Age == 30).UnionCoreAsync(session.Query<T>());
+            Execute.Log(33, en.Count() == 4, " UnionCoreAsync");
+
+            Console.WriteLine("ZipCore");
+            foreach (string s1 in session.Query<T>().Where(a=>a.Age==20).ZipCore(session.Query<T>().ToList(), (a, b) => (a.Age + @" " + a.Name)))
+            {
+                Console.WriteLine(s1);
+            }
+            Console.WriteLine("ZipCoreAsync");
+            var reSs=await session.Query<T>().Where(a => a.Age == 20)
+                .ZipCoreAsync(session.Query<T>().ToList(), (a, b) => (a.Age + @" " + a.Name));
+            foreach (string reS in reSs)
+            {
+                Console.WriteLine(reS);
+            }
+
+
+
+
+
+
+
 
 
         }
 
-       
+
 
     }
     internal class MyComparer<T> : IEqualityComparer<T> where T : MyClassBase, new()

@@ -202,10 +202,10 @@ namespace ORM_1_21_.Linq.MySql
 
             sbb.Append(" FROM ");
             sbb.Append(AttributesOfClass<T>.TableName(providerName)).Append(" ");
-            if (PingComposite(Evolution.Join))
-            {
-                sbb.Append(_listOne.Single(a => a.Operand == Evolution.Join).Body).Append(" ");
-            }
+            //if (PingComposite(Evolution.Join))
+            //{
+            //    sbb.Append(_listOne.Single(a => a.Operand == Evolution.Join).Body).Append(" ");
+            //}
            
 
             var ss = listOne.Where(a => a.Operand == Evolution.Where);
@@ -347,10 +347,7 @@ namespace ORM_1_21_.Linq.MySql
             // todo ion100 Replace("''", "'")
             var res= sbb.ToString().Replace("  ", " ").Replace("Average", "AVG")
                 .Replace("LongCount", "Count")+";";
-            if (_listOne.Any(a => a.Operand == Evolution.Join))
-            {
-
-            }
+            
             return res;
         }
     }

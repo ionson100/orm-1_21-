@@ -12,8 +12,9 @@ namespace ORM_1_21_.Extensions
     public static partial class Helper
     {
         /// <summary>
-        /// Groups the elements of a sequence according to a specified key selector function
-        /// and creates a result value from each group and its key. The elements of each group are projected by using a specified function.
+        ///     Groups the elements of a sequence according to a specified key selector function
+        ///     and creates a result value from each group and its key. The elements of each group are projected by using a
+        ///     specified function.
         /// </summary>
         /// <param name="source">An IEnumerable&lt;TSource&gt; whose elements to group.</param>
         /// <param name="keySelector">A function to extract the key for each element.</param>
@@ -34,8 +35,9 @@ namespace ORM_1_21_.Extensions
 
 
         /// <summary>
-        /// Groups asynchronous  the elements of a sequence according to a specified key selector
-        /// function and creates a result value from each group and its key. The elements of each group are projected by using a specified function.
+        ///     Groups asynchronous  the elements of a sequence according to a specified key selector
+        ///     function and creates a result value from each group and its key. The elements of each group are projected by using
+        ///     a specified function.
         /// </summary>
         /// <param name="source">An IEnumerable&lt;TSource&gt; whose elements to group.</param>
         /// <param name="keySelector">A function to extract the key for each element.</param>
@@ -48,19 +50,20 @@ namespace ORM_1_21_.Extensions
             this IQueryable<TSource> source,
             Expression<Func<TSource, TKey>> keySelector,
             Expression<Func<TSource, TElement>> elementSelector,
-            CancellationToken  cancellationToken=default)
+            CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(keySelector, nameof(keySelector));
             Check.NotNull(elementSelector, nameof(elementSelector));
-          
-            var sources = await ((QueryProvider)source.Provider).ExecuteExtensionAsync<IEnumerable<TSource>>(source.Expression,null,cancellationToken);
-             return new GroupedEnumerable<TSource, TKey, TElement>(sources, keySelector.Compile(), elementSelector.Compile(), null);
+
+            var sources = await QueryableToListAsync(source, cancellationToken);
+            return new GroupedEnumerable<TSource, TKey, TElement>(sources, keySelector.Compile(),
+                elementSelector.Compile(), null);
         }
 
         /// <summary>
-        /// Groups the elements of a sequence according to a key selector function.The keys are
-        /// compared by using a comparer and each group's elements are projected by using a specified function.
+        ///     Groups the elements of a sequence according to a key selector function.The keys are
+        ///     compared by using a comparer and each group's elements are projected by using a specified function.
         /// </summary>
         /// <param name="source">An IEnumerable&lt;TSource&gt; whose elements to group.</param>
         /// <param name="keySelector">A function to extract the key for each element.</param>
@@ -85,8 +88,8 @@ namespace ORM_1_21_.Extensions
 
 
         /// <summary>
-        /// Groups asynchronous the elements of a sequence according to a key selector function.The keys are
-        /// compared by using a comparer and each group's elements are projected by using a specified function.
+        ///     Groups asynchronous the elements of a sequence according to a key selector function.The keys are
+        ///     compared by using a comparer and each group's elements are projected by using a specified function.
         /// </summary>
         /// <param name="source">An IEnumerable&lt;TSource&gt; whose elements to group.</param>
         /// <param name="keySelector">A function to extract the key for each element.</param>
@@ -101,20 +104,20 @@ namespace ORM_1_21_.Extensions
             Expression<Func<TSource, TKey>> keySelector,
             Expression<Func<TSource, TElement>> elementSelector,
             IEqualityComparer<TKey> comparer,
-            CancellationToken cancellationToken=default)
+            CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(keySelector, nameof(keySelector));
             Check.NotNull(elementSelector, nameof(elementSelector));
             Check.NotNull(comparer, nameof(comparer));
-            var sources =  await ((QueryProvider)source.Provider).ExecuteExtensionAsync<IEnumerable<TSource>>(source.Expression,null,cancellationToken);
-             return  new GroupedEnumerable<TSource, TKey, TElement>(sources, keySelector.Compile(),
+            var sources = await QueryableToListAsync(source, cancellationToken);
+            return new GroupedEnumerable<TSource, TKey, TElement>(sources, keySelector.Compile(),
                 elementSelector.Compile(), comparer);
         }
 
         /// <summary>
-        /// Groups the elements of a sequence according to a specified
-        /// key selector function and compares the keys by using a specified comparer.
+        ///     Groups the elements of a sequence according to a specified
+        ///     key selector function and compares the keys by using a specified comparer.
         /// </summary>
         /// <param name="source">An IEnumerable&amp;lt;TSource&amp;gt; whose elements to group.</param>
         /// <param name="keySelector">A function to extract the key for each element.</param>
@@ -133,8 +136,8 @@ namespace ORM_1_21_.Extensions
         }
 
         /// <summary>
-        /// Groups asynchronous the elements of a sequence according to a specified
-        /// key selector function and compares the keys by using a specified comparer.
+        ///     Groups asynchronous the elements of a sequence according to a specified
+        ///     key selector function and compares the keys by using a specified comparer.
         /// </summary>
         /// <param name="source">An IEnumerable&amp;lt;TSource&amp;gt; whose elements to group.</param>
         /// <param name="keySelector">A function to extract the key for each element.</param>
@@ -142,20 +145,22 @@ namespace ORM_1_21_.Extensions
         /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
         /// <typeparam name="TSource">The type of the elements of source.</typeparam>
         /// <typeparam name="TKey">The type of the key returned by keySelector.</typeparam>
-        public static async Task<IEnumerable<IGrouping<TKey, TSource>>> GroupByCoreAsync<TSource, TKey>(this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector, IEqualityComparer<TKey> comparer,CancellationToken cancellationToken=default)
+        public static async Task<IEnumerable<IGrouping<TKey, TSource>>> GroupByCoreAsync<TSource, TKey>(
+            this IQueryable<TSource> source,
+            Expression<Func<TSource, TKey>> keySelector, IEqualityComparer<TKey> comparer,
+            CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(keySelector, nameof(keySelector));
             Check.NotNull(comparer, nameof(comparer));
-          
-          var sources =  await ((QueryProvider)source.Provider).ExecuteExtensionAsync<IEnumerable<TSource>>(source.Expression,null,cancellationToken);
-            return (new GroupedEnumerable<TSource, TKey, TSource>(sources, keySelector.Compile(),
-                IdentityFunction<TSource>.Instance, comparer));
+
+            var sources = await QueryableToListAsync(source, cancellationToken);
+            return new GroupedEnumerable<TSource, TKey, TSource>(sources, keySelector.Compile(),
+                IdentityFunction<TSource>.Instance, comparer);
         }
 
         /// <summary>
-        /// Groups the elements of a sequence according to a specified key selector function.
+        ///     Groups the elements of a sequence according to a specified key selector function.
         /// </summary>
         /// <param name="source">An IEnumerable&amp;lt;TSource&amp;gt; whose elements to group.</param>
         /// <param name="keySelector">A function to extract the key for each element.</param>
@@ -176,30 +181,31 @@ namespace ORM_1_21_.Extensions
         }
 
         /// <summary>
-        /// Groups asynchronous the elements of a sequence according to a specified key selector function.
+        ///     Groups asynchronous the elements of a sequence according to a specified key selector function.
         /// </summary>
         /// <param name="source">An IEnumerable&amp;lt;TSource&amp;gt; whose elements to group.</param>
         /// <param name="keySelector">A function to extract the key for each element.</param>
-        /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
+        /// <param name="cancellationToken">Object of the canceling to asynchronous operation</param>
         /// <typeparam name="TSource">The type of the elements of source.</typeparam>
         /// <typeparam name="TKey">The type of the key returned by keySelector.</typeparam>
         /// <returns></returns>
-        public static async Task<IEnumerable<IGrouping<TKey, TSource>>> GroupByCoreSync<TSource, TKey>(this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector,CancellationToken cancellationToken=default)
+        public static async Task<IEnumerable<IGrouping<TKey, TSource>>> GroupByCoreSync<TSource, TKey>(
+            this IQueryable<TSource> source,
+            Expression<Func<TSource, TKey>> keySelector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(keySelector, nameof(keySelector));
-            var sources =  await ((QueryProvider)source.Provider).ExecuteExtensionAsync<IEnumerable<TSource>>(source.Expression,null,cancellationToken);
-            return ( new GroupedEnumerable<TSource, TKey, TSource>(
+            var sources = await QueryableToListAsync(source, cancellationToken);
+            return new GroupedEnumerable<TSource, TKey, TSource>(
                 sources,
                 keySelector.Compile(),
                 IdentityFunction<TSource>.Instance,
-                null));
+                null);
         }
 
         /// <summary>
-        /// Groups the elements of a sequence according to a specified key selector
-        /// function and creates a result value from each group and its key.
+        ///     Groups the elements of a sequence according to a specified key selector
+        ///     function and creates a result value from each group and its key.
         /// </summary>
         /// <param name="source">An IEnumerable&amp;lt;TSource&amp;gt; whose elements to group.</param>
         /// <param name="keySelector">A function to extract the key for each element.</param>
@@ -225,36 +231,39 @@ namespace ORM_1_21_.Extensions
 
 
         /// <summary>
-        /// Groups asynchronous the elements of a sequence according to a specified key selector
-        /// function and creates a result value from each group and its key.
+        ///     Groups asynchronous the elements of a sequence according to a specified key selector
+        ///     function and creates a result value from each group and its key.
         /// </summary>
         /// <param name="source">An IEnumerable&amp;lt;TSource&amp;gt; whose elements to group.</param>
         /// <param name="keySelector">A function to extract the key for each element.</param>
         /// <param name="resultSelector">A function to create a result value from each group.</param>
-        /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
+        /// <param name="cancellationToken">Object of the canceling to asynchronous operation</param>
         /// <typeparam name="TSource">The type of the elements of source.</typeparam>
         /// <typeparam name="TKey">The type of the key returned by keySelector.</typeparam>
         /// <typeparam name="TResult">The type of the result value returned by resultSelector.</typeparam>
         /// <returns></returns>
-        public static async Task<IEnumerable<TResult>> GroupByCoreAsync<TSource, TKey, TResult>(this IQueryable<TSource> source,
+        public static async Task<IEnumerable<TResult>> GroupByCoreAsync<TSource, TKey, TResult>(
+            this IQueryable<TSource> source,
             Expression<Func<TSource, TKey>> keySelector,
-            Expression<Func<TKey, IEnumerable<TSource>, TResult>> resultSelector,CancellationToken cancellationToken=default)
+            Expression<Func<TKey, IEnumerable<TSource>, TResult>> resultSelector,
+            CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(keySelector, nameof(keySelector));
             Check.NotNull(resultSelector, nameof(resultSelector));
-            var sources = await ((QueryProvider)source.Provider).ExecuteExtensionAsync<IEnumerable<TSource>>(source.Expression, null, cancellationToken);
-            return (new GroupedEnumerable<TSource, TKey, TSource, TResult>(
+            var sources = await QueryableToListAsync(source, cancellationToken);
+            return new GroupedEnumerable<TSource, TKey, TSource, TResult>(
                 sources,
                 keySelector.Compile(),
                 IdentityFunction<TSource>.Instance,
                 resultSelector.Compile(),
-                null));
-         }
+                null);
+        }
 
         /// <summary>
-        /// Groups the elements of a sequence according to a specified key selector
-        /// function and creates a result value from each group and its key. The keys are compared by using a specified comparer.
+        ///     Groups the elements of a sequence according to a specified key selector
+        ///     function and creates a result value from each group and its key. The keys are compared by using a specified
+        ///     comparer.
         /// </summary>
         /// <param name="source">An IEnumerable&lt;T&gt; whose elements to group.</param>
         /// <param name="keySelector">A function to extract the key for each element.</param>
@@ -282,38 +291,26 @@ namespace ORM_1_21_.Extensions
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         /// <summary>
-        /// Correlates the elements of two sequences based on equality of keys and groups the results.
-        /// The default equality comparer is used to compare keys.
+        ///     Correlates the elements of two sequences based on equality of keys and groups the results.
+        ///     The default equality comparer is used to compare keys.
         /// </summary>
         /// <param name="outer">The first sequence to join.</param>
         /// <param name="inner">The sequence to join to the first sequence.</param>
         /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
         /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
-        /// <param name="resultSelector">A function to create a result element from an element
-        /// from the first sequence and a collection of matching elements from the second sequence.</param>
+        /// <param name="resultSelector">
+        ///     A function to create a result element from an element
+        ///     from the first sequence and a collection of matching elements from the second sequence.
+        /// </param>
         /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
         /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
         /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
         /// <typeparam name="TResult">The type of the result elements.</typeparam>
-        /// <returns>An IEnumerable&lt;T&gt; that contains elements of type TResult that
-        /// are obtained by performing a grouped join on two sequences.</returns>
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that contains elements of type TResult that
+        ///     are obtained by performing a grouped join on two sequences.
+        /// </returns>
         public static IEnumerable<TResult> GroupJoinCore<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer,
             IQueryable<TInner> inner,
             Expression<Func<TOuter, TKey>> outerKeySelector,
@@ -325,75 +322,75 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(outerKeySelector, nameof(outerKeySelector));
             Check.NotNull(innerKeySelector, nameof(innerKeySelector));
 
-            var pTOuter = (QueryProvider)outer.Provider; 
-            var pTInner = new DbQueryProvider<TInner>((Sessione)((ISqlComposite)outer.Provider).Sessione.SessionCloneForTask());
-            var t1= pTOuter.ExecuteExtensionAsync<IEnumerable<TOuter>>(outer.Expression,null,CancellationToken.None);
-            var t2= pTInner.ExecuteExtensionAsync<IEnumerable<TInner>>(inner.Expression,null,CancellationToken.None);
-            Task.WaitAll(t1, t2);
-            var outerS = t1.Result;
-            var innerS=t2.Result;
-            
+            var w = new Sweetmeat<TOuter, TInner>(outer, inner);
+            w.Wait();
 
-            return GroupJoinIterator(outerS, innerS, outerKeySelector.Compile(), innerKeySelector.Compile(),
+            return GroupJoinIterator(w.First, w.Seconds, outerKeySelector.Compile(), innerKeySelector.Compile(),
                 resultSelector.Compile(), null);
         }
 
         /// <summary>
-        /// Asynchronous correlates the elements of two sequences based on equality of keys and groups the results.
-        /// The default equality comparer is used to compare keys.
+        ///     Asynchronous correlates the elements of two sequences based on equality of keys and groups the results.
+        ///     The default equality comparer is used to compare keys.
         /// </summary>
         /// <param name="outer">The first sequence to join.</param>
         /// <param name="inner">The sequence to join to the first sequence.</param>
         /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
         /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
-        /// <param name="resultSelector">A function to create a result element from an element
-        /// from the first sequence and a collection of matching elements from the second sequence.</param>
-        /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
+        /// <param name="resultSelector">
+        ///     A function to create a result element from an element
+        ///     from the first sequence and a collection of matching elements from the second sequence.
+        /// </param>
+        /// <param name="cancellationToken">Object of the canceling to asynchronous operation</param>
         /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
         /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
         /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
         /// <typeparam name="TResult">The type of the result elements.</typeparam>
-        /// <returns>An IEnumerable&lt;T&gt; that contains elements of type TResult that
-        /// are obtained by performing a grouped join on two sequences.</returns>
-        public static async Task<IEnumerable<TResult>> GroupJoinCoreAsync<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer,
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that contains elements of type TResult that
+        ///     are obtained by performing a grouped join on two sequences.
+        /// </returns>
+        public static async Task<IEnumerable<TResult>> GroupJoinCoreAsync<TOuter, TInner, TKey, TResult>(
+            this IQueryable<TOuter> outer,
             IQueryable<TInner> inner,
             Expression<Func<TOuter, TKey>> outerKeySelector,
             Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, IEnumerable<TInner>, 
+            Expression<Func<TOuter, IEnumerable<TInner>,
                 TResult>> resultSelector,
-            CancellationToken cancellationToken=default)
+            CancellationToken cancellationToken = default)
         {
             Check.NotNull(outer, nameof(outer));
             Check.NotNull(inner, nameof(inner));
             Check.NotNull(outerKeySelector, nameof(outerKeySelector));
             Check.NotNull(innerKeySelector, nameof(innerKeySelector));
             Check.NotNull(resultSelector, nameof(resultSelector));
-            var pTOuter = (QueryProvider)outer.Provider;
-            var pTInner = new DbQueryProvider<TInner>((Sessione)((ISqlComposite)outer.Provider).Sessione.SessionCloneForTask());
-            var outerS = await pTOuter.ExecuteExtensionAsync<IEnumerable<TOuter>>(outer.Expression, null, cancellationToken);
-            var innerS =  await pTInner.ExecuteExtensionAsync<IEnumerable<TInner>>(inner.Expression, null, cancellationToken);
-           
-            return (GroupJoinIterator(outerS, innerS, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), null));
+            var w = new Sweetmeat<TOuter, TInner>(outer, inner, cancellationToken);
+            await w.WaitAsync();
+            return GroupJoinIterator(w.First, w.Seconds, outerKeySelector.Compile(), innerKeySelector.Compile(),
+                resultSelector.Compile(), null);
         }
 
 
         /// <summary>
-        /// Correlates the elements of two sequences based on equality of keys and groups the results.
-        /// The default equality comparer is used to compare keys.
+        ///     Correlates the elements of two sequences based on equality of keys and groups the results.
+        ///     The default equality comparer is used to compare keys.
         /// </summary>
         /// <param name="outer">The first sequence to join.</param>
         /// <param name="inner">The sequence to join to the first sequence.</param>
         /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
         /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
-        /// <param name="resultSelector">A function to create a result element from an element
-        /// from the first sequence and a collection of matching elements from the second sequence.</param>
+        /// <param name="resultSelector">
+        ///     A function to create a result element from an element
+        ///     from the first sequence and a collection of matching elements from the second sequence.
+        /// </param>
         /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
         /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
         /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
         /// <typeparam name="TResult">The type of the result elements.</typeparam>
-        /// <returns>An IEnumerable&lt;T&gt; that contains elements of type TResult that
-        /// are obtained by performing a grouped join on two sequences.</returns>
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that contains elements of type TResult that
+        ///     are obtained by performing a grouped join on two sequences.
+        /// </returns>
         public static IEnumerable<TResult> GroupJoinCore<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer,
             IEnumerable<TInner> inner,
             Expression<Func<TOuter, TKey>> outerKeySelector,
@@ -409,33 +406,37 @@ namespace ORM_1_21_.Extensions
             var outerS = (IEnumerable<TOuter>)pTOuter.Execute<TOuter>(outer.Expression);
             return GroupJoinIterator(outerS, inner, outerKeySelector.Compile(), innerKeySelector.Compile(),
                 resultSelector.Compile(), null);
-
         }
 
         /// <summary>
-        /// Asynchronous correlates the elements of two sequences based on equality of keys and groups the results.
-        /// The default equality comparer is used to compare keys.
+        ///     Asynchronous correlates the elements of two sequences based on equality of keys and groups the results.
+        ///     The default equality comparer is used to compare keys.
         /// </summary>
         /// <param name="outer">The first sequence to join.</param>
         /// <param name="inner">The sequence to join to the first sequence.</param>
         /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
         /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
-        /// <param name="resultSelector">A function to create a result element from an element
-        /// from the first sequence and a collection of matching elements from the second sequence.</param>
-        /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
+        /// <param name="resultSelector">
+        ///     A function to create a result element from an element
+        ///     from the first sequence and a collection of matching elements from the second sequence.
+        /// </param>
+        /// <param name="cancellationToken">Object of the canceling to asynchronous operation</param>
         /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
         /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
         /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
         /// <typeparam name="TResult">The type of the result elements.</typeparam>
-        /// <returns>An IEnumerable&lt;T&gt; that contains elements of type TResult that
-        /// are obtained by performing a grouped join on two sequences.</returns>
-        public static async Task<IEnumerable<TResult>> GroupJoinCoreAsync<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer,
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that contains elements of type TResult that
+        ///     are obtained by performing a grouped join on two sequences.
+        /// </returns>
+        public static async Task<IEnumerable<TResult>> GroupJoinCoreAsync<TOuter, TInner, TKey, TResult>(
+            this IQueryable<TOuter> outer,
             IEnumerable<TInner> inner,
             Expression<Func<TOuter, TKey>> outerKeySelector,
             Expression<Func<TInner, TKey>> innerKeySelector,
             Expression<Func<TOuter, IEnumerable<TInner>,
                 TResult>> resultSelector,
-            CancellationToken cancellationToken=default)
+            CancellationToken cancellationToken = default)
         {
             Check.NotNull(outer, nameof(outer));
             Check.NotNull(inner, nameof(inner));
@@ -443,30 +444,33 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(innerKeySelector, nameof(innerKeySelector));
             Check.NotNull(resultSelector, nameof(resultSelector));
             var pTOuter = (QueryProvider)outer.Provider;
-            var outerS = await pTOuter.ExecuteExtensionAsync<IEnumerable<TOuter>>(outer.Expression,null,cancellationToken);
+            var outerS = await QueryableToListAsync(outer, cancellationToken);
             return GroupJoinIterator(outerS, inner, outerKeySelector.Compile(), innerKeySelector.Compile(),
                 resultSelector.Compile(), null);
-
         }
 
 
         /// <summary>
-        /// Correlates the elements of two sequences based on key equality and groups the results.
-        /// A specified IEqualityComparer&lt;T&gt; is used to compare keys.
+        ///     Correlates the elements of two sequences based on key equality and groups the results.
+        ///     A specified IEqualityComparer&lt;T&gt; is used to compare keys.
         /// </summary>
         /// <param name="outer">The first sequence to join.</param>
         /// <param name="inner">The sequence to join to the first sequence.</param>
         /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
         /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
-        /// <param name="resultSelector">A function to create a result element from an element
-        /// from the first sequence and a collection of matching elements from the second sequence.</param>
+        /// <param name="resultSelector">
+        ///     A function to create a result element from an element
+        ///     from the first sequence and a collection of matching elements from the second sequence.
+        /// </param>
         /// <param name="comparer">An IEqualityComparer&lt;T&gt; to hash and compare keys.</param>
         /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
         /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
         /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
         /// <typeparam name="TResult">The type of the result elements.</typeparam>
-        /// <returns>An IEnumerable&lt;T&gt; that contains elements of type TResult that
-        /// are obtained by performing a grouped join on two sequences.</returns>
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that contains elements of type TResult that
+        ///     are obtained by performing a grouped join on two sequences.
+        /// </returns>
         public static IEnumerable<TResult> GroupJoinCore<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer,
             IQueryable<TInner> inner,
             Expression<Func<TOuter, TKey>> outerKeySelector,
@@ -474,44 +478,43 @@ namespace ORM_1_21_.Extensions
             Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector,
             IEqualityComparer<TKey> comparer)
         {
-            var pTOuter = (QueryProvider)outer.Provider;
-            var pTInner = new DbQueryProvider<TInner>((Sessione)((ISqlComposite)outer.Provider).Sessione.SessionCloneForTask());
-            var t1 = pTOuter.ExecuteExtensionAsync<IEnumerable<TOuter>>(outer.Expression, null, CancellationToken.None);
-            var t2 = pTInner.ExecuteExtensionAsync<IEnumerable<TInner>>(inner.Expression, null, CancellationToken.None);
-            Task.WaitAll(t1, t2);
-            var outerS = t1.Result;
-            var innerS = t2.Result;
-
-            return GroupJoinIterator(outerS, innerS, outerKeySelector.Compile(), innerKeySelector.Compile(),
+            var w = new Sweetmeat<TOuter, TInner>(outer, inner);
+            w.Wait();
+            return GroupJoinIterator(w.First, w.Seconds, outerKeySelector.Compile(), innerKeySelector.Compile(),
                 resultSelector.Compile(), comparer);
         }
 
 
         /// <summary>
-        /// Asynchronous correlates the elements of two sequences based on key equality and groups the results.
-        /// A specified IEqualityComparer&lt;T&gt; is used to compare keys.
+        ///     Asynchronous correlates the elements of two sequences based on key equality and groups the results.
+        ///     A specified IEqualityComparer&lt;T&gt; is used to compare keys.
         /// </summary>
         /// <param name="outer">The first sequence to join.</param>
         /// <param name="inner">The sequence to join to the first sequence.</param>
         /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
         /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
-        /// <param name="resultSelector">A function to create a result element from an element
-        /// from the first sequence and a collection of matching elements from the second sequence.</param>
+        /// <param name="resultSelector">
+        ///     A function to create a result element from an element
+        ///     from the first sequence and a collection of matching elements from the second sequence.
+        /// </param>
         /// <param name="comparer">An IEqualityComparer&lt;T&gt; to hash and compare keys.</param>
-        /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
+        /// <param name="cancellationToken">Object of the canceling to asynchronous operation</param>
         /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
         /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
         /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
         /// <typeparam name="TResult">The type of the result elements.</typeparam>
-        /// <returns>An IEnumerable&lt;T&gt; that contains elements of type TResult that
-        /// are obtained by performing a grouped join on two sequences.</returns>
-        public static async Task<IEnumerable<TResult>> GroupJoinCoreAsync<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer,
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that contains elements of type TResult that
+        ///     are obtained by performing a grouped join on two sequences.
+        /// </returns>
+        public static async Task<IEnumerable<TResult>> GroupJoinCoreAsync<TOuter, TInner, TKey, TResult>(
+            this IQueryable<TOuter> outer,
             IQueryable<TInner> inner,
             Expression<Func<TOuter, TKey>> outerKeySelector,
             Expression<Func<TInner, TKey>> innerKeySelector,
             Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector,
             IEqualityComparer<TKey> comparer,
-            CancellationToken cancellationToken=default)
+            CancellationToken cancellationToken = default)
         {
             Check.NotNull(outer, nameof(outer));
             Check.NotNull(inner, nameof(inner));
@@ -519,31 +522,33 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(innerKeySelector, nameof(innerKeySelector));
             Check.NotNull(resultSelector, nameof(resultSelector));
             Check.NotNull(comparer, nameof(comparer));
-            var pTOuter = (QueryProvider)outer.Provider;
-            var pTInner = new DbQueryProvider<TInner>((Sessione)((ISqlComposite)outer.Provider).Sessione.SessionCloneForTask());
-            var outerS  = await pTOuter.ExecuteExtensionAsync<IEnumerable<TOuter>>(outer.Expression, null, cancellationToken);
-            var innerS = await pTInner.ExecuteExtensionAsync<IEnumerable<TInner>>(inner.Expression, null, cancellationToken);
-            return (GroupJoinIterator(outerS, innerS, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), comparer));
+            var w = new Sweetmeat<TOuter, TInner>(outer, inner, cancellationToken);
+            await w.WaitAsync();
+            return GroupJoinIterator(w.First, w.Seconds, outerKeySelector.Compile(), innerKeySelector.Compile(),
+                resultSelector.Compile(), comparer);
         }
 
         /// <summary>
-        /// Correlates the elements of two sequences based on key equality and groups the results.
-        /// A specified IEqualityComparer&lt;T&gt; is used to compare keys.
+        ///     Correlates the elements of two sequences based on key equality and groups the results.
+        ///     A specified IEqualityComparer&lt;T&gt; is used to compare keys.
         /// </summary>
         /// <param name="outer">The first sequence to join.</param>
         /// <param name="inner">The sequence to join to the first sequence.</param>
         /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
         /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
-        /// <param name="resultSelector">A function to create a result element from an element
-        /// from the first sequence and a collection of matching elements from the second sequence.</param>
+        /// <param name="resultSelector">
+        ///     A function to create a result element from an element
+        ///     from the first sequence and a collection of matching elements from the second sequence.
+        /// </param>
         /// <param name="comparer">An IEqualityComparer&lt;T&gt; to hash and compare keys.</param>
         /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
         /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
         /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
         /// <typeparam name="TResult">The type of the result elements.</typeparam>
-        /// <returns>An IEnumerable&lt;T&gt; that contains elements of type TResult that
-        /// are obtained by performing a grouped join on two sequences.</returns>
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that contains elements of type TResult that
+        ///     are obtained by performing a grouped join on two sequences.
+        /// </returns>
         public static IEnumerable<TResult> GroupJoinCore<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer,
             IEnumerable<TInner> inner,
             Expression<Func<TOuter, TKey>> outerKeySelector,
@@ -558,37 +563,42 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(resultSelector, nameof(resultSelector));
             Check.NotNull(comparer, nameof(comparer));
             var pTOuter = (QueryProvider)outer.Provider;
-            var outerS =(IEnumerable<TOuter>) pTOuter.Execute<TOuter>(outer.Expression);
+            var outerS = (IEnumerable<TOuter>)pTOuter.Execute<TOuter>(outer.Expression);
             return GroupJoinIterator(outerS, inner, outerKeySelector.Compile(), innerKeySelector.Compile(),
                 resultSelector.Compile(), comparer);
         }
 
 
         /// <summary>
-        /// Asynchronous correlates the elements of two sequences based on key equality and groups the results.
-        /// A specified IEqualityComparer&lt;T&gt; is used to compare keys.
+        ///     Asynchronous correlates the elements of two sequences based on key equality and groups the results.
+        ///     A specified IEqualityComparer&lt;T&gt; is used to compare keys.
         /// </summary>
         /// <param name="outer">The first sequence to join.</param>
         /// <param name="inner">The sequence to join to the first sequence.</param>
         /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
         /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
-        /// <param name="resultSelector">A function to create a result element from an element
-        /// from the first sequence and a collection of matching elements from the second sequence.</param>
+        /// <param name="resultSelector">
+        ///     A function to create a result element from an element
+        ///     from the first sequence and a collection of matching elements from the second sequence.
+        /// </param>
         /// <param name="comparer">An IEqualityComparer&lt;T&gt; to hash and compare keys.</param>
-        /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
+        /// <param name="cancellationToken">Object of the canceling to asynchronous operation</param>
         /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
         /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
         /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
         /// <typeparam name="TResult">The type of the result elements.</typeparam>
-        /// <returns>An IEnumerable&lt;T&gt; that contains elements of type TResult that
-        /// are obtained by performing a grouped join on two sequences.</returns>
-        public static async Task<IEnumerable<TResult>> GroupJoinCoreAsync<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer,
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that contains elements of type TResult that
+        ///     are obtained by performing a grouped join on two sequences.
+        /// </returns>
+        public static async Task<IEnumerable<TResult>> GroupJoinCoreAsync<TOuter, TInner, TKey, TResult>(
+            this IQueryable<TOuter> outer,
             IEnumerable<TInner> inner,
             Expression<Func<TOuter, TKey>> outerKeySelector,
             Expression<Func<TInner, TKey>> innerKeySelector,
             Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector,
             IEqualityComparer<TKey> comparer,
-            CancellationToken cancellationToken=default)
+            CancellationToken cancellationToken = default)
         {
             Check.NotNull(outer, nameof(outer));
             Check.NotNull(inner, nameof(inner));
@@ -597,9 +607,9 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(resultSelector, nameof(resultSelector));
             Check.NotNull(comparer, nameof(comparer));
             var pTOuter = (QueryProvider)outer.Provider;
-            var outerS =  await pTOuter.ExecuteExtensionAsync<IEnumerable<TOuter>>(outer.Expression,null,cancellationToken);
-            return (GroupJoinIterator(outerS, inner, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), comparer));
+            var outerS = await QueryableToListAsync(outer, cancellationToken);
+            return GroupJoinIterator(outerS, inner, outerKeySelector.Compile(), innerKeySelector.Compile(),
+                resultSelector.Compile(), comparer);
         }
 
         private static IEnumerable<TResult> GroupJoinIterator<TOuter, TInner, TKey, TResult>(

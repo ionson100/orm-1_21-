@@ -8,16 +8,12 @@ namespace ORM_1_21_.Linq
 {
 
 
-    interface IInnerList
-    {
-        object GetInnerList();
-    }
 
     /// <summary>
     /// Supplier request
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public sealed class Query<T> : IOrderedQueryable<T>, IGetTypeQuery, IInnerList
+    public sealed class Query<T> : IOrderedQueryable<T>, IGetTypeQuery
     {
         /// <summary>
         /// Collection iteration function
@@ -30,10 +26,7 @@ namespace ORM_1_21_.Linq
             }
         }
         
-        object IInnerList.GetInnerList()
-        {
-            return _provider.Execute<T>(_expression);
-        }
+      
       
         /// <summary>
         /// Provider

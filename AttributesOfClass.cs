@@ -59,9 +59,16 @@ namespace ORM_1_21_
             StorageTypeAttribute.DictionaryAttribute.TryAdd(typeof(T), new ProxyAttribute<T>());
         }
 
+        public static object GetValuePrimaryKey(T t)
+        {
+           
+            var p= PkAttribute(Provider);
+            return GetValueE(Provider, p.PropertyName, t);
+        }
+
 
         internal static readonly object LockO = new object();
-        public static Lazy<bool> IsUssageActivatorInner = new Lazy<bool>(() =>
+        public static Lazy<bool> IsUsageActivatorInner = new Lazy<bool>(() =>
         {
             var t = typeof(T).GetCustomAttribute(typeof(MapUsageActivatorAttribute), true);
             if (t != null) return true;
@@ -200,6 +207,7 @@ namespace ORM_1_21_
 
         private static ProviderName Provider
         {
+            get => (ProviderName)ProviderName;
             set
             {
                 lock (LockO)
@@ -228,7 +236,7 @@ namespace ORM_1_21_
         public static bool IsUsageActivator(ProviderName providerName)
         {
             Provider = providerName;
-            return IsUssageActivatorInner.Value;
+            return IsUsageActivatorInner.Value;
         }
 
 

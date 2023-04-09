@@ -374,10 +374,12 @@ namespace ORM_1_21_
         /// </summary>
         string IdSession { get; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
+        
+    }
+
+    internal interface ISessionInner
+    {
         ISession SessionCloneForTask();
+
     }
 }

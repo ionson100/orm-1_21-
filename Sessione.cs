@@ -16,7 +16,7 @@ namespace ORM_1_21_
 {
     ///<summary>
     ///</summary>
-    internal sealed partial class Sessione : ISession, IServiceSessions
+    internal sealed partial class Sessione : ISession, IServiceSessions, ISessionInner
     {
       
         private readonly List<IDbCommand> _dbCommands = new List<IDbCommand>();
@@ -1125,8 +1125,6 @@ namespace ORM_1_21_
                     else
                         AttributesOfClass<TSource>.CreateUpdateCommandMysql(com, source, MyProviderName, whereObjects);
 
-
-                   
                     res = com.ExecuteNonQuery();
                     if (res == 1)
                     {

@@ -140,4 +140,18 @@ namespace ORM_1_21_.Extensions
             return 0;
         }
     }
+
+    internal class MySet<TElement>
+    {
+        private readonly HashSet<object> _hashSet=new HashSet<object>();
+
+        public bool Add(TElement value)
+        {
+           var v= AttributesOfClass<TElement>.GetValuePrimaryKey(value);
+           if (_hashSet.Contains(v)) return false;
+           _hashSet.Add(v);
+           return true;
+        }
+
+    }
 }

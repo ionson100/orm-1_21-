@@ -18,17 +18,6 @@ namespace ORM_1_21_.Utils
             return value;
         }
 
-      
-
-        public static T? NotNull<T>(T? value, string parameterName) where T : struct
-        {
-            if (!value.HasValue)
-            {
-                throw new ArgumentNullException(parameterName);
-            }
-
-            return value;
-        }
 
         public static string NotEmpty(string value, string parameterName, Action action = null)
         {
