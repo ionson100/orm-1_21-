@@ -15,6 +15,33 @@ namespace ORM_1_21_.Extensions
     public static partial class Helper
     {
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="provider"></param>
+        /// <param name="expression"></param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static Task<TSource> ExecuteAsync<TSource>(this  IQueryProvider provider,Expression expression,CancellationToken cancellationToken = default)
+        {
+            var p = (QueryProvider)provider;
+            return p.ExecuteExtensionAsync<TSource>(expression, null, cancellationToken);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>   
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<TSource> AsEnumerable<TSource>(
+            this IQueryable<TSource> source)
+        {
+            return source.Provider.Execute<IEnumerable<TSource>>(source.Expression);
+        }
+
+
+        /// <summary>
         ///     Iterating over a collection
         /// </summary>
         public static void ForEach<TSource>(this IQueryable<TSource> source, Action<TSource> action)
@@ -87,29 +114,42 @@ namespace ORM_1_21_.Extensions
         }
 
         /// <summary>
-        ///     Partitioning a sequence
+        ///     Partitioning a sequence IQueryable
         /// </summary>
         /// <param name="source">An System.Linq.IQueryable`1 to return the first element of</param>
         /// <param name="chunkSize">Quantity per piece</param>
-        public static List<List<TSource>> SplitQueryable<TSource>(this IQueryable<TSource> source, int chunkSize)
+        public static IEnumerable<IEnumerable<TSource>> Split<TSource>(this IQueryable<TSource> source, int chunkSize)
         {
-            var enumerable = source.ToList();
-            return enumerable
+            return source.ToList()
                 .Select((x, i) => new { Index = i, Value = x })
                 .GroupBy(x => x.Index / chunkSize)
-                .Select(x => x.Select(v => v.Value).ToList())
-                .ToList();
+                .Select(x => x.Select(v => v.Value));
         }
 
         /// <summary>
-        ///     Partitioning a sequence
+        ///     Partitioning a sequence IEnumerable
+        /// </summary>
+        /// <param name="source">An IEnumerable to return the first element of</param>
+        /// <param name="chunkSize">Quantity per piece</param>
+        public static IEnumerable<IEnumerable<TSource>> Split<TSource>(this IEnumerable<TSource> source, int chunkSize)
+        {
+            return source
+                .Select((x, i) => new { Index = i, Value = x })
+                .GroupBy(x => x.Index / chunkSize)
+                .Select(x => x.Select(v => v.Value));
+        }
+
+        /// <summary>
+        ///   Asynchronously  partitioning a sequence
         /// </summary>
         /// <param name="source">An System.Linq.IQueryable`1 to return the first element of</param>
         /// <param name="chunkSize">Quantity per piece</param>
-        public static Task<List<List<TSource>>> SplitQueryableAsync<TSource>(this IQueryable<TSource> source,
-            int chunkSize)
+        /// <param name="cancellationToken"></param>
+        public static async Task<IEnumerable<IEnumerable<TSource>>> SplitAsync<TSource>(this IQueryable<TSource> source,
+            int chunkSize,CancellationToken cancellationToken=default)
         {
-            return InnerSplitQueryable(source, chunkSize);
+            var res = await QueryableToListAsync(source, cancellationToken);
+            return res.Split(chunkSize);
         }
 
         private static async Task<List<List<T>>> InnerSplitQueryable<T>(this IQueryable<T> coll, int chunkSize)
@@ -440,7 +480,7 @@ namespace ORM_1_21_.Extensions
             return list;
         }
 
-        private static async Task<IEnumerable<TResult>> QueryableToListIntAsync<TSource, TResult>(Func<TSource, int,
+        private static async Task<IEnumerable<TResult>> QueryableSelectorToListIntAsync<TSource, TResult>(Func<TSource, int,
             TResult> selector, IQueryable proxySource, CancellationToken cancellationToken)
         {
             var list = new List<TResult>();
@@ -458,7 +498,7 @@ namespace ORM_1_21_.Extensions
             return list;
         }
 
-        static async Task<List<T>> QueryableToList<T>(this IQueryable<T> source, CancellationToken cancellationToken = default)
+        static async Task<List<T>> QueryableToListAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken = default)
         {
            return await((QueryProvider)source.Provider).ExecuteExtensionAsync<List<T>>(source.Expression,
                 null,
@@ -475,8 +515,8 @@ namespace ORM_1_21_.Extensions
         public static async Task<IEnumerable<TSource>> AsEnumerableAsync<TSource>(
             this IQueryable<TSource> source, CancellationToken cancellationToken = default)
         {
-            var res = await QueryableToList(source, cancellationToken);
-            return res.AsEnumerable();
+            var res = await QueryableToListAsync(source, cancellationToken);
+            return res;
         }
 
         #region Select
@@ -555,7 +595,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(selector, nameof(selector));
-            return await QueryableToListIntAsync(selector, source, cancellationToken);
+            return await QueryableSelectorToListIntAsync(selector, source, cancellationToken);
         }
 
         #endregion
@@ -602,7 +642,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(func, nameof(func));
-            var list = await QueryableToList(source, cancellationToken);
+            var list = await QueryableToListAsync(source, cancellationToken);
             using (IEnumerator<TSource> enumerator = list.GetEnumerator())
             {
                 var source1 = enumerator.MoveNext()
@@ -661,7 +701,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, nameof(source));
             Check.NotNull(func, nameof(func));
             var accumulate = seed;
-            var res = await QueryableToList(source, cancellationToken);
+            var res = await QueryableToListAsync(source, cancellationToken);
 
             foreach (var source1 in res)
                 accumulate = func(accumulate, source1);
@@ -721,7 +761,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, nameof(source));
             Check.NotNull(func, nameof(func));
             Check.NotNull(resultSelector, nameof(resultSelector));
-            var res = await QueryableToList(source, cancellationToken);
+            var res = await QueryableToListAsync(source, cancellationToken);
             var accumulate = seed;
             foreach (var source1 in res)
                 accumulate = func(accumulate, source1);
@@ -977,7 +1017,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(first, nameof(first));
             Check.NotNull(second, nameof(second));
-            var res = await QueryableToList(first, cancellationToken);
+            var res = await QueryableToListAsync(first, cancellationToken);
             return ExceptIterator(res, second, null);
         }
 
@@ -1007,7 +1047,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(first, nameof(first));
             Check.NotNull(second, nameof(second));
             Check.NotNull(comparer, nameof(comparer));
-            var res = await QueryableToList(first, cancellationToken);
+            var res = await QueryableToListAsync(first, cancellationToken);
             return ExceptIterator(res, second, comparer);
         }
 
@@ -1085,7 +1125,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(first, nameof(first));
             Check.NotNull(second, nameof(second));
-            var res = await QueryableToList(first, cancellationToken);
+            var res = await QueryableToListAsync(first, cancellationToken);
             return ConcatIterator(res, second);
         }
 
@@ -1143,7 +1183,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(selector, nameof(selector));
-            var res = await QueryableToList(source, cancellationToken);
+            var res = await QueryableToListAsync(source, cancellationToken);
             return SelectManyIterator(res, selector);
         }
 
@@ -1237,7 +1277,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(selector, nameof(selector));
-            var res = await QueryableToList(source, cancellationToken);
+            var res = await QueryableToListAsync(source, cancellationToken);
             return SelectManyIterator(res, selector);
         }
 
@@ -1294,7 +1334,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, nameof(source));
             Check.NotNull(collectionSelector, nameof(collectionSelector));
             Check.NotNull(resultSelector, nameof(resultSelector));
-            var res = await QueryableToList(source, cancellationToken);
+            var res = await QueryableToListAsync(source, cancellationToken);
             return SelectManyIterator(res, collectionSelector, resultSelector);
         }
 
@@ -1358,7 +1398,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, nameof(source));
             Check.NotNull(collectionSelector, nameof(collectionSelector));
             Check.NotNull(resultSelector, nameof(resultSelector));
-            var res = await QueryableToList(source, cancellationToken);
+            var res = await QueryableToListAsync(source, cancellationToken);
             return SelectManyIterator(res, collectionSelector, resultSelector);
         }
 

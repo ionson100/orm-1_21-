@@ -212,7 +212,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <typeparam name="TF">The type that the interface must implement IOtherDataBaseFactory and
         /// have a default constructor</typeparam>
-        public static async Task<ISession> GetSessionSync<TF>() where TF : IOtherDataBaseFactory, new()
+        public static async Task<ISession> GetSessionAsync<TF>() where TF : IOtherDataBaseFactory, new()
         {
             if (_configure == null)
             {

@@ -268,6 +268,23 @@ isPer = session.IsPersistent(myClass); //trye
 
 #### Ling To SQL.
 
+![alt text](linq.png)
+
+Methods: Join, GroupJoin, Concat, Cast, Select, SelectMany, Aggregate, GroupBy, Except\
+have no implementation, they are overridden method name Core ending.
+```C#
+Example:
+session.Query<MyClass>().Join(session.Query<MyClass>(), a => a.Age, b => b.Age,
+                    (aa, bb) => new { name1=aa.Name, name2=bb.Name }).ToList();
+// Error: Method Join for IQueryable is not implemented, use method JoinCore or ...toList().Join()
+Alternative:
+session.Query<MyClass>().JoinCore(session.Query<MyClass>(), a => a.Age, b => b.Age,
+                     (aa, bb) => new { name1 = aa.Name, name2 = bb.Name }).ToList();
+Or:
+session.Query<MyClass>().ToList().Join(session.Query<MyClass>(), a => a.Age, b => b.Age,
+                     (aa, bb) => new { name1 = aa.Name, name2 = bb.Name }).ToList();
+```
+
 ```C#
 using ORM_1_21_;
 using ORM_1_21_.Extensions;

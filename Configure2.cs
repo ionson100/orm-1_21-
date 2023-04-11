@@ -30,19 +30,19 @@ namespace ORM_1_21_
             /// <returns></returns>
             public static string DateToString(DateTime dateTime)
             {
-                return $"'{dateTime:yyyy-MM-dd HH:mm:ss.fff}'";
+                return $"{dateTime:yyyy-MM-dd HH:mm:ss.fff}";
             }
             /// <summary>
-            /// Serialization
+            /// Serialization to bytes
             /// </summary>
-            /// <param name="obj">Объект</param>
+            /// <param name="obj">Object for serialization </param>
             /// <returns>byte[]</returns>
             public static byte[] ObjectToByteArray(object obj)
             {
                 return UtilsCore.ObjectToByteArray(obj);
             }
             /// <summary>
-            /// De serialization
+            /// De serialization from bytes
             /// </summary>
             public static object ByteArrayToObject(byte[] arrBytes)
             {

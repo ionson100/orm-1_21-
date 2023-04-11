@@ -29,12 +29,10 @@ namespace TestLibrary
             }
 
             await session.TableCreateAsync<T>();
-            if (session.TableExists<T1>())
-            {
-                session.DropTable<T1>();
-            }
 
-            session.TableCreate<T1>();
+
+            await session.DropTableIfExistsAsync<T1>();
+            await session.TableCreateAsync<T1>();
 
             session.InsertBulk(new List<T>
             {
@@ -82,18 +80,18 @@ namespace TestLibrary
             count = await session.Query<T>().CountAsync();
             Execute.Log(7, array.Length == 4, " count");
 
-            oT = session.Query<T>().OrderBy(a=>a.Age).AggregateCore((t1, t2) =>
-              {
-                  t2.Name += $"{t1.Name} {t1.Age}";
-                  return t2;
-              });//
+            oT = session.Query<T>().OrderBy(a => a.Age).AggregateCore((t1, t2) =>
+                {
+                    t2.Name += $"{t1.Name} {t1.Age}";
+                    return t2;
+                });//
             Execute.Log(8, oT.Name == "name30name30name20name20 20 20 30", " AggregateCore 1");
 
-            oT = await session.Query<T>().OrderBy(a=>a.Age).AggregateCoreAsync((t1, t2) =>
-             {
-                 t2.Name += $"{t1.Name} {t1.Age}";
-                 return t2;
-             });//
+            oT = await session.Query<T>().OrderBy(a => a.Age).AggregateCoreAsync((t1, t2) =>
+               {
+                   t2.Name += $"{t1.Name} {t1.Age}";
+                   return t2;
+               });//
             Execute.Log(9, oT.Name == "name30name30name20name20 20 20 30", " AggregateCoreAsync 1");
 
             oT = session.Query<T>().AggregateCore(new T(), (a, b) =>
@@ -157,7 +155,7 @@ namespace TestLibrary
                 Console.WriteLine(myClassBase.Age);
             }
             Console.WriteLine("AsEnumerableAsync");
-            var r=await session.Query<T>().AsEnumerableAsync();
+            var r = await session.Query<T>().AsEnumerableAsync();
             foreach (var myClassBase in r)
             {
                 Console.WriteLine(myClassBase.Age);
@@ -169,10 +167,10 @@ namespace TestLibrary
                 Console.WriteLine(classBase.Age);
             }
 
-            count=(int)session.Query<T>().Average(a => a.Age);
-            Execute.Log(25, count==25, " Averagev");
-            count =await session.Query<T>().AverageAsync(a => a.Age);
-            Execute.Log(26, count==25, " AverageAsync");
+            count = (int)session.Query<T>().Average(a => a.Age);
+            Execute.Log(25, count == 25, " Averagev");
+            count = await session.Query<T>().AverageAsync(a => a.Age);
+            Execute.Log(26, count == 25, " AverageAsync");
 
             listT = session.Query<T>().Between(a => a.Age, 25, 30).ToList();
             Execute.Log(27, listT.Count == 2, " Between");
@@ -183,18 +181,18 @@ namespace TestLibrary
             }
             Console.WriteLine("CastCoreAsync");
             var re = await session.Query<T>().CastCoreAsync<MyClassBase>();
-            foreach (var classBase in re )
+            foreach (var classBase in re)
             {
                 Console.WriteLine(classBase.Age);
             }
 
-            listT = session.Query<T>().Where(a=>a.Age==30).ExceptCore(session.Query<T>().Where(a=>a.Age==20),new MyComparer<T>()).ToList();
-            Execute.Log(28, listT.Count==1, " ExceptCore");
+            listT = session.Query<T>().Where(a => a.Age == 30).ExceptCore(session.Query<T>().Where(a => a.Age == 20), new MyComparer<T>()).ToList();
+            Execute.Log(28, listT.Count == 1, " ExceptCore");
 
             var res1 = await session.Query<T>().Where(a => a.Age == 30).ExceptCoreAsync(session.Query<T>().Where(a => a.Age == 20), new MyComparer<T>());
             Execute.Log(29, res1.Count() == 1, " ExceptCoreAsync");
 
-            listT=session.Query<T>().ConcatCore(session.Query<T>()).ToList();
+            listT = session.Query<T>().ConcatCore(session.Query<T>()).ToList();
             Execute.Log(30, listT.Count() == 8, " ConcatCore");
 
             var res = await session.Query<T>().ConcatCoreAsync(session.Query<T>());
@@ -211,24 +209,169 @@ namespace TestLibrary
             Execute.Log(33, en.Count() == 4, " UnionCoreAsync");
 
             Console.WriteLine("ZipCore");
-            foreach (string s1 in session.Query<T>().Where(a=>a.Age==20).ZipCore(session.Query<T>().ToList(), (a, b) => (a.Age + @" " + a.Name)))
+            foreach (string s1 in session.Query<T>().Where(a => a.Age == 20).ZipCore(session.Query<T>().ToList(), (a, b) => (a.Age + @" " + a.Name)))
             {
                 Console.WriteLine(s1);
             }
             Console.WriteLine("ZipCoreAsync");
-            var reSs=await session.Query<T>().Where(a => a.Age == 20)
+            var reSs = await session.Query<T>().Where(a => a.Age == 20)
                 .ZipCoreAsync(session.Query<T>().ToList(), (a, b) => (a.Age + @" " + a.Name));
             foreach (string reS in reSs)
             {
                 Console.WriteLine(reS);
             }
 
+            Console.WriteLine("GroupByCore");
+            List<IGrouping<int, T>> list = session.Query<T>().GroupByCore(a => a.Age).ToList();
+            foreach (IGrouping<int, T> classBases in list)
+            {
+                Console.WriteLine(classBases.Key);
+                foreach (T st in classBases)
+                {
+                    Console.WriteLine($"{st.Age} {st.Name}");
+                }
+            }
+
+            var unused = session.Query<T>().GroupByCore(a => a.Age, (i, b) =>
+             {
+                 return new { id = i, sum = b.Sum(ss => ss.Age) };
+             });
+
+            Console.WriteLine("GroupByCore");
+            foreach (var x1 in unused)
+            {
+                Console.WriteLine(x1);
+            }
+            unused = await session.Query<T>().GroupByCoreAsync(a => a.Age, (i, b) =>
+            {
+                return new { id = i, sum = b.Sum(ss => ss.Age) };
+            });
+
+            Console.WriteLine("GroupByCoreAsync");
+            foreach (var x1 in unused)
+            {
+                Console.WriteLine(x1);
+            }
+            Console.WriteLine(Environment.NewLine+"Split IQueryable :2 ");
+            var res2 = session.Query<T>().Split(2);
+            foreach (IEnumerable<T> classBases in res2)
+            {
+                Console.WriteLine($"portion: {classBases.Count()}");
+                foreach (T t in classBases)
+                {
+                    Console.WriteLine($"   {t.Age} {t.Name}");
+                }
+            }
+
+            Console.WriteLine(Environment.NewLine + "SplitAsync IQueryable :2 ");
+            res2 = await session.Query<T>().SplitAsync(2);
+            foreach (IEnumerable<T> classBases in res2)
+            {
+                Console.WriteLine($"portion: {classBases.Count()}");
+                foreach (T t in classBases)
+                {
+                    Console.WriteLine($"   {t.Age} {t.Name}");
+                }
+            }
+
+            listT = session.Query<T>().ToList();
+            Console.WriteLine(Environment.NewLine + "Split IEnumerable :2 ");
+            res2 = listT.Split(2);
+            foreach (IEnumerable<T> classBases in res2)
+            {
+                Console.WriteLine($"portion: {classBases.Count()}");
+                foreach (T t in classBases)
+                {
+                    Console.WriteLine($"   {t.Age} {t.Name}");
+                }
+            }
+
+            count = session.Query<T>().ToArray().Length;
+            Execute.Log(34, count == 4, " ToArray");
+
+            var rs = await session.Query<T>().ToArrayAsync();
+            Execute.Log(35, rs.Length==4, " ToArrayAsync");
 
 
+           
+            session.Query<T>().Update(st => new Dictionary<object, object>()
+            {
+                { st.DateTime, DateTime.Now }
+            });
+            listT = session.Query<T>().Where(a => a.DateTime.Day == DateTime.Now.Day).ToList();
+            Execute.Log(36, listT.Count == 4, " update");
 
+            await session.Query<T>().UpdateAsync(st => new Dictionary<object, object>()
+            {
+                { st.DateTime, DateTime.Now }
+            });
+            listT = session.Query<T>().Where(a => a.DateTime.Day == DateTime.Now.Day).ToList();
+            Execute.Log(36, listT.Count == 4, " updateAsync");
 
+            Console.WriteLine(Environment.NewLine + "GroupJoinCore ");
+            var sas = session.Query<T>().GroupJoinCore(session.Query<T1>(),
+                a => a.Age,
+                b => b.Age,
+                (m, ss) => new { id=m.Id, sum = ss.Sum(d => d.Age) });
+            foreach (var sa in sas)
+            {
+                Console.WriteLine($"  {sa}");
+            }
 
+            Console.WriteLine(Environment.NewLine + "GroupJoinCoreAsync ");
+             sas = await session.Query<T>().GroupJoinCoreAsync(session.Query<T1>(),
+                a => a.Age,
+                b => b.Age,
+                (m, ss) => new { id = m.Id, sum = ss.Sum(d => d.Age) });
+            foreach (var sa in sas)
+            {
+                Console.WriteLine($"  {sa}");
+            }
 
+            var dictionary = session.Query<T>().ToDictionary(a => a.Id,d=>d.Name);
+            Execute.Log(36, dictionary.Count == 4, " ToDictionary");
+
+             dictionary = await session.Query<T>().ToDictionaryAsync(a => a.Id, d => d.Name);
+            Execute.Log(37, dictionary.Count == 4, " ToDictionaryAsync");
+
+            var l = session.Query<T1>().ToList();
+            count= session.Query<T>().SelectManyCore(a=>a.Name,(t, c) => new {t.Age,c}).Select(c=>c).Count();
+            Execute.Log(38, count==24, " SelectManyCore");
+
+            var res3 = await session.Query<T>().SelectManyCoreAsync(a => a.Name, (t, c) => new { t.Age, c });
+            Execute.Log(38, res3.Count() == 24, " SelectManyCoreAsync");
+
+            Console.WriteLine(Environment.NewLine + "JoinCore IQueryable");
+            var join= session.Query<T>().JoinCore(session.Query<T1>(), a => a.Age, 
+                b => b.Age, (aa, bb) => new { aa.Age, bb.Name });
+            foreach (var x1 in @join)
+            {
+                Console.WriteLine($"  {x1}");
+            }
+
+            Console.WriteLine(Environment.NewLine + "JoinCoreAsync IQueryable");
+            join = await session.Query<T>().JoinCoreAsync(session.Query<T1>(), a => a.Age,
+                b => b.Age, (aa, bb) => new { aa.Age, bb.Name });
+            foreach (var x1 in @join)
+            {
+                Console.WriteLine($"  {x1}");
+            }
+
+            var listT1 = session.Query<T1>().AsEnumerable();
+            Console.WriteLine(Environment.NewLine + "JoinCore IEnumerable");
+            join = session.Query<T>().JoinCore(listT1, a => a.Age,
+                b => b.Age, (aa, bb) => new { aa.Age, bb.Name });
+            foreach (var x1 in @join)
+            {
+                Console.WriteLine($"  {x1}");
+            }
+            Console.WriteLine(Environment.NewLine + "JoinCoreAsync IEnumerable");
+            join = await session.Query<T>().JoinCoreAsync(listT1, a => a.Age,
+                b => b.Age, (aa, bb) => new { aa.Age, bb.Name });
+            foreach (var x1 in @join)
+            {
+                Console.WriteLine($"  {x1}");
+            }
 
 
         }
@@ -240,7 +383,7 @@ namespace TestLibrary
     {
         public bool Equals(T x, T y)
         {
-            return  x.Age == y.Age;
+            return x.Age == y.Age;
         }
 
         public int GetHashCode(T obj)

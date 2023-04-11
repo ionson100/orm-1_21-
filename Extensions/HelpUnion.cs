@@ -93,7 +93,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(first, nameof(first));
             Check.NotNull(second, nameof(second));
-            var firstR = await QueryableToList(first, cancellationToken);
+            var firstR = await QueryableToListAsync(first, cancellationToken);
             return UnionIterator(firstR, second, null);
         }
 
@@ -174,7 +174,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(first, nameof(first));
             Check.NotNull(second, nameof(second));
             Check.NotNull(comparer, nameof(comparer));
-            var firstR = await QueryableToList(first, cancellationToken);
+            var firstR = await QueryableToListAsync(first, cancellationToken);
             return UnionIterator(firstR, second, comparer);
         }
 
@@ -293,7 +293,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(first, nameof(first));
             Check.NotNull(second, nameof(second));
             Check.NotNull(resultSelector, nameof(resultSelector));
-            var firstS = await QueryableToList(first, cancellationToken);
+            var firstS = await QueryableToListAsync(first, cancellationToken);
             return ZipIterator(firstS, second, resultSelector);
         }
 

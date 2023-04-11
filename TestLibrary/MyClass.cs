@@ -12,6 +12,10 @@ namespace TestLibrary
         {
 
         }
+
+        public MyClass()
+        {
+        }
     }
     [MapTable("my_class5")]
     public class MyClassMysql : MyClassBase { }

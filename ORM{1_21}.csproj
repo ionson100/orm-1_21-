@@ -110,6 +110,7 @@
     <Compile Include="Extensions\HelpUnion.cs" />
     <Compile Include="Extensions\HeplerAsync.cs" />
     <Compile Include="Extensions\IdentityFunction.cs" />
+    <Compile Include="Extensions\PartialHelp.cs" />
     <Compile Include="Extensions\Set.cs" />
     <Compile Include="Extensions\Sweetmeat.cs" />
     <Compile Include="Interface\IMapSerializable.cs" />
@@ -214,7 +215,9 @@
     <None Include="LICENSE.md" />
     <None Include="README.md" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Linq.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

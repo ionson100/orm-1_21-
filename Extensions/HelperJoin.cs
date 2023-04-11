@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 using ORM_1_21_.Utils;
 
 namespace ORM_1_21_.Extensions
@@ -28,9 +30,9 @@ namespace ORM_1_21_.Extensions
         public static IEnumerable<TResult> JoinCore<TOuter, TInner, TKey, TResult>(
             this IQueryable<TOuter> outer,
             IQueryable<TInner> inner,
-            Expression<Func<TOuter, TKey>> outerKeySelector,
-            Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, TInner, TResult>> resultSelector)
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, TInner, TResult> resultSelector)
         {
             Check.NotNull(outer, nameof(outer));
             Check.NotNull(inner, nameof(inner));
@@ -39,8 +41,8 @@ namespace ORM_1_21_.Extensions
             var w = new Sweetmeat<TOuter, TInner>(outer, inner);
             w.Wait();
 
-            return JoinIterator(w.First, w.Seconds, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), null);
+            return JoinIterator(w.First, w.Seconds, outerKeySelector, innerKeySelector,
+                resultSelector, null);
         }
 
         /// <summary>
@@ -64,9 +66,9 @@ namespace ORM_1_21_.Extensions
         public static IEnumerable<TResult> JoinCore<TOuter, TInner, TKey, TResult>(
             this IQueryable<TOuter> outer,
             IQueryable<TInner> inner,
-            Expression<Func<TOuter, TKey>> outerKeySelector,
-            Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, TInner, TResult>> resultSelector,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, TInner, TResult> resultSelector,
             IEqualityComparer<TKey> comparer)
         {
             Check.NotNull(outer, nameof(outer));
@@ -76,9 +78,229 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(comparer, nameof(comparer));
             var w = new Sweetmeat<TOuter, TInner>(outer, inner);
             w.Wait();
-            return JoinIterator(w.First, w.Seconds, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), comparer);
+            return JoinIterator(w.First, w.Seconds, outerKeySelector, innerKeySelector,
+                resultSelector, comparer);
         }
+
+        /// <summary>
+        ///    Asynchronous correlates the elements of two sequences based on matching keys.
+        ///     The default equality comparer is used to compare keys.
+        /// </summary>
+        /// <param name="outer">The type of the result elements.</param>
+        /// <param name="inner">The sequence to join to the first sequence.</param>
+        /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
+        /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
+        /// <param name="resultSelector">A function to create a result element from two matching elements.</param>
+        /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
+        /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
+        /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
+        /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
+        /// <typeparam name="TResult">The type of the result elements.</typeparam>
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that has elements of type TResult that are obtained by performing an inner join on two
+        ///     sequences.
+        /// </returns>
+        public static async Task<IEnumerable<TResult>> JoinCoreAsync<TOuter, TInner, TKey, TResult>(
+            this IQueryable<TOuter> outer,
+            IQueryable<TInner> inner,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, TInner, TResult> resultSelector,CancellationToken cancellationToken=default)
+        {
+            Check.NotNull(outer, nameof(outer));
+            Check.NotNull(inner, nameof(inner));
+            Check.NotNull(outerKeySelector, nameof(outerKeySelector));
+            Check.NotNull(resultSelector, nameof(resultSelector));
+            var w = new Sweetmeat<TOuter, TInner>(outer, inner);
+            await w.WaitAsync();
+
+            return JoinIterator(w.First, w.Seconds, outerKeySelector, innerKeySelector,
+                resultSelector, null);
+        }
+
+        /// <summary>
+        ///     Asynchronous correlates the elements of two sequences based on matching keys.
+        ///     A specified IEqualityComparer&lt;T&gt; is used to compare keys.
+        /// </summary>
+        /// <param name="outer">The type of the result elements.</param>
+        /// <param name="inner">The sequence to join to the first sequence.</param>
+        /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
+        /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
+        /// <param name="resultSelector">A function to create a result element from two matching elements.</param>
+        /// <param name="comparer">An IEqualityComparer&lt;T&gt; to hash and compare keys.</param>
+        /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
+        /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
+        /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
+        /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
+        /// <typeparam name="TResult">The type of the result elements.</typeparam>
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that has elements of type TResult that are obtained by performing an inner join on two
+        ///     sequences.
+        /// </returns>
+        public static async Task<IEnumerable<TResult>> JoinCoreAsync<TOuter, TInner, TKey, TResult>(
+            this IQueryable<TOuter> outer,
+            IQueryable<TInner> inner,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, TInner, TResult> resultSelector,
+            IEqualityComparer<TKey> comparer,CancellationToken cancellationToken=default)
+        {
+            Check.NotNull(outer, nameof(outer));
+            Check.NotNull(inner, nameof(inner));
+            Check.NotNull(outerKeySelector, nameof(outerKeySelector));
+            Check.NotNull(resultSelector, nameof(resultSelector));
+            Check.NotNull(comparer, nameof(comparer));
+            var w = new Sweetmeat<TOuter, TInner>(outer, inner);
+            await w.WaitAsync();
+            return JoinIterator(w.First, w.Seconds, outerKeySelector, innerKeySelector,
+                resultSelector, comparer);
+        }
+
+
+
+
+
+        /// <summary>
+        ///     Correlates the elements of two sequences based on matching keys.
+        ///     The default equality comparer is used to compare keys.
+        /// </summary>
+        /// <param name="outer">The type of the result elements.</param>
+        /// <param name="inner">The sequence to join to the first sequence.</param>
+        /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
+        /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
+        /// <param name="resultSelector">A function to create a result element from two matching elements.</param>
+        /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
+        /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
+        /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
+        /// <typeparam name="TResult">The type of the result elements.</typeparam>
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that has elements of type TResult that are obtained by performing an inner join on two
+        ///     sequences.
+        /// </returns>
+        public static IEnumerable<TResult> JoinCore<TOuter, TInner, TKey, TResult>(
+            this IQueryable<TOuter> outer,
+            IEnumerable<TInner> inner,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, TInner, TResult> resultSelector)
+        {
+            Check.NotNull(outer, nameof(outer));
+            Check.NotNull(inner, nameof(inner));
+            Check.NotNull(outerKeySelector, nameof(outerKeySelector));
+            Check.NotNull(resultSelector, nameof(resultSelector));
+            return JoinIterator(outer, inner, outerKeySelector, innerKeySelector,
+                resultSelector, null);
+        }
+
+        /// <summary>
+        ///     Correlates the elements of two sequences based on matching keys.
+        ///     A specified IEqualityComparer&lt;T&gt; is used to compare keys.
+        /// </summary>
+        /// <param name="outer">The type of the result elements.</param>
+        /// <param name="inner">The sequence to join to the first sequence.</param>
+        /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
+        /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
+        /// <param name="resultSelector">A function to create a result element from two matching elements.</param>
+        /// <param name="comparer">An IEqualityComparer&lt;T&gt; to hash and compare keys.</param>
+        /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
+        /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
+        /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
+        /// <typeparam name="TResult">The type of the result elements.</typeparam>
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that has elements of type TResult that are obtained by performing an inner join on two
+        ///     sequences.
+        /// </returns>
+        public static IEnumerable<TResult> JoinCore<TOuter, TInner, TKey, TResult>(
+            this IQueryable<TOuter> outer,
+            IEnumerable<TInner> inner,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, TInner, TResult> resultSelector,
+            IEqualityComparer<TKey> comparer)
+        {
+            Check.NotNull(outer, nameof(outer));
+            Check.NotNull(inner, nameof(inner));
+            Check.NotNull(outerKeySelector, nameof(outerKeySelector));
+            Check.NotNull(resultSelector, nameof(resultSelector));
+            Check.NotNull(comparer, nameof(comparer));
+            return JoinIterator(outer, inner, outerKeySelector, innerKeySelector,
+                resultSelector, comparer);
+        }
+
+        /// <summary>
+        ///    Asynchronous correlates the elements of two sequences based on matching keys.
+        ///     The default equality comparer is used to compare keys.
+        /// </summary>
+        /// <param name="outer">The type of the result elements.</param>
+        /// <param name="inner">The sequence to join to the first sequence.</param>
+        /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
+        /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
+        /// <param name="resultSelector">A function to create a result element from two matching elements.</param>
+        /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
+        /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
+        /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
+        /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
+        /// <typeparam name="TResult">The type of the result elements.</typeparam>
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that has elements of type TResult that are obtained by performing an inner join on two
+        ///     sequences.
+        /// </returns>
+        public static async Task<IEnumerable<TResult>> JoinCoreAsync<TOuter, TInner, TKey, TResult>(
+            this IQueryable<TOuter> outer,
+            IEnumerable<TInner> inner,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, TInner, TResult> resultSelector, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(outer, nameof(outer));
+            Check.NotNull(inner, nameof(inner));
+            Check.NotNull(outerKeySelector, nameof(outerKeySelector));
+            Check.NotNull(resultSelector, nameof(resultSelector));
+            var first = await QueryableToListAsync(outer, cancellationToken);
+            return JoinIterator(first, inner, outerKeySelector, innerKeySelector,
+                resultSelector, null);
+        }
+
+        /// <summary>
+        ///     Asynchronous correlates the elements of two sequences based on matching keys.
+        ///     A specified IEqualityComparer&lt;T&gt; is used to compare keys.
+        /// </summary>
+        /// <param name="outer">The type of the result elements.</param>
+        /// <param name="inner">The sequence to join to the first sequence.</param>
+        /// <param name="outerKeySelector">A function to extract the join key from each element of the first sequence.</param>
+        /// <param name="innerKeySelector">A function to extract the join key from each element of the second sequence.</param>
+        /// <param name="resultSelector">A function to create a result element from two matching elements.</param>
+        /// <param name="comparer">An IEqualityComparer&lt;T&gt; to hash and compare keys.</param>
+        /// <param name="cancellationToken">Object of the cancelling to asynchronous operation</param>
+        /// <typeparam name="TOuter">The type of the elements of the first sequence.</typeparam>
+        /// <typeparam name="TInner">The type of the elements of the second sequence.</typeparam>
+        /// <typeparam name="TKey">The type of the keys returned by the key selector functions.</typeparam>
+        /// <typeparam name="TResult">The type of the result elements.</typeparam>
+        /// <returns>
+        ///     An IEnumerable&lt;T&gt; that has elements of type TResult that are obtained by performing an inner join on two
+        ///     sequences.
+        /// </returns>
+        public static async Task<IEnumerable<TResult>> JoinCoreAsync<TOuter, TInner, TKey, TResult>(
+            this IQueryable<TOuter> outer,
+            IEnumerable<TInner> inner,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, TInner, TResult> resultSelector,
+            IEqualityComparer<TKey> comparer, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(outer, nameof(outer));
+            Check.NotNull(inner, nameof(inner));
+            Check.NotNull(outerKeySelector, nameof(outerKeySelector));
+            Check.NotNull(resultSelector, nameof(resultSelector));
+            Check.NotNull(comparer, nameof(comparer));
+
+            var first = await QueryableToListAsync(outer, cancellationToken);
+            return JoinIterator(first, inner, outerKeySelector, innerKeySelector,
+                resultSelector, comparer);
+        }
+
+
+
 
         private static IEnumerable<TResult> JoinIterator<TOuter, TInner, TKey, TResult>(
             IEnumerable<TOuter> outer,
@@ -100,5 +322,12 @@ namespace ORM_1_21_.Extensions
                         yield return rrh;
                     }
         }
+    }
+
+    public static partial class Helper
+    {
+    
+
+      
     }
 }

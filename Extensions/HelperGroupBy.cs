@@ -22,15 +22,15 @@ namespace ORM_1_21_.Extensions
         /// <typeparam name="TSource">The type of the elements of source.</typeparam>
         /// <typeparam name="TKey">The type of the key returned by keySelector.</typeparam>
         /// <typeparam name="TElement">The type of the elements in each IGrouping&lt;TKey,TElement&gt;.</typeparam>
-        public static IEnumerable<IGrouping<TKey, TElement>> GroupByCore<TSource, TKey, TElement>(
+        public  static  IEnumerable<IGrouping<TKey, TElement>> GroupByCore<TSource, TKey, TElement>(
             this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector,
-            Expression<Func<TSource, TElement>> elementSelector)
+            Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector)
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(keySelector, nameof(keySelector));
-            return new GroupedEnumerable<TSource, TKey, TElement>(source, keySelector.Compile(),
-                elementSelector.Compile(), null);
+            return new GroupedEnumerable<TSource, TKey, TElement>(source, keySelector,
+                elementSelector, null);
         }
 
 
@@ -48,8 +48,8 @@ namespace ORM_1_21_.Extensions
         /// <typeparam name="TElement">The type of the elements in each IGrouping&lt;TKey,TElement&gt;.</typeparam>
         public static async Task<IEnumerable<IGrouping<TKey, TElement>>> GroupByCoreAsync<TSource, TKey, TElement>(
             this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector,
-            Expression<Func<TSource, TElement>> elementSelector,
+            Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector,
             CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, nameof(source));
@@ -57,8 +57,8 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(elementSelector, nameof(elementSelector));
 
             var sources = await QueryableToListAsync(source, cancellationToken);
-            return new GroupedEnumerable<TSource, TKey, TElement>(sources, keySelector.Compile(),
-                elementSelector.Compile(), null);
+            return new GroupedEnumerable<TSource, TKey, TElement>(sources, keySelector,
+                elementSelector, null);
         }
 
         /// <summary>
@@ -74,16 +74,16 @@ namespace ORM_1_21_.Extensions
         /// <typeparam name="TElement">The type of the elements in each IGrouping&lt;TKey,TElement&gt;.</typeparam>
         public static IEnumerable<IGrouping<TKey, TElement>> GroupByCore<TSource, TKey, TElement>(
             this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector,
-            Expression<Func<TSource, TElement>> elementSelector,
+            Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector,
             IEqualityComparer<TKey> comparer)
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(keySelector, nameof(keySelector));
             Check.NotNull(elementSelector, nameof(elementSelector));
             Check.NotNull(comparer, nameof(comparer));
-            return new GroupedEnumerable<TSource, TKey, TElement>(source, keySelector.Compile(),
-                elementSelector.Compile(), comparer);
+            return new GroupedEnumerable<TSource, TKey, TElement>(source, keySelector,
+                elementSelector, comparer);
         }
 
 
@@ -101,8 +101,8 @@ namespace ORM_1_21_.Extensions
         /// <typeparam name="TElement">The type of the elements in each IGrouping&lt;TKey,TElement&gt;.</typeparam>
         public static async Task<IEnumerable<IGrouping<TKey, TElement>>> GroupByCoreAsync<TSource, TKey, TElement>(
             this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector,
-            Expression<Func<TSource, TElement>> elementSelector,
+            Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector,
             IEqualityComparer<TKey> comparer,
             CancellationToken cancellationToken = default)
         {
@@ -111,8 +111,8 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(elementSelector, nameof(elementSelector));
             Check.NotNull(comparer, nameof(comparer));
             var sources = await QueryableToListAsync(source, cancellationToken);
-            return new GroupedEnumerable<TSource, TKey, TElement>(sources, keySelector.Compile(),
-                elementSelector.Compile(), comparer);
+            return new GroupedEnumerable<TSource, TKey, TElement>(sources, keySelector,
+                elementSelector, comparer);
         }
 
         /// <summary>
@@ -125,13 +125,13 @@ namespace ORM_1_21_.Extensions
         /// <typeparam name="TSource">The type of the elements of source.</typeparam>
         /// <typeparam name="TKey">The type of the key returned by keySelector.</typeparam>
         public static IEnumerable<IGrouping<TKey, TSource>> GroupByCore<TSource, TKey>(this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector, IEqualityComparer<TKey> comparer)
+            Func<TSource, TKey> keySelector, IEqualityComparer<TKey> comparer)
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(keySelector, nameof(keySelector));
             Check.NotNull(comparer, nameof(comparer));
             Check.NotNull(comparer, nameof(comparer));
-            return new GroupedEnumerable<TSource, TKey, TSource>(source, keySelector.Compile(),
+            return new GroupedEnumerable<TSource, TKey, TSource>(source, keySelector,
                 IdentityFunction<TSource>.Instance, comparer);
         }
 
@@ -147,7 +147,7 @@ namespace ORM_1_21_.Extensions
         /// <typeparam name="TKey">The type of the key returned by keySelector.</typeparam>
         public static async Task<IEnumerable<IGrouping<TKey, TSource>>> GroupByCoreAsync<TSource, TKey>(
             this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector, IEqualityComparer<TKey> comparer,
+            Func<TSource, TKey> keySelector, IEqualityComparer<TKey> comparer,
             CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, nameof(source));
@@ -155,7 +155,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(comparer, nameof(comparer));
 
             var sources = await QueryableToListAsync(source, cancellationToken);
-            return new GroupedEnumerable<TSource, TKey, TSource>(sources, keySelector.Compile(),
+            return new GroupedEnumerable<TSource, TKey, TSource>(sources, keySelector,
                 IdentityFunction<TSource>.Instance, comparer);
         }
 
@@ -168,14 +168,14 @@ namespace ORM_1_21_.Extensions
         /// <typeparam name="TKey">The type of the key returned by keySelector.</typeparam>
         /// <returns></returns>
         public static IEnumerable<IGrouping<TKey, TSource>> GroupByCore<TSource, TKey>(this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector
+           Func<TSource, TKey> keySelector
         )
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(keySelector, nameof(keySelector));
             return new GroupedEnumerable<TSource, TKey, TSource>(
                 source,
-                keySelector.Compile(),
+                keySelector,
                 IdentityFunction<TSource>.Instance,
                 null);
         }
@@ -189,16 +189,16 @@ namespace ORM_1_21_.Extensions
         /// <typeparam name="TSource">The type of the elements of source.</typeparam>
         /// <typeparam name="TKey">The type of the key returned by keySelector.</typeparam>
         /// <returns></returns>
-        public static async Task<IEnumerable<IGrouping<TKey, TSource>>> GroupByCoreSync<TSource, TKey>(
+        public static async Task<IEnumerable<IGrouping<TKey, TSource>>> GroupByCoreAsync<TSource, TKey>(
             this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector, CancellationToken cancellationToken = default)
+            Func<TSource, TKey> keySelector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(keySelector, nameof(keySelector));
             var sources = await QueryableToListAsync(source, cancellationToken);
             return new GroupedEnumerable<TSource, TKey, TSource>(
                 sources,
-                keySelector.Compile(),
+                keySelector,
                 IdentityFunction<TSource>.Instance,
                 null);
         }
@@ -215,17 +215,17 @@ namespace ORM_1_21_.Extensions
         /// <typeparam name="TResult">The type of the result value returned by resultSelector.</typeparam>
         /// <returns></returns>
         public static IEnumerable<TResult> GroupByCore<TSource, TKey, TResult>(this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector,
-            Expression<Func<TKey, IEnumerable<TSource>, TResult>> resultSelector)
+            Func<TSource, TKey> keySelector,
+            Func<TKey, IEnumerable<TSource>, TResult> resultSelector)
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(keySelector, nameof(keySelector));
             Check.NotNull(resultSelector, nameof(resultSelector));
             return new GroupedEnumerable<TSource, TKey, TSource, TResult>(
                 source,
-                keySelector.Compile(),
+                keySelector,
                 IdentityFunction<TSource>.Instance,
-                resultSelector.Compile(),
+                resultSelector,
                 null);
         }
 
@@ -244,8 +244,8 @@ namespace ORM_1_21_.Extensions
         /// <returns></returns>
         public static async Task<IEnumerable<TResult>> GroupByCoreAsync<TSource, TKey, TResult>(
             this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector,
-            Expression<Func<TKey, IEnumerable<TSource>, TResult>> resultSelector,
+            Func<TSource, TKey> keySelector,
+            Func<TKey, IEnumerable<TSource>, TResult> resultSelector,
             CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, nameof(source));
@@ -254,9 +254,9 @@ namespace ORM_1_21_.Extensions
             var sources = await QueryableToListAsync(source, cancellationToken);
             return new GroupedEnumerable<TSource, TKey, TSource, TResult>(
                 sources,
-                keySelector.Compile(),
+                keySelector,
                 IdentityFunction<TSource>.Instance,
-                resultSelector.Compile(),
+                resultSelector,
                 null);
         }
 
@@ -274,8 +274,8 @@ namespace ORM_1_21_.Extensions
         /// <typeparam name="TResult">The type of the result value returned by resultSelector.</typeparam>
         /// <returns></returns>
         public static IEnumerable<TResult> GroupByCore<TSource, TKey, TResult>(this IQueryable<TSource> source,
-            Expression<Func<TSource, TKey>> keySelector,
-            Expression<Func<TKey, IEnumerable<TSource>, TResult>> resultSelector,
+            Func<TSource, TKey> keySelector,
+            Func<TKey, IEnumerable<TSource>, TResult> resultSelector,
             IEqualityComparer<TKey> comparer)
         {
             Check.NotNull(source, nameof(source));
@@ -284,9 +284,9 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(comparer, nameof(comparer));
             return new GroupedEnumerable<TSource, TKey, TSource, TResult>(
                 source,
-                keySelector.Compile(),
+                keySelector,
                 IdentityFunction<TSource>.Instance,
-                resultSelector.Compile(),
+                resultSelector,
                 comparer);
         }
 
@@ -313,9 +313,9 @@ namespace ORM_1_21_.Extensions
         /// </returns>
         public static IEnumerable<TResult> GroupJoinCore<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer,
             IQueryable<TInner> inner,
-            Expression<Func<TOuter, TKey>> outerKeySelector,
-            Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector)
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, IEnumerable<TInner>, TResult> resultSelector)
         {
             Check.NotNull(outer, nameof(outer));
             Check.NotNull(inner, nameof(inner));
@@ -325,8 +325,8 @@ namespace ORM_1_21_.Extensions
             var w = new Sweetmeat<TOuter, TInner>(outer, inner);
             w.Wait();
 
-            return GroupJoinIterator(w.First, w.Seconds, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), null);
+            return GroupJoinIterator(w.First, w.Seconds, outerKeySelector, innerKeySelector,
+                resultSelector, null);
         }
 
         /// <summary>
@@ -353,10 +353,10 @@ namespace ORM_1_21_.Extensions
         public static async Task<IEnumerable<TResult>> GroupJoinCoreAsync<TOuter, TInner, TKey, TResult>(
             this IQueryable<TOuter> outer,
             IQueryable<TInner> inner,
-            Expression<Func<TOuter, TKey>> outerKeySelector,
-            Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, IEnumerable<TInner>,
-                TResult>> resultSelector,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, IEnumerable<TInner>,
+                TResult> resultSelector,
             CancellationToken cancellationToken = default)
         {
             Check.NotNull(outer, nameof(outer));
@@ -366,8 +366,8 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(resultSelector, nameof(resultSelector));
             var w = new Sweetmeat<TOuter, TInner>(outer, inner, cancellationToken);
             await w.WaitAsync();
-            return GroupJoinIterator(w.First, w.Seconds, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), null);
+            return GroupJoinIterator(w.First, w.Seconds, outerKeySelector, innerKeySelector,
+                resultSelector, null);
         }
 
 
@@ -393,9 +393,9 @@ namespace ORM_1_21_.Extensions
         /// </returns>
         public static IEnumerable<TResult> GroupJoinCore<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer,
             IEnumerable<TInner> inner,
-            Expression<Func<TOuter, TKey>> outerKeySelector,
-            Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector)
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, IEnumerable<TInner>, TResult> resultSelector)
         {
             Check.NotNull(outer, nameof(outer));
             Check.NotNull(inner, nameof(inner));
@@ -404,8 +404,8 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(resultSelector, nameof(resultSelector));
             var pTOuter = (QueryProvider)outer.Provider;
             var outerS = (IEnumerable<TOuter>)pTOuter.Execute<TOuter>(outer.Expression);
-            return GroupJoinIterator(outerS, inner, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), null);
+            return GroupJoinIterator(outerS, inner, outerKeySelector, innerKeySelector,
+                resultSelector, null);
         }
 
         /// <summary>
@@ -432,10 +432,10 @@ namespace ORM_1_21_.Extensions
         public static async Task<IEnumerable<TResult>> GroupJoinCoreAsync<TOuter, TInner, TKey, TResult>(
             this IQueryable<TOuter> outer,
             IEnumerable<TInner> inner,
-            Expression<Func<TOuter, TKey>> outerKeySelector,
-            Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, IEnumerable<TInner>,
-                TResult>> resultSelector,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, IEnumerable<TInner>,
+                TResult> resultSelector,
             CancellationToken cancellationToken = default)
         {
             Check.NotNull(outer, nameof(outer));
@@ -445,8 +445,8 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(resultSelector, nameof(resultSelector));
             var pTOuter = (QueryProvider)outer.Provider;
             var outerS = await QueryableToListAsync(outer, cancellationToken);
-            return GroupJoinIterator(outerS, inner, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), null);
+            return GroupJoinIterator(outerS, inner, outerKeySelector, innerKeySelector,
+                resultSelector, null);
         }
 
 
@@ -473,15 +473,15 @@ namespace ORM_1_21_.Extensions
         /// </returns>
         public static IEnumerable<TResult> GroupJoinCore<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer,
             IQueryable<TInner> inner,
-            Expression<Func<TOuter, TKey>> outerKeySelector,
-            Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, IEnumerable<TInner>, TResult> resultSelector,
             IEqualityComparer<TKey> comparer)
         {
             var w = new Sweetmeat<TOuter, TInner>(outer, inner);
             w.Wait();
-            return GroupJoinIterator(w.First, w.Seconds, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), comparer);
+            return GroupJoinIterator(w.First, w.Seconds, outerKeySelector, innerKeySelector,
+                resultSelector, comparer);
         }
 
 
@@ -510,9 +510,9 @@ namespace ORM_1_21_.Extensions
         public static async Task<IEnumerable<TResult>> GroupJoinCoreAsync<TOuter, TInner, TKey, TResult>(
             this IQueryable<TOuter> outer,
             IQueryable<TInner> inner,
-            Expression<Func<TOuter, TKey>> outerKeySelector,
-            Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, IEnumerable<TInner>, TResult> resultSelector,
             IEqualityComparer<TKey> comparer,
             CancellationToken cancellationToken = default)
         {
@@ -524,8 +524,8 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(comparer, nameof(comparer));
             var w = new Sweetmeat<TOuter, TInner>(outer, inner, cancellationToken);
             await w.WaitAsync();
-            return GroupJoinIterator(w.First, w.Seconds, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), comparer);
+            return GroupJoinIterator(w.First, w.Seconds, outerKeySelector, innerKeySelector,
+                resultSelector, comparer);
         }
 
         /// <summary>
@@ -551,9 +551,9 @@ namespace ORM_1_21_.Extensions
         /// </returns>
         public static IEnumerable<TResult> GroupJoinCore<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer,
             IEnumerable<TInner> inner,
-            Expression<Func<TOuter, TKey>> outerKeySelector,
-            Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, IEnumerable<TInner>, TResult> resultSelector,
             IEqualityComparer<TKey> comparer)
         {
             Check.NotNull(outer, nameof(outer));
@@ -564,8 +564,8 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(comparer, nameof(comparer));
             var pTOuter = (QueryProvider)outer.Provider;
             var outerS = (IEnumerable<TOuter>)pTOuter.Execute<TOuter>(outer.Expression);
-            return GroupJoinIterator(outerS, inner, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), comparer);
+            return GroupJoinIterator(outerS, inner, outerKeySelector, innerKeySelector,
+                resultSelector, comparer);
         }
 
 
@@ -594,9 +594,9 @@ namespace ORM_1_21_.Extensions
         public static async Task<IEnumerable<TResult>> GroupJoinCoreAsync<TOuter, TInner, TKey, TResult>(
             this IQueryable<TOuter> outer,
             IEnumerable<TInner> inner,
-            Expression<Func<TOuter, TKey>> outerKeySelector,
-            Expression<Func<TInner, TKey>> innerKeySelector,
-            Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector,
+            Func<TOuter, TKey> outerKeySelector,
+            Func<TInner, TKey> innerKeySelector,
+            Func<TOuter, IEnumerable<TInner>, TResult> resultSelector,
             IEqualityComparer<TKey> comparer,
             CancellationToken cancellationToken = default)
         {
@@ -608,8 +608,8 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(comparer, nameof(comparer));
             var pTOuter = (QueryProvider)outer.Provider;
             var outerS = await QueryableToListAsync(outer, cancellationToken);
-            return GroupJoinIterator(outerS, inner, outerKeySelector.Compile(), innerKeySelector.Compile(),
-                resultSelector.Compile(), comparer);
+            return GroupJoinIterator(outerS, inner, outerKeySelector, innerKeySelector,
+                resultSelector, comparer);
         }
 
         private static IEnumerable<TResult> GroupJoinIterator<TOuter, TInner, TKey, TResult>(

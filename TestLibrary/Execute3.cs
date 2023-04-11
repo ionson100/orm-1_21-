@@ -24,7 +24,7 @@ namespace TestLibrary
             var sb = Activator.CreateInstance<TB>();
             Configure.WriteLogFile(
                 $"**************************{sb.GetProviderName()} Async*****************************");
-            var session = await Configure.GetSessionSync<TB>();
+            var session = await Configure.GetSessionAsync<TB>();
 
             if (await session.TableExistsAsync<T>()) await session.DropTableAsync<T>();
 
