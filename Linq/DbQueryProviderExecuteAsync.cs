@@ -12,7 +12,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_.Extensions;
 
 namespace ORM_1_21_.Linq
 {
@@ -20,6 +19,8 @@ namespace ORM_1_21_.Linq
     {
         public async Task<object> ExecuteAsync<TS>(Expression expression, object[] param, CancellationToken cancellationToken)
         {
+            
+            var tt=typeof(TS);
             var tk = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
          
             CancellationTokenRegistration? registration = null;
@@ -230,7 +231,7 @@ namespace ORM_1_21_.Linq
 
                 if (PingCompositeE(Evolution.TableCreate, listCore))
                 {
-                    if (AttributesOfClass<T>.IsValid == false)
+                    if (UtilsCore.IsValid<T>() == false)
                     {
                         throw new Exception(
                             $"I can't create a table from type {typeof(T)}, it doesn't have attrubute: MapTableAttribute");
@@ -329,7 +330,7 @@ namespace ORM_1_21_.Linq
                 }
 
                 if (PingCompositeE(Evolution.FreeSql, listCore) &&
-                    AttributesOfClass<TS>.IsValid == false)
+                    UtilsCore.IsValid<TS>() == false)
                 {
                     dataReader = await _com.ExecuteReaderAsync();
                     var count = dataReader.FieldCount;
@@ -357,7 +358,7 @@ namespace ORM_1_21_.Linq
                         }
 
                     }
-                    else if (AttributesOfClass<TS>.IsReceiverFreeSql)
+                    else if (UtilsCore.IsReceiverFreeSql<TS>())
                     {
                         var c = typeof(TS).GetConstructors();
                         if (c.Length == 0)
@@ -401,7 +402,7 @@ namespace ORM_1_21_.Linq
                              typeof(TS).GetInterface("IEnumerable") != null || typeof(TS).IsGenericTypeDefinition)
                     {
                         while (dataReader.Read())
-                            resDis.Add((TS)(dataReader[0] == DBNull.Value ? null : dataReader[0]));
+                            resDis.Add((TS)(dataReader[0] == DBNull.Value ? null : Pizdaticus.MethodFree(_providerName, typeof(TS), dataReader[0])));
                     }
                     else
                     {
@@ -503,19 +504,41 @@ namespace ORM_1_21_.Linq
                 if (PingCompositeE(Evolution.Select, listCore) &&
                     !PingCompositeE(Evolution.SelectNew, listCore))
                 {
-                    var lees = new List<TS>();
-                    dataReader = await _com.ExecuteReaderAsync();
-                    while (dataReader.Read()) lees.Add((TS)UtilsCore.Convertor<TS>(dataReader[0]));
-                    dataReader.Dispose();
-                    var devastatingly1 = Pizdaticus.SingleData(listCore, lees, out var active1);
-                    var res = !active1 ? (object)lees : devastatingly1;
-                    if (isCacheUsage)
+                    var type = typeof(TS);
+                    if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     {
-                        MyCache<T>.Push(hashCode, res);
+                        var ttType = typeof(TS).GenericTypeArguments[0];
+                        var lees = new List<object>();
+                        dataReader =await _com.ExecuteReaderAsync();
+                        while (dataReader.Read()) lees.Add(UtilsCore.Convertor(dataReader[0], ttType));
+                        dataReader.Dispose();
+
+                        var listNativeInvoke = DbHelp.CastList(lees);
+                        var devastatingly1 = Pizdaticus.SingleData(listCore, lees, out var active1);
+                        var res = !active1 ? listNativeInvoke : devastatingly1;
+                        if (isCacheUsage)
+                        {
+                            MyCache<T>.Push(hashCode, res);
+                        }
+
+                        return res;
+
+                    }
+                    else
+                    {
+                        var lees = new List<TS>();
+                        dataReader = await _com.ExecuteReaderAsync();
+                        while (dataReader.Read()) lees.Add((TS)UtilsCore.Convertor<TS>(dataReader[0]));
+                        dataReader.Dispose();
+                        var devastatingly1 = Pizdaticus.SingleData(listCore, lees, out var active1);
+                        var res = !active1 ? (object)lees : devastatingly1;
+                        if (isCacheUsage)
+                        {
+                            MyCache<T>.Push(hashCode, res);
+                        }
+                        return res;
                     }
 
-                    tk.SetResult(res);
-                    return await tk.Task;
                 }
 
                 if (PingCompositeE(Evolution.ElementAt, listCore))
@@ -608,24 +631,50 @@ namespace ORM_1_21_.Linq
                     //todo ion100
                     var ss = listCore.Single(a => a.Operand == Evolution.SelectNew).NewConstructor;
                     _com.CommandText = _com.CommandText.Replace(",?p", "?p");
-                    dataReader = await _com.ExecuteReaderAsync();
-                    if (UtilsCore.IsAnonymousType(typeof(TS)))
+                    dataReader = _com.ExecuteReader();
+                    var type = typeof(TS);
+                    if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     {
-                        var lRes = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss, _providerName);
-                        var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
-                        var res = !isaActive1 ? (object)lRes : dataSing1;
-                        if (isCacheUsage)
+                        var ttType = typeof(TS).GenericTypeArguments[0];
+                        if (UtilsCore.IsAnonymousType(ttType))
                         {
-                            MyCache<T>.Push(hashCode, res);
-                        }
+                            var lRes = Pizdaticus.GetListAnonymousObj<object>(dataReader, ss, _providerName);
+                            var listNativeInvoke = DbHelp.CastList(lRes);
 
-                        tk.SetResult(res);
-                        return await tk.Task;
+                            var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
+
+                            var res = !isaActive1 ? listNativeInvoke : dataSing1;
+                            if (isCacheUsage)
+                            {
+                                MyCache<T>.Push(hashCode, res);
+                            }
+                            return res;
+                        }
+                        else
+                        {
+                            throw new Exception($"Method Select for IQueryable is not implemented, use method SelectCore or ...toList().Select()");
+
+                        }
                     }
                     else
                     {
+                        if (UtilsCore.IsAnonymousType(typeof(TS)))
+                        {
+                            var lRes = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss, _providerName);
+                            var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
 
-                        throw new Exception("Not implemented");
+                            var res = !isaActive1 ? (object)lRes : dataSing1;
+                            if (isCacheUsage)
+                            {
+                                MyCache<T>.Push(hashCode, res);
+                            }
+                            return res;
+                        }
+                        else
+                        {
+                            throw new Exception($"Method Select for IQueryable is not implemented, use method SelectCore or ...toList().Select()");
+
+                        }
                     }
                 }
 

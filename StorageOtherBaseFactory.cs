@@ -31,6 +31,7 @@ namespace ORM_1_21_
       
            public DbProviderFactory GetDbProviderFactories()
            {
+               //return DbProxyLazy.Value.GetDbProviderFactories();
                return DbProviderFactory.Value;
            }
       

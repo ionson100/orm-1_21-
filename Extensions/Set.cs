@@ -22,7 +22,7 @@ namespace ORM_1_21_.Extensions
 
         private int _freeList;
 
-        private IEqualityComparer<TElement> _comparer;
+        private readonly IEqualityComparer<TElement> _comparer;
 
         public Set()
             : this(null)

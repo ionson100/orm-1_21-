@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ORM_1_21_.Extensions;
 using ORM_1_21_.Utils;
 
-namespace ORM_1_21_.Extensions
+namespace ORM_1_21_
 {
+    [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static partial class Helper
     {
         /// <summary>
@@ -310,6 +312,7 @@ namespace ORM_1_21_.Extensions
             Func<TOuter, TInner, TResult> resultSelector,
             IEqualityComparer<TKey> comparer)
         {
+
             var lookupOuter = outer.ToLookup(outerKeySelector, IdentityFunction<TOuter>.Instance, comparer);
             var lookup = inner.ToLookup(innerKeySelector, IdentityFunction<TInner>.Instance, comparer);
             foreach (var go in lookupOuter)

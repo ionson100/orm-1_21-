@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.Tracing;
-
-namespace ORM_1_21_
+﻿namespace ORM_1_21_
 {
     /// <summary>
     /// Type of modification in the database
@@ -58,6 +56,5 @@ namespace ORM_1_21_
         /// After Delete
         /// </summary>
         AfterDelete,
-
     }
 }

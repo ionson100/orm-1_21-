@@ -3,12 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using ORM_1_21_.Extensions;
 
 namespace ORM_1_21_
 {
     internal sealed partial class Sessione
     {
+        private readonly IDbConnection _connect;
         private readonly Guid _id;
         private readonly IOtherDataBaseFactory _factoryOtherBase;
         private bool _isDispose;
@@ -67,16 +67,9 @@ namespace ORM_1_21_
             }
 
         }
-        public ISession SessionCloneForTask()
-        {
-            if (_factoryOtherBase == null)
-            {
-                return new Sessione(_connectionString) { Transaction = this.Transaction };
-            }
-            return new Sessione(_factoryOtherBase) { Transaction = this.Transaction };
-        }
+       
 
-        private readonly IDbConnection _connect;
+      
 
 
         private static void NotificAfter<TSource>(TSource source, ActionMode mode) where TSource : class

@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ORM_1_21_.Extensions;
 using ORM_1_21_.Linq;
 using ORM_1_21_.Utils;
 
-namespace ORM_1_21_.Extensions
+namespace ORM_1_21_
 {
     /// <summary>
     ///     Extension ORM
     /// </summary>
+    [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
+    [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static partial class Helper
     {
         /// <summary>
@@ -152,18 +156,18 @@ namespace ORM_1_21_.Extensions
             return res.Split(chunkSize);
         }
 
-        private static async Task<List<List<T>>> InnerSplitQueryable<T>(this IQueryable<T> coll, int chunkSize)
-        {
-            return await Task.Run(() =>
-            {
-                var enumerable = coll.ToList();
-                return enumerable
-                    .Select((x, i) => new { Index = i, Value = x })
-                    .GroupBy(x => x.Index / chunkSize)
-                    .Select(x => x.Select(v => v.Value).ToList())
-                    .ToList();
-            }).ConfigureAwait(false);
-        }
+        //private static async Task<List<List<T>>> InnerSplitQueryable<T>(this IQueryable<T> coll, int chunkSize)
+        //{
+        //    return await Task.Run(() =>
+        //    {
+        //        var enumerable = coll.ToList();
+        //        return enumerable
+        //            .Select((x, i) => new { Index = i, Value = x })
+        //            .GroupBy(x => x.Index / chunkSize)
+        //            .Select(x => x.Select(v => v.Value).ToList())
+        //            .ToList();
+        //    }).ConfigureAwait(false);
+        //}
 
 
         /// <summary>
@@ -234,16 +238,13 @@ namespace ORM_1_21_.Extensions
         public static async Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql,
             params object[] param)
         {
-            var tk = new TaskCompletionSource<IEnumerable<TResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
+           
             var p = new V(sql);
-            Expression callExpr = Expression.Call(
-                Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
             var db = new DbQueryProvider<TResult>((Sessione)ses);
             if (param != null && param.Length > 0) db.GetParamFree().AddRange(param);
-
             var res = (IEnumerable<TResult>)await db.ExecuteAsync<TResult>(callExpr, null, CancellationToken.None);
-            tk.SetResult(res);
-            return await tk.Task;
+            return res;
         }
 
 
@@ -251,9 +252,8 @@ namespace ORM_1_21_.Extensions
         ///     Calling a stored procedure
         /// </summary>
         /// <param name="ses">ISession</param>
-        /// <param name="sql">Request string</param>
-        /// <typeparam name="TResult">Return type enumerable</typeparam>
-        public static IEnumerable<TResult> ProcedureCall<TResult>(this ISession ses, string sql)
+        /// <param name="sql">Name procedure</param>   /// <typeparam name="TResult">Return type enumerable</typeparam>
+        public static object ProcedureCall<TResult>(this ISession ses, string sql)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(
@@ -262,19 +262,45 @@ namespace ORM_1_21_.Extensions
         }
 
         /// <summary>
+        ///    Asynchronous calling a stored procedure
+        /// </summary>
+        /// <param name="ses">ISession</param>
+        /// <param name="sql">Procedure name</param>
+        /// <param name="cancellationToken">Object of the canceling to asynchronous operation</param>
+        public static async Task<object> ProcedureCallAsync<TResult>(this ISession ses, string sql,CancellationToken cancellationToken=default)
+        {
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
+            return await new DbQueryProvider<TResult>((Sessione)ses).ExecuteCallAsync<TResult>(callExpr,cancellationToken);
+        }
+
+        /// <summary>
         ///     Calling a stored procedure with parameters
         /// </summary>
         /// <param name="ses">ISession</param>
-        /// <param name="sql">Request string</param>
+        /// <param name="sql">Procedure name</param>
         /// <param name="param">Request parameters</param>
-        /// <typeparam name="TResult">Return type enumerable</typeparam>
-        public static IEnumerable<TResult> ProcedureCallParam<TResult>(this ISession ses, string sql,
+        public static object ProcedureCallParam<TResult>(this ISession ses, string sql,
             params ParameterStoredPr[] param)
         {
             var p = new V(sql);
-            Expression callExpr = Expression.Call(
-                Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
             return new DbQueryProvider<TResult>((Sessione)ses).ExecuteCallParam<TResult>(callExpr, param);
+        }
+
+        /// <summary>
+        ///     Asynchronous calling a stored procedure
+        /// </summary>
+        /// <param name="ses">ISession</param>
+        /// <param name="sql">Procedure name</param>
+        /// <param name="param">Request parameters</param>
+        /// <param name="cancellationToken">Object of the canceling to asynchronous operation</param>
+        public static async Task<object> ProcedureCallParamAsync<TResult>(this ISession ses, string sql,
+             ParameterStoredPr[] param,CancellationToken cancellationToken=default)
+        {
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
+            return await  new DbQueryProvider<TResult>((Sessione)ses).ExecuteCallParamAsync<TResult>(callExpr, param,cancellationToken);
         }
 
         /// <summary>
@@ -500,9 +526,7 @@ namespace ORM_1_21_.Extensions
 
         static async Task<List<T>> QueryableToListAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken = default)
         {
-           return await((QueryProvider)source.Provider).ExecuteExtensionAsync<List<T>>(source.Expression,
-                null,
-                cancellationToken);
+            return await source.Provider.ExecuteAsync<List<T>>(source.Expression,cancellationToken);
         }
 
         /// <summary>
@@ -915,7 +939,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(first, nameof(first));
             Check.NotNull(second, nameof(second));
             Check.NotNull(comparer, nameof(comparer));
-            if (AttributesOfClass<TSource>.IsValid && comparer == null)
+            if (UtilsCore.IsValid<TSource>() && comparer == null)
             {
                 var set = new MySet<TSource>();
                 foreach (var source in second)

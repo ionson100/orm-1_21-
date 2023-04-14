@@ -6,11 +6,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using ORM_1_21_.Extensions;
-using ORM_1_21_.Linq.MsSql;
 using ORM_1_21_.Utils;
 
-namespace ORM_1_21_.Linq.MySql
+namespace ORM_1_21_.Linq
 {
     internal sealed class QueryTranslator<T> : ExpressionVisitor, ITranslate
     {

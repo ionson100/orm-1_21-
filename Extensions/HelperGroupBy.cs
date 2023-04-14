@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ORM_1_21_.Extensions;
 using ORM_1_21_.Linq;
 using ORM_1_21_.Utils;
 
-namespace ORM_1_21_.Extensions
+namespace ORM_1_21_
 {
+    [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static partial class Helper
     {
         /// <summary>
@@ -443,7 +445,6 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(outerKeySelector, nameof(outerKeySelector));
             Check.NotNull(innerKeySelector, nameof(innerKeySelector));
             Check.NotNull(resultSelector, nameof(resultSelector));
-            var pTOuter = (QueryProvider)outer.Provider;
             var outerS = await QueryableToListAsync(outer, cancellationToken);
             return GroupJoinIterator(outerS, inner, outerKeySelector, innerKeySelector,
                 resultSelector, null);
@@ -606,7 +607,6 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(innerKeySelector, nameof(innerKeySelector));
             Check.NotNull(resultSelector, nameof(resultSelector));
             Check.NotNull(comparer, nameof(comparer));
-            var pTOuter = (QueryProvider)outer.Provider;
             var outerS = await QueryableToListAsync(outer, cancellationToken);
             return GroupJoinIterator(outerS, inner, outerKeySelector, innerKeySelector,
                 resultSelector, comparer);

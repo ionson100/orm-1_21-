@@ -14,7 +14,7 @@ namespace TestLibrary
         public int Issa { get; set; } = 100;
 
 
-        [MapPrimaryKey(Generator.Assigned)] public Guid Id { get; set; } = Guid.NewGuid();
+        [MapPrimaryKey("id",Generator.Assigned)] public Guid Id { get; set; } = Guid.NewGuid();
 
 
         [MapColumn("name")] public string Name { get; set; }

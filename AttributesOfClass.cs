@@ -1,76 +1,30 @@
 ﻿using ORM_1_21_.Linq;
 using ORM_1_21_.Utils;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using ORM_1_21_.Linq.MySql;
 
 namespace ORM_1_21_
 {
-    class WrapperVisitor
-    {
-        public List<OneComposite> ListOneComposite { get; set; } = new List<OneComposite>();
-        public Dictionary<string, object> Params { get; set; } = new Dictionary<string, object>();
-        public int ParamsIndex { get; set; }
-        public string FieldName { get; set; }
-    }
-   internal class StorageTypeAttribute
-    {
-        public static ConcurrentDictionary<Type, IProxy> DictionaryAttribute = new ConcurrentDictionary<Type, IProxy>();
-    }
-   internal interface IProxy
-    {
-        string GetTableName(ProviderName providerName);
-        WrapperVisitor Translation(ProviderName providerName, Expression expression,int paramIndex);
-    }
-    internal class ProxyAttribute<T>:IProxy
-    {
-        public string GetTableName(ProviderName providerName)
-        {
-            return AttributesOfClass<T>.TableName(providerName);
-        }
 
-        public WrapperVisitor Translation(ProviderName providerName,Expression expression, int paramIndex)
-        {
-            var res = new QueryTranslator<T>(providerName,paramIndex);
-           res.Translate(expression);
-           WrapperVisitor visitor = new WrapperVisitor
-           {
-               ListOneComposite = res.GetListOne(),
-               Params = res.Param,
-               ParamsIndex = res.GetParamIndex(),
-               FieldName = res.FieldOne()
-           };
-           return visitor;
 
-        }
-    }
+    [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
+    [SuppressMessage("ReSharper", "StaticMemberInGenericType")]
+    [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
     internal static class AttributesOfClass<T>
     {
-        static AttributesOfClass()
-        {
-            StorageTypeAttribute.DictionaryAttribute.TryAdd(typeof(T), new ProxyAttribute<T>());
-        }
-
-        public static object GetValuePrimaryKey(T t)
-        {
-           
-            var p= PkAttribute(Provider);
-            return GetValueE(Provider, p.PropertyName, t);
-        }
-
-
         internal static readonly object LockO = new object();
+
         public static Lazy<bool> IsUsageActivatorInner = new Lazy<bool>(() =>
         {
-            var t = typeof(T).GetCustomAttribute(typeof(MapUsageActivatorAttribute), true);
+            var t = typeof(T).GetCustomAttribute(typeof(MapUsageActivatorAttribute), false);
             if (t != null) return true;
             return false;
         }, LazyThreadSafetyMode.PublicationOnly);
@@ -78,34 +32,34 @@ namespace ORM_1_21_
         private static readonly Lazy<Dictionary<string, string>> ColumnName = new Lazy<Dictionary<string, string>>(() =>
         {
             var list = new List<BaseAttribute>();
-            AttributeDall.Value.ToList().ForEach(a => list.AddRange(a.Value));
-            PrimaryKeyLazy.Value.ToList().ForEach(a => list.AddRange(a.Value));
+            AttributeDalList.Value.ToList().ForEach(a => list.Add(a));
+            list.Add(PrimaryKeyAttribute.Value);
             return list.Any()
                 ? list.Select(a => new { a.PropertyName, ColumnName = a.GetColumnName(CurProviderName) })
                     .ToDictionary(s => s.PropertyName, d => d.ColumnName)
                 : null;
         }, LazyThreadSafetyMode.PublicationOnly);
 
-        private static readonly Lazy<Dictionary<Type, List<MapColumnAttribute>>> AttributeDall =
-            new Lazy<Dictionary<Type, List<MapColumnAttribute>>>(ActivateDallAll,
-                LazyThreadSafetyMode.PublicationOnly);
 
-        private static readonly Lazy<Dictionary<Type, string>> TableNameAllLazy =
-            new Lazy<Dictionary<Type, string>>(ActivateTableNameAll, LazyThreadSafetyMode.PublicationOnly);
+        private static readonly Lazy<List<MapColumnAttribute>> AttributeDalList =
+            new Lazy<List<MapColumnAttribute>>(GetListActivateDallAll, LazyThreadSafetyMode.PublicationOnly);
 
 
-        private static readonly Lazy<Dictionary<Type, string>> SqlWhereAllLazy =
-            new Lazy<Dictionary<Type, string>>(ActivateSqlWhereAllLazy, LazyThreadSafetyMode.PublicationOnly);
+        private static readonly Lazy<MapTableAttribute> TableAttribute =
+            new Lazy<MapTableAttribute>(GetTableAttribute, LazyThreadSafetyMode.PublicationOnly);
 
-        private static readonly Lazy<Dictionary<Type, List<MapPrimaryKeyAttribute>>> PrimaryKeyLazy =
-            new Lazy<Dictionary<Type, List<MapPrimaryKeyAttribute>>>(ActivatePrimaryKeyLazy,
-                LazyThreadSafetyMode.PublicationOnly);
+
+        private static readonly Lazy<string> SqlWhereLazy =
+            new Lazy<string>(ActivateSqlWhere, LazyThreadSafetyMode.PublicationOnly);
+
+        private static readonly Lazy<MapPrimaryKeyAttribute> PrimaryKeyAttribute =
+            new Lazy<MapPrimaryKeyAttribute>(GetPrimaryKeyAttribute, LazyThreadSafetyMode.ExecutionAndPublication);
 
         private static readonly Lazy<List<BaseAttribute>> ListBaseAttr = new Lazy<List<BaseAttribute>>(() =>
         {
-            var l = new List<BaseAttribute>();
-            AttributeDall.Value.ToList().ForEach(a => l.AddRange(a.Value));
-            PrimaryKeyLazy.Value.ToList().ForEach(a => l.AddRange(a.Value));
+            var l = new List<BaseAttribute> { PrimaryKeyAttribute.Value };
+            AttributeDalList.Value.ToList().ForEach(a => l.Add(a));
+
             return l;
         }, LazyThreadSafetyMode.PublicationOnly);
 
@@ -186,17 +140,23 @@ namespace ORM_1_21_
                     return list;
                 }, LazyThreadSafetyMode.PublicationOnly);
 
-        private static readonly Lazy<bool> _isValid = new Lazy<bool>(() =>
-                typeof(T).GetCustomAttribute<MapTableAttribute>(false) != null,
+        private static readonly Lazy<bool> IsValid = new Lazy<bool>(() =>
+                typeof(T).GetCustomAttribute<MapTableAttribute>(true) != null,
             LazyThreadSafetyMode.PublicationOnly);
 
 
-        private static readonly Lazy<bool> _isReceiverFreeSql = new Lazy<bool>(
-            () => { return typeof(T).GetCustomAttributes(typeof(MapReceiverFreeSqlAttribute), true).Any(); },
+        private static readonly Lazy<bool> IsReceiverFreeSql = new Lazy<bool>(
+            () => typeof(T).GetCustomAttributes(typeof(MapReceiverFreeSqlAttribute), true).Any(),
             LazyThreadSafetyMode.PublicationOnly);
+
+        static AttributesOfClass()
+        {
+            StorageTypeAttribute.DictionaryAttribute.TryAdd(typeof(T), new ProxyAttribute<T>());
+        }
 
         private static ProviderName CurProviderName
         {
+            
             get
             {
                 if (ProviderName == null)
@@ -219,19 +179,106 @@ namespace ORM_1_21_
 
         public static string AllSqlWhereFromMap => GetSqlAll();
 
-        internal static string SqlWhere => SqlWhereAllLazy.Value[typeof(T)];
+        internal static string SqlWhere => SqlWhereLazy.Value;
 
-        private static string SqlWhereBase =>
-            SqlWhereAllLazy.Value.ContainsKey(typeof(T).BaseType)
-                ? SqlWhereAllLazy.Value[typeof(T).BaseType]
-                : string.Empty;
+        private static string SqlWhereBase => SqlWhere;
 
-        public static bool IsValid => _isValid.Value;
 
-        public static bool IsReceiverFreeSql => _isReceiverFreeSql.Value;
+        public static bool IsValidInner => IsValid.Value;
+
+        public static bool IsReceiverFreeSqlInner => IsReceiverFreeSql.Value;
 
 
         private static ProviderName? ProviderName { get; set; }
+
+        public static object GetValuePrimaryKey(T t)
+        {
+            var p = PkAttribute(Provider);
+            return GetValueE(Provider, p.PropertyName, t);
+        }
+
+        private static List<MapColumnAttribute> GetListActivateDallAll()
+        {
+            var res = new List<MapColumnAttribute>();
+            var fields = typeof(T).GetProperties();
+            foreach (var f in fields)
+            {
+                var o3 = f.GetCustomAttribute<MapDefaultValueAttribute>(true);
+                var columnAttribute = f.GetCustomAttribute<MapColumnAttribute>(true);
+                if (columnAttribute == null) continue;
+
+                var s = columnAttribute.GetColumnNameRaw();
+                if (string.IsNullOrWhiteSpace(s))
+                {
+                    var n = f.Name;
+                    columnAttribute.SetColumnNameRaw(n);
+                }
+
+                var o2 = f.GetCustomAttribute<MapIndexAttribute>(true);
+                columnAttribute.IsBaseKey = false;
+                columnAttribute.IsForeignKey = false;
+                if (o2 != null) columnAttribute.IsIndex = true;
+
+                columnAttribute.PropertyName = f.Name;
+                columnAttribute.TypeColumn = f.PropertyType;
+                columnAttribute.DeclareType = typeof(T);
+                if (o3 != null)
+                    columnAttribute.DefaultValue = o3.Value;
+
+                columnAttribute.ColumnNameAlias = UtilsCore.GetAsAlias(
+                    TableAttribute.Value.TableName(CurProviderName),
+                    columnAttribute
+                        .GetColumnName(CurProviderName));
+
+                var o4 = f.GetCustomAttribute<MapColumnTypeAttribute>(true);
+                if (o4 != null)
+                    columnAttribute.TypeString = o4.TypeString;
+
+                var o5 = f.GetCustomAttribute<MapNotInsertUpdateAttribute>(true);
+                if (o5 != null) columnAttribute.IsNotUpdateInsert = true;
+
+
+                res.Add(columnAttribute);
+            }
+
+            return res;
+        }
+
+        private static MapTableAttribute GetTableAttribute()
+        {
+            var d = typeof(T).GetCustomAttribute<MapTableAttribute>(true);
+
+            if (d == null) throw new Exception($"There is no attribute: MapTableAttribute that defines the name of the table for type: {typeof(T).Name}");
+            if (d.IsTableNameEmpty()) d.SetTableName(typeof(T).Name);
+            return d;
+        }
+
+        private static string ActivateSqlWhere()
+        {
+            var r = typeof(T).GetCustomAttribute<MapTableAttribute>(true);
+            if (r == null) return string.Empty;
+            return r.SqlWhere;
+        }
+
+        private static MapPrimaryKeyAttribute GetPrimaryKeyAttribute()
+        {
+            foreach (var f in typeof(T).GetProperties())
+            {
+                var pr = f.GetCustomAttribute<MapPrimaryKeyAttribute>(true);
+                if (pr == null) continue;
+                if (string.IsNullOrWhiteSpace(pr.GetColumnNameRaw())) pr.SetColumnNameRaw(f.Name);
+                pr.IsBaseKey = false;
+                pr.IsForeignKey = false;
+                pr.PropertyName = f.Name;
+                pr.DeclareType = typeof(T);
+                pr.TypeColumn = f.PropertyType;
+                pr.ColumnNameAlias =
+                    UtilsCore.GetAsAlias(TableName(CurProviderName), pr.GetColumnName(CurProviderName));
+                return pr;
+            }
+
+            throw new Exception("Perhaps you forgot to use the MapPrimaryKeyAttribute, for a class property");
+        }
 
         public static bool IsUsageActivator(ProviderName providerName)
         {
@@ -268,27 +315,19 @@ namespace ORM_1_21_
         public static List<MapColumnAttribute> CurrentTableAttributeDal(ProviderName providerName)
         {
             Provider = providerName;
-            return AttributeDall.Value[typeof(T)];
+            return AttributeDalList.Value;
         }
 
         public static MapPrimaryKeyAttribute PkAttribute(ProviderName providerName)
         {
-            try
-            {
-                Provider = providerName;
-                return PrimaryKeyLazy.Value[typeof(T)].First();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Perhaps you forgot to use the MapPrimaryKeyAttribute, for a class property", e);
-            }
-          
+            Provider = providerName;
+            return PrimaryKeyAttribute.Value;
         }
 
         public static string TableName(ProviderName providerName)
         {
             Provider = providerName;
-            return TableNameAllLazy.Value[typeof(T)];
+            return TableAttribute.Value.TableName(providerName);
         }
 
         public static string TableNameRaw(ProviderName providerName)
@@ -302,157 +341,14 @@ namespace ORM_1_21_
             return SimpleSelect(providerName);
         }
 
-        private static Dictionary<Type, List<MapColumnAttribute>> ActivateDallAll()
-        {
-            var dictionary = new Dictionary<Type, List<MapColumnAttribute>>
-                { { typeof(T), ActivateADal(CurProviderName) } };
-            return dictionary;
-        }
-
-        private static Dictionary<Type, string> ActivateTableNameAll()
-        {
-            try
-            {
-                var providerName = CurProviderName;
-                var d = typeof(T).GetCustomAttribute<MapTableAttribute>(false);
-                if (d.IsTableNameEmpty()) d.SetTableName(typeof(T).Name);
-                var dictionary = new Dictionary<Type, string>
-                {
-
-                    {
-                        typeof(T),d.TableName(providerName)
-                    }
-                };
-                if (typeof(T).BaseType != null)
-                    RecursionTableName(dictionary, typeof(T).BaseType, providerName);
-                return dictionary;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Perhaps you forgot to put the table name attribute (MapTableAttribute) in the type: {typeof(T)}", ex);
-            }
-
-        }
 
         public static string GetTypeTable(ProviderName providerName)
         {
             Provider = providerName;
-            var o = typeof(T).GetCustomAttribute<MapTypeMysqlTableAttribute>( true);
-            return o!=null ? o.TableType : string.Empty;
+            var o = typeof(T).GetCustomAttribute<MapTypeMysqlTableAttribute>(true);
+            return o != null ? o.TableType : string.Empty;
         }
 
-        private static void RecursionTableName(IDictionary<Type, string> dictionary, Type type,
-            ProviderName providerName)
-        {
-            while (true)
-            {
-                var d = type.GetCustomAttribute<MapTableAttribute>(false);
-
-                if (d == null) return;
-                if (d.IsTableNameEmpty()) d.SetTableName(typeof(T).Name);
-
-                dictionary.Add(type, d.TableName(providerName));
-                if (type.BaseType != null)
-                {
-                    type = type.BaseType;
-                    continue;
-                }
-
-                break;
-            }
-        }
-
-        private static Dictionary<Type, string> ActivateSqlWhereAllLazy()
-        {
-            var lazy = new Dictionary<Type, string>
-            {
-                {
-                    typeof(T), typeof(T).GetCustomAttribute<MapTableAttribute>(false).SqlWhere
-                }
-            };
-
-            return lazy;
-        }
-
-        private static Dictionary<Type, List<MapPrimaryKeyAttribute>> ActivatePrimaryKeyLazy()
-        {
-            var lazy = new Dictionary<Type, List<MapPrimaryKeyAttribute>>();
-            RecursionPrimaryKey(lazy, typeof(T), CurProviderName);
-            return lazy;
-        }
-
-        private static void RecursionPrimaryKey(IDictionary<Type, List<MapPrimaryKeyAttribute>> dictionary, Type type,
-            ProviderName
-                providerName)
-        {
-            var l1 = new List<MapPrimaryKeyAttribute>();
-            foreach (var f in type.GetProperties())
-            {
-                var pr = f.GetCustomAttribute<MapPrimaryKeyAttribute>( true);
-                if (pr==null) continue;
-                if (string.IsNullOrWhiteSpace(pr.GetColumnNameRaw()))
-                {
-                    pr.SetColumnNameRaw(f.Name);
-                }
-                pr.IsBaseKey = false;
-                pr.IsForeignKey = false;
-                pr.PropertyName = f.Name;
-                pr.DeclareType = type;
-                pr.TypeColumn = f.PropertyType;
-                pr.ColumnNameAlias = UtilsCore.GetAsAlias(TableNameAllLazy.Value[type], pr.GetColumnName(providerName));
-                l1.Add(pr);
-            }
-
-            if (!l1.Any()) return;
-            dictionary.Add(type, l1);
-        }
-
-        private static List<MapColumnAttribute> ActivateADal(ProviderName providerName)
-        {
-            var res = new List<MapColumnAttribute>();
-            var fields = typeof(T).GetProperties();
-            foreach (var f in fields)
-            {
-                var o3 = f.GetCustomAttribute<MapDefaultValueAttribute>( true);
-                var columnAttribute = f.GetCustomAttribute<MapColumnAttribute>( true);
-                if (columnAttribute == null) continue;
-             
-                var s = columnAttribute.GetColumnNameRaw();
-                if (string.IsNullOrWhiteSpace(s))
-                {
-                    var n = f.Name;
-                    columnAttribute.SetColumnNameRaw(n);
-                }
-
-                var o2 = f.GetCustomAttribute<MapIndexAttribute>( true);
-                columnAttribute.IsBaseKey = false;
-                columnAttribute.IsForeignKey = false;
-                if (o2!=null) columnAttribute.IsIndex = true;
-
-                columnAttribute.PropertyName = f.Name;
-                columnAttribute.TypeColumn = f.PropertyType;
-                columnAttribute.DeclareType = typeof(T);
-                if (o3!=null)
-                    columnAttribute.DefaultValue = o3.Value;
-
-                columnAttribute.ColumnNameAlias = UtilsCore.GetAsAlias(
-                    TableNameAllLazy.Value[typeof(T)],
-                    columnAttribute
-                    .GetColumnName(providerName));
-
-                var o4 = f.GetCustomAttribute<MapColumnTypeAttribute>( true);
-                if (o4!=null)
-                    columnAttribute.TypeString = o4.TypeString;
-
-                var o5 = f.GetCustomAttribute<MapNotInsertUpdateAttribute>( true);
-                if (o5!=null) columnAttribute.IsNotUpdateInsert = true;
-
-
-                res.Add(columnAttribute);
-            }
-
-            return res;
-        }
 
         private static string GetSqlAll()
         {
@@ -487,46 +383,32 @@ namespace ORM_1_21_
         }
 
 
-        public static IEnumerable<T> GetEnumerableObjectsGroupBy<TT>(IDataReader reader, Delegate expDelegate,
-            ProviderName providerName)
-        {
-            Provider = providerName;
-            Check.NotNull(reader, "IDataReader reader");
-            var rr = typeof(T).GetGenericArguments();
-            var r = Pizdaticus.GetRiderToList<TT>(reader, providerName);
-            var res = CallExp<T, TT>.GetTreeForGroupBy(r, expDelegate, rr[0]);
-            return res;
-        }
-
         public static string SimpleSelect(ProviderName providerName)
         {
             Provider = providerName;
             var sb = new StringBuilder();
-            sb.Append(StringConst.Select + " ");
-            foreach (var type in AttributeDall.Value.Keys.Reverse())
-                if (providerName == ORM_1_21_.ProviderName.PostgreSql)
-                {
-                    foreach (var a in AttributeDall.Value[type])
-                        sb.AppendFormat($" {a.GetColumnName(providerName)},");
-
-                    foreach (var pk in PrimaryKeyLazy.Value[type])
-                        sb.AppendFormat($" {pk.GetColumnName(providerName)},");
-                }
-                else
-                {
-                    foreach (var a in AttributeDall.Value[type])
-                        sb.AppendFormat(" {0}.{1} AS {2},",
-                            TableNameAllLazy.Value[type],
-                            a.GetColumnName(providerName),
-                            UtilsCore.GetAsAlias(TableNameAllLazy.Value[type], a.GetColumnName(providerName)));
-
-                    foreach (var pk in PrimaryKeyLazy.Value[type])
-                        sb.AppendFormat(" {0}.{1} AS {2},",
-                            TableNameAllLazy.Value[type],
-                            pk.GetColumnName(providerName),
-                            UtilsCore.GetAsAlias(TableNameAllLazy.Value[type], pk.GetColumnName(providerName)));
-                }
-
+            sb.Append(StringConst.Select + " "); 
+            var pk = PrimaryKeyAttribute.Value;
+            if (providerName == ORM_1_21_.ProviderName.PostgreSql)
+            {
+                foreach (var a in AttributeDalList.Value)
+                    sb.AppendFormat($" {a.GetColumnName(providerName)},");
+                sb.AppendFormat($" {pk.GetColumnName(providerName)},");
+            }
+            else
+            {
+                foreach (var a in AttributeDalList.Value)
+                    sb.AppendFormat(" {0}.{1} AS {2},",
+                        TableAttribute.Value.TableName(providerName),
+                        a.GetColumnName(providerName),
+                        UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
+                            a.GetColumnName(providerName)));
+                sb.AppendFormat(" {0}.{1} AS {2},",
+                    TableAttribute.Value.TableName(providerName),
+                    pk.GetColumnName(providerName),
+                    UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
+                        pk.GetColumnName(providerName)));
+            }
 
             sb = new StringBuilder(sb.ToString().Trim(','));
             sb.AppendFormat(" FROM {0}", TableName(providerName));
@@ -539,64 +421,61 @@ namespace ORM_1_21_
             params AppenderWhere[] whereObjects)
         {
             Provider = providerName;
-            var listType = TableNameAllLazy.Value.Keys.Reverse();
+
             var allSql = new StringBuilder();
 
 
             var i = 0;
             var sb = new StringBuilder();
 
-            var enumerable = listType as Type[] ?? listType.ToArray();
 
-            foreach (var type in enumerable)
+            sb.Clear();
+
+            var par = new StringBuilder();
+            foreach (var pra in AttributeDalList.Value
+                         .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
             {
-                sb.Clear();
-
-                var par = new StringBuilder();
-                foreach (var pra in AttributeDall.Value[type]
-                             .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
-                {
-                    if (pra.IsNotUpdateInsert) continue;
-                    par.AppendFormat(" {0}.{1} = {3}p{2},", TableNameAllLazy.Value[type],
-                        pra.GetColumnName(providerName), ++i,
-                        UtilsCore.PrefParam(providerName));
-
-                    IDataParameter pr = command.CreateParameter();
-                    pr.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
-                    var prcore = item.GetType().GetProperties().First(a => a.Name == pra.PropertyName);
-                    object vall;
-                    var st = UtilsCore.GetSerializeType(prcore.PropertyType);
-                    if (st == SerializeType.User)
-                        vall = ((IMapSerializable)GetValue.Value[prcore.Name](item)).Serialize();
-                    else if (prcore.PropertyType.BaseType == typeof(Enum))
-                        vall = (int)GetValue.Value[prcore.Name](item);
-                    else
-                        vall = GetValue.Value[prcore.Name](item);
-
-                    pr.Value = vall ?? DBNull.Value;
-                    pr.DbType = pra.DbType();
-                    command.Parameters.Add(pr);
-                }
-
-
-                sb.AppendFormat("UPDATE {0} SET {1} WHERE {0}.{2} = {4}p{3}  ", TableNameAllLazy.Value[type],
-                    par.ToString().Trim(','),
-                    PrimaryKeyLazy.Value[type].First().GetColumnName(providerName), ++i,
+                if (pra.IsNotUpdateInsert) continue;
+                par.AppendFormat(" {0}.{1} = {3}p{2},", TableAttribute.Value.TableName(providerName),
+                    pra.GetColumnName(providerName), ++i,
                     UtilsCore.PrefParam(providerName));
 
-                IDataParameter pr1 = command.CreateParameter();
-                pr1.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
-                var cname = PrimaryKeyLazy.Value[type].First();
-                var sxs = item.GetType().GetProperties().First(a => a.Name == cname.PropertyName);
+                IDataParameter pr = command.CreateParameter();
+                pr.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
+                var prcore = item.GetType().GetProperties().First(a => a.Name == pra.PropertyName);
+                object vall;
+                var st = UtilsCore.GetSerializeType(prcore.PropertyType);
+                if (st == SerializeType.User)
+                    vall = ((IMapSerializable)GetValue.Value[prcore.Name](item)).Serialize();
+                else if (prcore.PropertyType.BaseType == typeof(Enum))
+                    vall = (int)GetValue.Value[prcore.Name](item);
+                else
+                    vall = GetValue.Value[prcore.Name](item);
 
-
-                var val1 = GetValue.Value[sxs.Name](item);
-                //  var val1 = sxs.GetValue(item, null);
-                pr1.Value = val1 ?? DBNull.Value;
-                pr1.DbType = PrimaryKeyLazy.Value[type].First().DbType();
-                command.Parameters.Add(pr1);
-                allSql.Append(sb);
+                pr.Value = vall ?? DBNull.Value;
+                pr.DbType = pra.DbType();
+                command.Parameters.Add(pr);
             }
+
+
+            var pk = PrimaryKeyAttribute.Value;
+            sb.AppendFormat("UPDATE {0} SET {1} WHERE {0}.{2} = {4}p{3}  ",
+                TableAttribute.Value.TableName(providerName),
+                par.ToString().Trim(','),
+                pk.GetColumnName(providerName), ++i,
+                UtilsCore.PrefParam(providerName));
+
+            IDataParameter pr1 = command.CreateParameter();
+            pr1.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
+
+            var sxs = item.GetType().GetProperties().First(a => a.Name == pk.PropertyName);
+
+
+            var val1 = GetValue.Value[sxs.Name](item);
+            pr1.Value = val1 ?? DBNull.Value;
+            pr1.DbType = pk.DbType();
+            command.Parameters.Add(pr1);
+            allSql.Append(sb);
 
 
             if (whereObjects != null && whereObjects.Length > 0)
@@ -616,71 +495,69 @@ namespace ORM_1_21_
             params AppenderWhere[] whereObjects)
         {
             Provider = providerName;
-            var listType = TableNameAllLazy.Value.Keys.Reverse();
+
             var allSql = new StringBuilder();
 
             var sb = new StringBuilder();
             var i = 0;
-            var enumerable = listType as Type[] ?? listType.ToArray();
 
-            foreach (var type in enumerable)
+
+            sb.Clear();
+
+            var par = new StringBuilder();
+            foreach (var pra in AttributeDalList.Value
+                         .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
             {
-                sb.Clear();
-
-                var par = new StringBuilder();
-                foreach (var pra in AttributeDall.Value[type]
-                             .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
-                {
-                    if (pra.IsNotUpdateInsert) continue;
-                    par.AppendFormat(" {0} = {2}p{1},", pra.GetColumnName(providerName), ++i,
-                        UtilsCore.PrefParam(providerName));
-
-                    IDataParameter pr = command.CreateParameter();
-                    pr.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
-                    var prCore =
-                        item.GetType()
-                            .GetProperties()
-                            .First(a => a.Name == pra.PropertyName);
-                    object val;
-                    var st = UtilsCore.GetSerializeType(prCore.PropertyType);
-                    if (st == SerializeType.User)
-                        val = ((IMapSerializable)GetValue.Value[prCore.Name](item)).Serialize();
-                    else if (prCore.PropertyType.BaseType == typeof(Enum))
-                        val = (int)GetValue.Value[prCore.Name](item);
-                    else
-                        val = GetValue.Value[prCore.Name](item);
-
-                    pr.Value = val ?? DBNull.Value;
-                    if (prCore.PropertyType.BaseType == typeof(Enum))
-                        pr.DbType = DbTypeConverter.ConvertFrom(typeof(int));
-                    else
-                        pr.DbType = pra.DbType();
-
-                    if (prCore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.SqLite)
-                    {
-                        pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
-                        pr.Value = GetValue.Value[prCore.Name](item).ToString();
-                    }
-
-                    command.Parameters.Add(pr);
-                }
-
-
-                sb.AppendFormat("UPDATE {0} SET {1} WHERE {2} = {4}p{3} ", TableNameAllLazy.Value[type],
-                    par.ToString().Trim(','),
-                    PrimaryKeyLazy.Value[type].First().GetColumnName(providerName), ++i,
+                if (pra.IsNotUpdateInsert) continue;
+                par.AppendFormat(" {0} = {2}p{1},", pra.GetColumnName(providerName), ++i,
                     UtilsCore.PrefParam(providerName));
 
-                IDataParameter pr1 = command.CreateParameter();
-                pr1.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
-                var pk = PrimaryKeyLazy.Value[type].First();
-                //var sxs = item.GetType().GetProperties().First(a => a.Name == cname.PropertyName);
-                var val1 = GetValue.Value[pk.PropertyName](item);
-                pr1.Value = val1 ?? DBNull.Value;
-                pr1.DbType = PrimaryKeyLazy.Value[type].First().DbType();
-                command.Parameters.Add(pr1);
-                allSql.Append(sb);
+                IDataParameter pr = command.CreateParameter();
+                pr.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
+                var prCore =
+                    item.GetType()
+                        .GetProperties()
+                        .First(a => a.Name == pra.PropertyName);
+                object val;
+                var st = UtilsCore.GetSerializeType(prCore.PropertyType);
+                if (st == SerializeType.User)
+                    val = ((IMapSerializable)GetValue.Value[prCore.Name](item)).Serialize();
+                else if (prCore.PropertyType.BaseType == typeof(Enum))
+                    val = (int)GetValue.Value[prCore.Name](item);
+                else
+                    val = GetValue.Value[prCore.Name](item);
+
+                pr.Value = val ?? DBNull.Value;
+                if (prCore.PropertyType.BaseType == typeof(Enum))
+                    pr.DbType = DbTypeConverter.ConvertFrom(typeof(int));
+                else
+                    pr.DbType = pra.DbType();
+
+                if (prCore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.SqLite)
+                {
+                    pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
+                    pr.Value = GetValue.Value[prCore.Name](item).ToString();
+                }
+
+                command.Parameters.Add(pr);
             }
+
+ 
+            var pk = PrimaryKeyAttribute.Value;
+            sb.AppendFormat("UPDATE {0} SET {1} WHERE {2} = {4}p{3} ", TableAttribute.Value.TableName(providerName),
+                par.ToString().Trim(','),
+                pk.GetColumnName(providerName), ++i,
+                UtilsCore.PrefParam(providerName));
+
+            IDataParameter pr1 = command.CreateParameter();
+            pr1.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
+           
+            var val1 = GetValue.Value[pk.PropertyName](item);
+            pr1.Value = val1 ?? DBNull.Value;
+            pr1.DbType = pk.DbType();
+            command.Parameters.Add(pr1);
+            allSql.Append(sb);
+
 
             if (whereObjects != null && whereObjects.Length > 0)
                 foreach (var o in whereObjects)
@@ -737,7 +614,7 @@ namespace ORM_1_21_
             var r = new StringBuilder();
             foreach (var oneComposite in listOne.Where(a => a.Operand == Evolution.Update))
             {
-                var ee = UtilsCore.MySplit(oneComposite.Body); 
+                var ee = UtilsCore.MySplit(oneComposite.Body);
                 //  var eee = ee.Split(2).ToList();
                 foreach (var s in ee.Split(2))
                 {
@@ -757,7 +634,7 @@ namespace ORM_1_21_
             var from = si.Substring(si.IndexOf("FROM", StringComparison.Ordinal));
 
 
-            return string.Format(" UPDATE {0} SET {1} {2} {3}", TableNameAllLazy.Value[typeof(T)],
+            return string.Format(" UPDATE {0} SET {1} {2} {3}", TableAttribute.Value.TableName(providerName),
                 r.ToString().Trim(','), from, where.ToString().Trim(','));
         }
 
@@ -774,25 +651,25 @@ namespace ORM_1_21_
 
 
             var where = listOne.Where(a => a.Operand == Evolution.Where);
-            var sbwhere = new StringBuilder();
+            var sbWhere = new StringBuilder();
             var sbOrderBy = new StringBuilder();
-            var oneComprosites = where as OneComposite[] ?? where.ToArray();
-            foreach (var oneComprosite in oneComprosites)
+            var oneComposites = where as OneComposite[] ?? where.ToArray();
+            foreach (var oneComposite in oneComposites)
             {
-                if (oneComprosite == oneComprosites.First())
+                if (oneComposite == oneComposites.First())
                 {
-                    sbwhere.AppendFormat(" {0} ", oneComprosite.Body);
+                    sbWhere.AppendFormat(" {0} ", oneComposite.Body);
                     continue;
                 }
 
-                sbwhere.AppendFormat("AND  {0} ", oneComprosite.Body);
+                sbWhere.AppendFormat("AND  {0} ", oneComposite.Body);
             }
 
-            var ordrby = listOne.Where(a => a.Operand == Evolution.OrderBy);
-            foreach (var oneComprosite in ordrby)
-                sbOrderBy.AppendFormat("{0},", oneComprosite.Body);
+            var orderBy = listOne.Where(a => a.Operand == Evolution.OrderBy);
+            foreach (var oneComposite in orderBy)
+                sbOrderBy.AppendFormat("{0},", oneComposite.Body);
             var ss = SimpleSqlSelect(providerName).Replace(StringConst.Select, "") +
-                     AddSqlWhere(sbwhere.ToString(), providerName);
+                     AddSqlWhere(sbWhere.ToString(), providerName);
             var mat4 = new Regex(@"AS[^,]*").Matches(doSql.Substring(0, doSql.IndexOf("FROM", StringComparison.Ordinal))
                 .Replace(StringConst.Select, "") + ",");
             var d = new StringBuilder();
@@ -812,8 +689,8 @@ namespace ORM_1_21_
             start += 1;
 
             if (string.IsNullOrEmpty(sbOrderBy.ToString()))
-                sbOrderBy.AppendFormat(" {0}.{1} ", TableNameAllLazy.Value[typeof(T)],
-                    PrimaryKeyLazy.Value[typeof(T)].First().GetColumnName(providerName));
+                sbOrderBy.AppendFormat(" {0}.{1} ", TableAttribute.Value.TableName(providerName),
+                    PrimaryKeyAttribute.Value.GetColumnName(providerName));
 
 
             if (listOne.Any(a => a.Operand == Evolution.ElementAtOrDefault || a.Operand == Evolution.ElementAt))
@@ -834,63 +711,11 @@ namespace ORM_1_21_
             return ff;
         }
 
-        public static void CreateUpdateCommand(IDbCommand command, T item, ProviderName providerName)
-        {
-            Provider = providerName;
-            var listType = TableNameAllLazy.Value.Keys.Reverse();
-            var allSb = new StringBuilder();
-
-            const string par = "p";
-            var i = 0;
-
-            var enumerable = listType as Type[] ?? listType.ToArray();
-            foreach (var type in enumerable)
-            {
-                var sb = new StringBuilder();
-                var sbvalues = new StringBuilder("");
-                sb.AppendFormat("UPDATE {0} SET ", TableNameAllLazy.Value[type]);
-                foreach (var pk in PrimaryKeyLazy.Value[type])
-                {
-                    if (pk.Generator == Generator.Native) continue;
-                    if (pk.Generator == Generator.Assigned) continue;
-                    sbvalues.AppendFormat(" {0}.{1}={2}{3}{4},", TableNameAllLazy.Value[type],
-                        pk.GetColumnName(providerName),
-                        UtilsCore.PrefParam(providerName), par, ++i);
-                    IDataParameter pr = command.CreateParameter();
-                    pr.ParameterName = string.Format("{0}{1}{2}", UtilsCore.PrefParam(providerName), par, i);
-                    var val = GetValue.Value[pr.ParameterName](item);
-                    pr.Value = val ?? DBNull.Value;
-                    pr.DbType = pk.DbType();
-                    command.Parameters.Add(pr);
-                }
-
-                foreach (var rtp in AttributeDall.Value[type])
-                {
-                    sbvalues.AppendFormat(" {0}.{1}={2}{3}{4},", TableNameAllLazy.Value[type],
-                        rtp.GetColumnName(providerName),
-                        UtilsCore.PrefParam(providerName), par, ++i);
-                    IDataParameter pr = command.CreateParameter();
-                    pr.ParameterName = string.Format("{0}{1}{2}", UtilsCore.PrefParam(providerName), par, i);
-                    var val = GetValue.Value[rtp.PropertyName](item);
-                    pr.Value = val ?? DBNull.Value;
-                    pr.DbType = rtp.DbType();
-                    command.Parameters.Add(pr);
-                }
-
-                sb.Append(sbvalues.ToString().Trim(',') + " ");
-                sb.Append(SimpleSelect(providerName)
-                    .Substring(SimpleSelect(providerName).IndexOf("FROM", StringComparison.Ordinal)));
-                sb.Append(";");
-                allSb.Append(sb);
-            }
-
-            command.CommandText = allSb.ToString();
-        }
 
         public static void RedefiningPrimaryKey(T item, object val, ProviderName providerName)
         {
             Provider = providerName;
-            var e = PrimaryKeyLazy.Value[typeof(T)].First();
+            var e = PrimaryKeyAttribute.Value;
             if (e.Generator != Generator.Native) return;
             var valCore = UtilsCore.ConverterPrimaryKeyType(e.TypeColumn, Convert.ToDecimal(val));
             item.GetType().GetProperty(e.PropertyName).SetValue(item, valCore, null);
@@ -899,117 +724,107 @@ namespace ORM_1_21_
         public static void CreateInsetCommand(IDbCommand command, T obj, ProviderName providerName)
         {
             Provider = providerName;
-            var listType = TableNameAllLazy.Value.Keys.Reverse();
             var allSb = new StringBuilder();
-            var declare = new StringBuilder();
             const string par = "p";
             var i = 0;
 
-            var enumerable = listType as Type[] ?? listType.ToArray();
-            foreach (var type in enumerable)
+
+            var sb = new StringBuilder();
+            var values = new StringBuilder(" VALUES (");
+            sb.AppendFormat("INSERT INTO {0} (", TableAttribute.Value.TableName(providerName));
+            var pk = PrimaryKeyAttribute.Value;
+
+            if (pk.IsNotUpdateInsert || pk.Generator != Generator.Assigned)
             {
-                var sb = new StringBuilder();
-                var values = new StringBuilder(" VALUES (");
-                sb.AppendFormat("INSERT INTO {0} (", TableNameAllLazy.Value[type]);
-                foreach (var pk in PrimaryKeyLazy.Value[type])
+
+            }
+            else
+            {
+                if (providerName == ORM_1_21_.ProviderName.PostgreSql ||
+                    providerName == ORM_1_21_.ProviderName.SqLite)
+                    sb.AppendFormat($"{pk.GetColumnName(providerName)}, ");
+                else
+                    sb.AppendFormat("{0}.{1}, ", TableAttribute.Value.TableName(providerName),
+                        pk.GetColumnName(providerName));
+                if (pk.IsForeignKey)
                 {
-                    if (pk.IsNotUpdateInsert) continue;
-
-                    if (pk.Generator != Generator.Assigned) continue;
-
-                    if (providerName == ORM_1_21_.ProviderName.PostgreSql ||
-                        providerName == ORM_1_21_.ProviderName.SqLite)
-                        sb.AppendFormat($"{pk.GetColumnName(providerName)}, ");
-                    else
-                        sb.AppendFormat("{0}.{1}, ", TableNameAllLazy.Value[type], pk.GetColumnName(providerName));
-                    if (pk.IsForeignKey)
-                    {
-                        values.Append(" @basekey, ");
-                    }
-                    else
-                    {
-                        values.AppendFormat("{0}{1}{2},", UtilsCore.PrefParam(providerName), par, ++i);
-                        IDataParameter pr = command.CreateParameter(); // 
-                        pr.ParameterName = string.Format("{0}{1}{2}", UtilsCore.PrefParam(providerName), par, i);
-                        // var val = obj.GetType().GetProperty(pk.PropertyName).GetValue(obj, null);
-                        var val = GetValue.Value[pk.PropertyName](obj);
-
-                        pr.Value = val ?? DBNull.Value;
-                        pr.DbType = pk.DbType();
-                        command.Parameters.Add(pr);
-                    }
+                    values.Append(" @basekey, ");
                 }
-
-
-                foreach (var rtp in AttributeDall.Value[type])
+                else
                 {
-                    if (rtp.IsNotUpdateInsert) continue;
-
-                    if (providerName == ORM_1_21_.ProviderName.PostgreSql ||
-                        providerName == ORM_1_21_.ProviderName.SqLite)
-                        sb.AppendFormat($"{rtp.GetColumnName(providerName)}, ");
-                    else
-                        sb.AppendFormat("{0}.{1},", TableNameAllLazy.Value[type], rtp.GetColumnName(providerName));
-
-                    if (rtp.IsForeignKey)
-                    {
-                        values.Append(" @basekey, ");
-                    }
-                    else
-                    {
-                        var isEnum = false;
-                        values.AppendFormat("{0}{1}{2},", UtilsCore.PrefParam(providerName), par, ++i);
-                        IDataParameter pr = command.CreateParameter(); // ProviderFactories.GetParameter(providerName);
-                        pr.ParameterName = $"{UtilsCore.PrefParam(providerName)}{par}{i}";
-                        var prCore = obj.GetType().GetProperty(rtp.PropertyName);
-                        object val;
-                        var st = UtilsCore.GetSerializeType(prCore.PropertyType);
-                        if (prCore.PropertyType.BaseType == typeof(Enum))
-                        {
-                            val = (int)GetValue.Value[prCore.Name](obj);
-                            isEnum = true;
-                        }
-                        else if (st == SerializeType.User)
-                        {
-                            val = ((IMapSerializable)GetValue.Value[prCore.Name](obj)).Serialize();
-                        }
-                        else
-                        {
-                            val = GetValue.Value[prCore.Name](obj);
-                        }
-
-                        if (prCore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.SqLite)
-                        {
-                            pr.Value = val.ToString();
-                            pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
-                        }
-                        else
-                        {
-                            pr.Value = val ?? DBNull.Value;
-                            pr.DbType = isEnum ? DbTypeConverter.ConvertFrom(typeof(int)) : rtp.DbType();
-                        }
-
-
-                        command.Parameters.Add(pr);
-                    }
+                    values.AppendFormat("{0}{1}{2},", UtilsCore.PrefParam(providerName), par, ++i);
+                    IDataParameter pr = command.CreateParameter(); // 
+                    pr.ParameterName = $"{UtilsCore.PrefParam(providerName)}{par}{i}";
+                    var val = GetValue.Value[pk.PropertyName](obj);
+                    pr.Value = val ?? DBNull.Value;
+                    pr.DbType = pk.DbType();
+                    command.Parameters.Add(pr);
                 }
-
-                sb = new StringBuilder(sb.ToString().Trim(' ', ',') + ") ");
-                sb.Append(values.ToString().Trim(' ', ',') + ") ");
-                allSb.Append(sb);
             }
 
-            string ss = allSb.ToString();
+            foreach (var rtp in AttributeDalList.Value)
+            {
+                if (rtp.IsNotUpdateInsert) continue;
+
+                if (providerName == ORM_1_21_.ProviderName.PostgreSql ||
+                    providerName == ORM_1_21_.ProviderName.SqLite)
+                    sb.AppendFormat($"{rtp.GetColumnName(providerName)}, ");
+                else
+                    sb.AppendFormat("{0}.{1},", TableAttribute.Value.TableName(providerName),
+                        rtp.GetColumnName(providerName));
+
+                if (rtp.IsForeignKey)
+                {
+                    values.Append(" @basekey, ");
+                }
+                else
+                {
+                    var isEnum = false;
+                    values.AppendFormat("{0}{1}{2},", UtilsCore.PrefParam(providerName), par, ++i);
+                    IDataParameter pr = command.CreateParameter(); // ProviderFactories.GetParameter(providerName);
+                    pr.ParameterName = $"{UtilsCore.PrefParam(providerName)}{par}{i}";
+                    var prCore = obj.GetType().GetProperty(rtp.PropertyName);
+                    object val;
+                    var st = UtilsCore.GetSerializeType(prCore.PropertyType);
+                    if (prCore.PropertyType.BaseType == typeof(Enum))
+                    {
+                        val = (int)GetValue.Value[prCore.Name](obj);
+                        isEnum = true;
+                    }
+                    else if (st == SerializeType.User)
+                    {
+                        val = ((IMapSerializable)GetValue.Value[prCore.Name](obj)).Serialize();
+                    }
+                    else
+                    {
+                        val = GetValue.Value[prCore.Name](obj);
+                    }
+
+                    if (prCore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.SqLite)
+                    {
+                        pr.Value = val.ToString();
+                        pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
+                    }
+                    else
+                    {
+                        pr.Value = val ?? DBNull.Value;
+                        pr.DbType = isEnum ? DbTypeConverter.ConvertFrom(typeof(int)) : rtp.DbType();
+                    }
+                    command.Parameters.Add(pr);
+                }
+            }
+
+            sb = new StringBuilder(sb.ToString().Trim(' ', ',') + ") ");
+            sb.Append(values.ToString().Trim(' ', ',') + ") ");
+            allSb.Append(sb);
+
 
             if (PkAttribute(providerName).Generator == Generator.Native)
-            {
-                //allSb.Append(";");
                 switch (providerName)
                 {
                     case ORM_1_21_.ProviderName.MsSql:
                         {
-
-                            allSb.Append($" SELECT IDENT_CURRENT ('{TableNameAllLazy.Value[typeof(T)]}')");
+                            allSb.Append($" SELECT IDENT_CURRENT ('{TableAttribute.Value.TableName(providerName)}')");
                             break;
                         }
                     case ORM_1_21_.ProviderName.PostgreSql:
@@ -1030,7 +845,6 @@ namespace ORM_1_21_
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-            }
 
 
             command.CommandText = allSb + ";";
@@ -1039,40 +853,27 @@ namespace ORM_1_21_
         public static void CreateDeleteCommand(IDbCommand command, T obj, ProviderName providerName)
         {
             Provider = providerName;
+            var pk = PrimaryKeyAttribute.Value;
             command.CommandText = string.Format(" DELETE FROM {0} WHERE {0}.{1} = {2}p1",
-                TableNameAllLazy.Value[typeof(T)],
-                PrimaryKeyLazy.Value[typeof(T)].First().GetColumnName(providerName), UtilsCore.PrefParam(providerName));
+                TableAttribute.Value.TableName(providerName),
+                pk.GetColumnName(providerName), UtilsCore.PrefParam(providerName));
             IDataParameter pr = command.CreateParameter();
-            pr.ParameterName = string.Format("{0}p1", UtilsCore.PrefParam(providerName));
-            var prr = obj.GetType().GetProperty(PrimaryKeyLazy.Value[typeof(T)].First().PropertyName);
+            pr.ParameterName = $"{UtilsCore.PrefParam(providerName)}p1";
+            var prr = obj.GetType().GetProperty(pk.PropertyName);
             var val = GetValue.Value[prr.Name](obj);
-
-            // .GetValue(obj, null);
             pr.Value = val ?? DBNull.Value;
-            pr.DbType = PrimaryKeyLazy.Value[typeof(T)].First().DbType();
+            pr.DbType = pk.DbType();
             command.Parameters.Add(pr);
         }
 
         public static string GetNameFieldForQuery(string member, Type type, ProviderName providerName)
         {
-            try
-            {
-                Provider = providerName;
-                return TableNameAllLazy.Value[type] + "." + ColumnName.Value[member];
-            }
-            catch (Exception e)
-            {
-                throw new Exception(
-                    $"Perhaps you forgot to mark the {member} property with the MapColumnAttribute, in the {type.Name} type",
-                    e);
-                
-            }
-           
+            Provider = providerName;
+            return TableAttribute.Value.TableName(providerName) + "." + ColumnName.Value[member];
         }
 
         public static void Init()
         {
-            
         }
     }
 }

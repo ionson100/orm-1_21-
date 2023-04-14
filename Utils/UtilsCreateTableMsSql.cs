@@ -1,6 +1,5 @@
 ﻿
 using System;
-using System.Drawing;
 using System.Text;
 
 namespace ORM_1_21_.Utils
@@ -13,15 +12,30 @@ namespace ORM_1_21_.Utils
             StringBuilder builder = new StringBuilder($"IF not exists (select 1 from information_schema.tables where table_name = '{tableName}')");
             builder.AppendLine($"CREATE TABLE [dbo].[{tableName}](");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
-            if (pk.Generator == Generator.Native)
+            if (pk.Generator == Generator.Native|| pk.Generator == Generator.NativeNotLastInsert)
             {
-
-                builder.AppendLine($"[{pk.ColumnNameForRider(providerName)}] {GetTypeMsSQl(pk.TypeColumn)} IDENTITY(1,1) NOT NULL PRIMARY KEY,");
+                var typePk = $" {GetTypeMsSQl(pk.TypeColumn)}IDENTITY(1,1) NOT NULL";
+                if (!string.IsNullOrWhiteSpace(pk.TypeString))
+                    typePk = pk.TypeString;
+                var defValue = "PRIMARY KEY";
+                if (!string.IsNullOrWhiteSpace(pk.DefaultValue))
+                {
+                    defValue = pk.DefaultValue;
+                }
+                builder.AppendLine($"[{pk.ColumnNameForRider(providerName)}]  {typePk} {defValue},");
             }
             if (pk.Generator == Generator.Assigned)
             {
+                var typePk = "uniqueIdentifier default (newId())";
+                if (!string.IsNullOrWhiteSpace(pk.TypeString))
+                    typePk = pk.TypeString;
+                var defValue = "PRIMARY KEY";
+                if (!string.IsNullOrWhiteSpace(pk.DefaultValue))
+                {
+                    defValue = pk.DefaultValue;
+                }
 
-                builder.AppendLine($"[{pk.ColumnNameForRider(providerName)}] uniqueIdentifier default (newId()) primary key,");
+                builder.AppendLine($"[{pk.ColumnNameForRider(providerName)}]  {typePk} {defValue},");
             }
 
 

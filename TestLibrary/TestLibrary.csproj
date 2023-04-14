@@ -133,7 +133,10 @@
     <Compile Include="Execute.cs" />
     <Compile Include="Execute2.cs" />
     <Compile Include="Execute3.cs" />
+    <Compile Include="ExecuteFree.cs" />
     <Compile Include="ExecuteLinqAll.cs" />
+    <Compile Include="ExecutePrimaryKey.cs" />
+    <Compile Include="ExecuteSp.cs" />
     <Compile Include="MyClass.cs" />
     <Compile Include="MyClassBase.cs" />
     <Compile Include="MyClassNull.cs" />
@@ -156,6 +159,16 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="spMysql.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\spMysql.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets" Condition="Exists('..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets')" />

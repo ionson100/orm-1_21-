@@ -10,8 +10,6 @@ install database provider from NuGet (Npgsql,Mysql.Data,System.Data.SQLite,Syste
 #### Quick start
 ```C#
 using ORM_1_21_;
-using ORM_1_21_.Extensions;
-
 
 string path = null;
 #if DEBUG
@@ -59,8 +57,6 @@ ORM adds itself.
 #### Tables Map.
 ```C#
 using ORM_1_21_;
-using ORM_1_21_.Extensions;
-
 
  [MapTable("my_class")]// or [MapTable]
  class MyClass
@@ -92,7 +88,7 @@ using ORM_1_21_.Extensions;
 ###### Table name:
 ```C#
 using ORM_1_21_;
-using ORM_1_21_.Extensions;
+
 
 //using Postgresql
 class PeopleAllBase
@@ -148,7 +144,7 @@ class PeopleOld : PeopleAllBase { }
 ###### Column Name,Index,Not Insert and Update,Type,Default value
 ```C#
 using ORM_1_21_;
-using ORM_1_21_.Extensions;
+
 
 public class TestTSBase
 {
@@ -195,6 +191,26 @@ UPDATE [TS2] SET  [TS2].[name] = @p1 WHERE [TS2].[id] = @p2   AND [ts] = @p3; pa
 ```[MapPrimaryKey("id", Generator.Assigned)]``` - Assigned by user.\
 ```[MapPrimaryKey("id", Generator.Native)]``` - Designates a database as an auto-increment column.\
 ```[MapPrimaryKey(Generator.Assigned)]``` - Assigned by user. Table name from name property 
+Example: Postgres uuid primary key auto generate.
+```C#
+[MapTable("test_uuid")]
+class TestUuid
+{
+    [MapColumnType(" uuid")]
+    [MapDefaultValue("DEFAULT uuid_generate_v4() PRIMARY KEY")]
+    [MapPrimaryKey("id",Generator.Native)]
+    public Guid id { get; set; }
+    [MapColumn("name")]
+    public string Name { get; set; }   
+}
+```
+```sql
+CREATE TABLE IF NOT EXISTS "test_uuid"
+(
+ "id" uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
+ "name" character varying(256) ,
+)
+```
 ###### Serialization to JSON
 
 
@@ -287,7 +303,6 @@ session.Query<MyClass>().ToList().Join(session.Query<MyClass>(), a => a.Age, b =
 
 ```C#
 using ORM_1_21_;
-using ORM_1_21_.Extensions;
 
 
 var expSql = Configure.Session.Query<MyClass>().
@@ -353,6 +368,33 @@ string sql = $" select * from {session.TableName<MyClass>()} where {session.Colu
 var res=session.FreeSql<MyClass>(sql, 10);
 ```
 
+###### Extensions:
+```C#
+static class Help
+{
+    public static IEnumerable<object> Foo<TSource>(this IQueryable<TSource> source, Func<TSource, object> func)
+    {
+        var res = source.Provider.Execute<IEnumerable<TSource>>(source.Expression);
+        foreach (var re in res)
+        {
+            yield return func(re);
+        }
+    }
+
+    public static async Task<IEnumerable<object>> FooAsync<TSource>(this IQueryable<TSource> source,
+        Func<TSource, object> func, CancellationToken cancellationToken = default)
+    {
+        var res = await source.Provider.ExecuteAsync<IEnumerable<TSource>>(source.Expression, cancellationToken);
+        return res.Select(func);
+    }
+}
+
+ foreach (var o in await session.Query<MyClass>().Select(a => new { a.Age }).FooAsync(a => a.Age + 30))
+ {
+     Console.WriteLine(o);
+ }
+```
+
 
 
 #### Native SQL.
@@ -416,6 +458,38 @@ var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {sessio
        
    }
  }
+....
+ public enum CommandMode
+ {
+     /// <summary>
+     /// None
+     /// </summary>
+     None,
+     /// <summary>
+     /// Before Update
+     /// </summary>
+     BeforeUpdate,
+     /// <summary>
+     /// Before Insert
+     /// </summary>
+     BeforeInsert,
+     /// <summary>
+     /// Before Delete
+     /// </summary>
+     BeforeDelete,
+     /// <summary>
+     /// After Update
+     /// </summary>
+     AfterUpdate,
+     /// <summary>
+     /// After Insert
+     /// </summary>
+     AfterInsert,
+     /// <summary>
+     /// After Delete
+     /// </summary>
+     AfterDelete,
+ }
 ```
 
 #### Transaction.
@@ -449,7 +523,7 @@ var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {sessio
 #### Accessing another database.
 Getting a session
 ```C#
-var session=Configure.GetSession<TS>()
+var session=Configure.GetSession<TS>() //where TS : IOtherDataBaseFactory ,new()
 ```
 The type that implements the interface:```IOtherDataBaseFactory```\
 the type must have a public constructor.
@@ -563,6 +637,29 @@ public class MyDbSqlite : IOtherDataBaseFactory
 <span style="color:red">Important</span>\
 The session is opened only for this database\
 Type to use only for a specific database
+##### Stored Procedures
+Example Mysql:
+```sql
+DROP procedure IF EXISTS `getCountList`;
+CREATE  PROCEDURE `getCountList`(IN maxAge int,out myCount int)
+BEGIN
+  select count(*) INTO myCount from my_class5 where age < maxAge;
+  select * from my_class5  where age < maxAge;
+END;
+DROP procedure IF EXISTS `getList`;
+
+CREATE PROCEDURE `getList`()
+BEGIN
+    select * from my_class5;
+END;
+```
+```C#
+var list =  (IEnumerable<MyClass>)session.ProcedureCall<MyClass>("getList");
+var par1 = new ParameterStoredPr("maxAge", 100, ParameterDirection.Input);
+var par2 = new ParameterStoredPr("myCount", 120, ParameterDirection.Output);
+list = (IEnumerable<MyClass>) session.ProcedureCallParam<MyClass>("getCountList", par1, par2);
+var count=par2.Value;
+```
 
 
 

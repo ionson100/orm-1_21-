@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -41,13 +39,22 @@ namespace ORM_1_21_
         private static readonly object Locker = new object();
 
         /// <summary>
+        /// Constructor (start App)
+        /// </summary>
+        /// <param name="connectionString">Database connection string</param>
+        /// <param name="provider">Base connection provider</param>
+        public Configure(string connectionString, ProviderName provider) : this(connectionString, provider, null)
+        {
+
+        }
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="connectionString">Database connection string</param>
-        /// <param name="provider">Base connection providerй</param>
+        /// <param name="provider">Base connection provider</param>
         /// <param name="logFileName">Path to log file is  null - disable writing to log file.</param>
         /// <param name="isSearchGac"> true:Search data provider in storage GAC, default - false</param>
-        public Configure(string connectionString, ProviderName provider, string logFileName, bool isSearchGac=false)
+        public Configure(string connectionString, ProviderName provider, string logFileName, bool isSearchGac = false)
         {
             _configure = this;
             CurFactory = null;
@@ -67,14 +74,14 @@ namespace ORM_1_21_
                             CurFactory = DbProviderFactories.GetFactory("Npgsql");
 
                         }
-                        catch 
+                        catch
                         {
                             try
                             {
                                 var a = AppDomain.CurrentDomain.Load("Npgsql");
                                 var b = a.GetType("Npgsql.NpgsqlFactory");
-                                var field1 = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
-                                CurFactory = (DbProviderFactory)field1.GetValue(null);
+                                var field = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
+                                CurFactory = (DbProviderFactory)field.GetValue(null);
                                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                                 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
                             }
@@ -83,11 +90,11 @@ namespace ORM_1_21_
                                 MySqlLogger.Info($"{e.Message}{Environment.NewLine}{e}");
                                 throw;
                             }
-                           
+
                         }
-                       
-                       
-                       
+
+
+
                         break;
                     }
                 case ProviderName.MySql:
@@ -97,14 +104,14 @@ namespace ORM_1_21_
                             if (!isSearchGac1) throw new Exception("Search ban GAC");
                             CurFactory = DbProviderFactories.GetFactory("MySql.Data.MySqlClient");
                         }
-                        catch 
+                        catch
                         {
 
                             var a = AppDomain.CurrentDomain.Load("Mysql.Data");
                             var b = a.GetType("MySql.Data.MySqlClient.MySqlClientFactory");
                             CurFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
                         }
-                     
+
                         break;
                     }
                 case ProviderName.SqLite:
@@ -118,12 +125,12 @@ namespace ORM_1_21_
                         {
                             var a = AppDomain.CurrentDomain.Load("System.Data.SQLite");
                             var b = a.GetType("System.Data.SQLite.SQLiteFactory");
-                            var field1 = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
-                            CurFactory = (DbProviderFactory)field1.GetValue(null);
-                         
+                            var field = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
+                            CurFactory = (DbProviderFactory)field.GetValue(null);
+
                         }
                         break;
-                   
+
                     }
                 case ProviderName.MsSql:
                     {
@@ -132,19 +139,19 @@ namespace ORM_1_21_
                             if (!isSearchGac1) throw new Exception("Search ban GAC");
                             CurFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
                         }
-                        catch 
+                        catch
                         {
                             var a = AppDomain.CurrentDomain.Load("System.Data.SqlClient");
                             var b = a.GetType("System.Data.SqlClient.SqlClientFactory");
                             CurFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
                         }
-                       
+
                         break;
 
                     }
             }
 
-           
+
         }
 
         /// <summary>
@@ -152,7 +159,7 @@ namespace ORM_1_21_
         /// </summary>
         public static ProviderName Provider { get; private set; }
 
-       
+
 
         /// <summary>
         ///Getting default session
@@ -167,12 +174,13 @@ namespace ORM_1_21_
                 {
                     MySqlLogger.Info($" {Environment.NewLine}\"ISession GetInnerSession error _configure==null\"{Environment.NewLine}");
                     throw new Exception("ISession GetInnerSession error _configure==null");
-               
+
                 }
 
                 return _configure.GetInnerSession();
             }
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -196,7 +204,7 @@ namespace ORM_1_21_
         /// <typeparam name="TF">The type that the interface must implement IOtherDataBaseFactory and
         /// have a default constructor</typeparam>
         /// <returns></returns>
-        public static ISession GetSession<TF>() where TF : IOtherDataBaseFactory ,new()
+        public static ISession GetSession<TF>() where TF : IOtherDataBaseFactory, new()
         {
             if (_configure == null)
             {
@@ -204,7 +212,13 @@ namespace ORM_1_21_
                 throw new Exception("ISession GetInnerSession error _configure==null");
             }
 
-            return _configure.GetInnerSession<TF>();
+           //lock (_o)
+           //{
+                return _configure.GetInnerSession<TF>();
+
+            //}
+
+
         }
 
         /// <summary>
@@ -220,6 +234,7 @@ namespace ORM_1_21_
                 throw new Exception("ISession GetInnerSession error _configure==null");
             }
 
+
             return await _configure.GetInnerSessionAsync<TF>();
         }
 
@@ -233,9 +248,9 @@ namespace ORM_1_21_
                 }
             MySqlLogger.StopLogger();
 
-            Task.Run(async ()=> await MySqlLogger.RunLogger(fileNameLogFile));
+            Task.Run(async () => await MySqlLogger.RunLogger(fileNameLogFile));
         }
-       
+
 
         private ISession GetInnerSession()
         {
@@ -251,12 +266,14 @@ namespace ORM_1_21_
             lock (Locker)
             {
                 tk.SetResult(new Sessione(ConnectionString));
-                return  tk.Task;
+                return tk.Task;
             }
         }
+
+        private static object _o = new object();
         private ISession GetInnerSession<TF>()
         {
-            var res = GetDataBaseFactory<TF>(); 
+            var res = GetDataBaseFactory<TF>();
             return new Sessione(res);
         }
         private Task<ISession> GetInnerSessionAsync<TF>()
@@ -274,8 +291,8 @@ namespace ORM_1_21_
         }
 
 
-       
-        
+
+
 
     }
 }

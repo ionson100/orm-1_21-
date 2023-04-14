@@ -27,6 +27,17 @@ namespace TestLibrary
                 {
                    var e= ses.TableCreate<MyClass>();
                 }
+                ses.InsertBulk(new List<MyClass>
+                    {
+                        new MyClass{ Age = 40, Name = "name40" },
+                        new MyClass{ Age = 40, Name = "name40" },
+                        new MyClass{ Age = 20, Name = "name20" },
+                        new MyClass{ Age = 20, Name = "name20" },
+                        new MyClass{ Age = 20, Name = "name20" },
+                        new MyClass{ Age = 20, Name = "name20" },
+
+                    }
+                );
             }
         }
 

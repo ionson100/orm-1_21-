@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace ORM_1_21_.Linq.MsSql
+namespace ORM_1_21_.Linq
 {
     internal interface ITranslate
     {

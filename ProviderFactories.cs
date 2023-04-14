@@ -7,7 +7,7 @@ namespace ORM_1_21_
 {
     internal static class ProviderFactories
     {
-
+        private static object _l = new object();
         static DbProviderFactory GetFactory()
         {
 
@@ -16,6 +16,7 @@ namespace ORM_1_21_
         }
         public static IDbConnection GetConnect(IOtherDataBaseFactory factory)
         {
+            
             if (factory != null)
             {
                 return factory.GetDbProviderFactories().CreateConnection();
@@ -24,15 +25,21 @@ namespace ORM_1_21_
 
         }
 
+        private static object o = new object();
         public static IDbCommand GetCommand(IOtherDataBaseFactory factory, bool isDispose)
         {
             if (isDispose)
             {
                 throw new Exception("The session has been destroyed, it is impossible to work with the session! (Dispose)");
             }
+
             if (factory != null)
             {
-                return factory.GetDbProviderFactories().CreateCommand();
+                lock (o)
+                {
+                    return factory.GetDbProviderFactories().CreateCommand();
+                }
+                
             }
             return GetFactory().CreateCommand();
         }

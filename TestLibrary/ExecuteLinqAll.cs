@@ -64,7 +64,7 @@ namespace TestLibrary
             {
                 Console.WriteLine(a.Age + " " + a.Name);
             });
-            listT = session.Query<T>().Append(new T() { Age = 100 }).ToList();
+            listT = session.Query<T>().Append(new T { Age = 100 }).ToList();
             var oT = listT.Last();
             Execute.Log(3, listT.Count == 5 && oT.Age == 100, " listAsync");
 
@@ -294,14 +294,14 @@ namespace TestLibrary
 
 
            
-            session.Query<T>().Update(st => new Dictionary<object, object>()
+            session.Query<T>().Update(st => new Dictionary<object, object>
             {
                 { st.DateTime, DateTime.Now }
             });
             listT = session.Query<T>().Where(a => a.DateTime.Day == DateTime.Now.Day).ToList();
             Execute.Log(36, listT.Count == 4, " update");
 
-            await session.Query<T>().UpdateAsync(st => new Dictionary<object, object>()
+            await session.Query<T>().UpdateAsync(st => new Dictionary<object, object>
             {
                 { st.DateTime, DateTime.Now }
             });

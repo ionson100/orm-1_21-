@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Text;
 
@@ -32,7 +31,7 @@ namespace ORM_1_21_.Utils
 
             sql.Append($"COPY {AttributesOfClass<T>.TableName(_providerName)} FROM '{fileCsv}' DELIMITER '{fieldterminator}';");
             var builder = new StringBuilder();
-            var isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator != Generator.Native;
+            var isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator == Generator.Assigned;
 
 
 
@@ -71,7 +70,7 @@ namespace ORM_1_21_.Utils
             var builder = new StringBuilder($"INSERT INTO {AttributesOfClass<T>.TableName(_providerName)}");
             builder.Append(" ( ");
 
-            var isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator != Generator.Native;
+            var isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator == Generator.Assigned;
 
             var rowHead = new StringBuilder();
             if (isAddPk)

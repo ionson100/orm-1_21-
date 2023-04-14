@@ -1,12 +1,11 @@
-﻿using ORM_1_21_.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
+using ORM_1_21_.Utils;
 
-namespace ORM_1_21_.Linq.MySql
+namespace ORM_1_21_.Linq
 {
     internal class MySqlConstructorSql
     {
@@ -30,14 +29,7 @@ namespace ORM_1_21_.Linq.MySql
         {
          
             _listOne = listOne;
-            var sqlBody = UtilsCore.CheckAny(listOne, 
-                Evolution.FreeSql, 
-                Evolution.TableCreate, 
-                Evolution.TableExists,
-                Evolution.ExecuteScalar,
-                Evolution.TruncateTable,
-                Evolution.ExecuteNonQuery,
-                Evolution.DataTable);
+            var sqlBody = UtilsCore.CheckAny(listOne);
             if (sqlBody != null)
             {
                 return sqlBody;

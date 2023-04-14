@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.Serialization;
@@ -19,6 +18,7 @@ namespace ORM_1_21_
             var isLegalese = AttributesOfClass<TObj>.IsUsageActivator(providerName);
             bool? field = null;
             var res = new List<TObj>();
+
             while (reader.Read())
             {
                 TObj d;
@@ -31,7 +31,8 @@ namespace ORM_1_21_
                     d = (TObj)FormatterServices.GetSafeUninitializedObject(typeof(TObj));
                 }
 
-                foreach (var s in AttributesOfClass<TObj>.ListBaseAttrE(providerName))
+                var list = AttributesOfClass<TObj>.ListBaseAttrE(providerName);
+                foreach (var s in list)
                 {
                     try
                     {

@@ -1,10 +1,10 @@
-﻿using System;
+﻿using ORM_1_21_.Linq;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -14,13 +14,23 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using ORM_1_21_.Linq;
 
 
 namespace ORM_1_21_.Utils
 {
     internal static class UtilsCore
     {
+        private static readonly List<Evolution> EvolutionsList = new List<Evolution>
+        {
+            Evolution.FreeSql,
+            Evolution.TableCreate,
+            Evolution.TableExists,
+            Evolution.ExecuteScalar,
+            Evolution.TruncateTable,
+            Evolution.ExecuteNonQuery, 
+            Evolution.DataTable,
+            Evolution.DropTable
+        };
         internal static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> source, int chunkLength)
         {
             var enumerable = source as IList<T> ?? source.ToList();
@@ -93,6 +103,20 @@ namespace ORM_1_21_.Utils
            typeof(float),
 
         };
+
+        public static bool IsReceiverFreeSql<T>()
+        {
+            if (Hlam.Contains(typeof(T))) return false;
+            if (typeof(T).IsGenericType) return false;
+            return AttributesOfClass<T>.IsReceiverFreeSqlInner;
+        }
+        public static bool IsValid<T>()
+        {
+            if (Hlam.Contains(typeof(T))) return false;
+            if (typeof(T).IsGenericType) return false;
+            return AttributesOfClass<T>.IsValidInner;
+
+        }
 
         internal static bool IsNumericType(Type type)
         {
@@ -259,6 +283,70 @@ namespace ORM_1_21_.Utils
             throw new Exception(message);
         }
 
+        internal static object Convertor(object ob, Type type)
+        {
+            if (ob is DBNull)
+            {
+                if (type.IsGenericType) return null;
+
+                if (!type.IsValueType) return (object)null;
+                if (type == typeof(DateTime))
+                {
+                    return DateTime.MinValue;
+                }
+
+                return Activator.CreateInstance(type);
+            }
+
+            if (type == typeof(uint)) return Convert.ToUInt32(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(ulong)) return Convert.ToUInt64(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(ushort)) return Convert.ToUInt16(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(bool)) return Convert.ToBoolean(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(byte)) return Convert.ToByte(ob, CultureInfo.InvariantCulture);
+
+            if (type == typeof(char)) return Convert.ToChar(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(DateTime))
+                return Convert.ToDateTime(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(decimal)) return Convert.ToDecimal(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(double)) return Convert.ToDouble(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(short)) return Convert.ToInt16(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(int)) return Convert.ToInt32(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(long)) return Convert.ToInt64(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(sbyte)) return Convert.ToSByte(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(float)) return Convert.ToSingle(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(string)) return Convert.ToString(ob, CultureInfo.InvariantCulture);
+            ////
+            if (type == typeof(uint?)) return Convert.ToUInt32(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(ulong?)) return Convert.ToUInt64(ob, CultureInfo.InvariantCulture);
+
+            if (type == typeof(ushort?)) return Convert.ToUInt16(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(bool?)) return Convert.ToBoolean(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(byte?)) return Convert.ToByte(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(char?)) return Convert.ToChar(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(DateTime?))
+                return Convert.ToDateTime(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(decimal?))
+                return Convert.ToDecimal(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(double?)) return Convert.ToDouble(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(short?)) return Convert.ToInt16(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(int?)) return Convert.ToInt32(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(long?)) return Convert.ToInt64(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(sbyte?)) return Convert.ToSByte(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(float?)) return Convert.ToSingle(ob, CultureInfo.InvariantCulture);
+            if (type == typeof(byte[])) return (byte[])ob;
+            if (type == typeof(object)) return (object)ob;
+            //var t = typeof(TR);
+            //if (typeof(TR) == typeof(Guid))
+            //{
+            //    return new Guid(ob.ToString());
+            //}
+
+            string message = string.Format(CultureInfo.CurrentCulture, "Can't convert type {0} as {1}",
+                ob.GetType().FullName, type);
+            throw new Exception(message);
+        }
+
+
 
 
 
@@ -276,29 +364,33 @@ namespace ORM_1_21_.Utils
 
         internal static object ConverterPrimaryKeyType(Type typeColumn, object val)
         {
+            
+            
+            if (typeColumn == typeof(string))
+                return val.ToString();
             if (typeColumn == typeof(Guid))
+               
                 return (Guid)val;
             if (typeColumn == typeof(decimal))
-                return val;
+                return Convert.ToDecimal(val); ;
             if (typeColumn == typeof(short))
-                return decimal.ToInt16((decimal)val);
+                return Convert.ToInt16(val); ;
             if (typeColumn == typeof(int))
-                return decimal.ToInt32((decimal)val);
+                return Convert.ToInt32(val); ;
             if (typeColumn == typeof(long))
-                return decimal.ToInt64((decimal)val);
+                return Convert.ToInt64(val); ;
             if (typeColumn == typeof(ushort))
-                return decimal.ToUInt16((decimal)val);
+                return Convert.ToUInt16(val); ;
             if (typeColumn == typeof(uint))
-                return decimal.ToUInt32((decimal)val);
+                return Convert.ToUInt32(val); ;
             if (typeColumn == typeof(ulong))
-                return decimal.ToUInt64((decimal)val);
+                return Convert.ToUInt64(val); ;
 
             if (typeColumn == typeof(double))
-                return decimal.ToDouble((decimal)val);
-            if (typeColumn == typeof(double))
-                return decimal.ToSByte((sbyte)val);
+                return Convert.ToDouble(val); 
+         
             if (typeColumn == typeof(float))
-                return decimal.ToSingle((sbyte)val);
+                return (float)Convert.ToDouble(val); ;
             throw new Exception($"Can't find type to convert primary key {typeColumn} {val}");
         }
 
@@ -313,7 +405,7 @@ namespace ORM_1_21_.Utils
         }
 
         private static readonly ConcurrentDictionary<Type, SerializeType> SerializeTypes = new ConcurrentDictionary<Type, SerializeType>();
-       
+
 
         internal static SerializeType GetSerializeType(Type type)
         {
@@ -338,7 +430,7 @@ namespace ORM_1_21_.Utils
             return SerializeTypes[type];
         }
 
-      
+
 
         public static string ClearTrim(string tableName)
         {
@@ -448,7 +540,7 @@ namespace ORM_1_21_.Utils
             }
         }
 
-        public static Action CancellRegistr(IDbCommand com,CancellationToken cancellationToken,Transactionale transactionale,ProviderName  providerName)
+        public static Action CancellRegistr(IDbCommand com, CancellationToken cancellationToken, Transactionale transactionale, ProviderName providerName)
         {
             return () =>
             {
@@ -463,8 +555,8 @@ namespace ORM_1_21_.Utils
                     {
                         com.Cancel();
                     }
-                  
-                  
+
+
 
                 }
                 catch (Exception ex)
@@ -478,12 +570,14 @@ namespace ORM_1_21_.Utils
                 }
             };
         }
-        public static string CheckAny(List<OneComposite> listOne, params Evolution[] param)
+
+       
+        public static string CheckAny(List<OneComposite> listOne)
         {
-            foreach (Evolution evolution in param)
+            foreach (Evolution evolution in EvolutionsList)
             {
                 var ss = listOne.FirstOrDefault(a => a.Operand == evolution);
-                if (ss!=null)
+                if (ss != null)
                     return ss.Body;
             }
 
@@ -493,7 +587,7 @@ namespace ORM_1_21_.Utils
 
     internal enum SerializeType
     {
-        None,  User
+        None, User
     }
 }
 

@@ -98,7 +98,6 @@
     <Compile Include="Attribute\MapIndexAttribute.cs" />
     <Compile Include="Attribute\MapNotInsertUpdateAttribute.cs" />
     <Compile Include="Attribute\MapReceiverFreeSqlAttribute.cs" />
-    <Compile Include="Attribute\MapSerializableAttribute.cs" />
     <Compile Include="Attribute\MapTableAttribute.cs" />
     <Compile Include="Attribute\MapTypeMysqlTableAttribute.cs" />
     <Compile Include="Attribute\MapUsageActivatorAttribute.cs" />
@@ -110,21 +109,25 @@
     <Compile Include="Extensions\HelpUnion.cs" />
     <Compile Include="Extensions\HeplerAsync.cs" />
     <Compile Include="Extensions\IdentityFunction.cs" />
-    <Compile Include="Extensions\PartialHelp.cs" />
     <Compile Include="Extensions\Set.cs" />
     <Compile Include="Extensions\Sweetmeat.cs" />
     <Compile Include="Interface\IMapSerializable.cs" />
-    <Compile Include="Linq\DbQueryPProviderAsync.cs" />
-    <Compile Include="Linq\DbQueryPrividerExecute.cs" />
+    <Compile Include="IProxy.cs" />
+    <Compile Include="Linq\DbQueryProviderExecuteAsync.cs" />
+    <Compile Include="Linq\DbQueryProviderExecute.cs" />
+    <Compile Include="Linq\DbQueryProviderExecuteSpp.cs" />
+    <Compile Include="Linq\DbQueryProviderExecuteSppAsunc.cs" />
     <Compile Include="Linq\EnumerableRewriter.cs" />
     <Compile Include="Linq\FactoryExpression.cs" />
     <Compile Include="Linq\GroupException.cs" />
     <Compile Include="Linq\LambdaFactory.cs" />
-    <Compile Include="Linq\MsSql\ITranslate.cs" />
+    <Compile Include="Linq\ITranslate.cs" />
     <Compile Include="Linq\OldExpressionVisitor.cs" />
     <Compile Include="Linq\PostExpression.cs" />
     <Compile Include="MyCache.cs" />
+    <Compile Include="ProxyAttribute.cs" />
     <Compile Include="StorageOtherBaseFactory.cs" />
+    <Compile Include="StorageTypeAttribute.cs" />
     <Compile Include="TableColumn.cs" />
     <Compile Include="CallExp.cs" />
     <Compile Include="CommandNativePostgres.cs" />
@@ -133,8 +136,8 @@
     <Compile Include="Configure2.cs" />
     <Compile Include="FactoryCreatorTable.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Linq\MsSql\MsSqlConstructorSql.cs" />
-    <Compile Include="Linq\MsSql\QueryTranslatorMsSql.cs" />
+    <Compile Include="Linq\MsSqlConstructorSql.cs" />
+    <Compile Include="Linq\QueryTranslatorMsSql.cs" />
     <Compile Include="Linq\StringConst.cs" />
     <Compile Include="MySqlLogger.cs" />
     <Compile Include="Interface\IOtherDataBaseFactory.cs" />
@@ -156,18 +159,13 @@
     <Compile Include="Linq\ISqlListCoposite.cs" />
     <Compile Include="Linq\JoinAlias.cs" />
     <Compile Include="Linq\ExpressionVisitor.cs" />
-    <Compile Include="Linq\MySql\MySqlConstructorSql.cs" />
+    <Compile Include="Linq\MySqlConstructorSql.cs" />
     <Compile Include="Linq\OneCoprosite.cs" />
     <Compile Include="Linq\Query.cs" />
     <Compile Include="Linq\QueryProvider.cs" />
-    <Compile Include="Linq\MySql\QueryTranslator.cs" />
+    <Compile Include="Linq\QueryTranslator.cs" />
     <Compile Include="Linq\TypeSystem.cs" />
     <Compile Include="Attribute\PersistentAttribute.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Sessione.cs" />
     <Compile Include="Sessione2.cs" />
     <Compile Include="Interface\ITransaction.cs" />
@@ -185,13 +183,7 @@
     <Compile Include="Utils\UtilsCreateTablePostgres.cs" />
     <Compile Include="Utils\UtilsCreateTableSqLite.cs" />
     <Compile Include="V.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
+    <Compile Include="WrapperVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -218,6 +210,7 @@
   <ItemGroup>
     <Content Include="Linq.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

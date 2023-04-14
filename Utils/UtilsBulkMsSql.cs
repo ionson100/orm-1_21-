@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Text;
 
@@ -41,7 +40,7 @@ namespace ORM_1_21_.Utils
             sql.AppendLine("ROWTERMINATOR = '\n'");
             sql.AppendLine(")");
             StringBuilder builder = new StringBuilder();
-            bool isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator != Generator.Native;
+            bool isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator == Generator.Assigned;
 
             StringBuilder rowHead = new StringBuilder();
             if (isAddPk)
@@ -83,7 +82,7 @@ namespace ORM_1_21_.Utils
 
         private string GetSimpleSql2<T>(IEnumerable<T> list)
         {
-            bool isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator != Generator.Native;
+            bool isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator == Generator.Assigned;
             StringBuilder builder = new StringBuilder("INSERT INTO");
             builder.Append(AttributesOfClass<T>.TableName(_providerName));
             builder.Append("(");

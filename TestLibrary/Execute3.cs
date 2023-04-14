@@ -275,12 +275,12 @@ namespace TestLibrary
             }
 
             await session.TableCreateAsync<T>();
-            await session.InsertBulkAsync(new List<T>()
-                {
+            await session.InsertBulkAsync(new List<T>
+            {
                     new T()
                 }, 30);
             var u = await session.Query<T>().SingleAsync();
-            u.TestUser = new TestUser() { Name = "asas", Id = 2 };
+            u.TestUser = new TestUser { Name = "asas", Id = 2 };
             await session.SaveAsync(u);
             u = await session.Query<T>().SingleAsync();
             Execute.Log(40,  u.TestUser!=null&&u.TestUser.Name=="asas");

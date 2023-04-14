@@ -13,7 +13,7 @@ namespace ORM_1_21_
        
         internal bool IsIndex { get; set; }
 
-        internal string TypeString { get; set; }
+        
 
         /// <summary>
         /// This property is involved in creating the table,

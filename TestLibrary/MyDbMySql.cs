@@ -47,6 +47,9 @@ namespace TestLibrary
 
       public DbProviderFactory GetDbProviderFactories()
       {
+          //return Npgsql.NpgsqlFactory.Instance;
+         
+          
           return DbProviderFactory.Value;
       }
   }
@@ -65,7 +68,8 @@ namespace TestLibrary
 
       public DbProviderFactory GetDbProviderFactories()
       {
-          return DbProviderFactory.Value;
+          // return System.Data.SqlClient.SqlClientFactory.Instance;
+            return DbProviderFactory.Value;
       }
   }
   public class MyDbSqlite : IOtherDataBaseFactory

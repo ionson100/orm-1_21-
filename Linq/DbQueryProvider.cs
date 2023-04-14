@@ -1,13 +1,13 @@
-﻿using ORM_1_21_.Linq.MsSql;
-using ORM_1_21_.Linq.MySql;
-using ORM_1_21_.Utils;
+﻿using ORM_1_21_.Utils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -15,7 +15,11 @@ using System.Threading.Tasks;
 
 namespace ORM_1_21_.Linq
 {
-    internal partial class DbQueryProvider<T> : QueryProvider, ISqlComposite
+    interface ICloneSession
+    {
+        Sessione CloneSession();
+    }
+    internal partial class DbQueryProvider<T> : QueryProvider, ISqlComposite, ICloneSession
     {
         private readonly List<object> _paramFree = new List<object>();
         private readonly List<ParameterStoredPr> _paramFreeStoredPr = new List<ParameterStoredPr>();
@@ -23,13 +27,19 @@ namespace ORM_1_21_.Linq
         private readonly Sessione _sessione;
         private IDbCommand _com;
         private readonly ProviderName _providerName;
-
+        public IDbTransaction Transaction { get; set; }
+        public List<ContainerCastExpression> ListCastExpression { get; set; } = new List<ContainerCastExpression>();
         private bool _isStoredPr;
         private Dictionary<string, object> _param;
-
+        public ISession Sessione { get; }
         public Type GetSourceType()
         {
             return typeof(T);
+        }
+
+        public Sessione GeSessione()
+        {
+            return _sessione;
         }
 
         public DbQueryProvider<T> GetDbQueryProvider()
@@ -43,12 +53,11 @@ namespace ORM_1_21_.Linq
             _providerName = ses.MyProviderName;
         }
 
-        public ISession Sessione { get; }
 
-        public ISessionInner SessioneInner => _sessione;
 
-        public IDbTransaction Transaction { get; set; }
-        public List<ContainerCastExpression> ListCastExpression { get; set; } = new List<ContainerCastExpression>();
+
+
+
 
         private static bool PingCompositeE(Evolution eval, List<OneComposite> list)
         {
@@ -96,115 +105,7 @@ namespace ORM_1_21_.Linq
         {
             return null;
         }
-        public override object ExecuteSpp<TS>(Expression expression)
-        {
-            IDataReader dataReader = null;
-            try
-            {
-                var sb = new StringBuilder();
-                var services = (IServiceSessions)Sessione;
-                _com = services.CommandForLinq;
-                _com.CommandType = CommandType.StoredProcedure;
-                var re = TranslateE(expression);
-                _com.CommandText = re.Sql;
-                if (_providerName == ProviderName.MsSql)
-                {
-                    var mat = new Regex(@"TOP\s@p\d").Matches(_com.CommandText);
-                    foreach (var variable in mat)
-                    {
-                        var st = variable.ToString().Split(' ')[1];
-                        var val = _param.FirstOrDefault(a => a.Key == st).Value;
-                        _com.CommandText = _com.CommandText.Replace(variable.ToString(),
-                            string.Format("{1} ({0})", val, StringConst.Top));
-                        _param.Remove(st);
-                    }
-                }
-
-                foreach (var p in _paramFreeStoredPr)
-                {
-                    sb.Append(string.Format(CultureInfo.CurrentCulture, "{0}-{1},", p.Name, p.Value));
-                    IDataParameter pr = _com.CreateParameter();
-                    pr.Direction = p.Direction;
-                    pr.ParameterName = p.Name;
-                    pr.Value = p.Value;
-                    _com.Parameters.Add(pr);
-                }
-
-                _sessione.OpenConnectAndTransaction(_com);
-                dataReader = _com.ExecuteReader();
-                if (AttributesOfClass<TS>.IsValid)
-                {
-                    var lResult = AttributesOfClass<TS>.GetEnumerableObjects(dataReader, _providerName);
-                    foreach (var par in _com.Parameters)
-                        if (((IDataParameter)par).Direction == ParameterDirection.InputOutput ||
-                            ((IDataParameter)par).Direction == ParameterDirection.Output ||
-                            ((IDataParameter)par).Direction == ParameterDirection.ReturnValue)
-                            _parOut.Add(((IDataParameter)par).ParameterName, ((IDataParameter)par).Value);
-                    return lResult;
-                }
-                else
-                {
-                    #region
-
-                    var count = dataReader.FieldCount;
-                    var list = new List<Type>();
-                    for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
-                    var ci = typeof(TS).GetConstructor(list.ToArray());
-                    var resDis = new List<TS>();
-                    while (dataReader.Read())
-                        if (ci != null)
-                        {
-                            var par = new List<object>();
-                            for (var i = 0; i < count; i++)
-                                par.Add(dataReader[i] == DBNull.Value ? null : dataReader[i]);
-                            var e = ci.Invoke(par.ToArray());
-                            resDis.Add((TS)e);
-                        }
-                        else
-                        {
-                            if (count == 1)
-                            {
-                                resDis.Add((TS)UtilsCore.Convertor<TS>(dataReader[0]));
-                            }
-                            else
-                            {
-                                dynamic employee = new ExpandoObject();
-                                for (var i = 0; i < count; i++)
-                                    ((IDictionary<string, object>)employee).Add(dataReader.GetName(i),
-                                        dataReader[i] == DBNull.Value ? null : dataReader[i]);
-                                resDis.Add((TS)employee);
-                            }
-                        }
-
-                    dataReader.NextResult();
-                    foreach (var par in _com.Parameters)
-                        if (((IDataParameter)par).Direction == ParameterDirection.InputOutput ||
-                            ((IDataParameter)par).Direction == ParameterDirection.Output ||
-                            ((IDataParameter)par).Direction == ParameterDirection.ReturnValue)
-                            _parOut.Add(((IDataParameter)par).ParameterName, ((IDataParameter)par).Value);
-
-                    return resDis;
-
-                    #endregion
-                }
-            }
-            catch (Exception ex)
-            {
-                _sessione.Transactionale.isError = true;
-                MySqlLogger.Error(_com.CommandText, ex);
-                throw new Exception(ex.Message + Environment.NewLine + _com.CommandText, ex);
-
-            }
-            finally
-            {
-                _sessione.ComDisposable(_com);
-                if (dataReader != null)
-                {
-                    dataReader.Close();
-                    dataReader.Dispose();
-                }
-            }
-        }
+       
 
 
         private int GetTimeout()
@@ -235,35 +136,29 @@ namespace ORM_1_21_.Linq
 
         public override async Task<TS> ExecuteExtensionAsync<TS>(Expression expression, object[] param, CancellationToken cancellationToken)
         {
-            var tk = new TaskCompletionSource<TS>(TaskCreationOptions.RunContinuationsAsynchronously);
+
             if (param != null && param.Length > 0)
             {
                 _paramFree.AddRange(param);
             }
             var r = await ExecuteAsync<TS>(expression, param, cancellationToken);
-            tk.SetResult((TS)r);
-            return await tk.Task;
+            return (TS)r;
+
         }
 
 
         public override async Task<List<TS>> ExecuteToListAsync<TS>(Expression expression, CancellationToken cancellationToken)
         {
-
-            var tk = new TaskCompletionSource<List<TS>>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-
             object rr = await ExecuteAsync<TS>(expression, null, cancellationToken);
-            tk.SetResult((List<TS>)rr);
-            return await tk.Task;
-
+            return (List<TS>)rr;
         }
 
         public override async Task<TS[]> ExecuteToArray<TS>(Expression expression, CancellationToken cancellationToken)
         {
 
             object rr = await ExecuteAsync<TS>(expression, null, cancellationToken);
-             return ((IEnumerable<TS>)rr).ToArray();
-          
+            return ((IEnumerable<TS>)rr).ToArray();
+
 
         }
 
@@ -277,7 +172,7 @@ namespace ORM_1_21_.Linq
             var sdd = sq.GetListOne();
             Thread.MemoryBarrier();
             var ss = sq.GetListPostExpression();
-            return new MyTuple { Sql = res, Composites = sdd, Param = sq.Param ,ListPostExpression=sq.GetListPostExpression() };
+            return new MyTuple { Sql = res, Composites = sdd, Param = sq.Param, ListPostExpression = sq.GetListPostExpression() };
         }
 
         private string TranslateString(Expression expression)
@@ -289,17 +184,23 @@ namespace ORM_1_21_.Linq
             return res;
         }
 
-        public IEnumerable<TS> ExecuteCall<TS>(Expression callExpr)
+        public object ExecuteCall<TS>(Expression callExpr)
         {
             _isStoredPr = true;
-            return (IEnumerable<TS>)Execute<TS>(callExpr);
+            return Execute<TS>(callExpr);
+        }
+        public async Task<object> ExecuteCallAsync<TS>(Expression callExpr,CancellationToken cancellationToken)
+        {
+            _isStoredPr = true;
+
+            return await  ExecuteAsync<TS> (callExpr,null,cancellationToken);
         }
 
-        public IEnumerable<TS> ExecuteCallParam<TS>(Expression callExpr, params ParameterStoredPr[] par)
+        public object ExecuteCallParam<TS>(Expression callExpr, params ParameterStoredPr[] par)
         {
             _isStoredPr = true;
             if (par != null) _paramFreeStoredPr.AddRange(par);
-            var res = (IEnumerable<TS>)ExecuteSpp<TS>(callExpr);
+            var res = ExecuteSpp<TS>(callExpr);
 
             foreach (var re in _parOut)
             {
@@ -308,6 +209,45 @@ namespace ORM_1_21_.Linq
                 if (p != null) p.Value = re.Value;
             }
             return res;
+        }
+        public async Task<object> ExecuteCallParamAsync<TS>(Expression callExpr,  ParameterStoredPr[] par,CancellationToken cancellationToken)
+        {
+            _isStoredPr = true;
+            if (par != null) _paramFreeStoredPr.AddRange(par);
+            var res = await ExecuteSppAsync<TS>(callExpr,cancellationToken);
+
+            foreach (var re in _parOut)
+            {
+                if (par == null) continue;
+                var p = par.FirstOrDefault(a => a.Name == re.Key);
+                if (p != null) p.Value = re.Value;
+            }
+
+            return res;
+        }
+
+        public Sessione CloneSession()
+        {
+            return (Sessione)_sessione.GetCloneSession();
+        }
+
+
+
+
+    }
+
+    class DbHelp
+    {
+        public static object CastList(List<object> list)
+        {
+            MethodInfo method = typeof(DbHelp).GetMethod("CloneListAs");
+            MethodInfo genericMethod = method.MakeGenericMethod(list[0].GetType());
+
+            return genericMethod.Invoke(null, new object[] { list });
+        }
+        public static List<TC> CloneListAs<TC>(IList<object> source)
+        {
+            return source.Cast<TC>().ToList();
         }
     }
 

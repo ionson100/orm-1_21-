@@ -50,7 +50,9 @@ namespace ORM_1_21_
             _columnName = name;
         }
         internal bool IsNotUpdateInsert { get; set; }
-      
+
+        internal string TypeString { get; set; }
+
         internal string PropertyName { get; set; }
         /// <summary>
         /// 

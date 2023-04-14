@@ -377,9 +377,5 @@ namespace ORM_1_21_
         
     }
 
-    internal interface ISessionInner
-    {
-        ISession SessionCloneForTask();
-
-    }
+   
 }

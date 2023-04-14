@@ -1,0 +1,12 @@
+﻿DROP procedure IF EXISTS `getCountList`;
+CREATE  PROCEDURE `getCountList`(IN maxAge int,out myCount int)
+BEGIN
+  select count(*) INTO myCount from my_class5 where age < maxAge;
+  select * from my_class5  where age < maxAge;
+END;
+DROP procedure IF EXISTS `getList`;
+
+CREATE PROCEDURE `getList`()
+BEGIN
+    select * from my_class5;
+END;

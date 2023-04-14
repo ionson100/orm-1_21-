@@ -11,7 +11,7 @@ namespace ORM_1_21_.Linq
     /// <summary>
     /// Request Provider  abstract
     /// </summary>
-    public abstract class QueryProvider : IQueryProvider
+    internal abstract class QueryProvider : IQueryProvider
     {
         IQueryable<TS> IQueryProvider.CreateQuery<TS>(Expression expression)
         {
@@ -83,6 +83,8 @@ namespace ORM_1_21_.Linq
         /// Query async
         /// </summary>
         public abstract Task<TS[]> ExecuteToArray<TS>(Expression expression, CancellationToken cancellationToken);
+
+        public abstract Task<object> ExecuteSppAsync<TS>(Expression expression, CancellationToken cancellationToken);
     }
 
 

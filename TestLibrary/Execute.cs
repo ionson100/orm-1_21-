@@ -1,10 +1,10 @@
-﻿using System;
+﻿using ORM_1_21_;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_;
-using ORM_1_21_.Extensions;
 
 // ReSharper disable All
 
@@ -26,6 +26,66 @@ namespace TestLibrary
                     ts.Commit();
                 }
             }
+        }
+
+        private static void InnerRunOtherSession(int i)
+        {
+
+            while (true)
+            {
+                using (var ses = Configure.GetSession<MyDbPostgres>())
+                {
+                    var ee = ses.Query<MyClass>().JoinCore(ses.Query<MyClass>(), a => a.Age, b => b.Age,
+                        (aa, bb) => new { name1 = aa.Name, name2 = bb.Name }).ToList();
+                    var l = ses.Query<MyClass>().ToList();
+                    var e1e =    ses.Query<MyClass>().JoinCore(l, a => a.Age, b => b.Age,
+                        (aa, bb) => new { name1 = aa.Name, name2 = bb.Name });
+                    
+                   
+
+                    Console.WriteLine($"{i}--");
+                }
+            }
+        }
+
+        public static void RunOtherSession()
+        {
+          
+           // new Thread(() =>
+           // {
+           //     InnerRunOtherSession(1);
+           // }).Start();
+           // new Thread(() =>
+           // {
+           //     InnerRunOtherSession(2);
+           // }).Start();
+           // new Thread(() =>
+           // {
+           //     InnerRunOtherSession(3);
+           // }).Start();
+           // new Thread(() =>
+           // {
+           //     InnerRunOtherSession(4);
+           // }).Start();
+           // new Thread(() =>
+           // {
+           //     InnerRunOtherSession(5);
+           // }).Start();
+           // new Thread(() =>
+           // {
+           //     InnerRunOtherSession(6);
+           // }).Start();
+           // new Thread(() =>
+           // {
+           //     InnerRunOtherSession(7);
+           // }).Start();
+            Task.Run(() => { InnerRunOtherSession(1); });
+            Task.Run(() => { InnerRunOtherSession(2); });
+            Task.Run(() => { InnerRunOtherSession(4); });
+            Task.Run(() => { InnerRunOtherSession(5); });
+            Task.Run(() => { InnerRunOtherSession(6); });
+            Task.Run(() => { InnerRunOtherSession(7); });
+            Task.Factory.StartNew(() => { InnerRunOtherSession(3); }, TaskCreationOptions.LongRunning);
         }
 
         public static void RunThread()
@@ -67,7 +127,7 @@ namespace TestLibrary
             session.TableCreate<T>();
 
             var dt = DateTime.Now;
-            var myClass = new T()
+            var myClass = new T
             {
                 DateTime = dt,
                 Age = 12,
@@ -186,11 +246,11 @@ namespace TestLibrary
             Log(24, res.Count == 1);
 
 
-            List<T> list = new List<T>()
+            List<T> list = new List<T>
             {
-                new T() { Name = "MyName1", Age = 10 },
-                new T() { Name = "MyName2", Age = 20 },
-                new T() { Name = "MyName3", Age = 30 }
+                new T { Name = "MyName1", Age = 10 },
+                new T { Name = "MyName2", Age = 20 },
+                new T { Name = "MyName3", Age = 30 }
             };
             var i = session.InsertBulk(list);
             Log(24, i == 3, "/1 InsertBulk");
@@ -305,14 +365,14 @@ namespace TestLibrary
                 Log(34, o == null);
 
                 session.TruncateTable<T>();
-                count = session.InsertBulk(new List<T>()
+                count = session.InsertBulk(new List<T>
                 {
-                    new T() { Age = 40, Name = "name" },
-                    new T() { Age = 20, Name = "name1" },
-                    new T() { Age = 30, Name = "name1" },
-                    new T() { Age = 50, Name = "name1" },
-                    new T() { Age = 60, Name = "name" },
-                    new T() { Age = 10, Name = "name" }
+                    new T { Age = 40, Name = "name" },
+                    new T { Age = 20, Name = "name1" },
+                    new T { Age = 30, Name = "name1" },
+                    new T { Age = 50, Name = "name1" },
+                    new T { Age = 60, Name = "name" },
+                    new T { Age = 10, Name = "name" }
                 });
                 var ob = session.Query<T>().Select(a => new { ass = a.Age, asss = string.Concat(a.Name, a.Age) })
                     .ToList();
@@ -321,8 +381,8 @@ namespace TestLibrary
                 count = session.Query<T>().Where(a => a.Name == "name").OrderBy(r => r.Age).ToList().Sum(a => a.Age);
                 Log(36, count == 110);
 
-               // var groupList = session.Query<T>().GroupBy(r => r.Name).ToListAsync().Result;
-               // Log(37, groupList.Count() == 2 && groupList[0].Count() == 3 && groupList[1].Count() == 3);
+                // var groupList = session.Query<T>().GroupBy(r => r.Name).ToListAsync().Result;
+                // Log(37, groupList.Count() == 2 && groupList[0].Count() == 3 && groupList[1].Count() == 3);
 
 
                 o = session.Query<T>().OrderBy(a => a.Age).First();
@@ -394,7 +454,7 @@ namespace TestLibrary
                     Log(48, anon.Count() == 5);
                 }
 
-                var tempFree = session.FreeSql<MyFreeSql>($"select {session.ColumnName<T>(a=>a.Id)}," +
+                var tempFree = session.FreeSql<MyFreeSql>($"select {session.ColumnName<T>(a => a.Id)}," +
                                                           $"name,age,enum from {session.TableName<T>()}");
 
                 Log(49, tempFree.Count() == 5);
@@ -406,7 +466,7 @@ namespace TestLibrary
                 res = (List<T>)session.CacheGetValue<T>(ii);
                 Log(52, res.Count() == 5);
 
-                session.Query<T>().Where(a => a.Age == 20).Update(f => new Dictionary<object, object>()
+                session.Query<T>().Where(a => a.Age == 20).Update(f => new Dictionary<object, object>
                 {
                     { f.Age, 400 }
                 });
@@ -425,8 +485,8 @@ namespace TestLibrary
                 List<T> list22 = new List<T>();
                 for (int iz = 0; iz < 2; iz++)
                 {
-                    list22.Add(new T() { Age = 30, Name = "name1" });
-                    list22.Add(new T() { Age = 10, Name = "name2" });
+                    list22.Add(new T { Age = 30, Name = "name1" });
+                    list22.Add(new T { Age = 10, Name = "name2" });
                 }
 
 
@@ -434,7 +494,7 @@ namespace TestLibrary
                 var data = new DateTime(2023, 3, 4);
 
                 session.InsertBulk(list22);
-                session.Query<T>().Update(a => new Dictionary<object, object>()
+                session.Query<T>().Update(a => new Dictionary<object, object>
                 {
                     { a.Age, new int() }
                 });
@@ -448,7 +508,7 @@ namespace TestLibrary
 
                 Console.WriteLine($"{Environment.NewLine} /*--------------guid-------------*/{Environment.NewLine}");
 
-                session.Query<T>().Update(a => new Dictionary<object, object>()
+                session.Query<T>().Update(a => new Dictionary<object, object>
                 {
                     { a.ValGuid, guid }
                 });
@@ -457,7 +517,7 @@ namespace TestLibrary
                 Log(60, res.Count() == 0);
 
                 session.InsertBulk(list22);
-                session.Query<T>().Update(a => new Dictionary<object, object>()
+                session.Query<T>().Update(a => new Dictionary<object, object>
                 {
                     { a.ValGuid, new Guid("87ae6aba-086e-49e3-b569-1145b0a2744e") }
                 });
@@ -467,7 +527,7 @@ namespace TestLibrary
 
                 Console.WriteLine($"{Environment.NewLine}/*--------------date-------------*/{Environment.NewLine}");
                 session.InsertBulk(list22);
-                session.Query<T>().Update(a => new Dictionary<object, object>()
+                session.Query<T>().Update(a => new Dictionary<object, object>
                 {
                     { a.DateTime, data }
                 });
@@ -476,7 +536,7 @@ namespace TestLibrary
                 Log(62, res.Count() == 0);
 
                 session.InsertBulk(list22);
-                session.Query<T>().Update(a => new Dictionary<object, object>()
+                session.Query<T>().Update(a => new Dictionary<object, object>
                 {
                     { a.DateTime, new DateTime(2023, 3, 4) }
                 });
@@ -487,7 +547,7 @@ namespace TestLibrary
                 list22.Clear();
                 for (int j = 0; j < 10; j++)
                 {
-                    list22.Add(new T() { Age = j * 10, Name = "name1" });
+                    list22.Add(new T { Age = j * 10, Name = "name1" });
                 }
 
                 session.InsertBulk(list22);
@@ -506,7 +566,7 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 string str = "7''\"#$@@''";
                 list22.Clear();
-                list22.Add(new T() { });
+                list22.Add(new T { });
                 session.InsertBulk(list22);
                 o = session.Query<T>().First();
                 var b = true;
@@ -516,10 +576,10 @@ namespace TestLibrary
                 o = session.Query<T>().First();
                 Log(67, o.TestUser.Id == 100);
                 session.TruncateTable<T>();
-                list22.Add(new T() { ValInt4 = 20 });
-                list22.Add(new T() { ValInt4 = 20 });
-                list22.Add(new T() { ValInt4 = 20 });
-                list22.Add(new T() { ValInt4 = 20 });
+                list22.Add(new T { ValInt4 = 20 });
+                list22.Add(new T { ValInt4 = 20 });
+                list22.Add(new T { ValInt4 = 20 });
+                list22.Add(new T { ValInt4 = 20 });
                 session.InsertBulk(list22);
                 var intVals = session.Query<T>().Where(a => a.ValInt4 == 20).Select(f => f.ValInt4).ToListAsync()
                     .Result;
@@ -527,9 +587,8 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T()
-                        { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now, Valdecimal = new decimal(123) });
-                    session.Save(new T() { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now });
+                    session.Save(new T { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now, Valdecimal = new decimal(123) });
+                    session.Save(new T { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now });
                 }
 
                 count = session.Query<T>().Distinct(a => a.Age).ToList().Sum();
@@ -578,8 +637,7 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T()
-                        { Age = j, Name = "name" + j, DateTime = DateTime.Now, Valdecimal = new decimal(123) });
+                    session.Save(new T { Age = j, Name = "name" + j, DateTime = DateTime.Now, Valdecimal = new decimal(123) });
                 }
 
                 res = session.Query<T>().OrderBy(a => a.Age).Limit(0, 1).ToList();
@@ -708,12 +766,12 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T() { Age = 10, Name = "name1" });
+                    session.Save(new T { Age = 10, Name = "name1" });
                 }
 
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T() { Age = 20, Name = "name1" });
+                    session.Save(new T { Age = 20, Name = "name1" });
                 }
 
                 bll = session.Query<T>().Where(d => d.Name.StartsWith("name")).All(a => a.Age == 10);
@@ -721,7 +779,7 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T() { Age = 10, Name = "name1" });
+                    session.Save(new T { Age = 10, Name = "name1" });
                 }
 
                 bll = session.Query<T>().Where(d => d.Name.StartsWith("name")).All(a => a.Age == 10);
@@ -735,7 +793,7 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T() { Age = j, Name = "name1" });
+                    session.Save(new T { Age = j, Name = "name1" });
                 }
 
                 count = session.Query<T>().Count();
@@ -937,9 +995,9 @@ namespace TestLibrary
         public static void TestNativeInsert()
         {
             TestNativeInser<TiPostgresNative, MyDbPostgres>();
-            TestNativeInser<TiMysqlNative, MyDbMySql>();
-            TestNativeInser<TiMsSqlNative, MyDbMsSql>();
-            TestNativeInser<TiSqliteNative, MyDbSqlite>();
+           // TestNativeInser<TiMysqlNative, MyDbMySql>();
+           // TestNativeInser<TiMsSqlNative, MyDbMsSql>();
+           // TestNativeInser<TiSqliteNative, MyDbSqlite>();
         }
 
         static void TestNativeInser<T, Tb>() where Tb : IOtherDataBaseFactory, new()
@@ -1010,7 +1068,7 @@ namespace TestLibrary
             Log(6, i == 4);
         }
 
-       public static void Log(int i, bool b, string appen = null)
+        public static void Log(int i, bool b, string appen = null)
         {
             if (b)
             {

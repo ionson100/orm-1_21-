@@ -13,13 +13,29 @@ namespace ORM_1_21_.Utils
             var tableName = AttributesOfClass<T>.TableNameRaw(providerName);
             builder.AppendLine($"CREATE TABLE IF NOT EXISTS '{tableName}' (");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
-            if (pk.Generator == Generator.Native)
+            if (pk.Generator == Generator.Native|| pk.Generator == Generator.NativeNotLastInsert)
             {
-                builder.AppendLine($" '{pk.GetColumnName(providerName)}' INTEGER PRIMARY KEY AUTOINCREMENT,");
+                var typePk = $"  INTEGER PRIMARY KEY AUTOINCREMENT";
+                if (!string.IsNullOrWhiteSpace(pk.TypeString))
+                    typePk = pk.TypeString;
+                var defValue = "";
+                if (!string.IsNullOrWhiteSpace(pk.DefaultValue))
+                {
+                    defValue = pk.DefaultValue;
+                }
+                builder.AppendLine($"'{pk.GetColumnName(providerName)}' {typePk} {defValue},");
             }
             else
             {
-                builder.AppendLine($" '{pk.GetColumnName(providerName)}'  BLOB PRIMARY KEY,");
+                var typePk = $"BLOB PRIMARY KEY";
+                if (!string.IsNullOrWhiteSpace(pk.TypeString))
+                    typePk = pk.TypeString;
+                var defValue = "";
+                if (!string.IsNullOrWhiteSpace(pk.DefaultValue))
+                {
+                    defValue = pk.DefaultValue;
+                }
+                builder.AppendLine($"'{pk.GetColumnName(providerName)}' {typePk} {defValue},");
             }
 
             foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))

@@ -13,9 +13,33 @@ namespace ORM_1_21_.Utils
             var tableName = AttributesOfClass<T>.TableNameRaw(providerName);
             builder.AppendLine($"CREATE TABLE IF NOT EXISTS `{tableName}` (");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
+            if (pk.Generator == Generator.Native|| pk.Generator == Generator.NativeNotLastInsert)
+            {
+                var typePk = $" {GetTypeMySql(pk.TypeColumn)}  PRIMARY KEY AUTO_INCREMENT";
+                if (!string.IsNullOrWhiteSpace(pk.TypeString))
+                    typePk = pk.TypeString;
+                var defValue = "";
+                if (!string.IsNullOrWhiteSpace(pk.DefaultValue))
+                {
+                    defValue = pk.DefaultValue;
+                }
+                builder.AppendLine($" `{pk.ColumnNameForRider(providerName)}` {typePk}  {defValue},");
+            }
+            else
+            {
+                var typePk = $" {GetTypeMySql(pk.TypeColumn)}  PRIMARY KEY";
+                if (!string.IsNullOrWhiteSpace(pk.TypeString))
+                    typePk = pk.TypeString;
+                var defValue = "";
+                if (!string.IsNullOrWhiteSpace(pk.DefaultValue))
+                {
+                    defValue = pk.DefaultValue;
+                }
+                builder.AppendLine($" `{pk.ColumnNameForRider(providerName)}` {typePk} {defValue}  ,");
+            }
 
-            builder.AppendLine($" `{pk.ColumnNameForRider(providerName)}` {GetTypeMySql(pk.TypeColumn)}  " +
-                               $"PRIMARY KEY {(pk.Generator == Generator.Native ? "AUTO_INCREMENT" : "")},");
+
+            //builder.AppendLine($" `{pk.ColumnNameForRider(providerName)}` {GetTypeMySql(pk.TypeColumn)}  PRIMARY KEY {(pk.Generator == Generator.Native ? "AUTO_INCREMENT" : "")},");
             foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 string typeColumn = map.TypeString ?? GetTypeMySql(map.TypeColumn);

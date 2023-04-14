@@ -3,9 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
-namespace ORM_1_21_.Linq.MsSql
+namespace ORM_1_21_.Linq
 {
     internal class MsSqlConstructorSql
     {
@@ -17,12 +16,10 @@ namespace ORM_1_21_.Linq.MsSql
             return _listOne.Any(a => a.Operand == eval);
         }
 
-        public string GetStringSql<T>(List<OneComposite> listOne,ProviderName providerName) //, JoinCapital joinCapital
+        public string GetStringSql<T>(List<OneComposite> listOne, ProviderName providerName) //, JoinCapital joinCapital
         {
             _listOne = listOne;
-            var sqlBody = UtilsCore.CheckAny(listOne, Evolution.FreeSql, Evolution.TableCreate,
-                Evolution.TableExists,Evolution.ExecuteScalar,
-                Evolution.TruncateTable,Evolution.ExecuteNonQuery,Evolution.DataTable);
+            var sqlBody = UtilsCore.CheckAny(listOne);
             if (sqlBody != null)
             {
                 return sqlBody;
@@ -30,15 +27,15 @@ namespace ORM_1_21_.Linq.MsSql
             if (!string.IsNullOrWhiteSpace(AttributesOfClass<T>.SqlWhere))
             {
                 _listOne.Add(new OneComposite
-                    { Operand = Evolution.Where, Body = $"({AttributesOfClass<T>.SqlWhere})" });
+                { Operand = Evolution.Where, Body = $"({AttributesOfClass<T>.SqlWhere})" });
             }
 
 
-            if (PingComposite(Evolution.Update)) 
-                return AttributesOfClass<T>.CreateCommandUpdateFreeForMsSql(_listOne,providerName);
+            if (PingComposite(Evolution.Update))
+                return AttributesOfClass<T>.CreateCommandUpdateFreeForMsSql(_listOne, providerName);
 
             //if (PingComposite(Evolution.FreeSql)) 
-               // return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
+            // return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
             if (PingComposite(Evolution.All))
             {
                 StringBuilder builder = new StringBuilder("SELECT COUNT(*),(SELECT COUNT(*) FROM ");
@@ -85,30 +82,6 @@ namespace ORM_1_21_.Linq.MsSql
 
 
             }
-
-           //if (PingComposite(Evolution.All))
-           //{
-           //    var sb = new StringBuilder(listOne.First(a => a.Operand == Evolution.All).Body);
-           //    // <> - = #7#
-           //    sb.Replace("<>", "#7#");
-           //    // >= - <=  #1#
-           //    sb.Replace(">=", "#1#");
-           //    // >  -  <  #2#
-           //    sb.Replace(">", "#2#");
-           //    // <  - >   #3#
-           //    sb.Replace("<", "#3#");
-           //    // <= - >=  #4# 
-           //    sb.Replace("<=", "#4#");
-           //    // =  - !=  #5#
-           //    sb.Replace("=", "#5#");
-           //    // != - =   #6#
-           //    sb.Replace("!=", "#6#");
-           //    listOne.First(a => a.Operand == Evolution.All).Body = sb.ToString().Replace("#1#", "<=")
-           //        .Replace("#2#", "<").Replace("#3#", ">").Replace("#4#", ">=").Replace("#5#", "!=")
-           //        .Replace("#6#", "=").Replace("#7#", "=");
-           //    listOne.Add(new OneComposite
-           //    { Operand = Evolution.Where, Body = listOne.First(a => a.Operand == Evolution.All).Body });
-           //}
 
             var sbb = new StringBuilder();
             if (PingComposite(Evolution.Delete))
@@ -210,7 +183,7 @@ namespace ORM_1_21_.Linq.MsSql
                     $"{StringConst.Select} {StringConst.Top} (1) ");
 
 
-           
+
 
             if (PingComposite(Evolution.Any))
             {
@@ -238,7 +211,7 @@ namespace ORM_1_21_.Linq.MsSql
             }
 
             if (PingComposite(Evolution.Limit))
-                sbb = new StringBuilder(AttributesOfClass<T>.CreateCommandLimitForMsSql(listOne, sbb.ToString(),providerName));
+                sbb = new StringBuilder(AttributesOfClass<T>.CreateCommandLimitForMsSql(listOne, sbb.ToString(), providerName));
             //if (PingComposite(Evolution.Join))
             //{
             //    var whereSb = new StringBuilder();
@@ -276,7 +249,7 @@ namespace ORM_1_21_.Linq.MsSql
             //}
 
             return sbb.ToString().Replace("  ", " ").Trim(' ', ',').Replace("Average", "AVG")
-                .Replace("LongCount", "Count")+"; ";
+                .Replace("LongCount", "Count") + "; ";
         }
     }
 }

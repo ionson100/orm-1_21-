@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.Text;
 
 namespace ORM_1_21_.Utils
@@ -12,8 +11,19 @@ namespace ORM_1_21_.Utils
             var tableName = AttributesOfClass<T>.TableNameRaw(providerName);
             builder.AppendLine($"CREATE TABLE IF NOT EXISTS \"{tableName}\" (");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
-            builder.AppendLine(
-                $" \"{UtilsCore.ClearTrim(pk.ColumnNameForRider(providerName))}\" {GetTypePgPk(pk.TypeColumn, pk.Generator)}  PRIMARY KEY,");
+
+            var typePk = GetTypePgPk(pk.TypeColumn, pk.Generator);
+            if (!string.IsNullOrWhiteSpace(pk.TypeString))
+                typePk = pk.TypeString;
+            var defValue = "PRIMARY KEY";
+            if (!string.IsNullOrWhiteSpace(pk.DefaultValue))
+            {
+                defValue = pk.DefaultValue;
+            }
+
+            builder.AppendLine($" \"{UtilsCore.ClearTrim(pk.ColumnNameForRider(providerName))}\" {typePk}  {defValue},");
+
+
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 if (map.TypeString == null)
@@ -112,7 +122,7 @@ namespace ORM_1_21_.Utils
                 if (type == typeof(Guid)) return "UUID";
             }
 
-            if (generator == Generator.Native)
+            if (generator == Generator.Native||generator == Generator.NativeNotLastInsert)
             {
                 if (type == typeof(long) || type == typeof(ulong) || type == typeof(long?)) return "BIGSERIAL";
                 if (type == typeof(int) || type == typeof(uint) || type.BaseType == typeof(Enum) || type == typeof(int?)) return "SERIAL";

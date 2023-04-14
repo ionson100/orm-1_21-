@@ -1,9 +1,9 @@
-﻿using ORM_1_21_.Extensions;
-using ORM_1_21_.Linq;
+﻿using ORM_1_21_.Linq;
 using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -16,7 +16,8 @@ namespace ORM_1_21_
 {
     ///<summary>
     ///</summary>
-    internal sealed partial class Sessione : ISession, IServiceSessions, ISessionInner
+    [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
+    internal sealed partial class Sessione : ISession, IServiceSessions
     {
       
         private readonly List<IDbCommand> _dbCommands = new List<IDbCommand>();
@@ -29,6 +30,15 @@ namespace ORM_1_21_
                 com.Connection = _connect;
                 return com;
             }
+        }
+
+        public ISession GetCloneSession()
+        {
+            if (_factoryOtherBase == null)
+            {
+                return new Sessione(_connectionString);
+            }
+            return new Sessione(_factoryOtherBase);
         }
 
         internal ProviderName GetProviderName => MyProviderName;
@@ -94,7 +104,7 @@ namespace ORM_1_21_
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("TableCreate"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return (int)provider.ExecuteExtension<int>(callExpr); 
+            return provider.ExecuteExtension<int>(callExpr); 
         }
         Task<int> ISession.TableCreateAsync<TSource>(CancellationToken cancellationToken)
         {
@@ -120,7 +130,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return (int)provider.ExecuteExtension<int>(callExpr); 
+            return provider.ExecuteExtension<int>(callExpr); 
 
         }
 
@@ -139,7 +149,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return (int)provider.ExecuteExtension<int>(callExpr); 
+            return provider.ExecuteExtension<int>(callExpr); 
         }
 
         Task<int> ISession.DropTableIfExistsAsync<TSource>(CancellationToken cancellationToken)
@@ -191,7 +201,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("TableExists"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return (bool)provider.ExecuteExtension<bool>(callExpr); 
+            return provider.ExecuteExtension<bool>(callExpr); 
 
           
         }
@@ -286,7 +296,6 @@ namespace ORM_1_21_
 
         public async Task<IDataReader> ExecuteReaderAsync(string sql, object[] param, CancellationToken cancellationToken = default)
         {
-            var tk = new TaskCompletionSource<IDataReader>(TaskCreationOptions.RunContinuationsAsynchronously);
             CancellationTokenRegistration? registration = null;
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
@@ -301,9 +310,7 @@ namespace ORM_1_21_
                     registration =
                         cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale,MyProviderName));
                 }
-
-                tk.SetResult(await com.ExecuteReaderAsync());
-                return await tk.Task;
+                return await com.ExecuteReaderAsync();
             }
             catch (Exception ex)
             {
@@ -323,7 +330,6 @@ namespace ORM_1_21_
 
         public async Task<IDataReader> ExecuteReaderAsync(string sql, int timeOut, object[] param, CancellationToken cancellationToken = default)
         {
-            var tk = new TaskCompletionSource<IDataReader>(TaskCreationOptions.RunContinuationsAsynchronously);
             CancellationTokenRegistration? registration = null;
             Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
@@ -340,8 +346,7 @@ namespace ORM_1_21_
                         cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale,MyProviderName));
                 }
 
-                tk.SetResult(await com.ExecuteReaderAsync());
-                return await tk.Task;
+                return await com.ExecuteReaderAsync();
             }
             catch (Exception ex)
             {
@@ -564,8 +569,6 @@ namespace ORM_1_21_
 
         public async Task<int> InsertBulkAsync<TSource>(IEnumerable<TSource> list, int timeOut, CancellationToken cancellationToken = default) where TSource : class
         {
-
-            var tcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
             CancellationTokenRegistration? registration = null;
             var enumerable = list as TSource[] ?? list.ToArray();
             Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
@@ -605,8 +608,7 @@ namespace ORM_1_21_
                     registration.Value.Dispose();
                 }
                 foreach (var iSource in enumerable) ((ISession)this).ToPersistent(iSource);
-                tcs.SetResult(res);
-                return await tcs.Task;
+                return res;
             }
             catch (Exception ex)
             {
@@ -616,7 +618,7 @@ namespace ORM_1_21_
             }
             finally
             {
-                ComDisposable(com);
+                await ComDisposableAsync(com);
             }
         }
 
@@ -1100,7 +1102,6 @@ namespace ORM_1_21_
 
         private async Task<int> SaveNewAsync<TSource>(TSource source, AppenderWhere[] whereObjects,CancellationToken cancellationToken) where TSource : class
         {
-            var tk = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
             CancellationTokenRegistration? registration = null;
             var res = 0;
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
@@ -1173,10 +1174,9 @@ namespace ORM_1_21_
                 {
                     registration.Value.Dispose();
                 }
-                ComDisposable(com);
+                await ComDisposableAsync(com);
             }
-            tk.SetResult(res);
-            return await tk.Task;
+            return res;
 
         }
 

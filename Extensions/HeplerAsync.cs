@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using ORM_1_21_.Linq;
 using ORM_1_21_.Utils;
 
-namespace ORM_1_21_.Extensions
+namespace ORM_1_21_
 {
     public static partial class Helper
     {
@@ -487,7 +487,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _min_Selector.MakeGenericMethod(typeof(TSource), typeof(TResult)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -507,7 +507,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _max_Selector.MakeGenericMethod(typeof(TSource), typeof(TResult)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -525,7 +525,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            var ex = Expression.Call(null, _sum_Int_Selector.MakeGenericMethod(typeof(TSource)), new Expression[2]
+            var ex = Expression.Call(null, _sum_Int_Selector.MakeGenericMethod(typeof(TSource)), new[]
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -543,7 +543,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _sum_IntNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -560,7 +560,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            var ex = Expression.Call(null, _sum_Long_Selector.MakeGenericMethod(typeof(TSource)), new Expression[2]
+            var ex = Expression.Call(null, _sum_Long_Selector.MakeGenericMethod(typeof(TSource)), new []
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -578,7 +578,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _sum_LongNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -594,7 +594,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            var ex = Expression.Call(null, _sum_Decimal_Selector.MakeGenericMethod(typeof(TSource)), new Expression[2]
+            var ex = Expression.Call(null, _sum_Decimal_Selector.MakeGenericMethod(typeof(TSource)), new []
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -611,7 +611,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _sum_DecimalNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -645,7 +645,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _sum_FloatNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -679,7 +679,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _sum_DoubleNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -696,8 +696,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            //cancellationToken.ThrowIfCancellationRequested();
-            var ex = Expression.Call(null, _average_Int_Selector.MakeGenericMethod(typeof(TSource)), new Expression[2]
+            var ex = Expression.Call(null, _average_Int_Selector.MakeGenericMethod(typeof(TSource)), new []
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -713,9 +712,8 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            //cancellationToken.ThrowIfCancellationRequested();
             var ex = Expression.Call(null, _average_IntNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -731,9 +729,8 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            //cancellationToken.ThrowIfCancellationRequested();
             var ex = Expression.Call(null, _average_Double_Selector.MakeGenericMethod(typeof(TSource)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -749,9 +746,8 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            //cancellationToken.ThrowIfCancellationRequested();
             var ex = Expression.Call(null, _average_DoubleNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -767,9 +763,8 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            //cancellationToken.ThrowIfCancellationRequested();
             var ex = Expression.Call(null, _average_Decimal_Selector.MakeGenericMethod(typeof(TSource)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -785,9 +780,9 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            //cancellationToken.ThrowIfCancellationRequested();
+          
             var ex = Expression.Call(null, _average_DecimalNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -803,8 +798,8 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            //cancellationToken.ThrowIfCancellationRequested();
-            var ex = Expression.Call(null, _average_Float_Selector.MakeGenericMethod(typeof(TSource)), new Expression[2]
+        
+            var ex = Expression.Call(null, _average_Float_Selector.MakeGenericMethod(typeof(TSource)), new []
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -820,9 +815,8 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            //cancellationToken.ThrowIfCancellationRequested();
             var ex = Expression.Call(null, _average_FloatNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new Expression[2]
+                new []
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -838,8 +832,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            //cancellationToken.ThrowIfCancellationRequested();
-            var ex = Expression.Call(null, _average_Long_Selector.MakeGenericMethod(typeof(TSource)), new Expression[2]
+            var ex = Expression.Call(null, _average_Long_Selector.MakeGenericMethod(typeof(TSource)), new []
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -855,8 +848,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            //cancellationToken.ThrowIfCancellationRequested();
-            var ex = Expression.Call(null, _average_Long_Selector.MakeGenericMethod(typeof(TSource)), new Expression[2]
+            var ex = Expression.Call(null, _average_Long_Selector.MakeGenericMethod(typeof(TSource)), new []
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -865,30 +857,6 @@ namespace ORM_1_21_.Extensions
         }
 
 
-        private static MethodInfo GetMethodInfo<T, T1, T2, T3>(Func<T, T1, T2, T3> func)
-        {
-            return func.Method;
-        }
-
-        private static MethodInfo GetMethodInfo<T, T1, T2, T3, T4>(Func<T, T1, T2, T3, T4> func)
-        {
-            return func.Method;
-        }
-
-        private static MethodInfo GetMethodInfo<T, T1, T2, T3, T4, T5>(Func<T, T1, T2, T3, T4, T5> func)
-        {
-            return func.Method;
-        }
-
-        private static MethodInfo GetMethodInfo<T1, T2, T3>(Func<T1, T2, T3> f, T1 unused1, T2 unused2)
-        {
-            return f.Method;
-        }
-
-        private static MethodInfo GetMethodInfo<T1, T2>(Func<T1, T2> f, T1 unused1)
-        {
-            return f.Method;
-        }
 
         /// <summary>
         /// </summary>
@@ -1089,12 +1057,9 @@ namespace ORM_1_21_.Extensions
             CancellationToken cancellationToken = default
         )
         {
-            var tk = new TaskCompletionSource<ILookup<TKey, TElement>>(TaskCreationOptions
-                .RunContinuationsAsynchronously);
             var s = await query.ToListAsync(cancellationToken);
             var res = s.ToLookup(keySelector, elementSelector);
-            tk.SetResult(res);
-            return await tk.Task;
+            return res;
         }
 
         /// <summary>
@@ -1110,12 +1075,9 @@ namespace ORM_1_21_.Extensions
             CancellationToken cancellationToken = default
         )
         {
-            var tk = new TaskCompletionSource<ILookup<TKey, TSource>>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
             var s = await query.ToListAsync(cancellationToken);
             var res = s.ToLookup(keySelector);
-            tk.SetResult(res);
-            return await tk.Task;
+            return res;
         }
 
         #region MethodInfo
@@ -1123,7 +1085,7 @@ namespace ORM_1_21_.Extensions
         private static readonly MethodInfo _first = GetMethod("First",
             (Type T) => new Type[1] { typeof(IQueryable<>).MakeGenericType(T) });
 
-        private static readonly MethodInfo _first_Predicate = GetMethod("First", (Type T) => new Type[2]
+        private static readonly MethodInfo _first_Predicate = GetMethod("First", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(bool)))
@@ -1142,7 +1104,7 @@ namespace ORM_1_21_.Extensions
         private static readonly MethodInfo _last = GetMethod("Last",
             (Type T) => new Type[1] { typeof(IQueryable<>).MakeGenericType(T) });
 
-        private static readonly MethodInfo _last_Predicate = GetMethod("Last", (Type T) => new Type[2]
+        private static readonly MethodInfo _last_Predicate = GetMethod("Last", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(bool)))
@@ -1151,7 +1113,7 @@ namespace ORM_1_21_.Extensions
         private static readonly MethodInfo _lastOrDefault = GetMethod("LastOrDefault",
             (Type T) => new Type[1] { typeof(IQueryable<>).MakeGenericType(T) });
 
-        private static readonly MethodInfo _lastOrDefault_Predicate = GetMethod("LastOrDefault", (Type T) => new Type[2]
+        private static readonly MethodInfo _lastOrDefault_Predicate = GetMethod("LastOrDefault", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(bool)))
@@ -1160,7 +1122,7 @@ namespace ORM_1_21_.Extensions
         private static readonly MethodInfo _single = GetMethod("Single",
             (Type T) => new Type[1] { typeof(IQueryable<>).MakeGenericType(T) });
 
-        private static readonly MethodInfo _single_Predicate = GetMethod("Single", (Type T) => new Type[2]
+        private static readonly MethodInfo _single_Predicate = GetMethod("Single", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(bool)))
@@ -1176,14 +1138,10 @@ namespace ORM_1_21_.Extensions
                 typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(bool)))
             });
 
-        private static readonly MethodInfo _contains = GetMethod("Contains", (Type T) => new Type[2]
-        {
-            typeof(IQueryable<>).MakeGenericType(T),
-            T
-        });
+       
 
         private static readonly MethodInfo _any = GetMethod("Any",
-            (Type T) => new Type[1] { typeof(IQueryable<>).MakeGenericType(T) });
+            (Type T) => new Type[] { typeof(IQueryable<>).MakeGenericType(T) });
 
         private static readonly MethodInfo _any_Predicate = GetMethod("Any", (Type T) => new Type[2]
         {
@@ -1191,135 +1149,135 @@ namespace ORM_1_21_.Extensions
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(bool)))
         });
 
-        private static readonly MethodInfo _all_Predicate = GetMethod("All", (Type T) => new Type[2]
+        private static readonly MethodInfo _all_Predicate = GetMethod("All", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(bool)))
         });
 
         private static readonly MethodInfo _count = GetMethod("Count",
-            (Type T) => new Type[1] { typeof(IQueryable<>).MakeGenericType(T) });
+            (Type T) => new Type[] { typeof(IQueryable<>).MakeGenericType(T) });
 
-        private static readonly MethodInfo _count_Predicate = GetMethod("Count", (Type T) => new Type[2]
+        private static readonly MethodInfo _count_Predicate = GetMethod("Count", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(bool)))
         });
 
         private static readonly MethodInfo _longCount = GetMethod("LongCount",
-            (Type T) => new Type[1] { typeof(IQueryable<>).MakeGenericType(T) });
+            (Type T) => new Type[] { typeof(IQueryable<>).MakeGenericType(T) });
 
-        private static readonly MethodInfo _longCount_Predicate = GetMethod("LongCount", (Type T) => new Type[2]
+        private static readonly MethodInfo _longCount_Predicate = GetMethod("LongCount", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(bool)))
         });
 
         private static readonly MethodInfo _min = GetMethod("Min",
-            (Type T) => new Type[1] { typeof(IQueryable<>).MakeGenericType(T) });
+            (Type T) => new Type[] { typeof(IQueryable<>).MakeGenericType(T) });
 
-        private static readonly MethodInfo _min_Selector = GetMethod("Min", (Type T, Type U) => new Type[2]
+        private static readonly MethodInfo _min_Selector = GetMethod("Min", (Type T, Type U) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, U))
         });
 
         private static readonly MethodInfo _max = GetMethod("Max",
-            (Type T) => new Type[1] { typeof(IQueryable<>).MakeGenericType(T) });
+            (Type T) => new Type[] { typeof(IQueryable<>).MakeGenericType(T) });
 
-        private static readonly MethodInfo _max_Selector = GetMethod("Max", (Type T, Type U) => new Type[2]
+        private static readonly MethodInfo _max_Selector = GetMethod("Max", (Type T, Type U) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, U))
         });
 
 
-        private static readonly MethodInfo _sum_Int_Selector = GetMethod("Sum", (Type T) => new Type[2]
+        private static readonly MethodInfo _sum_Int_Selector = GetMethod("Sum", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(int)))
         });
 
-        private static readonly MethodInfo _sum_IntNullable_Selector = GetMethod("Sum", (Type T) => new Type[2]
+        private static readonly MethodInfo _sum_IntNullable_Selector = GetMethod("Sum", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(int?)))
         });
 
-        private static readonly MethodInfo _sum_Long_Selector = GetMethod("Sum", (Type T) => new Type[2]
+        private static readonly MethodInfo _sum_Long_Selector = GetMethod("Sum", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(long)))
         });
 
-        private static readonly MethodInfo _sum_LongNullable_Selector = GetMethod("Sum", (Type T) => new Type[2]
+        private static readonly MethodInfo _sum_LongNullable_Selector = GetMethod("Sum", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(long?)))
         });
 
-        private static readonly MethodInfo _sum_Float_Selector = GetMethod("Sum", (Type T) => new Type[2]
+        private static readonly MethodInfo _sum_Float_Selector = GetMethod("Sum", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(float)))
         });
 
-        private static readonly MethodInfo _sum_FloatNullable_Selector = GetMethod("Sum", (Type T) => new Type[2]
+        private static readonly MethodInfo _sum_FloatNullable_Selector = GetMethod("Sum", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(float?)))
         });
 
-        private static readonly MethodInfo _sum_Double_Selector = GetMethod("Sum", (Type T) => new Type[2]
+        private static readonly MethodInfo _sum_Double_Selector = GetMethod("Sum", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(double)))
         });
 
-        private static readonly MethodInfo _sum_DoubleNullable_Selector = GetMethod("Sum", (Type T) => new Type[2]
+        private static readonly MethodInfo _sum_DoubleNullable_Selector = GetMethod("Sum", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(double?)))
         });
 
-        private static readonly MethodInfo _sum_Decimal_Selector = GetMethod("Sum", (Type T) => new Type[2]
+        private static readonly MethodInfo _sum_Decimal_Selector = GetMethod("Sum", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(decimal)))
         });
 
-        private static readonly MethodInfo _sum_DecimalNullable_Selector = GetMethod("Sum", (Type T) => new Type[2]
+        private static readonly MethodInfo _sum_DecimalNullable_Selector = GetMethod("Sum", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(decimal?)))
         });
 
 
-        private static readonly MethodInfo _average_Int_Selector = GetMethod("Average", (Type T) => new Type[2]
+        private static readonly MethodInfo _average_Int_Selector = GetMethod("Average", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(int)))
         });
 
-        private static readonly MethodInfo _average_IntNullable_Selector = GetMethod("Average", (Type T) => new Type[2]
+        private static readonly MethodInfo _average_IntNullable_Selector = GetMethod("Average", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(int?)))
         });
 
-        private static readonly MethodInfo _average_Long_Selector = GetMethod("Average", (Type T) => new Type[2]
+        private static readonly MethodInfo _average_Long_Selector = GetMethod("Average", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(long)))
         });
 
-        private static readonly MethodInfo _average_LongNullable_Selector = GetMethod("Average", (Type T) => new Type[2]
+        private static readonly MethodInfo _average_LongNullable_Selector = GetMethod("Average", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(long?)))
         });
 
-        private static readonly MethodInfo _average_Float_Selector = GetMethod("Average", (Type T) => new Type[2]
+        private static readonly MethodInfo _average_Float_Selector = GetMethod("Average", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(float)))
@@ -1345,7 +1303,7 @@ namespace ORM_1_21_.Extensions
                 typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(double?)))
             });
 
-        private static readonly MethodInfo _average_Decimal_Selector = GetMethod("Average", (Type T) => new Type[2]
+        private static readonly MethodInfo _average_Decimal_Selector = GetMethod("Average", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(decimal)))
@@ -1358,13 +1316,13 @@ namespace ORM_1_21_.Extensions
                 typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(decimal?)))
             });
 
-        private static readonly MethodInfo _skip = GetMethod("Skip", (Type T) => new Type[2]
+        private static readonly MethodInfo _skip = GetMethod("Skip", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(int)
         });
 
-        private static readonly MethodInfo _take = GetMethod("Take", (Type T) => new Type[2]
+        private static readonly MethodInfo _take = GetMethod("Take", (Type T) => new Type[]
         {
             typeof(IQueryable<>).MakeGenericType(T),
             typeof(int)

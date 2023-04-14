@@ -7,7 +7,7 @@ using ORM_1_21_;
 
 namespace TestLibrary
 {
-    class TestInsertBaseNative
+   public class TestInsertBaseNative
     {
         [MapPrimaryKey("id", Generator.Native)]
         public int Id { get; set; }
@@ -23,7 +23,7 @@ namespace TestLibrary
     }
 
     [MapTable("TT1")]
-    class TiPostgresNative:TestInsertBaseNative
+    public class TiPostgresNative:TestInsertBaseNative
     {
        
     }

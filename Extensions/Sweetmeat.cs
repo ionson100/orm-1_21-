@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_.Linq;
 
 namespace ORM_1_21_.Extensions
 {
@@ -25,23 +24,23 @@ namespace ORM_1_21_.Extensions
 
         public void Wait()
         {
-            var pTOuter = (QueryProvider)_first.Provider;
-            var pTInner = new DbQueryProvider<TSecond>((Sessione)((ISqlComposite)_second.Provider).SessioneInner.SessionCloneForTask());
-            var t1 = pTOuter.ExecuteExtensionAsync<IEnumerable<TFirst>>(_first.Expression, null, CancellationToken.None);
-            var t2 = pTInner.ExecuteExtensionAsync<IEnumerable<TSecond>>(_second.Expression, null, CancellationToken.None);
-            Task.WaitAll(t1, t2);
-            First = t1.Result;
-            Seconds = t2.Result;
+            //var pFirst = (QueryProvider)_first.Provider;
+            //var pSecond = new DbQueryProvider<TSecond>(((ICloneSession)_second.Provider).CloneSession());
+            //var t1 = pFirst.ExecuteExtensionAsync<IEnumerable<TFirst>>(_first.Expression, null, CancellationToken.None);
+            //var t2 = pSecond.ExecuteExtensionAsync<IEnumerable<TSecond>>(_second.Expression, null, CancellationToken.None);
+            //Task.WaitAll(t1, t2);
+            First = _first.Provider.Execute<IEnumerable<TFirst>>(_first.Expression);
+            Seconds = _second.Provider.Execute<IEnumerable<TSecond>>(_second.Expression);
         }
         public async Task WaitAsync()
         {
-            var pTOuter = (QueryProvider)_first.Provider;
-            var pTInner = new DbQueryProvider<TSecond>((Sessione)((ISqlComposite)_second.Provider).SessioneInner.SessionCloneForTask());
-            var t1 = pTOuter.ExecuteExtensionAsync<IEnumerable<TFirst>>(_first.Expression, null, _cancellationToken);
-            var t2 = pTInner.ExecuteExtensionAsync<IEnumerable<TSecond>>(_second.Expression, null, _cancellationToken);
-            await Task.WhenAll(t1, t2).ConfigureAwait(false);
-            First = t1.Result;
-            Seconds = t2.Result;
+            //var pFirst = (QueryProvider)_first.Provider;
+            //var pSecond = new DbQueryProvider<TSecond>(((ICloneSession)_second.Provider).CloneSession());
+            //var t1 = pFirst.ExecuteExtensionAsync<IEnumerable<TFirst>>(_first.Expression, null, _cancellationToken);
+            //var t2 = pSecond.ExecuteExtensionAsync<IEnumerable<TSecond>>(_second.Expression, null, _cancellationToken);
+            //await Task.WhenAll(t1, t2).ConfigureAwait(false);
+            First = await _first.Provider.ExecuteAsync<IEnumerable<TFirst>>(_first.Expression,_cancellationToken);
+            Seconds = await _second.Provider.ExecuteAsync<IEnumerable<TSecond>>(_second.Expression,_cancellationToken);
         }
 
     }
