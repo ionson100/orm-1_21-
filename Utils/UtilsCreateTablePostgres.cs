@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 
 namespace ORM_1_21_.Utils
@@ -13,10 +14,10 @@ namespace ORM_1_21_.Utils
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
 
             var typePk = GetTypePgPk(pk.TypeColumn, pk.Generator);
-            if (!string.IsNullOrWhiteSpace(pk.TypeString))
+            if (pk.TypeString != null)
                 typePk = pk.TypeString;
             var defValue = "PRIMARY KEY";
-            if (!string.IsNullOrWhiteSpace(pk.DefaultValue))
+            if (pk.DefaultValue!=null)
             {
                 defValue = pk.DefaultValue;
             }
@@ -40,9 +41,24 @@ namespace ORM_1_21_.Utils
 
             var str2 = builder.ToString();
             str2 = str2.Substring(0, str2.LastIndexOf(','));
+ 
+            
+
             builder.Clear();
             builder.Append(str2);
+
+          //  var l = AttributesOfClass<T>.GetConstraintKeyNameList(providerName);
+          //  if (l.Any())
+          //  {
+          //      builder.Append(",");
+          //      builder.AppendLine($" CONSTRAINT pk_1_{UtilsCore.ClearTrim(tableName).ToLower()} PRIMARY KEY ({pk.GetColumnName(providerName)},{string.Join(", ", l)})");
+          //  }
+
+
+
             builder.AppendLine(");");
+           
+           
 
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
                 if (map.IsIndex)
@@ -122,7 +138,7 @@ namespace ORM_1_21_.Utils
                 if (type == typeof(Guid)) return "UUID";
             }
 
-            if (generator == Generator.Native||generator == Generator.NativeNotLastInsert)
+            if (generator == Generator.Native||generator == Generator.NativeNotReturningId)
             {
                 if (type == typeof(long) || type == typeof(ulong) || type == typeof(long?)) return "BIGSERIAL";
                 if (type == typeof(int) || type == typeof(uint) || type.BaseType == typeof(Enum) || type == typeof(int?)) return "SERIAL";

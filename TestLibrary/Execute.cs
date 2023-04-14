@@ -35,8 +35,8 @@ namespace TestLibrary
             {
                 using (var ses = Configure.GetSession<MyDbPostgres>())
                 {
-                    var ee = ses.Query<MyClass>().JoinCore(ses.Query<MyClass>(), a => a.Age, b => b.Age,
-                        (aa, bb) => new { name1 = aa.Name, name2 = bb.Name }).ToList();
+                   var ee = ses.Query<MyClass>().JoinCore(ses.Query<MyClass>(), a => a.Age, b => b.Age,
+                       (aa, bb) => new { name1 = aa.Name, name2 = bb.Name }).ToList();
                     var l = ses.Query<MyClass>().ToList();
                     var e1e =    ses.Query<MyClass>().JoinCore(l, a => a.Age, b => b.Age,
                         (aa, bb) => new { name1 = aa.Name, name2 = bb.Name });

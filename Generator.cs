@@ -17,6 +17,6 @@
         /// <summary>
         /// Database assignable as auto generate,importance of the key does not return on client for insert command
         /// </summary>
-        NativeNotLastInsert,
+        NativeNotReturningId,
     }
 }

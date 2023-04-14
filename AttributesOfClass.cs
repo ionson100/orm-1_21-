@@ -44,6 +44,27 @@ namespace ORM_1_21_
         private static readonly Lazy<List<MapColumnAttribute>> AttributeDalList =
             new Lazy<List<MapColumnAttribute>>(GetListActivateDallAll, LazyThreadSafetyMode.PublicationOnly);
 
+      // private static readonly Lazy<List<string>> ListConstrainsKey =
+      //     new Lazy<List<string>>(() =>
+      //     {
+      //         var list=new List<string>();
+      //
+      //         foreach (var f in typeof(T).GetProperties())
+      //         {
+      //             var pr = f.GetCustomAttribute<MapConstraintKeyAttribute>(true);
+      //             if (pr == null) continue;
+      //             if (string.IsNullOrWhiteSpace(pr.GetColumnNameRaw())) pr.SetColumnNameRaw(f.Name);
+      //           
+      //             list.Add(pr.GetColumnName(CurProviderName));
+      //         }
+      //         return list;
+      //     }, LazyThreadSafetyMode.PublicationOnly);
+
+      //  public static List<string> GetConstraintKeyNameList(ProviderName providerName)
+      //  {
+      //      Provider = providerName;
+      //      return ListConstrainsKey.Value;
+      //  }
 
         private static readonly Lazy<MapTableAttribute> TableAttribute =
             new Lazy<MapTableAttribute>(GetTableAttribute, LazyThreadSafetyMode.PublicationOnly);
@@ -272,8 +293,14 @@ namespace ORM_1_21_
                 pr.PropertyName = f.Name;
                 pr.DeclareType = typeof(T);
                 pr.TypeColumn = f.PropertyType;
+                var o3 = f.GetCustomAttribute<MapDefaultValueAttribute>(true);
+                if (o3 != null)
+                    pr.DefaultValue = o3.Value;
                 pr.ColumnNameAlias =
                     UtilsCore.GetAsAlias(TableName(CurProviderName), pr.GetColumnName(CurProviderName));
+                var o4 = f.GetCustomAttribute<MapColumnTypeAttribute>(true);
+                if (o4 != null)
+                    pr.TypeString = o4.TypeString;
                 return pr;
             }
 

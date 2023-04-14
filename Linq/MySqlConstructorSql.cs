@@ -1,9 +1,9 @@
-﻿using System;
+﻿using ORM_1_21_.Utils;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using ORM_1_21_.Utils;
 
 namespace ORM_1_21_.Linq
 {
@@ -23,11 +23,11 @@ namespace ORM_1_21_.Linq
             return _listOne.Any(a => a.Operand == eval);
         }
 
-        
 
-        public string GetStringSql<T>(List<OneComposite> listOne,ProviderName providerName)
+
+        public string GetStringSql<T>(List<OneComposite> listOne, ProviderName providerName)
         {
-         
+
             _listOne = listOne;
             var sqlBody = UtilsCore.CheckAny(listOne);
             if (sqlBody != null)
@@ -35,18 +35,18 @@ namespace ORM_1_21_.Linq
                 return sqlBody;
             }
 
-         
+
             if (!string.IsNullOrWhiteSpace(AttributesOfClass<T>.SqlWhere))
             {
                 _listOne.Add(new OneComposite
-                    { Operand = Evolution.Where, Body = $"({AttributesOfClass<T>.SqlWhere})" });
+                { Operand = Evolution.Where, Body = $"({AttributesOfClass<T>.SqlWhere})" });
             }
 
 
             //if (PingComposite(Evolution.FreeSql)) return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
 
-            if (PingComposite(Evolution.Update)) return AttributesOfClass<T>.CreateCommandLimitForMySql(_listOne,providerName);
-           
+            if (PingComposite(Evolution.Update)) return AttributesOfClass<T>.CreateCommandLimitForMySql(_listOne, providerName);
+
             if (PingComposite(Evolution.All))
             {
                 StringBuilder builder = new StringBuilder("SELECT COUNT(*),(SELECT COUNT(*) FROM ");
@@ -117,7 +117,7 @@ namespace ORM_1_21_.Linq
                 { Operand = Evolution.Where, Body = listOne.First(a => a.Operand == Evolution.All).Body });
             }
 
-            var ii = 0;
+
             var sbb = new StringBuilder();
             if (PingComposite(Evolution.Delete))
             {
@@ -129,7 +129,8 @@ namespace ORM_1_21_.Linq
                 if (PingComposite(Evolution.SelectNewGroup))
                 {
                     sbb.Append(listOne.First(a => a.Operand == Evolution.SelectNewGroup).Body);
-                }else
+                }
+                else
 
                 if (PingComposite(Evolution.Select))
                 {
@@ -161,26 +162,26 @@ namespace ORM_1_21_.Linq
                         {
                             sbb.Append(" ").Append(_listOne.Single(a => a.Operand == Evolution.SelectJoin).Body)
                                 .Append(" ");
-                        }else
-                        if (!PingComposite(Evolution.Count))
+                        }
+                        else if (!PingComposite(Evolution.Count))
+                        {
+                            sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
+                                AttributesOfClass<T>.TableName(providerName) + "." +
+                                AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName),
+                                listOne.Any(a => a.Operand == Evolution.DistinctCore &&
+                                                 a.Body == AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
+                                    ? " Distinct "
+                                    : ""));
                             foreach (var i in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                             {
-                                if (ii == 0)
-                                    sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
-                                        AttributesOfClass<T>.TableName(providerName) + "." +
-                                        AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName),
-                                        listOne.Any(a => a.Operand == Evolution.DistinctCore &&
-                                                         a.Body == AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
-                                            ? " Distinct "
-                                            : ""));
                                 sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
                                     AttributesOfClass<T>.TableName(providerName) + "." + i.GetColumnName(_providerName),
                                     listOne.Any(a => a.Operand == Evolution.DistinctCore && a.Body == i.GetColumnName(_providerName))
                                         ? " Distinct "
                                         : ""));
-
-                                ii++;
                             }
+                        }
+
                     }
 
 
@@ -190,7 +191,7 @@ namespace ORM_1_21_.Linq
                 }
             }
 
-          
+
 
             sbb.Append(" FROM ");
             sbb.Append(AttributesOfClass<T>.TableName(providerName)).Append(" ");
@@ -198,7 +199,7 @@ namespace ORM_1_21_.Linq
             //{
             //    sbb.Append(_listOne.Single(a => a.Operand == Evolution.Join).Body).Append(" ");
             //}
-           
+
 
             var ss = listOne.Where(a => a.Operand == Evolution.Where);
             foreach (var i in ss)
@@ -208,10 +209,10 @@ namespace ORM_1_21_.Linq
                 sbb.Append(i.Body);
             }
 
-          
-            ii = 0;
 
-          
+            int ii = 0;
+
+
 
             foreach (var i in listOne.Where(a => a.Operand == Evolution.OrderBy))
             {
@@ -270,7 +271,7 @@ namespace ORM_1_21_.Linq
             if (PingComposite(Evolution.Skip))
             {
                 int isk = 0;
-                foreach (OneComposite composite in listOne.Where(a=>a.Operand==Evolution.Skip))
+                foreach (OneComposite composite in listOne.Where(a => a.Operand == Evolution.Skip))
                 {
                     isk += int.Parse(composite.Body);
                 }
@@ -289,57 +290,57 @@ namespace ORM_1_21_.Linq
                     {
                         sbb.Append($" LIMIT {int.MaxValue} OFFSET {isk} ").Append(" ");
                     }
-                    
+
                 }
             }
 
 
 
             if (PingComposite(Evolution.Limit)) sbb.Append(listOne.First(a => a.Operand == Evolution.Limit).Body);
-         
+
             if (PingComposite(Evolution.Any)) sbb.Append(" ) ");
 
-            
 
-           // if (PingComposite(Evolution.Join))
-           // {
-           //     var whereSb = new StringBuilder();
-           //     foreach (var str in _listOne.Where(a => a.Operand == Evolution.Where).Select(a => a.Body))
-           //     {
-           //         var str1 = str.Replace("`", "").Replace("[", "").Replace("]", "");
-           //         var eew = str1;
-           //         var matsup = new Regex(@"[aA-zZаА-яЯ\d[_]*]*\.[aA-zZаА-яЯ\d[_]*]*").Matches(str1);
-           //         foreach (var s in matsup)
-           //             eew = str1.Replace(s.ToString(),
-           //                 UtilsCore.TanslycatorFieldParam1(s.ToString(), UtilsCore.Table1AliasForJoin));
-           //         whereSb.Append(eew + " AND ");
-           //     }
-           //
-           //     if (!string.IsNullOrEmpty(whereSb.ToString()))
-           //         whereSb.Insert(0, " WHERE ");
-           //
-           //     var orderby = new StringBuilder();
-           //     foreach (var str in _listOne.Where(a => a.Operand == Evolution.OrderBy).Select(a => a.Body))
-           //     {
-           //         if (str == _listOne.First(a => a.Operand == Evolution.OrderBy).Body)
-           //         {
-           //             orderby.AppendFormat(" ORDER BY {0},",
-           //                 UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
-           //             continue;
-           //         }
-           //
-           //         orderby.AppendFormat(" {0},", UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
-           //     }
-           //
-           //
-           //     var dfggf = _listOne.Single(a => a.Operand == Evolution.Join);
-           //     sbb = new StringBuilder(dfggf.Body + whereSb.ToString().Trim("AND ".ToArray()) +
-           //                             orderby.ToString().Trim(','));
-           // }
+
+            // if (PingComposite(Evolution.Join))
+            // {
+            //     var whereSb = new StringBuilder();
+            //     foreach (var str in _listOne.Where(a => a.Operand == Evolution.Where).Select(a => a.Body))
+            //     {
+            //         var str1 = str.Replace("`", "").Replace("[", "").Replace("]", "");
+            //         var eew = str1;
+            //         var matsup = new Regex(@"[aA-zZаА-яЯ\d[_]*]*\.[aA-zZаА-яЯ\d[_]*]*").Matches(str1);
+            //         foreach (var s in matsup)
+            //             eew = str1.Replace(s.ToString(),
+            //                 UtilsCore.TanslycatorFieldParam1(s.ToString(), UtilsCore.Table1AliasForJoin));
+            //         whereSb.Append(eew + " AND ");
+            //     }
+            //
+            //     if (!string.IsNullOrEmpty(whereSb.ToString()))
+            //         whereSb.Insert(0, " WHERE ");
+            //
+            //     var orderby = new StringBuilder();
+            //     foreach (var str in _listOne.Where(a => a.Operand == Evolution.OrderBy).Select(a => a.Body))
+            //     {
+            //         if (str == _listOne.First(a => a.Operand == Evolution.OrderBy).Body)
+            //         {
+            //             orderby.AppendFormat(" ORDER BY {0},",
+            //                 UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
+            //             continue;
+            //         }
+            //
+            //         orderby.AppendFormat(" {0},", UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
+            //     }
+            //
+            //
+            //     var dfggf = _listOne.Single(a => a.Operand == Evolution.Join);
+            //     sbb = new StringBuilder(dfggf.Body + whereSb.ToString().Trim("AND ".ToArray()) +
+            //                             orderby.ToString().Trim(','));
+            // }
             // todo ion100 Replace("''", "'")
-            var res= sbb.ToString().Replace("  ", " ").Replace("Average", "AVG")
-                .Replace("LongCount", "Count")+";";
-            
+            var res = sbb.ToString().Replace("  ", " ").Replace("Average", "AVG")
+                .Replace("LongCount", "Count") + ";";
+
             return res;
         }
     }

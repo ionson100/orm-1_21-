@@ -25,7 +25,7 @@ namespace ORM_1_21_.Linq
         private readonly List<ParameterStoredPr> _paramFreeStoredPr = new List<ParameterStoredPr>();
         private readonly Dictionary<string, object> _parOut = new Dictionary<string, object>();
         private readonly Sessione _sessione;
-        private IDbCommand _com;
+        //private IDbCommand _com;
         private readonly ProviderName _providerName;
         public IDbTransaction Transaction { get; set; }
         public List<ContainerCastExpression> ListCastExpression { get; set; } = new List<ContainerCastExpression>();

@@ -12,13 +12,13 @@ namespace ORM_1_21_.Utils
             StringBuilder builder = new StringBuilder($"IF not exists (select 1 from information_schema.tables where table_name = '{tableName}')");
             builder.AppendLine($"CREATE TABLE [dbo].[{tableName}](");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
-            if (pk.Generator == Generator.Native|| pk.Generator == Generator.NativeNotLastInsert)
+            if (pk.Generator == Generator.Native|| pk.Generator == Generator.NativeNotReturningId)
             {
                 var typePk = $" {GetTypeMsSQl(pk.TypeColumn)}IDENTITY(1,1) NOT NULL";
-                if (!string.IsNullOrWhiteSpace(pk.TypeString))
+                if (pk.TypeString != null)
                     typePk = pk.TypeString;
                 var defValue = "PRIMARY KEY";
-                if (!string.IsNullOrWhiteSpace(pk.DefaultValue))
+                if (pk.DefaultValue!=null)
                 {
                     defValue = pk.DefaultValue;
                 }
@@ -27,10 +27,10 @@ namespace ORM_1_21_.Utils
             if (pk.Generator == Generator.Assigned)
             {
                 var typePk = "uniqueIdentifier default (newId())";
-                if (!string.IsNullOrWhiteSpace(pk.TypeString))
+                if (pk.TypeString != null)
                     typePk = pk.TypeString;
                 var defValue = "PRIMARY KEY";
-                if (!string.IsNullOrWhiteSpace(pk.DefaultValue))
+                if (pk.DefaultValue != null)
                 {
                     defValue = pk.DefaultValue;
                 }

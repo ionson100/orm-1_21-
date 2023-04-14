@@ -42,7 +42,7 @@ namespace ORM_1_21_
         }
 
         internal ProviderName GetProviderName => MyProviderName;
-       ProviderName IServiceSessions.CurrentProviderName => MyProviderName;
+        ProviderName IServiceSessions.CurrentProviderName => MyProviderName;
 
         object IServiceSessions.Locker { get; } = new object();
 
@@ -748,6 +748,7 @@ namespace ORM_1_21_
         {
             QueryProvider p = new DbQueryProvider<TSource>(this);
             return new Query<TSource>(p);
+
         }
 
        

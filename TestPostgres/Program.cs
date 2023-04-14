@@ -12,7 +12,7 @@ namespace TestPostgres
 {
     internal class Program
     {
-        private const ProviderName ProviderName = ORM_1_21_.ProviderName.SqLite;
+        private const ProviderName ProviderName = ORM_1_21_.ProviderName.PostgreSql;
 
         static async Task Main(string[] args)
         {
@@ -34,20 +34,20 @@ namespace TestPostgres
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            Execute.RunOtherSession();
+            //Execute.RunOtherSession();
             //Execute.RunThread();
-            Console.ReadKey();
             //Console.ReadKey();
-           Execute.TotalTest();
-           Execute.TestNativeInsert();
-           Execute.TestAssignetInsert();
-           Execute2.TestTimeStamp();
-           
-           await Execute3.TotalTestAsync();
-           await ExecuteLinqAll.Run();
-           ExecutePrimaryKey.Run();
-           await ExecuteFree.Run();
-           await ExecuteSp.Run();
+            //Console.ReadKey();
+             Execute.TotalTest();
+             Execute.TestNativeInsert();
+             Execute.TestAssignetInsert();
+             Execute2.TestTimeStamp();
+             
+             await Execute3.TotalTestAsync();
+             await ExecuteLinqAll.Run();
+             ExecutePrimaryKey.Run();
+             await ExecuteFree.Run();
+             await ExecuteSp.Run();
 
             Stopwatch stopwatch = new Stopwatch();
 
@@ -73,44 +73,53 @@ namespace TestPostgres
                     }
                 );
 
+                session.DropTableIfExists<TT23>();
+                session.TableCreate<TT23>();
 
-                var listInt = session.FreeSql<int>($"select age from {session.TableName<MyClassJoinPostgres>()}").ToList();
-                foreach (int iw in listInt)
-                {
-                    Console.WriteLine(iw);
-                }
+                TT23 d = new TT23() { Name = "qw" };
+                session.Save(d);
+
+                TT23 d1 = new TT23() { Name = "qw" };
+                session.Save(d1);
 
 
-                session.DropTableIfExists<TT>();
-                session.TableCreate<TT>();
-                session.InsertBulk(new List<TT>()
-                {
-                    new TT()
-                });
-
-                var t = new TT() { Name = "[assa'\"" };
-                var i = session.Save(t);
-
-                var ii = session.Delete(t);
-                var list = session.Query<TT>().ToList();
-                //var p = list.First();
-                //p.Name = "ion100";
-                //var i=session.Save(p);
-                //var rr=session.Query<TT>().Where(a => a.Name == "ion100").FirstOrDefault();
+                // var listInt = session.FreeSql<int>($"select age from {session.TableName<MyClassJoinPostgres>()}").ToList();
+                // foreach (int iw in listInt)
+                // {
+                //     Console.WriteLine(iw);
+                // }
                 //
-                await session.DropTableIfExistsAsync<MyClass>();
-                await session.TableCreateAsync<MyClass>();
-                session.InsertBulk(new List<MyClass>
-                    {
-                        new MyClass{ Age = 40, Name = "name40" },
-                        new MyClass{ Age = 40, Name = "name40" },
-                        new MyClass{ Age = 20, Name = "name20" },
-                        new MyClass{ Age = 20, Name = "name20" },
-                        new MyClass{ Age = 20, Name = "name20" },
-                        new MyClass{ Age = 20, Name = "name20" },
-
-                    }
-                );
+                //
+                // session.DropTableIfExists<TT>();
+                // session.TableCreate<TT>();
+                // session.InsertBulk(new List<TT>()
+                // {
+                //     new TT()
+                // });
+                //
+                // var t = new TT() { Name = "[assa'\"" };
+                // var i = session.Save(t);
+                //
+                // var ii = session.Delete(t);
+                // var list = session.Query<TT>().ToList();
+                // //var p = list.First();
+                // //p.Name = "ion100";
+                // //var i=session.Save(p);
+                // //var rr=session.Query<TT>().Where(a => a.Name == "ion100").FirstOrDefault();
+                // //
+                // await session.DropTableIfExistsAsync<MyClass>();
+                // await session.TableCreateAsync<MyClass>();
+                // session.InsertBulk(new List<MyClass>
+                //     {
+                //         new MyClass{ Age = 40, Name = "name40" },
+                //         new MyClass{ Age = 40, Name = "name40" },
+                //         new MyClass{ Age = 20, Name = "name20" },
+                //         new MyClass{ Age = 20, Name = "name20" },
+                //         new MyClass{ Age = 20, Name = "name20" },
+                //         new MyClass{ Age = 20, Name = "name20" },
+                //
+                //     }
+                // );
 
                 //await session.DropTableIfExistsAsync<TestSqliteUUid>();
                 //await session.TableCreateAsync<TestSqliteUUid>();
@@ -178,6 +187,40 @@ namespace TestPostgres
 
 
     }
+    [MapTable]
+    class TT23
+    {
+       
+        [MapPrimaryKey(Generator.Native)]
+        public int Id { get; set; }
+        [MapDefaultValue("UNIQUE")]
+        [MapColumn]
+        public string Name { get; set; }
+    }
+    [MapTable("test_sub_class")]//Mandatory table name
+    class TSuperClass
+    {
+        [MapPrimaryKey(Generator.Assigned)]
+        public Guid Id { get; set; } = Guid.NewGuid();
+      
+        [MapColumn]
+        public string Name { get; set; }
+
+    }
+
+    class TSubClass : TSuperClass
+    {
+        [MapColumn]
+        public int Age { get; set; }
+    }
+   
+    class TCoreClass : TSubClass
+    {
+        [MapColumn]
+        public string Description { get; set; }
+    }
+
+
     [MapTable("tt")]
     class TT : IMapAction<TT>
     {
@@ -195,8 +238,12 @@ namespace TestPostgres
     class TestSqliteUUid
     {
         [MapColumnType("text")]
-        [MapDefaultValue("default (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6))))")]
-        [MapPrimaryKey("id", Generator.NativeNotLastInsert)]
+        [MapDefaultValue("default (lower(hex(randomblob(4))) || '-' || " +
+                         "lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2)" +
+                         " || '-' || substr('89ab',abs(random()) % 4 + 1, 1)" +
+                         " || substr(lower(hex(randomblob(2))),2) || '-' || " +
+                         "lower(hex(randomblob(6))))")]
+        [MapPrimaryKey("id", Generator.NativeNotReturningId)]
         public Guid Id { get; set; }
         [MapColumn]
         public string Name { get; set; }
@@ -219,7 +266,7 @@ namespace TestPostgres
     {
         [MapColumnType(" uuid")]
         [MapDefaultValue("DEFAULT uuid_generate_v4() PRIMARY KEY")]
-        [MapPrimaryKey("id", Generator.NativeNotLastInsert)]
+        [MapPrimaryKey("id", Generator.NativeNotReturningId)]
         public Guid id { get; set; }
         [MapColumn("name")]
         public string Name { get; set; }

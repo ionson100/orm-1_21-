@@ -1,12 +1,25 @@
 #### ORM-1_21
-ОРМ ( MySql,PostgreSQL,MSSQL,Sqlite)\
-Allows access to different databases (MSSQL,Postgresql,MySQL,Sqlite) from one application context.\
-CodeFirst, Linq to sql,Query caching.
++ [Table Map](#tablemap)
++ [Attribute](#attribute)
++ [Linq to SQL](#linqtosql)
++ [Native SQL](#nativesql)
++ [Transaction](#transaction)
++ [Interfaces](#interfaces)
++ [Accessing another database](#anotherdatabase)
++ [Work with subclasses](#subclass)
++ [License](./LICENSE.md)
+
+
+Simple micro ОРМ ( MySql, PostgreSQL, MSSQL, Sqlite).\
+Allows access to different databases (MSSQL, Postgresql, MySQL, Sqlite) from one application context.\
+CodeFirst, Linq to sql, free sql, caching.
 #### Restrictions.
 All bases must be created before use, with the exception of Sqlite,\
  if the file does not exist, the ORM will create it.\
 Write to log file=debug mode only.\
-install database provider from NuGet (Npgsql,Mysql.Data,System.Data.SQLite,System.Data.SqlClient)
+install database provider from NuGet: (Npgsql, Mysql.Data, System.Data.SQLite, System.Data.SqlClient).\
+Enum  type is stored in the database as an integer.\
+Primary key is Allowed on one field.
 #### Quick start
 ```C#
 using ORM_1_21_;
@@ -54,6 +67,7 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
 ```
 ORM adds itself.
+<a name="tablemap"></a> 
 #### Tables Map.
 ```C#
 using ORM_1_21_;
@@ -84,6 +98,7 @@ using ORM_1_21_;
  }
 
 ```
+<a name="attribute"></a> 
 #### Attribute.
 ###### Table name:
 ```C#
@@ -190,9 +205,10 @@ UPDATE [TS2] SET  [TS2].[name] = @p1 WHERE [TS2].[id] = @p2   AND [ts] = @p3; pa
 
 ```[MapPrimaryKey("id", Generator.Assigned)]``` - Assigned by user.\
 ```[MapPrimaryKey("id", Generator.Native)]``` - Designates a database as an auto-increment column.\
-```[MapPrimaryKey(Generator.Assigned)]``` - Assigned by user. Table name from name property 
+```[MapPrimaryKey(Generator.Assigned)]``` - Assigned by user. Column name from name property 
 Example: Postgres uuid primary key auto generate.
 ```C#
+// postgres
 [MapTable("test_uuid")]
 class TestUuid
 {
@@ -210,6 +226,20 @@ CREATE TABLE IF NOT EXISTS "test_uuid"
  "id" uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
  "name" character varying(256) ,
 )
+```
+```[MapPrimaryKey("id", Generator.NativeNotReturningId,)]``` - Designates a database,At insertion record, id record is not referred on client.\
+Example: Mysql uuid primary key auto generate.
+```C#
+[MapTable]
+class TestMySqlUUid
+{
+    [MapColumnType("binary(16) default (uuid_to_bin(uuid()))")]
+    [MapDefaultValue("not null primary key")]
+    [MapPrimaryKey("id", Generator.NativeNotReturningId)]
+    public Guid Id { get; set; }
+    [MapColumn]
+    public string Name { get; set; }
+}
 ```
 ###### Serialization to JSON
 
@@ -236,9 +266,9 @@ User Serialization. Using the Interface IMapSerializable.
 
 <span style="color:red">Important</span>.
  
-By default, no constructor and initializer is called for map type.\
+*By default, no constructor and initializer is called for map type.\
 To make this work, the type must be marked ```MapUsageActivatorAttribute```\
-Having a default constructor
+Having a default constructor*
 ```C#
 [MapUsageActivator]
 class Foo
@@ -281,7 +311,7 @@ isPer = session.IsPersistent(myClass); //trye
 
 
 
-
+<a name="linqtosql"></a> 
 #### Ling To SQL.
 
 ![alt text](linq.png)
@@ -350,7 +380,7 @@ var d2 = Configure.Session.Query<MyClass>().Distinct(a => new {a.Age,a.Name});
 var f = await session.Query<MyClass>().Where(a => a.Age > 0).SetTimeOut(30).SingleOrDefaultAsync();
 ```
 <span style="color:red">Important</span>\
-Replace expression in queries ``` "str1"+"str2"``` to ```string.Concat("str1","str2")```
+*Replace expression in queries ``` "str1"+"str2"``` to ```string.Concat("str1","str2")```*
 ######  Caching:
 ```C#
 var res = session.Query<MyClass>().Where(a => a.Age = 10).CacheUsage().ToList();//First call to create cache
@@ -359,7 +389,7 @@ res = session.Query<MyClass>().Where(a => a.Age = 10).CacheOver().ToList();//If 
 session.CacheClear<MyClass>();//Removing all caches for a type MyClass.
 ```
 <span style="color:red">Important</span>\
-Removing all caches for a type MyClass, when calling any command Insert or Update.
+*Removing all caches for a type MyClass, when calling any command Insert or Update.*
 ###### Sql Builder:
 ```C#
 ISession session = Configure.Session;
@@ -396,8 +426,9 @@ static class Help
 ```
 
 
-
+<a name="nativesql"></a> 
 #### Native SQL.
+
 ###### example class map native:
 ```C#
 var session = Configure.Session;
@@ -448,7 +479,7 @@ var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {sessio
  foreach (var r in TempSql(new { enum1 = 1, age = 2 }))
     Console.WriteLine($"{r}");
 ```
-
+<a name="interfaces"></a> 
 #### Interfaces.
 ```C#
  class MyClass : IMapAction<MyClass>
@@ -491,7 +522,7 @@ var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {sessio
      AfterDelete,
  }
 ```
-
+<a name="transaction"></a> 
 #### Transaction.
 ```C#
  ISession session = Configure.Session;
@@ -519,7 +550,7 @@ var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {sessio
     }
  }
 ```
-
+<a name="anotherdatabase"></a> 
 #### Accessing another database.
 Getting a session
 ```C#
@@ -635,8 +666,8 @@ public class MyDbSqlite : IOtherDataBaseFactory
 }
 ```
 <span style="color:red">Important</span>\
-The session is opened only for this database\
-Type to use only for a specific database
+*The session is opened only for this database\
+Type to use only for a specific database*
 ##### Stored Procedures
 Example Mysql:
 ```sql
@@ -661,6 +692,48 @@ list = (IEnumerable<MyClass>) session.ProcedureCallParam<MyClass>("getCountList"
 var count=par2.Value;
 ```
 
+<a name="subclass"></a> 
+##### Work with subclasses
+
+```c#
+[MapTable("test_sub_class")]//Mandatory table name
+class TSuperClass
+{
+    [MapPrimaryKey(Generator.Assigned)]
+    public Guid Id { get; set; } = Guid.NewGuid();
+    [MapColumn]
+    public string Name { get; set; }
+}
+
+class TSubClass : TSuperClass
+{
+    [MapColumn]
+    public int Age { get; set; }
+}
+
+class TCoreClass : TSubClass
+{
+    [MapColumn]
+    public string Description { get; set; }
+}
+...
+session.DropTableIfExists<TCoreClass>();
+session.TableCreate<TCoreClass>();
+session.InsertBulk(new List<TCoreClass>()
+{
+    new TCoreClass(){Age = 20,Name = "20",Description = "20"},
+    new TCoreClass(){Age = 20,Name = "20",Description = "20"},
+    new TCoreClass(){Age = 20,Name = "20",Description = "20"},
+});
+var s1 = session.Query<TCoreClass>().ToList();
+var s2 = session.Query<TSubClass>().ToList();
+var s3 = session.Query<TSuperClass>().ToList();
+
+var tableName = session.TableName<TSubClass>();
+var s4 = session.FreeSql<TSuperClass>($"select * from {tableName}");
+var s5 = session.FreeSql<TSubClass>($"select * from {tableName}");
+var s6 = session.FreeSql<TCoreClass>($"select * from {tableName}");
+```
 
 
 

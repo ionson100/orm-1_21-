@@ -27,11 +27,11 @@ namespace ORM_1_21_.Linq
 
             }
             var paramJon = re.Param;
-          
-          
+
+
             List<OneComposite> listCore = re.Composites;
             listCore.AddRange(ListOuterOneComposites);
-           
+
             /*usage cache*/
 
             int hashCode = -1;
@@ -76,69 +76,69 @@ namespace ORM_1_21_.Linq
             /*usage cache*/
 
 
-            _com = services.CommandForLinq;
+            var com = services.CommandForLinq;
 
             var to = GetTimeout();
             if (to >= 0)
             {
-                _com.CommandTimeout = to;
+                com.CommandTimeout = to;
             }
 
 
             if (_isStoredPr)
-                _com.CommandType = CommandType.StoredProcedure;
+                com.CommandType = CommandType.StoredProcedure;
 
-            _com.CommandText = sql;
+            com.CommandText = sql;
             var sb = new StringBuilder();
             if (_providerName == ProviderName.MsSql)
             {
-                var mat = new Regex(@"TOP\s@p\d").Matches(_com.CommandText);
+                var mat = new Regex(@"TOP\s@p\d").Matches(com.CommandText);
                 foreach (var variable in mat)
                 {
                     var st = variable.ToString().Split(' ')[1];
                     var val = paramJon.FirstOrDefault(a => a.Key == st).Value;
-                    _com.CommandText = _com.CommandText.Replace(variable.ToString(),
+                    com.CommandText = com.CommandText.Replace(variable.ToString(),
                         string.Format("{1} ({0})", val, StringConst.Top));
                     paramJon.Remove(st);
                 }
             }
 
-            _com.Parameters.Clear();
+            com.Parameters.Clear();
 
 
             foreach (var p in paramJon)
             {
                 sb.Append(string.Format(CultureInfo.CurrentCulture, "{0}-{1},", p.Key, p.Value));
-                IDataParameter pr = _com.CreateParameter();
+                IDataParameter pr = com.CreateParameter();
                 pr.ParameterName = p.Key;
                 pr.Value = p.Value;
-                _com.Parameters.Add(pr);
+                com.Parameters.Add(pr);
             }
 
             if (_paramFree.Any())
             {
-                UtilsCore.AddParam(_com, _providerName, _paramFree.ToArray());
+                UtilsCore.AddParam(com, _providerName, _paramFree.ToArray());
             }
 
 
             foreach (var p in _paramFreeStoredPr)
             {
-                IDataParameter pr = _com.CreateParameter();
+                IDataParameter pr = com.CreateParameter();
                 pr.Direction = p.Direction;
                 pr.ParameterName = p.Name;
                 pr.Value = p.Value;
-                _com.Parameters.Add(pr);
+                com.Parameters.Add(pr);
             }
 
 
             IDataReader dataReader = null;
             try
             {
-                _sessione.OpenConnectAndTransaction(_com);
+                _sessione.OpenConnectAndTransaction(com);
 
                 if (PingCompositeE(Evolution.All, listCore))
                 {
-                    var reader = _com.ExecuteReader();
+                    var reader = com.ExecuteReader();
                     try
                     {
                         while (reader.Read())
@@ -163,7 +163,7 @@ namespace ORM_1_21_.Linq
 
                 if (PingCompositeE(Evolution.LongCount, listCore))
                 {
-                    var ee = _com.ExecuteScalar();
+                    var ee = com.ExecuteScalar();
                     var res = Convert.ToInt64(ee, CultureInfo.CurrentCulture);
                     if (isCacheUsage)
                     {
@@ -175,7 +175,7 @@ namespace ORM_1_21_.Linq
 
                 if (PingCompositeE(Evolution.Count, listCore))
                 {
-                    var ee = _com.ExecuteScalar();
+                    var ee = com.ExecuteScalar();
                     var res = Convert.ToInt32(ee, CultureInfo.CurrentCulture);
                     if (isCacheUsage)
                     {
@@ -188,21 +188,21 @@ namespace ORM_1_21_.Linq
 
                 if (PingCompositeE(Evolution.Delete, listCore))
                 {
-                    var ee = _com.ExecuteNonQuery();
+                    var ee = com.ExecuteNonQuery();
                     MyCache<T>.Clear();
                     return ee;
                 }
 
                 if (PingCompositeE(Evolution.Update, listCore))
                 {
-                    var ee = _com.ExecuteNonQuery();
+                    var ee = com.ExecuteNonQuery();
                     MyCache<T>.Clear();
                     return ee;
                 }
 
                 if (PingCompositeE(Evolution.Any, listCore))
                 {
-                    var ee = _com.ExecuteScalar();
+                    var ee = com.ExecuteScalar();
                     var res = Convert.ToInt32(ee, CultureInfo.CurrentCulture) != 0;
                     if (isCacheUsage)
                     {
@@ -222,23 +222,23 @@ namespace ORM_1_21_.Linq
                             $"I can't create a table from type {typeof(T)}, it doesn't have attribute: MapTableAttribute");
                     }
 
-                    _com.CommandText = listCore.First(a => a.Operand == Evolution.TableCreate).Body;
-                    int res = _com.ExecuteNonQuery();
+                    com.CommandText = listCore.First(a => a.Operand == Evolution.TableCreate).Body;
+                    int res = com.ExecuteNonQuery();
                     return res;
                 }
 
                 if (PingCompositeE(Evolution.DropTable, listCore))
                 {
-                    _com.CommandText = listCore.First(a => a.Operand == Evolution.DropTable).Body;
-                    int res = _com.ExecuteNonQuery();
+                    com.CommandText = listCore.First(a => a.Operand == Evolution.DropTable).Body;
+                    int res = com.ExecuteNonQuery();
                     return res;
                 }
 
                 if (PingCompositeE(Evolution.DataTable, listCore))
                 {
-                    _com.CommandText = listCore.First(a => a.Operand == Evolution.DataTable).Body;
+                    com.CommandText = listCore.First(a => a.Operand == Evolution.DataTable).Body;
                     var table = new DataTable();
-                    var reader = _com.ExecuteReader();
+                    var reader = com.ExecuteReader();
                     table.BeginLoadData();
                     table.Load(reader);
                     table.EndLoadData();
@@ -247,44 +247,44 @@ namespace ORM_1_21_.Linq
 
                 if (PingCompositeE(Evolution.ExecuteNonQuery, listCore))
                 {
-                    _com.CommandText = listCore.First(a => a.Operand == Evolution.ExecuteNonQuery).Body;
-                    int res = _com.ExecuteNonQuery();
+                    com.CommandText = listCore.First(a => a.Operand == Evolution.ExecuteNonQuery).Body;
+                    int res = com.ExecuteNonQuery();
                     return res;
                 }
 
                 if (PingCompositeE(Evolution.TruncateTable, listCore))
                 {
-                    _com.CommandText = listCore.First(a => a.Operand == Evolution.TruncateTable).Body;
-                    int res = _com.ExecuteNonQuery();
+                    com.CommandText = listCore.First(a => a.Operand == Evolution.TruncateTable).Body;
+                    int res = com.ExecuteNonQuery();
                     return res;
                 }
 
                 if (PingCompositeE(Evolution.ExecuteScalar, listCore))
                 {
 
-                    _com.CommandText = listCore.First(a => a.Operand == Evolution.ExecuteScalar).Body;
-                    object res = _com.ExecuteScalar();
+                    com.CommandText = listCore.First(a => a.Operand == Evolution.ExecuteScalar).Body;
+                    object res = com.ExecuteScalar();
                     return res;
                 }
 
                 if (PingCompositeE(Evolution.TableExists, listCore))
                 {
-                    _com.CommandText = listCore.First(a => a.Operand == Evolution.TableExists).Body;
+                    com.CommandText = listCore.First(a => a.Operand == Evolution.TableExists).Body;
                     if (_providerName == ProviderName.PostgreSql)
                     {
-                        var r = (long)_com.ExecuteScalar();
+                        var r = (long)com.ExecuteScalar();
                         return r != 0;
                     }
                     if (_providerName == ProviderName.MsSql)
                     {
-                        var r = _com.ExecuteScalar();
+                        var r = com.ExecuteScalar();
                         return !(r is DBNull);
                     }
                     else
                     {
                         try
                         {
-                            _com.ExecuteNonQuery();
+                            com.ExecuteNonQuery();
                             return true;
                         }
                         catch (Exception)
@@ -294,39 +294,10 @@ namespace ORM_1_21_.Linq
                     }
                 }
 
-               // if (PingCompositeE(Evolution.Join, listCore))
-               // {
-               //     dataReader = _com.ExecuteReader();
-               //     var count = dataReader.FieldCount;
-               //     var list = new List<Type>();
-               //     for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
-               //     var resDis = new List<TS>();
-               //
-               //     var ci = typeof(TS).GetConstructor(list.ToArray());
-               //     if (ci == null)
-               //     {
-               //         throw new Exception($"Can't find constructor for anonymous type: {typeof(TS).Name}");
-               //     }
-               //     while (dataReader.Read())
-               //     {
-               //         var par = new List<object>();
-               //         for (var i = 0; i < count; i++)
-               //         {
-               //             var val = Pizdaticus.MethodFree(_providerName, list[i], dataReader[i]);
-               //             par.Add(dataReader[i] == DBNull.Value ? null : val);
-               //         }
-               //         var e = ci.Invoke(par.ToArray());
-               //         resDis.Add((TS)e);
-               //     }
-               //
-               //     return resDis;
-               //
-               // }
-
                 if (PingCompositeE(Evolution.FreeSql, listCore) &&
                     UtilsCore.IsValid<TS>() == false)
                 {
-                    dataReader = _com.ExecuteReader();
+                    dataReader = com.ExecuteReader();
                     var count = dataReader.FieldCount;
                     var list = new List<Type>();
                     for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
@@ -436,7 +407,7 @@ namespace ORM_1_21_.Linq
                     }
 
                     dataReader.Dispose();
-                    foreach (var par in _com.Parameters)
+                    foreach (var par in com.Parameters)
                         if (((IDataParameter)par).Direction == ParameterDirection.InputOutput ||
                             ((IDataParameter)par).Direction == ParameterDirection.Output ||
                             ((IDataParameter)par).Direction == ParameterDirection.ReturnValue)
@@ -451,7 +422,7 @@ namespace ORM_1_21_.Linq
 
                 if (listCore.Any(a => a.Operand == Evolution.Select && a.IsAggregate))
                 {
-                    dataReader = _com.ExecuteReader();
+                    dataReader = com.ExecuteReader();
                     object rObj = null;
                     while (dataReader.Read())
                     {
@@ -468,24 +439,6 @@ namespace ORM_1_21_.Linq
                     return res;
                 }
 
-                //if (PingCompositeE(Evolution.Join, listCore))
-                //{
-                //    dataReader = _com.ExecuteReader();
-                //    var res = new List<TS>();
-                //    var ss = listCore.Single(a => a.Operand == Evolution.Join).NewConstructor;
-                //    if (ss == null)
-                //        while (dataReader.Read())
-                //            res.Add((TS)dataReader[0]);
-                //    else
-                //        res = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss, _providerName);
-                //
-                //    if (isCacheUsage)
-                //    {
-                //        MyCache<T>.Push(hashCode, res);
-                //    }
-                //    return res;
-                //}
-
                 if (PingCompositeE(Evolution.Select, listCore) &&
                     !PingCompositeE(Evolution.SelectNew, listCore))
                 {
@@ -494,10 +447,10 @@ namespace ORM_1_21_.Linq
                     {
                         var ttType = typeof(TS).GenericTypeArguments[0];
                         var lees = new List<object>();
-                        dataReader = _com.ExecuteReader();
+                        dataReader = com.ExecuteReader();
                         while (dataReader.Read()) lees.Add(UtilsCore.Convertor(dataReader[0], ttType));
                         dataReader.Dispose();
-                        
+
                         var listNativeInvoke = DbHelp.CastList(lees);
                         var devastatingly1 = Pizdaticus.SingleData(listCore, lees, out var active1);
                         var res = !active1 ? listNativeInvoke : devastatingly1;
@@ -507,12 +460,12 @@ namespace ORM_1_21_.Linq
                         }
 
                         return res;
-                       
+
                     }
                     else
                     {
                         var lees = new List<TS>();
-                        dataReader = _com.ExecuteReader();
+                        dataReader = com.ExecuteReader();
                         while (dataReader.Read()) lees.Add((TS)UtilsCore.Convertor<TS>(dataReader[0]));
                         dataReader.Dispose();
                         var devastatingly1 = Pizdaticus.SingleData(listCore, lees, out var active1);
@@ -527,7 +480,7 @@ namespace ORM_1_21_.Linq
 
                 if (PingCompositeE(Evolution.ElementAt, listCore))
                 {
-                    dataReader = _com.ExecuteReader();
+                    dataReader = com.ExecuteReader();
                     var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                     var enumerable = r as T[] ?? r.ToArray();
                     if (enumerable.Any())
@@ -544,7 +497,7 @@ namespace ORM_1_21_.Linq
 
                 if (PingCompositeE(Evolution.ElementAtOrDefault, listCore))
                 {
-                    dataReader = _com.ExecuteReader();
+                    dataReader = com.ExecuteReader();
                     var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                     var enumerable = r as T[] ?? r.ToArray();
 
@@ -568,7 +521,7 @@ namespace ORM_1_21_.Linq
                 {
                     var sas = ListCastExpression.Single(a => a.TypeEvolution == Evolution.DistinctCore);
                     IList resT = sas.ListDistinct;
-                    dataReader = _com.ExecuteReader();
+                    dataReader = com.ExecuteReader();
                     if (PingCompositeE(Evolution.SelectNew, listCore))
                     {
                         var ss = listCore.Single(a => a.Operand == Evolution.SelectNew).NewConstructor;
@@ -598,17 +551,17 @@ namespace ORM_1_21_.Linq
                 {
                     //todo ion100
                     var ss = listCore.Single(a => a.Operand == Evolution.SelectNew).NewConstructor;
-                    _com.CommandText = _com.CommandText.Replace(",?p", "?p");
-                    dataReader = _com.ExecuteReader();
-                    var type =typeof(TS);
-                    if (type.IsGenericType&&type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    com.CommandText = com.CommandText.Replace(",?p", "?p");
+                    dataReader = com.ExecuteReader();
+                    var type = typeof(TS);
+                    if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     {
                         var ttType = typeof(TS).GenericTypeArguments[0];
                         if (UtilsCore.IsAnonymousType(ttType))
                         {
                             var lRes = Pizdaticus.GetListAnonymousObj<object>(dataReader, ss, _providerName);
                             var listNativeInvoke = DbHelp.CastList(lRes);
-                            
+
                             var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
 
                             var res = !isaActive1 ? listNativeInvoke : dataSing1;
@@ -644,19 +597,19 @@ namespace ORM_1_21_.Linq
 
                         }
                     }
-                    
+
                 }
 
                 #endregion
 
-                dataReader = _com.ExecuteReader();
+                dataReader = com.ExecuteReader();
                 IEnumerable<T> res1 = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
 
-               // if (postExpressions.Count > 0)
-               // {
-               //     FactoryExpression.GetData(res1, postExpressions);
-               // }
-               //
+                // if (postExpressions.Count > 0)
+                // {
+                //     FactoryExpression.GetData(res1, postExpressions);
+                // }
+                //
                 var dataSingle = Pizdaticus.SingleData(listCore, res1, out var isActive);
                 var res2 = !isActive ? (object)res1 : dataSingle;
                 if (isCacheUsage)
@@ -664,17 +617,18 @@ namespace ORM_1_21_.Linq
                     MyCache<T>.Push(hashCode, res2);
                 }
 
-               
+
                 return res2;
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 _sessione.Transactionale.isError = true;
-                throw new Exception(ex.Message + Environment.NewLine + _com.CommandText, ex);
+                throw new Exception(ex.Message + Environment.NewLine + com.CommandText, ex);
             }
 
             finally
             {
-                _sessione.ComDisposable(_com);
+                _sessione.ComDisposable(com);
                 if (dataReader != null)
                 {
                     dataReader.Close();

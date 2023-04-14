@@ -19,22 +19,23 @@ namespace ORM_1_21_.Linq
         {
             CancellationTokenRegistration? registration = null;
             IDataReader dataReader = null;
+            var services = (IServiceSessions)Sessione;
+            var com = services.CommandForLinq;
             try
             {
                 var sb = new StringBuilder();
-                var services = (IServiceSessions)Sessione;
-                _com = services.CommandForLinq;
-                _com.CommandType = CommandType.StoredProcedure;
+
+                com.CommandType = CommandType.StoredProcedure;
                 var re = TranslateE(expression);
-                _com.CommandText = re.Sql;
+                com.CommandText = re.Sql;
                 if (_providerName == ProviderName.MsSql)
                 {
-                    var mat = new Regex(@"TOP\s@p\d").Matches(_com.CommandText);
+                    var mat = new Regex(@"TOP\s@p\d").Matches(com.CommandText);
                     foreach (var variable in mat)
                     {
                         var st = variable.ToString().Split(' ')[1];
                         var val = _param.FirstOrDefault(a => a.Key == st).Value;
-                        _com.CommandText = _com.CommandText.Replace(variable.ToString(),
+                        com.CommandText = com.CommandText.Replace(variable.ToString(),
                             string.Format("{1} ({0})", val, StringConst.Top));
                         _param.Remove(st);
                     }
@@ -43,19 +44,19 @@ namespace ORM_1_21_.Linq
                 foreach (var p in _paramFreeStoredPr)
                 {
                     sb.Append(string.Format(CultureInfo.CurrentCulture, "{0}-{1},", p.Name, p.Value));
-                    IDataParameter pr = _com.CreateParameter();
+                    IDataParameter pr = com.CreateParameter();
                     pr.Direction = p.Direction;
                     pr.ParameterName = p.Name;
                     pr.Value = p.Value;
-                    _com.Parameters.Add(pr);
+                    com.Parameters.Add(pr);
                 }
 
-                await _sessione.OpenConnectAndTransactionAsync(_com);
+                await _sessione.OpenConnectAndTransactionAsync(com);
                 if (cancellationToken != default)
                 {
-                    registration = cancellationToken.Register(UtilsCore.CancellRegistr(_com, cancellationToken, _sessione.Transactionale, _providerName));
+                    registration = cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, _sessione.Transactionale, _providerName));
                 }
-                dataReader = await _com.ExecuteReaderAsync();
+                dataReader = await com.ExecuteReaderAsync();
 
                 if (registration.HasValue)
                 {
@@ -64,7 +65,7 @@ namespace ORM_1_21_.Linq
                 if (UtilsCore.IsValid<TS>())
                 {
                     var lResult = AttributesOfClass<TS>.GetEnumerableObjects(dataReader, _providerName);
-                    foreach (var par in _com.Parameters)
+                    foreach (var par in com.Parameters)
                         if (((IDataParameter)par).Direction == ParameterDirection.InputOutput ||
                             ((IDataParameter)par).Direction == ParameterDirection.Output ||
                             ((IDataParameter)par).Direction == ParameterDirection.ReturnValue)
@@ -106,7 +107,7 @@ namespace ORM_1_21_.Linq
                         }
 
                     dataReader.NextResult();
-                    foreach (var par in _com.Parameters)
+                    foreach (var par in com.Parameters)
                         if (((IDataParameter)par).Direction == ParameterDirection.InputOutput ||
                             ((IDataParameter)par).Direction == ParameterDirection.Output ||
                             ((IDataParameter)par).Direction == ParameterDirection.ReturnValue)
@@ -120,13 +121,13 @@ namespace ORM_1_21_.Linq
             catch (Exception ex)
             {
                 _sessione.Transactionale.isError = true;
-                MySqlLogger.Error(_com.CommandText, ex);
-                throw new Exception(ex.Message + Environment.NewLine + _com.CommandText, ex);
+                MySqlLogger.Error(com.CommandText, ex);
+                throw new Exception(ex.Message + Environment.NewLine + com.CommandText, ex);
 
             }
             finally
             {
-                await _sessione.ComDisposableAsync(_com);
+                await _sessione.ComDisposableAsync(com);
                 if (dataReader != null)
                 {
                     dataReader.Close();

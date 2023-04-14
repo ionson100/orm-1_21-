@@ -13,13 +13,13 @@ namespace ORM_1_21_.Utils
             var tableName = AttributesOfClass<T>.TableNameRaw(providerName);
             builder.AppendLine($"CREATE TABLE IF NOT EXISTS `{tableName}` (");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
-            if (pk.Generator == Generator.Native|| pk.Generator == Generator.NativeNotLastInsert)
+            if (pk.Generator == Generator.Native|| pk.Generator == Generator.NativeNotReturningId)
             {
                 var typePk = $" {GetTypeMySql(pk.TypeColumn)}  PRIMARY KEY AUTO_INCREMENT";
-                if (!string.IsNullOrWhiteSpace(pk.TypeString))
+                if (pk.TypeString != null)
                     typePk = pk.TypeString;
                 var defValue = "";
-                if (!string.IsNullOrWhiteSpace(pk.DefaultValue))
+                if (pk.DefaultValue != null)
                 {
                     defValue = pk.DefaultValue;
                 }
@@ -28,10 +28,10 @@ namespace ORM_1_21_.Utils
             else
             {
                 var typePk = $" {GetTypeMySql(pk.TypeColumn)}  PRIMARY KEY";
-                if (!string.IsNullOrWhiteSpace(pk.TypeString))
+                if (pk.TypeString != null)
                     typePk = pk.TypeString;
                 var defValue = "";
-                if (!string.IsNullOrWhiteSpace(pk.DefaultValue))
+                if (pk.DefaultValue != null)
                 {
                     defValue = pk.DefaultValue;
                 }
@@ -63,6 +63,7 @@ namespace ORM_1_21_.Utils
                 }
             }
 
+            var eewe = builder.ToString();
             return builder.ToString();
         }
 
