@@ -314,7 +314,7 @@ isPer = session.IsPersistent(myClass); //trye
 <a name="linqtosql"></a> 
 #### Ling To SQL.
 
-![alt text](linq.png)
+![alt text](./linq.png)
 
 Methods: Join, GroupJoin, Concat, Cast, Select, SelectMany, Aggregate, GroupBy, Except\
 have no implementation, they are overridden method name Core ending.
