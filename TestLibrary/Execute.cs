@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 // ReSharper disable All
@@ -35,14 +34,15 @@ namespace TestLibrary
             {
                 using (var ses = Configure.GetSession<MyDbPostgres>())
                 {
-                   var ee = ses.Query<MyClass>().JoinCore(ses.Query<MyClass>(), a => a.Age, b => b.Age,
-                       (aa, bb) => new { name1 = aa.Name, name2 = bb.Name }).ToList();
-                    var l = ses.Query<MyClass>().ToList();
-                    var e1e =    ses.Query<MyClass>().JoinCore(l, a => a.Age, b => b.Age,
-                        (aa, bb) => new { name1 = aa.Name, name2 = bb.Name });
-                    
-                   
+                    using (var t = ses.BeginTransaction())
+                    {
+                        var ee = ses.Query<MyClass>().JoinCore(ses.Query<MyClass>(), a => a.Age, b => b.Age,
+                      (aa, bb) => new { name1 = aa.Name, name2 = bb.Name }).ToList();
+                        var l = ses.Query<MyClass>().ToList();
+                        var e1e = ses.Query<MyClass>().JoinCore(l, a => a.Age, b => b.Age,
+                            (aa, bb) => new { name1 = aa.Name, name2 = bb.Name });
 
+                    }
                     Console.WriteLine($"{i}--");
                 }
             }
@@ -50,35 +50,8 @@ namespace TestLibrary
 
         public static void RunOtherSession()
         {
-          
-           // new Thread(() =>
-           // {
-           //     InnerRunOtherSession(1);
-           // }).Start();
-           // new Thread(() =>
-           // {
-           //     InnerRunOtherSession(2);
-           // }).Start();
-           // new Thread(() =>
-           // {
-           //     InnerRunOtherSession(3);
-           // }).Start();
-           // new Thread(() =>
-           // {
-           //     InnerRunOtherSession(4);
-           // }).Start();
-           // new Thread(() =>
-           // {
-           //     InnerRunOtherSession(5);
-           // }).Start();
-           // new Thread(() =>
-           // {
-           //     InnerRunOtherSession(6);
-           // }).Start();
-           // new Thread(() =>
-           // {
-           //     InnerRunOtherSession(7);
-           // }).Start();
+
+
             Task.Run(() => { InnerRunOtherSession(1); });
             Task.Run(() => { InnerRunOtherSession(2); });
             Task.Run(() => { InnerRunOtherSession(4); });
@@ -220,7 +193,7 @@ namespace TestLibrary
             {
                 T my2 = session.Query<T>().FirstOrDefault(A => A.Age == 12);
                 my2.Name = "dnamed";
-                session.Save(my2);
+                var ss=session.Save(my2);
                 res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Trim('4') == "dnamed").ToList();
                 Log(22, res.Count == 1);
 
@@ -995,9 +968,9 @@ namespace TestLibrary
         public static void TestNativeInsert()
         {
             TestNativeInser<TiPostgresNative, MyDbPostgres>();
-           // TestNativeInser<TiMysqlNative, MyDbMySql>();
-           // TestNativeInser<TiMsSqlNative, MyDbMsSql>();
-           // TestNativeInser<TiSqliteNative, MyDbSqlite>();
+            // TestNativeInser<TiMysqlNative, MyDbMySql>();
+            // TestNativeInser<TiMsSqlNative, MyDbMsSql>();
+            // TestNativeInser<TiSqliteNative, MyDbSqlite>();
         }
 
         static void TestNativeInser<T, Tb>() where Tb : IOtherDataBaseFactory, new()

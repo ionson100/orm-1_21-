@@ -488,10 +488,7 @@ namespace ORM_1_21_.Utils
         }
 
 
-        public static T Clone<T>(T ob) where T : class
-        {
-            return default;
-        }
+       
 
         public static void AddParamsForCache(StringBuilder b, string sql, ProviderName providerName, List<object> param)
         {

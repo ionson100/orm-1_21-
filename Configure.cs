@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Data.Common;
-using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 
 namespace ORM_1_21_
 {
     /// <summary>
-    ///    Class Base Configure
+    ///     Class Base Configure
     /// </summary>
     public sealed partial class Configure
     {
@@ -16,39 +15,22 @@ namespace ORM_1_21_
 
         internal static string ConnectionString;
 
-        /// <summary>
-        /// DataBase Connection string
-        /// </summary>
-        /// <returns></returns>
-        public static string GetConnectionString()
-        {
-            lock (Locker)
-            {
-                return ConnectionString;
-            }
-        }
-
-        /// <summary>
-        /// Path to log file
-        /// </summary>
-        public static string LogFileName { get; private set; }
-
 
         private static Configure _configure;
 
         private static readonly object Locker = new object();
 
         /// <summary>
-        /// Constructor (start App)
+        ///     Constructor (start App)
         /// </summary>
         /// <param name="connectionString">Database connection string</param>
         /// <param name="provider">Base connection provider</param>
         public Configure(string connectionString, ProviderName provider) : this(connectionString, provider, null)
         {
-
         }
+
         /// <summary>
-        /// Constructor
+        ///     Constructor
         /// </summary>
         /// <param name="connectionString">Database connection string</param>
         /// <param name="provider">Base connection provider</param>
@@ -67,102 +49,99 @@ namespace ORM_1_21_
             switch (provider)
             {
                 case ProviderName.PostgreSql:
+                {
+                    try
                     {
-                        try
-                        {
-                            if (!isSearchGac1) throw new Exception("disable usage GAC");
-                            CurFactory = DbProviderFactories.GetFactory("Npgsql");
-
-                        }
-                        catch
-                        {
-                            try
-                            {
-                                var a = AppDomain.CurrentDomain.Load("Npgsql");
-                                var b = a.GetType("Npgsql.NpgsqlFactory");
-                                var field = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
-                                CurFactory = (DbProviderFactory)field.GetValue(null);
-                                AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-                                AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
-                            }
-                            catch (Exception e)
-                            {
-                                MySqlLogger.Info($"{e.Message}{Environment.NewLine}{e}");
-                                throw;
-                            }
-
-                        }
-
-
-
-                        break;
+                        if (!isSearchGac1) throw new Exception("disable usage GAC");
+                        CurFactory = DbProviderFactories.GetFactory("Npgsql");
                     }
-                case ProviderName.MySql:
+                    catch
                     {
                         try
                         {
-                            if (!isSearchGac1) throw new Exception("Search ban GAC");
-                            CurFactory = DbProviderFactories.GetFactory("MySql.Data.MySqlClient");
-                        }
-                        catch
-                        {
-
-                            var a = AppDomain.CurrentDomain.Load("Mysql.Data");
-                            var b = a.GetType("MySql.Data.MySqlClient.MySqlClientFactory");
-                            CurFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
-                        }
-
-                        break;
-                    }
-                case ProviderName.SqLite:
-                    {
-                        try
-                        {
-                            if (!isSearchGac1) throw new Exception("Search ban  GAC");
-                            CurFactory = DbProviderFactories.GetFactory("System.Data.SQLite.SQLiteFactory");
-                        }
-                        catch
-                        {
-                            var a = AppDomain.CurrentDomain.Load("System.Data.SQLite");
-                            var b = a.GetType("System.Data.SQLite.SQLiteFactory");
+                            var a = AppDomain.CurrentDomain.Load("Npgsql");
+                            var b = a.GetType("Npgsql.NpgsqlFactory");
                             var field = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
                             CurFactory = (DbProviderFactory)field.GetValue(null);
-
+                            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+                            AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
                         }
-                        break;
-
+                        catch (Exception e)
+                        {
+                            MySqlLogger.Info($"{e.Message}{Environment.NewLine}{e}");
+                            throw;
+                        }
                     }
-                case ProviderName.MsSql:
+
+
+                    break;
+                }
+                case ProviderName.MySql:
+                {
+                    try
                     {
-                        try
-                        {
-                            if (!isSearchGac1) throw new Exception("Search ban GAC");
-                            CurFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
-                        }
-                        catch
-                        {
-                            var a = AppDomain.CurrentDomain.Load("System.Data.SqlClient");
-                            var b = a.GetType("System.Data.SqlClient.SqlClientFactory");
-                            CurFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
-                        }
-
-                        break;
-
+                        if (!isSearchGac1) throw new Exception("Search ban GAC");
+                        CurFactory = DbProviderFactories.GetFactory("MySql.Data.MySqlClient");
                     }
+                    catch
+                    {
+                        var a = AppDomain.CurrentDomain.Load("Mysql.Data");
+                        var b = a.GetType("MySql.Data.MySqlClient.MySqlClientFactory");
+                        CurFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
+                    }
+
+                    break;
+                }
+                case ProviderName.SqLite:
+                {
+                    try
+                    {
+                        if (!isSearchGac1) throw new Exception("Search ban  GAC");
+                        CurFactory = DbProviderFactories.GetFactory("System.Data.SQLite.SQLiteFactory");
+                    }
+                    catch
+                    {
+                        var a = AppDomain.CurrentDomain.Load("System.Data.SQLite");
+                        var b = a.GetType("System.Data.SQLite.SQLiteFactory");
+                        var field = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
+                        CurFactory = (DbProviderFactory)field.GetValue(null);
+                    }
+
+                    break;
+                }
+                case ProviderName.MsSql:
+                {
+                    try
+                    {
+                        if (!isSearchGac1) throw new Exception("Search ban GAC");
+                        CurFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
+                    }
+                    catch
+                    {
+                        var a = AppDomain.CurrentDomain.Load("System.Data.SqlClient");
+                        var b = a.GetType("System.Data.SqlClient.SqlClientFactory");
+                        CurFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
+                    }
+
+                    break;
+                }
             }
-
-
         }
 
         /// <summary>
-        /// The provider that is currently using the orm
+        ///     Path to log file
+        /// </summary>
+        public static string LogFileName { get; private set; }
+
+        /// <summary>
+        ///     The provider that is currently using the orm
         /// </summary>
         public static ProviderName Provider { get; private set; }
 
 
-
         /// <summary>
-        ///Getting default session
+        ///     Getting default session.
+        ///     If you want to address to other database, use GetSession&lt;&gt;()
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
@@ -172,9 +151,9 @@ namespace ORM_1_21_
             {
                 if (_configure == null)
                 {
-                    MySqlLogger.Info($" {Environment.NewLine}\"ISession GetInnerSession error _configure==null\"{Environment.NewLine}");
+                    MySqlLogger.Info(
+                        $" {Environment.NewLine}\"ISession GetInnerSession error _configure==null\"{Environment.NewLine}");
                     throw new Exception("ISession GetInnerSession error _configure==null");
-
                 }
 
                 return _configure.GetInnerSession();
@@ -182,7 +161,6 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <exception cref="Exception"></exception>
         public static Task<ISession> SessionAsync
@@ -191,18 +169,34 @@ namespace ORM_1_21_
             {
                 if (_configure == null)
                 {
-                    MySqlLogger.Info($" {Environment.NewLine}\"ISession GetInnerSession error _configure==null\"{Environment.NewLine}");
+                    MySqlLogger.Info(
+                        $" {Environment.NewLine}\"ISession GetInnerSession error _configure==null\"{Environment.NewLine}");
                     throw new Exception("ISession GetInnerSession error _configure==null");
                 }
+
                 return _configure.GetInnerSessionAsync();
             }
         }
 
         /// <summary>
-        /// Getting a session to work with another database
+        ///     DataBase Connection string
         /// </summary>
-        /// <typeparam name="TF">The type that the interface must implement IOtherDataBaseFactory and
-        /// have a default constructor</typeparam>
+        /// <returns></returns>
+        public static string GetConnectionString()
+        {
+            lock (Locker)
+            {
+                return ConnectionString;
+            }
+        }
+
+        /// <summary>
+        ///     Getting a session to work with another database
+        /// </summary>
+        /// <typeparam name="TF">
+        ///     The type that the interface must implement IOtherDataBaseFactory and
+        ///     have a default constructor
+        /// </typeparam>
         /// <returns></returns>
         public static ISession GetSession<TF>() where TF : IOtherDataBaseFactory, new()
         {
@@ -212,20 +206,20 @@ namespace ORM_1_21_
                 throw new Exception("ISession GetInnerSession error _configure==null");
             }
 
-           //lock (_o)
-           //{
-                return _configure.GetInnerSession<TF>();
+            //lock (_o)
+            //{
+            return _configure.GetInnerSession<TF>();
 
             //}
-
-
         }
 
         /// <summary>
-        /// Getting a session to work with another database
+        ///     Getting a session to work with another database
         /// </summary>
-        /// <typeparam name="TF">The type that the interface must implement IOtherDataBaseFactory and
-        /// have a default constructor</typeparam>
+        /// <typeparam name="TF">
+        ///     The type that the interface must implement IOtherDataBaseFactory and
+        ///     have a default constructor
+        /// </typeparam>
         public static async Task<ISession> GetSessionAsync<TF>() where TF : IOtherDataBaseFactory, new()
         {
             if (_configure == null)
@@ -241,14 +235,8 @@ namespace ORM_1_21_
 
         private static void ActivateLogger(string fileNameLogFile)
         {
-            if (LogFileName == null) return;
-            if (!File.Exists(fileNameLogFile))
-                using (File.Create(fileNameLogFile))
-                {
-                }
-            MySqlLogger.StopLogger();
-
-            Task.Run(async () => await MySqlLogger.RunLogger(fileNameLogFile));
+            if (string.IsNullOrWhiteSpace(fileNameLogFile)) return;
+            MySqlLogger.RunLogger(fileNameLogFile);
         }
 
 
@@ -256,7 +244,7 @@ namespace ORM_1_21_
         {
             lock (Locker)
             {
-                return new Sessione(ConnectionString);
+                return new Session(ConnectionString);
             }
         }
 
@@ -265,22 +253,22 @@ namespace ORM_1_21_
             var tk = new TaskCompletionSource<ISession>(TaskCreationOptions.RunContinuationsAsynchronously);
             lock (Locker)
             {
-                tk.SetResult(new Sessione(ConnectionString));
+                tk.SetResult(new Session(ConnectionString));
                 return tk.Task;
             }
         }
 
-        private static object _o = new object();
         private ISession GetInnerSession<TF>()
         {
             var res = GetDataBaseFactory<TF>();
-            return new Sessione(res);
+            return new Session(res);
         }
+
         private Task<ISession> GetInnerSessionAsync<TF>()
         {
             var tk = new TaskCompletionSource<ISession>(TaskCreationOptions.RunContinuationsAsynchronously);
             var res = GetDataBaseFactory<TF>();
-            tk.SetResult(new Sessione(res));
+            tk.SetResult(new Session(res));
             return tk.Task;
         }
 
@@ -289,10 +277,5 @@ namespace ORM_1_21_
             var o = StorageOtherBaseFactory<TF>.GetDataBaseFactory();
             return o;
         }
-
-
-
-
-
     }
 }

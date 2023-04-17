@@ -953,7 +953,7 @@ namespace ORM_1_21_
         /// <param name="disposable"></param>
         public static async Task DisposeAsync(this IDisposable disposable)
         {
-            if (disposable is Sessione session)
+            if (disposable is Session session)
             {
                 await session.DisposeAsync();
             }

@@ -166,7 +166,7 @@
     <Compile Include="Linq\QueryTranslator.cs" />
     <Compile Include="Linq\TypeSystem.cs" />
     <Compile Include="Attribute\PersistentAttribute.cs" />
-    <Compile Include="Sessione.cs" />
+    <Compile Include="Session.cs" />
     <Compile Include="Sessione2.cs" />
     <Compile Include="Interface\ITransaction.cs" />
     <Compile Include="Interface\IValidateDAL.cs" />

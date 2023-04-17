@@ -10,8 +10,8 @@ namespace ORM_1_21_.Utils
         {
             StringBuilder builder = new StringBuilder();
 
-            var tableName = AttributesOfClass<T>.TableNameRaw(providerName);
-            builder.AppendLine($"CREATE TABLE IF NOT EXISTS '{tableName}' (");
+            var tableName = AttributesOfClass<T>.TableName(providerName);
+            builder.AppendLine($"CREATE TABLE IF NOT EXISTS {tableName} (");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
             if (pk.Generator == Generator.Native|| pk.Generator == Generator.NativeNotReturningId)
             {
@@ -23,7 +23,7 @@ namespace ORM_1_21_.Utils
                 {
                     defValue = pk.DefaultValue;
                 }
-                builder.AppendLine($"'{pk.GetColumnName(providerName)}' {typePk} {defValue},");
+                builder.AppendLine($"{pk.GetColumnName(providerName)} {typePk} {defValue},");
             }
             else
             {
@@ -35,13 +35,13 @@ namespace ORM_1_21_.Utils
                 {
                     defValue = pk.DefaultValue;
                 }
-                builder.AppendLine($"'{pk.GetColumnName(providerName)}' {typePk} {defValue},");
+                builder.AppendLine($"{pk.GetColumnName(providerName)} {typePk} {defValue},");
             }
 
             foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 builder.AppendLine(
-                    $" '{map.GetColumnName(providerName)}' {GetTypeColumn(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
+                    $" {map.GetColumnName(providerName)} {GetTypeColumn(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
             }
 
             string str2 = builder.ToString();
@@ -55,7 +55,8 @@ namespace ORM_1_21_.Utils
                 if (map.IsIndex)
                 {
                     var c = map.GetColumnNameRaw();
-                    builder.AppendLine($"CREATE INDEX 'INDEX_{tableName}_{c}' ON '{tableName}' ('{c}');");
+                    var t = UtilsCore.ClearTrim(tableName);
+                    builder.AppendLine($"CREATE INDEX 'INDEX_{t}_{c}' ON '{t}' ('{c}');");
                 }
             }
 

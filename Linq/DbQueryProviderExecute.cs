@@ -134,7 +134,7 @@ namespace ORM_1_21_.Linq
             IDataReader dataReader = null;
             try
             {
-                _sessione.OpenConnectAndTransaction(com);
+                _session.OpenConnectAndTransaction(com);
 
                 if (PingCompositeE(Evolution.All, listCore))
                 {
@@ -622,13 +622,13 @@ namespace ORM_1_21_.Linq
             }
             catch (Exception ex)
             {
-                _sessione.Transactionale.isError = true;
+                _session.Transactionale.isError = true;
                 throw new Exception(ex.Message + Environment.NewLine + com.CommandText, ex);
             }
 
             finally
             {
-                _sessione.ComDisposable(com);
+                _session.ComDisposable(com);
                 if (dataReader != null)
                 {
                     dataReader.Close();

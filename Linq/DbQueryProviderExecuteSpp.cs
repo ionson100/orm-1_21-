@@ -48,7 +48,7 @@ namespace ORM_1_21_.Linq
                     com.Parameters.Add(pr);
                 }
 
-                _sessione.OpenConnectAndTransaction(com);
+                _session.OpenConnectAndTransaction(com);
                 dataReader = com.ExecuteReader();
                 if (UtilsCore.IsValid<TS>())
                 {
@@ -108,14 +108,14 @@ namespace ORM_1_21_.Linq
             }
             catch (Exception ex)
             {
-                _sessione.Transactionale.isError = true;
+                _session.Transactionale.isError = true;
                 MySqlLogger.Error(com.CommandText, ex);
                 throw new Exception(ex.Message + Environment.NewLine + com.CommandText, ex);
 
             }
             finally
             {
-                _sessione.ComDisposable(com);
+                _session.ComDisposable(com);
                 if (dataReader != null)
                 {
                     dataReader.Close();

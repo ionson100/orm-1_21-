@@ -43,12 +43,12 @@ _ = new Configure("ConnectionString",ProviderName.Postgresql, path);
     using (ISession session = Configure.Session)
     {
         session.InsertBulk(new List<MyClass>(){
-                new MyClass(1) { Age = 40, Name = "name"},
-                new MyClass(1) { Age = 20, Name = "name" },
-                new MyClass(1) { Age = 30, Name = "name" },
-                new MyClass(1) { Age = 50, Name = "name" },
-                new MyClass(1) { Age = 60, Name = "name" },
-                new MyClass(1) { Age = 10, Name = "name" },
+                new MyClass{ Age = 40, Name = "name40"},
+                new MyClass{ Age = 20, Name = "name20" },
+                new MyClass{ Age = 30, Name = "name30" },
+                new MyClass{ Age = 50, Name = "name" },
+                new MyClass{ Age = 60, Name = "name" },
+                new MyClass{ Age = 10, Name = "name" },
             }
         );
         session.Query<MyClass>().Where(a => a.Age < 50).ForEach(s =>
@@ -393,8 +393,12 @@ session.CacheClear<MyClass>();//Removing all caches for a type MyClass.
 ###### Sql Builder:
 ```C#
 ISession session = Configure.Session;
-// select * from my_class where age=10;
-string sql = $" select * from {session.TableName<MyClass>()} where {session.ColumnName<MyClass>(a=>a.Age)} = @1";
+
+var sql = $"select * from {session.TableName<MyClass>()} where {session.ColumnName<MyClass>(a => a.Age)} > {session.GetSymbolParam()}1";
+// for Postgres: select * from "my_class5" where "age" > @1
+// for MSSQL   : select * from [my_class5] where [age] > @1
+// for MySql   : select * from `my_class5` where `age` > ?1
+// for SqLite  : select * from "my_class5" where "age" > @1
 var res=session.FreeSql<MyClass>(sql, 10);
 ```
 

@@ -8,13 +8,34 @@ namespace ORM_1_21_
     {
 
         /// <summary>
-        /// Native entry to the log file.
+        /// Gets symbol of the parameter for sql request
+        /// </summary>
+        /// <param name="provider">Provider database</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public string GetSymbolParam(ProviderName provider)
+        {
+            switch (provider)
+            {
+                case ProviderName.MsSql:
+                    return "@";
+                case ProviderName.MySql:
+                    return "?";
+                case ProviderName.PostgreSql:
+                    return "@";
+                case ProviderName.SqLite:
+                    return "@";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        /// <summary>
+        /// Native entry to the log file. Only Debug state
         /// </summary>
         public static void WriteLogFile(string message)
         {
-            MySqlLogger.InfoAppendConsole(message);
-            
-
+            MySqlLogger.Info(message);
         }
         /// <summary>
         /// Utilities

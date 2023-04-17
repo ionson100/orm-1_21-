@@ -223,7 +223,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            var db = new DbQueryProvider<TResult>((Sessione)ses);
+            var db = new DbQueryProvider<TResult>((Session)ses);
             if (param != null && param.Length > 0) db.GetParamFree().AddRange(param);
 
             return (IEnumerable<TResult>)db.Execute<TResult>(callExpr);
@@ -241,7 +241,7 @@ namespace ORM_1_21_
            
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            var db = new DbQueryProvider<TResult>((Sessione)ses);
+            var db = new DbQueryProvider<TResult>((Session)ses);
             if (param != null && param.Length > 0) db.GetParamFree().AddRange(param);
             var res = (IEnumerable<TResult>)await db.ExecuteAsync<TResult>(callExpr, null, CancellationToken.None);
             return res;
@@ -258,7 +258,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            return new DbQueryProvider<TResult>((Sessione)ses).ExecuteCall<TResult>(callExpr);
+            return new DbQueryProvider<TResult>((Session)ses).ExecuteCall<TResult>(callExpr);
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace ORM_1_21_
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            return await new DbQueryProvider<TResult>((Sessione)ses).ExecuteCallAsync<TResult>(callExpr,cancellationToken);
+            return await new DbQueryProvider<TResult>((Session)ses).ExecuteCallAsync<TResult>(callExpr,cancellationToken);
         }
 
         /// <summary>
@@ -285,7 +285,7 @@ namespace ORM_1_21_
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            return new DbQueryProvider<TResult>((Sessione)ses).ExecuteCallParam<TResult>(callExpr, param);
+            return new DbQueryProvider<TResult>((Session)ses).ExecuteCallParam<TResult>(callExpr, param);
         }
 
         /// <summary>
@@ -300,7 +300,7 @@ namespace ORM_1_21_
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            return await  new DbQueryProvider<TResult>((Sessione)ses).ExecuteCallParamAsync<TResult>(callExpr, param,cancellationToken);
+            return await  new DbQueryProvider<TResult>((Session)ses).ExecuteCallParamAsync<TResult>(callExpr, param,cancellationToken);
         }
 
         /// <summary>
@@ -402,7 +402,7 @@ namespace ORM_1_21_
         public static int CacheGetKey<TSource>(this IQueryable<TSource> source)
         {
             var ses = ((ISqlComposite)source.Provider).Sessione;
-            var provider = new DbQueryProvider<TSource>((Sessione)ses);
+            var provider = new DbQueryProvider<TSource>((Session)ses);
             provider.ListCastExpression.Add(new ContainerCastExpression
                 { TypeEvolution = Evolution.CacheKey });
             return (int)provider.Execute<int>(source.Expression);

@@ -51,10 +51,10 @@ namespace ORM_1_21_.Linq
                     com.Parameters.Add(pr);
                 }
 
-                await _sessione.OpenConnectAndTransactionAsync(com);
+                await _session.OpenConnectAndTransactionAsync(com);
                 if (cancellationToken != default)
                 {
-                    registration = cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, _sessione.Transactionale, _providerName));
+                    registration = cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, _session.Transactionale, _providerName));
                 }
                 dataReader = await com.ExecuteReaderAsync();
 
@@ -120,14 +120,14 @@ namespace ORM_1_21_.Linq
             }
             catch (Exception ex)
             {
-                _sessione.Transactionale.isError = true;
+                _session.Transactionale.isError = true;
                 MySqlLogger.Error(com.CommandText, ex);
                 throw new Exception(ex.Message + Environment.NewLine + com.CommandText, ex);
 
             }
             finally
             {
-                await _sessione.ComDisposableAsync(com);
+                await _session.ComDisposableAsync(com);
                 if (dataReader != null)
                 {
                     dataReader.Close();

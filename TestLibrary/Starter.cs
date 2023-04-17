@@ -12,11 +12,11 @@ namespace TestLibrary
         public static void Run(string conSre,ProviderName provider )
         {
 
-            string path = @"myLog.txt"; ;
+            string path = null; ;
 #if DEBUG
             path = @"myLog.txt";
 #endif
-            _ = new Configure(conSre,provider);
+            _ = new Configure(conSre,provider,path);
             using (var ses = Configure.Session)
             {
                 if (ses.TableExists<MyClass>())

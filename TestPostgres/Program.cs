@@ -12,7 +12,7 @@ namespace TestPostgres
 {
     internal class Program
     {
-        private const ProviderName ProviderName = ORM_1_21_.ProviderName.PostgreSql;
+        private const ProviderName ProviderName = ORM_1_21_.ProviderName.SqLite;
 
         static async Task Main(string[] args)
         {
@@ -34,147 +34,54 @@ namespace TestPostgres
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            //Execute.RunOtherSession();
-            //Execute.RunThread();
-            //Console.ReadKey();
-            //Console.ReadKey();
-             Execute.TotalTest();
-             Execute.TestNativeInsert();
-             Execute.TestAssignetInsert();
-             Execute2.TestTimeStamp();
-             
-             await Execute3.TotalTestAsync();
-             await ExecuteLinqAll.Run();
-             ExecutePrimaryKey.Run();
-             await ExecuteFree.Run();
-             await ExecuteSp.Run();
+             //Execute.RunOtherSession();
+             //Execute.RunThread();
+             //Console.ReadKey();
+             //Console.ReadKey();
+             // Execute.TotalTest();
+             // Execute.TestNativeInsert();
+             // Execute.TestAssignetInsert();
+             // Execute2.TestTimeStamp();
+             // 
+             // await Execute3.TotalTestAsync();
+             // await ExecuteLinqAll.Run();
+             // ExecutePrimaryKey.Run();
+             // await ExecuteFree.Run();
+             // await ExecuteSp.Run();
 
             Stopwatch stopwatch = new Stopwatch();
 
 
             using (ISession session = Configure.Session)
             {
-                await session.DropTableIfExistsAsync<MyClassJoinPostgres>();
-
-
-                await session.TableCreateAsync<MyClassJoinPostgres>();
-
-                session.InsertBulk(new List<MyClassJoinPostgres>
-                    {
-                        new MyClassJoinPostgres() { Age = 40, Name = "name" },
-                        new MyClassJoinPostgres() { Age = 401, Name = "name" },
-                        new MyClassJoinPostgres() { Age = 201, Name = "name" },
-                        new MyClassJoinPostgres() { Age = 202, Name = "name" },
-                        new MyClassJoinPostgres() { Age = 203, Name = "name" },
-                        new MyClassJoinPostgres() { Age = 40, Name = "name" },
-                        new MyClassJoinPostgres() { Age = 40, Name = "name" },
-                        new MyClassJoinPostgres() { Age = 40, Name = "name" },
-
-                    }
-                );
-
-                session.DropTableIfExists<TT23>();
-                session.TableCreate<TT23>();
-
-                TT23 d = new TT23() { Name = "qw" };
-                session.Save(d);
-
-                TT23 d1 = new TT23() { Name = "qw" };
-                session.Save(d1);
-
-
-                // var listInt = session.FreeSql<int>($"select age from {session.TableName<MyClassJoinPostgres>()}").ToList();
-                // foreach (int iw in listInt)
-                // {
-                //     Console.WriteLine(iw);
-                // }
+                // await session.DropTableIfExistsAsync<MyClassJoinPostgres>();
                 //
                 //
-                // session.DropTableIfExists<TT>();
-                // session.TableCreate<TT>();
-                // session.InsertBulk(new List<TT>()
-                // {
-                //     new TT()
-                // });
+                // await session.TableCreateAsync<MyClassJoinPostgres>();
                 //
-                // var t = new TT() { Name = "[assa'\"" };
-                // var i = session.Save(t);
-                //
-                // var ii = session.Delete(t);
-                // var list = session.Query<TT>().ToList();
-                // //var p = list.First();
-                // //p.Name = "ion100";
-                // //var i=session.Save(p);
-                // //var rr=session.Query<TT>().Where(a => a.Name == "ion100").FirstOrDefault();
-                // //
-                // await session.DropTableIfExistsAsync<MyClass>();
-                // await session.TableCreateAsync<MyClass>();
-                // session.InsertBulk(new List<MyClass>
+                // session.InsertBulk(new List<MyClassJoinPostgres>
                 //     {
-                //         new MyClass{ Age = 40, Name = "name40" },
-                //         new MyClass{ Age = 40, Name = "name40" },
-                //         new MyClass{ Age = 20, Name = "name20" },
-                //         new MyClass{ Age = 20, Name = "name20" },
-                //         new MyClass{ Age = 20, Name = "name20" },
-                //         new MyClass{ Age = 20, Name = "name20" },
+                //         new MyClassJoinPostgres() { Age = 40, Name = "name" },
+                //         new MyClassJoinPostgres() { Age = 401, Name = "name" },
+                //         new MyClassJoinPostgres() { Age = 201, Name = "name" },
+                //         new MyClassJoinPostgres() { Age = 202, Name = "name" },
+                //         new MyClassJoinPostgres() { Age = 203, Name = "name" },
+                //         new MyClassJoinPostgres() { Age = 40, Name = "name" },
+                //         new MyClassJoinPostgres() { Age = 40, Name = "name" },
+                //         new MyClassJoinPostgres() { Age = 40, Name = "name" },
                 //
                 //     }
                 // );
 
-                //await session.DropTableIfExistsAsync<TestSqliteUUid>();
-                //await session.TableCreateAsync<TestSqliteUUid>();
-                //
-                //var t = new TestSqliteUUid() { Name = "asas" };
-                //session.Save(t);
-                //var ll = session.Query<TestSqliteUUid>().ToList();
-                //  await session.DropTableIfExistsAsync<TestMySqlUUid>();
-                //  await session.TableCreateAsync<TestMySqlUUid>();
-                //  var t = new TestMySqlUUid(){Name = "ass"};
-                //  await session.SaveAsync(t);
-                //
-                // var re = session.Query<TestMySqlUUid>().ToList();
+                var sql = $"select * from {session.TableName<MyClass>()} where {session.ColumnName<MyClass>(a => a.Age)} > {session.GetSymbolParam()}1" +
+                          $" and name <> @2";
+                // for Postgres: select * from "my_class5" where "age" > @1
+                // for MSSQL   : select * from [my_class5] where [age] > @1
+                // for MySql   : select * from `my_class5` where `age` > ?1
+                // for SqLite  : select * from "my_class5" where "age" > @1
+                var res = session.FreeSql<MyClass>(sql, 10,"asas");
 
-                //session.DropTableIfExists<TestUuid2>();
-                //session.TableCreate<TestUuid2>();
-                //TestUuid2 testUuid = new TestUuid2();
-                //testUuid.Name = "asas";
-                //session.Save(testUuid);
-                //TestUuid2 testUuid1 = new TestUuid2();
-                //testUuid1.Name = "asas";
-                //session.Save(testUuid1);
-                //var s = session.Query<TestUuid2>().ToList();
 
-                // var l = session.Query<MyClass>().Select(a => a.Age).ToList();
-                // var e1e = await session.Query<MyClass>().Select(a => a.Age).JoinCoreAsync(l, a => a, b => b,
-                //     (aa, bb) => new { name1 = aa, name2 = bb });
-                //
-                // var ee = session.Query<MyClass>().JoinCore(session.Query<MyClass>(), a => a.Age, b => b.Age,
-                //      (aa, bb) => new { name1 = aa.Name, name2 = bb.Name }).ToList();
-
-                //foreach (var o in await session.Query<MyClass>().Select(a => new { a.Age }).FooAsync(a => a.Age + 30))
-                //{
-                //    Console.WriteLine(o);
-                //}
-                //
-                //var res3 = await session.ProcedureCallAsync<dynamic>("getList");
-                //var res4 = session.ProcedureCall<dynamic>("getList");
-                //
-                //var res13 = await session.ProcedureCallAsync<MyClass>("getList");
-                //var res14 = session.ProcedureCall<MyClass>("getList");
-                //
-                //{
-                //    var par1 = new ParameterStoredPr("maxAge", 100, ParameterDirection.Input);
-                //    var par2 = new ParameterStoredPr("myCount", 120, ParameterDirection.Output);
-                //    var res5 = session.ProcedureCallParam<dynamic>("getCountList", par1, par2);
-                //    var par2Value = par2.Value;
-                //}
-                //
-                //{
-                //    var par1 = new ParameterStoredPr("maxAge", 100, ParameterDirection.Input);
-                //    var par2 = new ParameterStoredPr("myCount", 120, ParameterDirection.Output);
-                //    var res5 = await session.ProcedureCallParamAsync<MyClass>("getCountList", new[] { par1, par2 });
-                //    var par2Value = par2.Value;
-                //}
 
             }
 
@@ -187,6 +94,18 @@ namespace TestPostgres
 
 
     }
+
+    [MapTable("select")]
+    class TT34
+    {
+        [MapPrimaryKey("id", Generator.Native)]
+        public int Id { get; set; } 
+       
+        [MapIndex]
+        [MapColumn("select")]
+        public string Name { get; set; }
+    }
+
     [MapTable]
     class TT23
     {

@@ -67,7 +67,7 @@ namespace ORM_1_21_
                 case ProviderName.PostgreSql:
                     return $"\"{_tableName}\"";
                 case ProviderName.SqLite:
-                    return $"{_tableName}";
+                    return $"\"{_tableName}\"";
                 default:
                     throw new ArgumentOutOfRangeException();
             }

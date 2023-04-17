@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ORM_1_21_
 {
-    internal sealed partial class Sessione
+    internal sealed partial class Session
     {
         private readonly IDbConnection _connect;
         private readonly Guid _id;
@@ -41,7 +41,7 @@ namespace ORM_1_21_
         /// Ctor.
         /// </summary>
         /// <param name="connectionString">Connection string</param>
-        public Sessione(string connectionString)
+        public Session(string connectionString)
         {
             _connectionString = connectionString;
             _id= Guid.NewGuid();
@@ -53,7 +53,7 @@ namespace ORM_1_21_
         /// Constructor for connecting to another database
         /// </summary>
         /// <param name="factoryOtherBase">Object implementing IOtherDataBaseFactory</param>
-        public Sessione(IOtherDataBaseFactory factoryOtherBase)
+        public Session(IOtherDataBaseFactory factoryOtherBase)
         {
             _factoryOtherBase = factoryOtherBase;
             _connect = factoryOtherBase.GetDbProviderFactories().CreateConnection();
@@ -258,7 +258,7 @@ namespace ORM_1_21_
         /// <summary>
         /// finally call dispose
         /// </summary>
-        ~Sessione()
+        ~Session()
         {
             InnerDispose(true);
         }

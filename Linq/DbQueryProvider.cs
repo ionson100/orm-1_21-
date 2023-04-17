@@ -17,14 +17,14 @@ namespace ORM_1_21_.Linq
 {
     interface ICloneSession
     {
-        Sessione CloneSession();
+        Session CloneSession();
     }
     internal partial class DbQueryProvider<T> : QueryProvider, ISqlComposite, ICloneSession
     {
         private readonly List<object> _paramFree = new List<object>();
         private readonly List<ParameterStoredPr> _paramFreeStoredPr = new List<ParameterStoredPr>();
         private readonly Dictionary<string, object> _parOut = new Dictionary<string, object>();
-        private readonly Sessione _sessione;
+        private readonly Session _session;
         //private IDbCommand _com;
         private readonly ProviderName _providerName;
         public IDbTransaction Transaction { get; set; }
@@ -37,18 +37,18 @@ namespace ORM_1_21_.Linq
             return typeof(T);
         }
 
-        public Sessione GeSessione()
+        public Session GeSessione()
         {
-            return _sessione;
+            return _session;
         }
 
         public DbQueryProvider<T> GetDbQueryProvider()
         {
             return this;
         }
-        public DbQueryProvider(Sessione ses)
+        public DbQueryProvider(Session ses)
         {
-            _sessione = ses;
+            _session = ses;
             Sessione = ses;
             _providerName = ses.MyProviderName;
         }
@@ -226,9 +226,9 @@ namespace ORM_1_21_.Linq
             return res;
         }
 
-        public Sessione CloneSession()
+        public Session CloneSession()
         {
-            return (Sessione)_sessione.GetCloneSession();
+            return (Session)_session.GetCloneSession();
         }
 
 

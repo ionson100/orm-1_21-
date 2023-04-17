@@ -4,7 +4,7 @@ using System;
 namespace ORM_1_21_
 {
     /// <summary>
-    /// 
+    /// Base abstract class for attribute of the table and column of the table
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public abstract class BaseAttribute : Attribute
@@ -28,7 +28,7 @@ namespace ORM_1_21_
                         return $"\"{_columnName}\"";
 
                     case ProviderName.SqLite:
-                        return $"{_columnName}";
+                        return $"\"{_columnName}\"";
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

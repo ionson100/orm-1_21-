@@ -17,9 +17,9 @@ namespace ORM_1_21_
     ///<summary>
     ///</summary>
     [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
-    internal sealed partial class Sessione : ISession, IServiceSessions
+    internal sealed partial class Session : ISession, IServiceSessions
     {
-      
+
         private readonly List<IDbCommand> _dbCommands = new List<IDbCommand>();
 
         IDbCommand IServiceSessions.CommandForLinq
@@ -36,9 +36,9 @@ namespace ORM_1_21_
         {
             if (_factoryOtherBase == null)
             {
-                return new Sessione(_connectionString);
+                return new Session(_connectionString);
             }
-            return new Sessione(_factoryOtherBase);
+            return new Session(_factoryOtherBase);
         }
 
         internal ProviderName GetProviderName => MyProviderName;
@@ -91,10 +91,10 @@ namespace ORM_1_21_
             return SaveNew(source);
         }
 
-        Task<int> ISession.SaveAsync<TSource>(TSource source,CancellationToken cancellationToken)
+        Task<int> ISession.SaveAsync<TSource>(TSource source, CancellationToken cancellationToken)
         {
             Check.NotNull(source, "source", () => Transactionale.isError = true);
-            return SaveNewAsync(source,null,cancellationToken);
+            return SaveNewAsync(source, null, cancellationToken);
         }
 
         int ISession.TableCreate<TSource>()
@@ -104,7 +104,7 @@ namespace ORM_1_21_
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("TableCreate"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return provider.ExecuteExtension<int>(callExpr); 
+            return provider.ExecuteExtension<int>(callExpr);
         }
         Task<int> ISession.TableCreateAsync<TSource>(CancellationToken cancellationToken)
         {
@@ -113,10 +113,10 @@ namespace ORM_1_21_
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("TableCreate"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return provider.ExecuteExtensionAsync<int>(callExpr,null, cancellationToken); 
+            return provider.ExecuteExtensionAsync<int>(callExpr, null, cancellationToken);
         }
 
-     
+
 
         IDbCommand ISession.GeDbCommand()
         {
@@ -130,7 +130,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return provider.ExecuteExtension<int>(callExpr); 
+            return provider.ExecuteExtension<int>(callExpr);
 
         }
 
@@ -140,7 +140,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return provider.ExecuteExtensionAsync<int>(callExpr,null, cancellationToken);
+            return provider.ExecuteExtensionAsync<int>(callExpr, null, cancellationToken);
         }
 
         int ISession.DropTableIfExists<TSource>()
@@ -149,7 +149,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return provider.ExecuteExtension<int>(callExpr); 
+            return provider.ExecuteExtension<int>(callExpr);
         }
 
         Task<int> ISession.DropTableIfExistsAsync<TSource>(CancellationToken cancellationToken)
@@ -158,7 +158,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return provider.ExecuteExtensionAsync<int>(callExpr,null, cancellationToken);
+            return provider.ExecuteExtensionAsync<int>(callExpr, null, cancellationToken);
         }
 
         bool ISession.TableExists<TSource>()
@@ -169,24 +169,24 @@ namespace ORM_1_21_
                 switch (MyProviderName)
                 {
                     case ProviderName.PostgreSql:
-                    {
-                        var tableName = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
-                        sql = $"SELECT count(*) FROM pg_tables WHERE   tablename  = '{tableName}';";
-                        break;
-                    }
+                        {
+                            var tableName = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
+                            sql = $"SELECT count(*) FROM pg_tables WHERE   tablename  = '{tableName}';";
+                            break;
+                        }
 
                     case ProviderName.MsSql:
-                    {
-                        string t = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
-                        sql = $"SELECT OBJECT_ID('{t}', 'U');";
-                        break;
-                    }
+                        {
+                            string t = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
+                            sql = $"SELECT OBJECT_ID('{t}', 'U');";
+                            break;
+                        }
                     case ProviderName.MySql:
                     case ProviderName.SqLite:
-                    {
-                        sql = $"select 1 from {AttributesOfClass<TSource>.TableName(MyProviderName)};";
-                        break;
-                    }
+                        {
+                            sql = $"select 1 from {AttributesOfClass<TSource>.TableName(MyProviderName)};";
+                            break;
+                        }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -197,13 +197,13 @@ namespace ORM_1_21_
                 MySqlLogger.Error("", ex);
                 throw;
             }
-            
+
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("TableExists"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return provider.ExecuteExtension<bool>(callExpr); 
+            return provider.ExecuteExtension<bool>(callExpr);
 
-          
+
         }
 
         Task<bool> ISession.TableExistsAsync<TSource>(CancellationToken cancellationToken)
@@ -214,24 +214,24 @@ namespace ORM_1_21_
                 switch (MyProviderName)
                 {
                     case ProviderName.PostgreSql:
-                    {
-                        var tableName = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
-                        sql = $"SELECT count(*) FROM pg_tables WHERE   tablename  = '{tableName}';";
-                        break;
-                    }
+                        {
+                            var tableName = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
+                            sql = $"SELECT count(*) FROM pg_tables WHERE   tablename  = '{tableName}';";
+                            break;
+                        }
 
                     case ProviderName.MsSql:
-                    {
-                        string t = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
-                        sql = $"SELECT OBJECT_ID('{t}', 'U');";
-                        break;
-                    }
+                        {
+                            string t = UtilsCore.ClearTrim(AttributesOfClass<TSource>.TableName(MyProviderName));
+                            sql = $"SELECT OBJECT_ID('{t}', 'U');";
+                            break;
+                        }
                     case ProviderName.MySql:
                     case ProviderName.SqLite:
-                    {
-                        sql = $"select 1 from {AttributesOfClass<TSource>.TableName(MyProviderName)};";
-                        break;
-                    }
+                        {
+                            sql = $"select 1 from {AttributesOfClass<TSource>.TableName(MyProviderName)};";
+                            break;
+                        }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -246,13 +246,13 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("TableExists"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);
-            return provider.ExecuteExtensionAsync<bool>(callExpr,null,cancellationToken); 
+            return provider.ExecuteExtensionAsync<bool>(callExpr, null, cancellationToken);
         }
 
         #region ExecuteReader
         IDataReader ISession.ExecuteReader(string sql, object[] param)
         {
-            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = sql;
@@ -273,7 +273,7 @@ namespace ORM_1_21_
 
         IDataReader ISession.ExecuteReader(string sql, int timeOut, params object[] param)
         {
-            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = sql;
@@ -308,7 +308,7 @@ namespace ORM_1_21_
                 if (cancellationToken != default)
                 {
                     registration =
-                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale,MyProviderName));
+                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale, MyProviderName));
                 }
                 return await com.ExecuteReaderAsync();
             }
@@ -331,7 +331,7 @@ namespace ORM_1_21_
         public async Task<IDataReader> ExecuteReaderAsync(string sql, int timeOut, object[] param, CancellationToken cancellationToken = default)
         {
             CancellationTokenRegistration? registration = null;
-            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = sql;
@@ -343,7 +343,7 @@ namespace ORM_1_21_
                 if (cancellationToken != default)
                 {
                     registration =
-                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale,MyProviderName));
+                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale, MyProviderName));
                 }
 
                 return await com.ExecuteReaderAsync();
@@ -367,7 +367,7 @@ namespace ORM_1_21_
 
         DataTable ISession.GetDataTable(string sql, int timeOut)
         {
-            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var table = new DataTable();
 
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
@@ -472,7 +472,7 @@ namespace ORM_1_21_
 
         int ISession.CreateBase(string baseName)
         {
-            Check.NotEmpty(baseName, "baseName",()=>Transactionale.isError=true);
+            Check.NotEmpty(baseName, "baseName", () => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
 
@@ -599,8 +599,8 @@ namespace ORM_1_21_
                 com.CommandTimeout = timeOut;
                 if (cancellationToken != default)
                 {
-                    
-                    registration = cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale,MyProviderName));
+
+                    registration = cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale, MyProviderName));
                 }
                 var res = await com.ExecuteNonQueryAsync();
                 if (registration.HasValue)
@@ -671,36 +671,36 @@ namespace ORM_1_21_
 
         object ISession.ExecuteScalar(string sql, params object[] param)
         {
-            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteScalar"));
             var provider = new DbQueryProvider<object>(this);
-            return provider.ExecuteExtension<object>(callExpr,param);
+            return provider.ExecuteExtension<object>(callExpr, param);
 
         }
 
-        Task<object> ISession.ExecuteScalarAsync(string sql,  object[] param,CancellationToken cancellationToken)
+        Task<object> ISession.ExecuteScalarAsync(string sql, object[] param, CancellationToken cancellationToken)
         {
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteScalar"));
             var provider = new DbQueryProvider<object>(this);
-            return provider.ExecuteExtensionAsync<object>(callExpr, param,cancellationToken);
+            return provider.ExecuteExtensionAsync<object>(callExpr, param, cancellationToken);
         }
 
         object ISession.ExecuteScalar(string sql, int timeOut, params object[] param)
         {
-            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteScalar"));
             DbQueryProvider<object> provider = new DbQueryProvider<object>(this);
             provider.ListCastExpression.Add(new ContainerCastExpression
-                { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
+            { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
             return provider.ExecuteExtension<object>(callExpr, param);
         }
 
-        Task<object> ISession.ExecuteScalarAsync(string sql, int timeOut,  object[] param,CancellationToken cancellationToken)
+        Task<object> ISession.ExecuteScalarAsync(string sql, int timeOut, object[] param, CancellationToken cancellationToken)
         {
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
@@ -708,8 +708,8 @@ namespace ORM_1_21_
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteScalar"));
             DbQueryProvider<object> provider = new DbQueryProvider<object>(this);
             provider.ListCastExpression.Add(new ContainerCastExpression
-                { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
-            return provider.ExecuteExtensionAsync<object>(callExpr, param,cancellationToken);
+            { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
+            return provider.ExecuteExtensionAsync<object>(callExpr, param, cancellationToken);
         }
 
 
@@ -730,7 +730,7 @@ namespace ORM_1_21_
 
         }
 
-         Task<int> ISession.TruncateTableAsync<TSource>(CancellationToken cancellationToken)
+        Task<int> ISession.TruncateTableAsync<TSource>(CancellationToken cancellationToken)
         {
             string sql;
             if (MyProviderName == ProviderName.SqLite)
@@ -741,7 +741,7 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("TruncateTable"));
             var provider = new DbQueryProvider<object>(this);
-            return provider.ExecuteExtensionAsync<int>(callExpr,null,cancellationToken);
+            return provider.ExecuteExtensionAsync<int>(callExpr, null, cancellationToken);
         }
 
         Query<TSource> ISession.Query<TSource>()
@@ -751,7 +751,7 @@ namespace ORM_1_21_
 
         }
 
-       
+
 
         IDbCommand ISession.GetCommand()
         {
@@ -777,31 +777,31 @@ namespace ORM_1_21_
 
         int ISession.ExecuteNonQuery(string sql, params object[] param)
         {
-            Check.NotEmpty(sql, "sql",() => Transactionale.isError=true);
+            Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteNonQuery"));
             var provider = new DbQueryProvider<object>(this);
-            return provider.ExecuteExtension<int>(callExpr,param);
+            return provider.ExecuteExtension<int>(callExpr, param);
         }
 
-        Task<int> ISession.ExecuteNonQueryAsync(string sql,  object[] param,CancellationToken cancellationToken)
+        Task<int> ISession.ExecuteNonQueryAsync(string sql, object[] param, CancellationToken cancellationToken)
         {
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteNonQuery"));
             var provider = new DbQueryProvider<object>(this);
-            return provider.ExecuteExtensionAsync<int>(callExpr, param,cancellationToken);
+            return provider.ExecuteExtensionAsync<int>(callExpr, param, cancellationToken);
         }
 
         int ISession.ExecuteNonQuery(string sql, int timeOut, params object[] param)
         {
-            
+
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteNonQuery"));
             var provider = new DbQueryProvider<object>(this);
             provider.ListCastExpression.Add(new ContainerCastExpression
-                { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
+            { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
             return provider.ExecuteExtension<int>(callExpr, param);
         }
 
@@ -903,9 +903,9 @@ namespace ORM_1_21_
 
         #region DataTable
 
-        
 
-          
+
+
         DataTable ISession.GetDataTable(string sql, int timeOut, params object[] param)
         {
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
@@ -913,11 +913,11 @@ namespace ORM_1_21_
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DataTable"));
             var provider = new DbQueryProvider<object>(this);
             provider.ListCastExpression.Add(new ContainerCastExpression
-                { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
+            { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
             return provider.ExecuteExtension<DataTable>(callExpr, param);
         }
 
-        DataTable ISession.GetDataTable(string sql,  params object[] param)
+        DataTable ISession.GetDataTable(string sql, params object[] param)
         {
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var p = new V(sql);
@@ -926,43 +926,29 @@ namespace ORM_1_21_
             return provider.ExecuteExtension<DataTable>(callExpr, param);
         }
 
-        Task<DataTable>ISession.GetDataTableAsync(string sql, int timeOut, object[] param,CancellationToken cancellationToken)
+        Task<DataTable> ISession.GetDataTableAsync(string sql, int timeOut, object[] param, CancellationToken cancellationToken)
         {
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DataTable"));
             var provider = new DbQueryProvider<object>(this);
             provider.ListCastExpression.Add(new ContainerCastExpression
-                { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
-            return provider.ExecuteExtensionAsync<DataTable>(callExpr, param,cancellationToken);
+            { Timeout = timeOut, TypeEvolution = Evolution.Timeout });
+            return provider.ExecuteExtensionAsync<DataTable>(callExpr, param, cancellationToken);
         }
 
-        Task<DataTable> ISession.GetDataTableAsync(string sql,  object[] param, CancellationToken cancellationToken)
+        Task<DataTable> ISession.GetDataTableAsync(string sql, object[] param, CancellationToken cancellationToken)
         {
             Check.NotEmpty(sql, "sql", () => Transactionale.isError = true);
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DataTable"));
             var provider = new DbQueryProvider<object>(this);
-           
+
             return provider.ExecuteExtensionAsync<DataTable>(callExpr, param, cancellationToken);
         }
 
         #endregion
 
-        TSource ISession.Clone<TSource>(TSource source)
-        {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            try
-            {
-                return UtilsCore.Clone(source);
-            }
-            catch (Exception ex)
-            {
-                Transactionale.isError = true;
-                MySqlLogger.Error("Clone", ex);
-                throw;
-            }
-        }
 
         string ISession.GetSqlForInsertBulk<TSource>(IEnumerable<TSource> list)
         {
@@ -993,7 +979,7 @@ namespace ORM_1_21_
 
         }
 
-         int ISession.Update<TSource>(TSource source, params AppenderWhere[] whereObjects)
+        int ISession.Update<TSource>(TSource source, params AppenderWhere[] whereObjects)
         {
             Check.NotNull(source, "source", () => Transactionale.isError = true);
             if (!UtilsCore.IsPersistent(source))
@@ -1004,7 +990,7 @@ namespace ORM_1_21_
             return SaveNew(source, whereObjects);
         }
 
-         Task<int> ISession.UpdateAsync<TSource>(TSource source, AppenderWhere[] whereObjects,CancellationToken cancellationToken) 
+        Task<int> ISession.UpdateAsync<TSource>(TSource source, AppenderWhere[] whereObjects, CancellationToken cancellationToken)
         {
             Check.NotNull(source, "source", () => Transactionale.isError = true);
             if (!UtilsCore.IsPersistent(source))
@@ -1012,12 +998,30 @@ namespace ORM_1_21_
                 Transactionale.isError = true;
                 throw new Exception("You are trying to update an object not obtained from database");
             }
-            return SaveNewAsync(source,whereObjects,cancellationToken);
+            return SaveNewAsync(source, whereObjects, cancellationToken);
         }
 
-       
+        public string GetSymbolParam()
+        {
 
-         private void SetTimeOut(IDbCommand com, int timeOut)
+            switch (MyProviderName)
+            {
+                case ProviderName.MsSql:
+                    return "@";
+                case ProviderName.MySql:
+                    return "?";
+                case ProviderName.PostgreSql:
+                    return "@";
+                case ProviderName.SqLite:
+                    return "@";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+        }
+
+
+        private void SetTimeOut(IDbCommand com, int timeOut)
         {
             Check.NotNull(com, "com", () => Transactionale.isError = true);
             if (timeOut < 0)
@@ -1101,14 +1105,14 @@ namespace ORM_1_21_
             return res;
         }
 
-        private async Task<int> SaveNewAsync<TSource>(TSource source, AppenderWhere[] whereObjects,CancellationToken cancellationToken) where TSource : class
+        private async Task<int> SaveNewAsync<TSource>(TSource source, AppenderWhere[] whereObjects, CancellationToken cancellationToken) where TSource : class
         {
             CancellationTokenRegistration? registration = null;
             var res = 0;
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = string.Empty;
-           
+
 
             try
             {
@@ -1116,7 +1120,7 @@ namespace ORM_1_21_
                 if (cancellationToken != default)
                 {
                     registration =
-                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale,MyProviderName));
+                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale, MyProviderName));
                 }
                 if (UtilsCore.IsPersistent(source))
                 {
@@ -1218,7 +1222,7 @@ namespace ORM_1_21_
                     Transactionale.MyStateTransaction == StateTransaction.Commit ||
                     Transactionale.MyStateTransaction == StateTransaction.Rollback)
                 {
-                   await com.Connection.CloseAsync();
+                    await com.Connection.CloseAsync();
 
                     await com.DisposeAsync();
                 }
