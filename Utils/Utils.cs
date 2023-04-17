@@ -27,7 +27,7 @@ namespace ORM_1_21_.Utils
             Evolution.TableExists,
             Evolution.ExecuteScalar,
             Evolution.TruncateTable,
-            Evolution.ExecuteNonQuery, 
+            Evolution.ExecuteNonQuery,
             Evolution.DataTable,
             Evolution.DropTable
         };
@@ -364,12 +364,12 @@ namespace ORM_1_21_.Utils
 
         internal static object ConverterPrimaryKeyType(Type typeColumn, object val)
         {
-            
-            
+
+
             if (typeColumn == typeof(string))
                 return val.ToString();
             if (typeColumn == typeof(Guid))
-               
+
                 return (Guid)val;
             if (typeColumn == typeof(decimal))
                 return Convert.ToDecimal(val); ;
@@ -387,8 +387,8 @@ namespace ORM_1_21_.Utils
                 return Convert.ToUInt64(val); ;
 
             if (typeColumn == typeof(double))
-                return Convert.ToDouble(val); 
-         
+                return Convert.ToDouble(val);
+
             if (typeColumn == typeof(float))
                 return (float)Convert.ToDouble(val); ;
             throw new Exception($"Can't find type to convert primary key {typeColumn} {val}");
@@ -488,7 +488,7 @@ namespace ORM_1_21_.Utils
         }
 
 
-       
+
 
         public static void AddParamsForCache(StringBuilder b, string sql, ProviderName providerName, List<object> param)
         {
@@ -558,6 +558,7 @@ namespace ORM_1_21_.Utils
                 }
                 catch (Exception ex)
                 {
+                    
                     MySqlLogger.Error("cancellationToken", ex);
                 }
                 finally
@@ -568,7 +569,7 @@ namespace ORM_1_21_.Utils
             };
         }
 
-       
+
         public static string CheckAny(List<OneComposite> listOne)
         {
             foreach (Evolution evolution in EvolutionsList)
@@ -580,6 +581,52 @@ namespace ORM_1_21_.Utils
 
             return null;
         }
+
+        public static string ColumnBuilder(string type, bool isPk = false)
+        {
+            switch (type.ToLower().Trim())
+            {
+                case "blob":
+                    {
+                        if (isPk)
+                        {
+                            return "Guid";
+                        }
+                        return "byte[]";
+                    }
+                case "text":
+                    {
+                        if (isPk)
+                        {
+                            return "Guid";
+                        }
+                        return "string";
+                    }
+                case "integer": return "int";
+                case "real": return "Int16";
+                case "numeric": return "decimal";
+                case "uuid": return "Guid";
+                case "bit": return "bool";
+                case "bigint": return "long";
+                case "smallint": return "Int16";
+                case "money": return "decimal";
+                case "smallmoney": return "decimal";
+                case "mediumint": return "int";
+                case "tinyint": return "bool";
+                case "boolean": return "bool";
+            }
+            if (type.ToLower().Contains("text")) return "string";
+            if (type.ToLower().Contains("double")) return "double";
+            if (type.ToLower().Contains("decimal")) return "decimal";
+            if (type.ToLower().Contains("character")) return "string";
+            if (type.ToLower().Contains("timestamp")) return "DateTime";
+            if (type.ToLower().Contains("uniqueidentifier")) return "Guid";
+            if (type.ToLower().Contains("varchar")) return "string";
+            if (type.ToLower().Contains("datetime")) return "DateTime";
+            
+            return type;
+
+        }
     }
 
     internal enum SerializeType
@@ -587,4 +634,5 @@ namespace ORM_1_21_.Utils
         None, User
     }
 }
+
 

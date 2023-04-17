@@ -126,7 +126,7 @@ namespace ORM_1_21_
             finally
             {
                 reader.Dispose();
-                command.Dispose();
+               // command.Dispose();
             }
         }
 

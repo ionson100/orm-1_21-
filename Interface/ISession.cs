@@ -370,5 +370,11 @@ namespace ORM_1_21_
         /// </summary>
         /// <returns></returns>
         string GetSymbolParam();
+
+        /// <summary>
+        /// Approximate projection of a class from a database table
+        /// </summary>
+        /// <param name="tableName">Table name</param>
+        string ParseTableToClass(string tableName);
     }
 }

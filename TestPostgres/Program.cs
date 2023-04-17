@@ -13,7 +13,6 @@ namespace TestPostgres
     internal class Program
     {
         private const ProviderName ProviderName = ORM_1_21_.ProviderName.SqLite;
-
         static async Task Main(string[] args)
         {
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -52,7 +51,7 @@ namespace TestPostgres
             Stopwatch stopwatch = new Stopwatch();
 
 
-            using (ISession session = Configure.Session)
+            ISession session = Configure.Session;
             {
                 // await session.DropTableIfExistsAsync<MyClassJoinPostgres>();
                 //
@@ -72,6 +71,9 @@ namespace TestPostgres
                 //
                 //     }
                 // );
+                //session.ta
+                
+                 var sddd=session.ParseTableToClass("my_class5_join");
 
                 var sql = $"select * from {session.TableName<MyClass>()} where {session.ColumnName<MyClass>(a => a.Age)} > {session.GetSymbolParam()}1" +
                           $" and name <> @2";
@@ -246,6 +248,9 @@ namespace TestPostgres
         public int IdCore { get; set; }
 
     }
+
+   
+
 
 
 

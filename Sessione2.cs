@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ORM_1_21_
@@ -177,6 +179,36 @@ namespace ORM_1_21_
             Transactionale.isError = false;
             tk.SetResult(Transactionale);
             return tk.Task;
+        }
+
+        public string ParseTableToClass(string tableName)
+        {
+            var res= ((ISession)this).GetTableColumns(tableName);
+            if (!res.Any()) throw new Exception($"Table: {tableName} not found in database.");
+            StringBuilder builder = new StringBuilder( );
+            builder.AppendLine($"[MapTable(\"{UtilsCore.ClearTrim(tableName)}\")]");
+            builder.AppendLine($"class {UtilsCore.ClearTrim(tableName)}");
+            builder.AppendLine("{");
+            int ic = 0;
+            foreach (TableColumn tableColumn in res.OrderByDescending(a=>a.IsPk))
+            {
+                if (ic == 0)
+                {
+                    builder.AppendLine();
+                    builder.AppendLine($"   [MapPrimaryKey(\"{tableColumn.ColumnName}\", Generator.Native)]");
+                    builder.AppendLine($"   public {UtilsCore.ColumnBuilder(tableColumn.ColumnType,tableColumn.IsPk)} {tableColumn.ColumnName} {{get;set;}}");
+                }
+                else
+                {
+                    builder.AppendLine();
+                    builder.AppendLine($"   [MapColumn(\"{tableColumn.ColumnName}\")]");
+                    builder.AppendLine($"   public {UtilsCore.ColumnBuilder(tableColumn.ColumnType)} {tableColumn.ColumnName} {{get;set;}}");
+                }
+                ic++;
+            }
+
+            builder.AppendLine("}");
+            return builder.ToString();
         }
 
         string ISession.IdSession => _id.ToString();
@@ -364,7 +396,6 @@ namespace ORM_1_21_
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
 
-
             try
             {
                 return ColumnsTableFactory.GeTableColumns(MyProviderName, com, UtilsCore.ClearTrim(tableName.Trim()));
@@ -379,7 +410,6 @@ namespace ORM_1_21_
             {
                 ComDisposable(com);
             }
-           
         }
     }
 }
