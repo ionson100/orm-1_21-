@@ -1,5 +1,5 @@
-﻿using System;
-using ORM_1_21_.Utils;
+﻿using ORM_1_21_.Utils;
+using System;
 
 
 namespace ORM_1_21_
@@ -42,7 +42,7 @@ namespace ORM_1_21_
         /// </summary>
         public static class Utils
         {
-           
+
             /// <summary>
             /// Convert date to SQL format
             /// </summary>
@@ -66,29 +66,13 @@ namespace ORM_1_21_
             /// </summary>
             public static object ByteArrayToObject(byte[] arrBytes)
             {
-               return UtilsCore.ByteArrayToObject(arrBytes);
+                return UtilsCore.ByteArrayToObject(arrBytes);
             }
 
-            /// <summary>
-            /// Check if the object is received from the database (true) - the object is received from the database
-            /// </summary>
-            public static bool IsPersistent(object obj)
-            {
-                return UtilsCore.IsPersistent(obj);
-            }
-
-            /// <summary>
-            /// As the object persistent - obtained from the database.
-            /// </summary>
-            /// <param name="obj"></param>
-            public static void SetPersistent(object obj)
-            {
-                UtilsCore.SetPersistent(obj);
-            }
         }
-       
+
     }
 
 
-    
+
 }

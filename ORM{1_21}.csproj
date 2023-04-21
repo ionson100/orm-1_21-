@@ -92,6 +92,7 @@
     <Compile Include="ActionMode.cs" />
     <Compile Include="AppenderWhere.cs" />
     <Compile Include="AttributesOfClass.cs" />
+    <Compile Include="AttributesOfClass2.cs" />
     <Compile Include="Attribute\BaseAttribute.cs" />
     <Compile Include="Attribute\MapColumnTypeAttribute.cs" />
     <Compile Include="Attribute\MapDefaultValueAttribute.cs" />

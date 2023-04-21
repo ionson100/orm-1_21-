@@ -19,7 +19,7 @@ namespace TestLibrary
                 {
                     var ts = ses.BeginTransaction();
                     MyClass c = new MyClass(1);
-                    ses.Save(c);
+                    ses.Insert(c);
                     var s = Configure.Session.Query<MyClass>().Count();
                     Console.WriteLine($"{i} -- " + s);
                     ts.Commit();
@@ -108,7 +108,7 @@ namespace TestLibrary
                 Name = "name",
                 MyEnum = MyEnum.First
             };
-            session.Save(myClass);
+            session.Insert(myClass);
             List<T> res = null;
             res = session.Query<T>().Where(a => a.Age == 12 && a.DateTime.Year == dt.Year).ToList();
             Log(1, res.Count == 1);
@@ -178,7 +178,7 @@ namespace TestLibrary
             {
                 T my1 = session.Query<T>().FirstOrDefault(A => A.Age == 12);
                 my1.Name = " dnamed ";
-                session.Save(my1);
+                session.Update(my1);
                 res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Trim() == "dnamed").ToList();
                 Log(19, res.Count == 1);
 
@@ -193,7 +193,7 @@ namespace TestLibrary
             {
                 T my2 = session.Query<T>().FirstOrDefault(A => A.Age == 12);
                 my2.Name = "dnamed";
-                var ss=session.Save(my2);
+                var ss=session.Update(my2);
                 res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Trim('4') == "dnamed").ToList();
                 Log(22, res.Count == 1);
 
@@ -207,7 +207,7 @@ namespace TestLibrary
 
             T my3 = session.Query<T>().FirstOrDefault(A => A.Age == 12);
             my3.Name = "name";
-            session.Save(my3);
+            session.Update(my3);
             var err = session.Query<T>().Select(a => new { sd = a.Name.Length }).ToList();
             res = session.Query<T>().Where(a => a.Name.Length == "name".Length).ToList();
             Log(22, res.Count == 1);
@@ -247,19 +247,19 @@ namespace TestLibrary
                 var ses = Configure.GetSession<Tb>();
                 try
                 {
-                    ses.Save(new T());
+                    ses.Insert(new T());
                     var tr = ses.BeginTransaction(level);
-                    ses.Save(new T());
-                    ses.Save(new T());
-                    ses.Save(new T());
+                    ses.Insert(new T());
+                    ses.Insert(new T());
+                    ses.Insert(new T());
                     tr.Rollback();
-                    ses.Save(new T());
+                    ses.Insert(new T());
                     tr = ses.BeginTransaction(level);
-                    ses.Save(new T());
-                    ses.Save(new T());
-                    ses.Save(new T());
+                    ses.Insert(new T());
+                    ses.Insert(new T());
+                    ses.Insert(new T());
                     tr.Rollback();
-                    ses.Save(new T());
+                    ses.Insert(new T());
                 }
                 finally
                 {
@@ -274,19 +274,19 @@ namespace TestLibrary
                 var ses = Configure.GetSession<Tb>();
                 try
                 {
-                    ses.Save(new T());
+                    ses.Insert(new T());
                     var tr = ses.BeginTransaction(level);
-                    ses.Save(new T());
-                    ses.Save(new T());
-                    ses.Save(new T());
+                    ses.Insert(new T());
+                    ses.Insert(new T());
+                    ses.Insert(new T());
                     tr.Commit();
-                    ses.Save(new T());
+                    ses.Insert(new T());
                     tr = ses.BeginTransaction(level);
-                    ses.Save(new T());
-                    ses.Save(new T());
-                    ses.Save(new T());
+                    ses.Insert(new T());
+                    ses.Insert(new T());
+                    ses.Insert(new T());
                     tr.Rollback();
-                    ses.Save(new T());
+                    ses.Insert(new T());
                 }
                 finally
                 {
@@ -297,7 +297,7 @@ namespace TestLibrary
                 Log(28, count == 6);
 
                 session.TruncateTable<T>();
-                session.Save(new T
+                session.Insert(new T
                 {
                     Name = "name",
                     Age = 12
@@ -545,7 +545,7 @@ namespace TestLibrary
                 var b = true;
                 Log(66, b, "test serialize");
                 o.TestUser="A";
-                session.Save(o);
+                session.Update(o);
                 o = session.Query<T>().First();
                 Log(67, o.TestUser=="A");
                 session.TruncateTable<T>();
@@ -560,8 +560,8 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now, Valdecimal = new decimal(123) });
-                    session.Save(new T { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now });
+                    session.Insert(new T { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now, Valdecimal = new decimal(123) });
+                    session.Insert(new T { Age = 10 * j, Name = "name" + j, DateTime = DateTime.Now });
                 }
 
                 count = session.Query<T>().Distinct(a => a.Age).ToList().Sum();
@@ -610,7 +610,7 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T { Age = j, Name = "name" + j, DateTime = DateTime.Now, Valdecimal = new decimal(123) });
+                    session.Insert(new T { Age = j, Name = "name" + j, DateTime = DateTime.Now, Valdecimal = new decimal(123) });
                 }
 
                 res = session.Query<T>().OrderBy(a => a.Age).Limit(0, 1).ToList();
@@ -739,12 +739,12 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T { Age = 10, Name = "name1" });
+                    session.Insert(new T { Age = 10, Name = "name1" });
                 }
 
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T { Age = 20, Name = "name1" });
+                    session.Insert(new T { Age = 20, Name = "name1" });
                 }
 
                 bll = session.Query<T>().Where(d => d.Name.StartsWith("name")).All(a => a.Age == 10);
@@ -752,7 +752,7 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T { Age = 10, Name = "name1" });
+                    session.Insert(new T { Age = 10, Name = "name1" });
                 }
 
                 bll = session.Query<T>().Where(d => d.Name.StartsWith("name")).All(a => a.Age == 10);
@@ -766,7 +766,7 @@ namespace TestLibrary
                 session.TruncateTable<T>();
                 for (int j = 0; j < 10; j++)
                 {
-                    session.Save(new T { Age = j, Name = "name1" });
+                    session.Insert(new T { Age = j, Name = "name1" });
                 }
 
                 count = session.Query<T>().Count();
@@ -805,7 +805,7 @@ namespace TestLibrary
 
             session.TableCreate<T>();
 
-            session.Save(new T());
+            session.Insert(new T());
             var tttest = session.Query<T>().First();
 
             if (s.GetProviderName() == ProviderName.PostgreSql || s.GetProviderName() == ProviderName.MsSql)
@@ -831,7 +831,7 @@ namespace TestLibrary
                 tttest.V13 = 1L;
                 tttest.V15 = 1.5F;
                 tttest.V16 = Guid.Empty;
-                session.Save(tttest);
+                session.Insert(tttest);
             }
 
             if (s.GetProviderName() == ProviderName.MySql)
@@ -868,7 +868,7 @@ namespace TestLibrary
                 tttest1.V3 = 1;
                 tttest1.V4 = 1;
                 tttest1.V14 = 1;
-                session.Save(tttest1);
+                session.Insert(tttest1);
             }
 
             if (s.GetProviderName() == ProviderName.SqLite)
@@ -904,7 +904,7 @@ namespace TestLibrary
                 tttest1.V3 = 1;
                 tttest1.V4 = 1;
                 tttest1.V14 = 1;
-                session.Save(tttest1);
+                session.Insert(tttest1);
             }
 
             tttest = session.Query<T>().First();
@@ -987,18 +987,18 @@ namespace TestLibrary
 
             session.TableCreate<T>();
             T t = new T();
-            var i = session.Save(t);
+            var i = session.Insert(t);
             Log(1, i == 1);
             Log(2, t.Id == 1);
-            Log(3, session.IsPersistent(t));
+           // Log(3, session.IsPersistent(t));
             List<T> list = new List<T>
             {
                 new T(), new T(), new T()
             };
             i = session.InsertBulk(list);
             Log(4, i == 3);
-            i = list.Where(a => session.IsPersistent(a)).Count();
-            Log(5, i == 3);
+           // i = list.Where(a => session.IsPersistent(a)).Count();
+           // Log(5, i == 3);
             i = session.Query<T>().Count();
             Log(6, i == 4);
         }
@@ -1025,18 +1025,18 @@ namespace TestLibrary
 
             session.TableCreate<T>();
             T t = new T();
-            var i = session.Save(t);
+            var i = session.Insert(t);
             Log(1, i == 1);
 
-            Log(3, session.IsPersistent(t));
+           // Log(3, session.IsPersistent(t));
             List<T> list = new List<T>
             {
                 new T(), new T(), new T()
             };
             i = session.InsertBulk(list);
             Log(4, i == 3);
-            i = list.Where(a => session.IsPersistent(a)).Count();
-            Log(5, i == 3);
+           // i = list.Where(a => session.IsPersistent(a)).Count();
+           // Log(5, i == 3);
             i = session.Query<T>().Count();
             Log(6, i == 4);
         }

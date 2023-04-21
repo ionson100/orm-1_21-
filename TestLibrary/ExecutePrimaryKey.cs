@@ -28,9 +28,9 @@ namespace TestLibrary
                 new TTPostgres { Name = "13" },
             });
             var s1 = new TTPostgres { Name = "14" };
-            session.Save(s1);
+            session.Insert(s1);
             var s2 = new TTPostgres { Name = "15" };
-            session.Save(s2);
+            session.Insert(s2);
             var list = session.Query<TTPostgres>().ToList().Select(a => a.Id).ToList();
             Execute.Log(1, list.Contains(s1.Id));
             Execute.Log(2, list.Contains(s2.Id));
@@ -48,9 +48,9 @@ namespace TestLibrary
                 new TestNative { Name = "13" },
             });
             var s11 = new TestNative { Name = "14" };
-            session.Save(s1);
+            session.Update(s1);
             var s21 = new TestNative { Name = "15" };
-            session.Save(s2);
+            session.Update(s2);
             var list1 = session.Query<TestNative>().OrderBy(d => d.Id).ToList().Select(a => a.Id).ToList();
             list1.ForEach(Console.WriteLine);
         }

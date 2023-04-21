@@ -32,10 +32,10 @@ namespace ORM_1_21_
         /// <returns>IEnumerable</returns>
         IEnumerable<T> GetListMonster<T>(IDataReader reader) where T : class;
 
-        /// <summary>
-        ///     Saving an object in the database (insert or update), returns the number of rows affected
-        /// </summary>
-        int Save<TSource>(TSource source) where TSource : class;
+       // /// <summary>
+       // ///     Saving an object in the database (insert or update), returns the number of rows affected
+       // /// </summary>
+       // int Save<TSource>(TSource source) where TSource : class;
 
 
         /// <summary>
@@ -186,17 +186,6 @@ namespace ORM_1_21_
         /// </summary>
         /// <typeparam name="TSource"></typeparam>
         Query<TSource> Query<TSource>() where TSource : class;
-
-
-        /// <summary>
-        ///     Determines if the object is received from the database, or was created on the client
-        /// </summary>
-        bool IsPersistent<TSource>(TSource obj) where TSource : class;
-
-        /// <summary>
-        ///     Making an object persistent ( as object received from database)
-        /// </summary>
-        void ToPersistent<TSource>(TSource source) where TSource : class;
 
         /// <summary>
         ///     Write to log file
@@ -349,11 +338,16 @@ namespace ORM_1_21_
         /// </summary>
         Task<DataTable> GetDataTableAsync(string sql, object[] param, CancellationToken cancellationToken = default);
 
+
+
         /// <summary>
-        ///     Insert or Update   asynchronously
+        /// Asynchronously insert command
         /// </summary>
-        Task<int> SaveAsync<TSource>(TSource source, CancellationToken cancellationToken = default)
-            where TSource : class;
+        /// <param name="source">Object for insertion</param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        Task<int> InsertAsync<TSource>(TSource source, CancellationToken cancellationToken = default) where TSource : class;
 
         /// <summary>
         ///     Update   asynchronously

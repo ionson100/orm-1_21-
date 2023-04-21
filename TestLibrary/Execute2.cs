@@ -23,7 +23,7 @@ namespace TestLibrary
 
             session.TableCreate<TSPostgres>();
             var postgres = new TSPostgres { Name = "123" };
-            session.Save(postgres);
+            session.Insert(postgres);
             var t = session.Query<TSPostgres>().Single();
 
             var s = session.Update(t, new AppenderWhere(session.ColumnName<TSPostgres>(d => d.Ts), t.Ts));
@@ -42,7 +42,7 @@ namespace TestLibrary
 
             session.TableCreate<TSMsSql>();
             var msSql = new TSMsSql { Name = "123" };
-            session.Save(msSql);
+            session.Insert(msSql);
             var t = session.Query<TSMsSql>().Single();
 
             var s = session.Update(t, new AppenderWhere(session.ColumnName<TSMsSql>(d => d.Ts), t.Ts));
@@ -61,7 +61,7 @@ namespace TestLibrary
 
             session.TableCreate<TSMySql>();
             var msSql = new TSMySql { Name = "123" };
-            session.Save(msSql);
+            session.Insert(msSql);
             var t = session.Query<TSMySql>().Single();
 
             t.Name = "111";
@@ -81,7 +81,7 @@ namespace TestLibrary
 
             session.TableCreate<TSSqlite>();
             var msSql = new TSSqlite { Name = "123" };
-            session.Save(msSql);
+            session.Insert(msSql);
             var t = session.Query<TSSqlite>().Single();
 
             t.Name = "111";

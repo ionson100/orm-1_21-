@@ -31,18 +31,13 @@ namespace ORM_1_21_
                 {
                     return Configure.Provider;
                 }
-                else
-                {
-                    return _factoryOtherBase.GetProviderName();
-                }
+
+                return _factoryOtherBase.GetProviderName();
             }
         }
 
 
-        /// <summary>
-        /// Ctor.
-        /// </summary>
-        /// <param name="connectionString">Connection string</param>
+       
         public Session(string connectionString)
         {
             _connectionString = connectionString;
@@ -80,8 +75,6 @@ namespace ORM_1_21_
             if (!(source is IMapAction<TSource> actionDal)) return;
             switch (mode)
             {
-                case ActionMode.None:
-                    break;
                 case ActionMode.Insert:
                     actionDal.ActionCommand(source,CommandMode.AfterInsert);
                     break;
@@ -104,8 +97,6 @@ namespace ORM_1_21_
             if (!(source is IMapAction<TSource> actionDal)) return;
             switch (mode)
             {
-                case ActionMode.None:
-                    break;
                 case ActionMode.Insert:
                     actionDal.ActionCommand(source, CommandMode.BeforeInsert);
                     break;
@@ -287,9 +278,6 @@ namespace ORM_1_21_
         bool ISession.IsDispose => _isDispose;
 
 
-        /// <summary>
-        /// finally call dispose
-        /// </summary>
         ~Session()
         {
             InnerDispose(true);
@@ -378,16 +366,6 @@ namespace ORM_1_21_
         {
             InnerWriteLogFile($"WriteLogFile: {command}");
 
-        }
-
-        bool ISession.IsPersistent<TSource>(TSource source)
-        {
-            return UtilsCore.IsPersistent(source);
-        }
-
-        void ISession.ToPersistent<TSource>(TSource source)
-        {
-            UtilsCore.SetPersistent(source);
         }
 
         IEnumerable<TableColumn> ISession.GetTableColumns(string tableName)

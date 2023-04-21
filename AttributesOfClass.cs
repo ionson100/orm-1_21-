@@ -13,12 +13,16 @@ using System.Threading;
 
 namespace ORM_1_21_
 {
+    internal static partial class AttributesOfClass<T>
+    {
+
+    }
 
 
     [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
     [SuppressMessage("ReSharper", "StaticMemberInGenericType")]
     [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
-    internal static class AttributesOfClass<T>
+    internal  static partial class AttributesOfClass<T>
     {
         internal static readonly object LockO = new object();
 
@@ -752,21 +756,7 @@ namespace ORM_1_21_
 
 
 
-        public static void CreateDeleteCommand(IDbCommand command, T obj, ProviderName providerName)
-        {
-            Provider = providerName;
-            var pk = PrimaryKeyAttribute.Value;
-            command.CommandText = string.Format(" DELETE FROM {0} WHERE {0}.{1} = {2}p1",
-                TableAttribute.Value.TableName(providerName),
-                pk.GetColumnName(providerName), UtilsCore.PrefParam(providerName));
-            IDataParameter pr = command.CreateParameter();
-            pr.ParameterName = $"{UtilsCore.PrefParam(providerName)}p1";
-            var prr = obj.GetType().GetProperty(pk.PropertyName);
-            var val = GetValue.Value[prr.Name](obj);
-            pr.Value = val ?? DBNull.Value;
-            pr.DbType = pk.DbType();
-            command.Parameters.Add(pr);
-        }
+       
 
         public static string GetNameFieldForQuery(string member, Type type, ProviderName providerName)
         {

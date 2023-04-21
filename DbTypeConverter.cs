@@ -13,6 +13,14 @@ namespace ORM_1_21_
             if (type == null)
                 throw new ArgumentNullException(nameof(type));
 
+            if (type == typeof(Int32))
+            {
+                return DbType.Int32;
+            }
+            if (type == typeof(String))
+            {
+                return DbType.String;
+            }
             if (type == typeof(Char[]))
             {
                 return DbType.AnsiStringFixedLength;
@@ -55,10 +63,7 @@ namespace ORM_1_21_
             {
                 return DbType.Int16;
             }
-            if (type == typeof(Int32))
-            {
-                return DbType.Int32;
-            }
+           
             if (type == typeof(Int64))
             {
                 return DbType.Int64;
@@ -71,10 +76,7 @@ namespace ORM_1_21_
             {
                 return DbType.Single;
             }
-            if (type == typeof(String))
-            {
-                return DbType.String;
-            }
+            
             if (type == typeof(UInt16))
             {
                 return DbType.UInt16;
@@ -98,7 +100,7 @@ namespace ORM_1_21_
             }
             if (type.BaseType == typeof(Enum))
             {
-                return DbType.String;
+                return DbType.Int32;
             }
             if (type == typeof(DateTimeOffset))
             {

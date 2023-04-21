@@ -143,7 +143,7 @@ namespace TestLibrary
             }, 30);
             count = await session.Query<T>().CountAsync();
             Execute.Log(24, count == 3);
-            count = await session.SaveAsync(new T { Age = 5 });
+            count = await session.InsertAsync(new T { Age = 5 });
             Execute.Log(25, count == 1);
             count = await session.Query<T>().CountAsync();
             Execute.Log(26, count == 4);
@@ -173,8 +173,8 @@ namespace TestLibrary
             Execute.Log(29, count == 0);
             using (await session.BeginTransactionAsync())
             {
-                await session.SaveAsync(new T());
-                await session.SaveAsync(new T());
+                await session.InsertAsync(new T());
+                await session.InsertAsync(new T());
             }
 
 
@@ -197,7 +197,7 @@ namespace TestLibrary
                 {
                     var source = new CancellationTokenSource();
                     source.Cancel();
-                    await session.SaveAsync(new T(), source.Token);
+                    await session.InsertAsync(new T(), source.Token);
                 }
             }
             catch (Exception e)
@@ -229,8 +229,8 @@ namespace TestLibrary
             await session.TruncateTableAsync<T>();
             using (var tr = await session.BeginTransactionAsync())
             {
-                await session.SaveAsync(new T());
-                await session.SaveAsync(new T());
+                await session.InsertAsync(new T());
+                await session.InsertAsync(new T());
                 await tr.RollbackAsync();
             }
 
@@ -240,8 +240,8 @@ namespace TestLibrary
             {
                 using (var tr = await session.BeginTransactionAsync())
                 {
-                    await session.SaveAsync(new T());
-                    await session.SaveAsync(new T());
+                    await session.InsertAsync(new T());
+                    await session.InsertAsync(new T());
                     await tr.RollbackAsync();
                     await tr.RollbackAsync();
                 }
@@ -254,8 +254,8 @@ namespace TestLibrary
             {
                 using (var tr = await session.BeginTransactionAsync())
                 {
-                    await session.SaveAsync(new T());
-                    await session.SaveAsync(new T());
+                    await session.InsertAsync(new T());
+                    await session.InsertAsync(new T());
                     await tr.CommitAsync();
                     await tr.CommitAsync();
                 }

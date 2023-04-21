@@ -22,6 +22,7 @@ namespace ORM_1_21_
             {
                 while (reader.Read())
                 {
+                    
                     TObj d;
                     if (isLegalese)
                         d = Activator.CreateInstance<TObj>();
@@ -52,7 +53,8 @@ namespace ORM_1_21_
                             for (var i = 0; i < reader.FieldCount; i++)
                             {
                                 var n = reader.GetName(i);
-                                var s = list.First(a => a.ColumnNameAlias == n || a.GetColumnNameRaw() == n);
+                                var s = list.FirstOrDefault(a => a.ColumnNameAlias == n || a.GetColumnNameRaw() == n);
+                                if(s==null) continue;
                                 var resCore = MethodFreeIndex(providerName, s.PropertyType, reader, i);
                                 AttributesOfClass<TObj>.SetValueE(providerName, s.PropertyName, d, resCore);
                             }
@@ -284,6 +286,10 @@ namespace ORM_1_21_
             if (type == typeof(char)) return e == DBNull.Value ? '\0' : Convert.ToChar(e);
             return e == DBNull.Value ? null : e;
         }
+
+
+
+       
 
         public static object MethodFreeIndex(ProviderName providerName, Type type, IDataReader reader, int index)
         {

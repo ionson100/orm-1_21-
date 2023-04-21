@@ -162,16 +162,16 @@ namespace ORM_1_21_.Utils
                 .Trim().ToLower();
         }
 
-        internal static bool IsPersistent(object obj)
-        {
-            return TypeDescriptor.GetAttributes(obj).Contains(new PersistentAttribute());
-        }
+       // internal static bool IsPersistent(object obj)
+       // {
+       //     return TypeDescriptor.GetAttributes(obj).Contains(new PersistentAttribute());
+       // }
 
 
-        internal static void SetPersistent(object obj)
-        {
-            TypeDescriptor.AddAttributes(obj, new PersistentAttribute());
-        }
+       // internal static void SetPersistent(object obj)
+       // {
+       //     TypeDescriptor.AddAttributes(obj, new PersistentAttribute());
+       // }
 
         internal static object Convertor<TR>(object ob)
         {

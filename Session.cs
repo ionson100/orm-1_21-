@@ -55,8 +55,6 @@ namespace ORM_1_21_
         int ISession.Delete<TSource>(TSource source)
         {
             Check.NotNull(source, "source", () => Transactionale.isError = true);
-            if (!UtilsCore.IsPersistent(source))
-                throw new Exception("You are trying to delete an object not obtained from database");
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             AttributesOfClass<TSource>.CreateDeleteCommand(com, source, MyProviderName);
@@ -91,16 +89,9 @@ namespace ORM_1_21_
             return AttributesOfClass<TSource>.GetEnumerableObjects(reader, MyProviderName);
         }
 
-        int ISession.Save<TSource>(TSource source)
+        public  Task<int> InsertAsync<TSource>(TSource source, CancellationToken cancellationToken = default) where TSource : class
         {
-            Check.NotNull(source, "source", () => Transactionale.isError = true);
-            return SaveNew(source);
-        }
-
-        Task<int> ISession.SaveAsync<TSource>(TSource source, CancellationToken cancellationToken)
-        {
-            Check.NotNull(source, "source", () => Transactionale.isError = true);
-            return SaveNewAsync(source, null, cancellationToken);
+            return  InsertNewAsync(source, cancellationToken);
         }
 
         int ISession.TableCreate<TSource>()
@@ -558,7 +549,7 @@ namespace ORM_1_21_
                 OpenConnectAndTransaction(com);
                 SetTimeOut(com, timeOut);
                 var res = com.ExecuteNonQuery();
-                foreach (var iSource in enumerable) ((ISession)this).ToPersistent(iSource);
+                //foreach (var iSource in enumerable) ((ISession)this).ToPersistent(iSource);
                 return res;
             }
             catch (Exception ex)
@@ -613,7 +604,7 @@ namespace ORM_1_21_
                 {
                     registration.Value.Dispose();
                 }
-                foreach (var iSource in enumerable) ((ISession)this).ToPersistent(iSource);
+                //foreach (var iSource in enumerable) ((ISession)this).ToPersistent(iSource);
                 return res;
             }
             catch (Exception ex)
@@ -903,8 +894,6 @@ namespace ORM_1_21_
                 Transactionale.isError = true;
                 throw;
             }
-
-            // 
         }
 
         #region DataTable
@@ -988,23 +977,13 @@ namespace ORM_1_21_
         int ISession.Update<TSource>(TSource source, params AppenderWhere[] whereObjects)
         {
             Check.NotNull(source, "source", () => Transactionale.isError = true);
-            if (!UtilsCore.IsPersistent(source))
-            {
-                Transactionale.isError = true;
-                throw new Exception("You are trying to update an object not obtained from database");
-            }
-            return SaveNew(source, whereObjects);
+            return UpdateNew(source, whereObjects);
         }
 
         Task<int> ISession.UpdateAsync<TSource>(TSource source, AppenderWhere[] whereObjects, CancellationToken cancellationToken)
         {
             Check.NotNull(source, "source", () => Transactionale.isError = true);
-            if (!UtilsCore.IsPersistent(source))
-            {
-                Transactionale.isError = true;
-                throw new Exception("You are trying to update an object not obtained from database");
-            }
-            return SaveNewAsync(source, whereObjects, cancellationToken);
+            return UpdateNewAsync(source, whereObjects, cancellationToken);
         }
 
         public string GetSymbolParam()
@@ -1047,14 +1026,14 @@ namespace ORM_1_21_
             try
             {
                 NotificBefore(source, ActionMode.Insert);
-                AttributesOfClass<TSource>.CreateInsetCommand(com, source, MyProviderName);
+                AttributesOfClass<TSource>.CreateInsetCommandNew(com, source, MyProviderName);
                 OpenConnectAndTransaction(com);
                 if (AttributesOfClass<TSource>.PkAttribute(MyProviderName).Generator == Generator.Assigned)
                 {
                     var val = com.ExecuteNonQuery();
                     if (val == 1)
                     {
-                        ((ISession)this).ToPersistent(source);
+                       // ((ISession)this).ToPersistent(source);
                         res = 1;
                         this.CacheClear<TSource>();
                         NotificAfter(source, ActionMode.Insert);
@@ -1066,7 +1045,6 @@ namespace ORM_1_21_
                     if (val != null)
                     {
                         AttributesOfClass<TSource>.RedefiningPrimaryKey(source, val, MyProviderName);
-                        ((ISession)this).ToPersistent(source);
                         res = 1;
                         this.CacheClear<TSource>();
                         NotificAfter(source, ActionMode.Insert);
@@ -1089,7 +1067,7 @@ namespace ORM_1_21_
 
         private int UpdateNew<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class
         {
-            var res = 0;
+            int res;
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = string.Empty;
@@ -1097,11 +1075,9 @@ namespace ORM_1_21_
             {
                 NotificBefore(source, ActionMode.Update);
                 if (MyProviderName == ProviderName.PostgreSql || MyProviderName == ProviderName.SqLite)
-                    AttributesOfClass<TSource>.CreateUpdateCommandPostgres(com, source, MyProviderName,
-                        whereObjects);
+                    AttributesOfClass<TSource>.CreateUpdateCommandPostgresNew(com, source, MyProviderName, whereObjects);
                 else
-                    AttributesOfClass<TSource>.CreateUpdateCommandMysql(com, source, MyProviderName, whereObjects);
-
+                    AttributesOfClass<TSource>.CreateUpdateCommandMysqlNew(com, source, MyProviderName, whereObjects);
 
                 OpenConnectAndTransaction(com);
                 res = com.ExecuteNonQuery();
@@ -1125,88 +1101,13 @@ namespace ORM_1_21_
             return res;
         }
 
-        private int SaveNew<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class
-        {
-            var res = 0;
-            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
-
-
-            com.Connection = _connect;
-            com.CommandText = string.Empty;
-
-            try
-            {
-                if (UtilsCore.IsPersistent(source))
-                {
-                    NotificBefore(source, ActionMode.Update);
-                    if (MyProviderName == ProviderName.PostgreSql || MyProviderName == ProviderName.SqLite)
-                        AttributesOfClass<TSource>.CreateUpdateCommandPostgres(com, source, MyProviderName,
-                            whereObjects);
-                    else
-                        AttributesOfClass<TSource>.CreateUpdateCommandMysql(com, source, MyProviderName, whereObjects);
-
-
-                    OpenConnectAndTransaction(com);
-                    res = com.ExecuteNonQuery();
-                    if (res == 1)
-                    {
-                        this.CacheClear<TSource>();
-                        NotificAfter(source, ActionMode.Update);
-                    }
-                }
-                else
-                {
-                    NotificBefore(source, ActionMode.Insert);
-                    AttributesOfClass<TSource>.CreateInsetCommand(com, source, MyProviderName);
-                    OpenConnectAndTransaction(com);
-                    if (AttributesOfClass<TSource>.PkAttribute(MyProviderName).Generator == Generator.Assigned)
-                    {
-                        var val = com.ExecuteNonQuery();
-                        if (val == 1)
-                        {
-                            ((ISession)this).ToPersistent(source);
-                            res = 1;
-                            this.CacheClear<TSource>();
-                            NotificAfter(source, ActionMode.Insert);
-                        }
-                    }
-                    else
-                    {
-                        var val = com.ExecuteScalar();
-                        if (val != null)
-                        {
-                            AttributesOfClass<TSource>.RedefiningPrimaryKey(source, val, MyProviderName);
-                            ((ISession)this).ToPersistent(source);
-                            res = 1;
-                            this.CacheClear<TSource>();
-                            NotificAfter(source, ActionMode.Insert);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Transactionale.isError = true;
-                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
-                throw;
-            }
-            finally
-            {
-                ComDisposable(com);
-            }
-
-            return res;
-        }
-
-        private async Task<int> SaveNewAsync<TSource>(TSource source, AppenderWhere[] whereObjects, CancellationToken cancellationToken) where TSource : class
+        private async Task<int> InsertNewAsync<TSource>(TSource source,CancellationToken cancellationToken) where TSource : class
         {
             CancellationTokenRegistration? registration = null;
             var res = 0;
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             com.CommandText = string.Empty;
-
-
             try
             {
                 await OpenConnectAndTransactionAsync(com);
@@ -1215,48 +1116,27 @@ namespace ORM_1_21_
                     registration =
                         cancellationToken.Register(UtilsCore.CancelRegistr(com, cancellationToken, Transactionale, MyProviderName));
                 }
-                if (UtilsCore.IsPersistent(source))
+                NotificBefore(source, ActionMode.Insert);
+                AttributesOfClass<TSource>.CreateInsetCommand(com, source, MyProviderName);
+                if (AttributesOfClass<TSource>.PkAttribute(MyProviderName).Generator == Generator.Assigned)
                 {
-                    NotificBefore(source, ActionMode.Update);
-                    if (MyProviderName == ProviderName.PostgreSql || MyProviderName == ProviderName.SqLite)
-                        AttributesOfClass<TSource>.CreateUpdateCommandPostgres(com, source, MyProviderName,
-                            whereObjects);
-                    else
-                        AttributesOfClass<TSource>.CreateUpdateCommandMysql(com, source, MyProviderName, whereObjects);
-
-                    res = com.ExecuteNonQuery();
-                    if (res == 1)
+                    var val = com.ExecuteNonQuery();
+                    if (val == 1)
                     {
+                        res = 1;
                         this.CacheClear<TSource>();
-                        NotificAfter(source, ActionMode.Update);
+                        NotificAfter(source, ActionMode.Insert);
                     }
                 }
                 else
                 {
-                    NotificBefore(source, ActionMode.Insert);
-                    AttributesOfClass<TSource>.CreateInsetCommand(com, source, MyProviderName);
-                    if (AttributesOfClass<TSource>.PkAttribute(MyProviderName).Generator == Generator.Assigned)
+                    var val = await com.ExecuteScalarAsync();
+                    if (val != null)
                     {
-                        var val = com.ExecuteNonQuery();
-                        if (val == 1)
-                        {
-                            ((ISession)this).ToPersistent(source);
-                            res = 1;
-                            this.CacheClear<TSource>();
-                            NotificAfter(source, ActionMode.Insert);
-                        }
-                    }
-                    else
-                    {
-                        var val = await com.ExecuteScalarAsync();
-                        if (val != null)
-                        {
-                            AttributesOfClass<TSource>.RedefiningPrimaryKey(source, val, MyProviderName);
-                            ((ISession)this).ToPersistent(source);
-                            res = 1;
-                            this.CacheClear<TSource>();
-                            NotificAfter(source, ActionMode.Insert);
-                        }
+                        AttributesOfClass<TSource>.RedefiningPrimaryKey(source, val, MyProviderName);
+                        res = 1;
+                        this.CacheClear<TSource>();
+                        NotificAfter(source, ActionMode.Insert);
                     }
                 }
             }
@@ -1275,9 +1155,58 @@ namespace ORM_1_21_
                 await ComDisposableAsync(com);
             }
             return res;
-
         }
 
+        private async Task<int> UpdateNewAsync<TSource>(TSource source, AppenderWhere[] whereObjects,
+            CancellationToken cancellationToken) where TSource : class
+        {
+            CancellationTokenRegistration? registration = null;
+            var res = 0;
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            com.CommandText = string.Empty;
+            try
+            {
+                await OpenConnectAndTransactionAsync(com);
+                if (cancellationToken != default)
+                {
+                    registration =
+                        cancellationToken.Register(UtilsCore.CancelRegistr(com, cancellationToken, Transactionale, MyProviderName));
+                }
+                NotificBefore(source, ActionMode.Update);
+                if (MyProviderName == ProviderName.PostgreSql || MyProviderName == ProviderName.SqLite)
+                    AttributesOfClass<TSource>.CreateUpdateCommandPostgresNew(com, source, MyProviderName,
+                        whereObjects);
+                else
+                    AttributesOfClass<TSource>.CreateUpdateCommandMysqlNew(com, source, MyProviderName, whereObjects);
+
+                res = com.ExecuteNonQuery();
+                if (res == 1)
+                {
+                    this.CacheClear<TSource>();
+                    NotificAfter(source, ActionMode.Update);
+                }
+            }
+            catch (Exception ex)
+            {
+                Transactionale.isError = true;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
+            }
+            finally
+            {
+                if (registration.HasValue)
+                {
+                    registration.Value.Dispose();
+                }
+                await ComDisposableAsync(com);
+            }
+            return res;
+        }
+
+
+
+    
 
         internal void ComDisposable(IDbCommand com)
         {
