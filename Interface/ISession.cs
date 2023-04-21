@@ -37,6 +37,15 @@ namespace ORM_1_21_
         /// </summary>
         int Save<TSource>(TSource source) where TSource : class;
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        int Insert<TSource>(TSource source) where TSource : class;
+
         /// <summary>
         ///     Removing an object from the database, return the number of affected rows
         /// </summary>
@@ -376,5 +385,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="tableName">Table name</param>
         string ParseTableToClass(string tableName);
+
+        
     }
 }

@@ -35,7 +35,7 @@ namespace ORM_1_21_
             AttributeDalList.Value.ToList().ForEach(a => list.Add(a));
             list.Add(PrimaryKeyAttribute.Value);
             return list.Any()
-                ? list.Select(a => new { a.PropertyName, ColumnName = a.GetColumnName(CurProviderName) })
+                ? list.Select(a => new { a.PropertyName, ColumnName = a.GetColumnName(Provider) })
                     .ToDictionary(s => s.PropertyName, d => d.ColumnName)
                 : null;
         }, LazyThreadSafetyMode.PublicationOnly);
@@ -44,27 +44,7 @@ namespace ORM_1_21_
         private static readonly Lazy<List<MapColumnAttribute>> AttributeDalList =
             new Lazy<List<MapColumnAttribute>>(GetListActivateDallAll, LazyThreadSafetyMode.PublicationOnly);
 
-      // private static readonly Lazy<List<string>> ListConstrainsKey =
-      //     new Lazy<List<string>>(() =>
-      //     {
-      //         var list=new List<string>();
-      //
-      //         foreach (var f in typeof(T).GetProperties())
-      //         {
-      //             var pr = f.GetCustomAttribute<MapConstraintKeyAttribute>(true);
-      //             if (pr == null) continue;
-      //             if (string.IsNullOrWhiteSpace(pr.GetColumnNameRaw())) pr.SetColumnNameRaw(f.Name);
-      //           
-      //             list.Add(pr.GetColumnName(CurProviderName));
-      //         }
-      //         return list;
-      //     }, LazyThreadSafetyMode.PublicationOnly);
-
-      //  public static List<string> GetConstraintKeyNameList(ProviderName providerName)
-      //  {
-      //      Provider = providerName;
-      //      return ListConstrainsKey.Value;
-      //  }
+    
 
         private static readonly Lazy<MapTableAttribute> TableAttribute =
             new Lazy<MapTableAttribute>(GetTableAttribute, LazyThreadSafetyMode.PublicationOnly);
@@ -175,26 +155,30 @@ namespace ORM_1_21_
             StorageTypeAttribute.DictionaryAttribute.TryAdd(typeof(T), new ProxyAttribute<T>());
         }
 
-        private static ProviderName CurProviderName
-        {
-            
-            get
-            {
-                if (ProviderName == null)
-                    return Configure.Provider;
-                return ProviderName.Value;
-            }
-        }
+       
 
         private static ProviderName Provider
         {
-            get => (ProviderName)ProviderName;
+            get
+            {
+                if (ProviderName == null)
+                {
+                    throw new Exception("Provider null..");
+                }
+
+                return ProviderName.Value;
+            }
             set
             {
-                lock (LockO)
+                if (ProviderName == null)
                 {
-                    if (ProviderName == null) ProviderName = value;
+                    lock (LockO)
+                    {
+
+                        ProviderName = value;
+                    }
                 }
+               
             }
         }
 
@@ -241,15 +225,15 @@ namespace ORM_1_21_
                 if (o2 != null) columnAttribute.IsIndex = true;
 
                 columnAttribute.PropertyName = f.Name;
-                columnAttribute.TypeColumn = f.PropertyType;
+                columnAttribute.PropertyType = f.PropertyType;
                 columnAttribute.DeclareType = typeof(T);
                 if (o3 != null)
                     columnAttribute.DefaultValue = o3.Value;
 
                 columnAttribute.ColumnNameAlias = UtilsCore.GetAsAlias(
-                    TableAttribute.Value.TableName(CurProviderName),
+                    TableAttribute.Value.TableName(Provider),
                     columnAttribute
-                        .GetColumnName(CurProviderName));
+                        .GetColumnName(Provider));
 
                 var o4 = f.GetCustomAttribute<MapColumnTypeAttribute>(true);
                 if (o4 != null)
@@ -291,13 +275,14 @@ namespace ORM_1_21_
                 pr.IsBaseKey = false;
                 pr.IsForeignKey = false;
                 pr.PropertyName = f.Name;
+                pr.PropertyType = f.PropertyType;
                 pr.DeclareType = typeof(T);
                 pr.TypeColumn = f.PropertyType;
                 var o3 = f.GetCustomAttribute<MapDefaultValueAttribute>(true);
                 if (o3 != null)
                     pr.DefaultValue = o3.Value;
                 pr.ColumnNameAlias =
-                    UtilsCore.GetAsAlias(TableName(CurProviderName), pr.GetColumnName(CurProviderName));
+                    UtilsCore.GetAsAlias(TableName(Provider), pr.GetColumnName(Provider));
                 var o4 = f.GetCustomAttribute<MapColumnTypeAttribute>(true);
                 if (o4 != null)
                     pr.TypeString = o4.TypeString;
@@ -401,11 +386,11 @@ namespace ORM_1_21_
             return string.Empty;
         }
 
-        public static IEnumerable<T> GetEnumerableObjects(IDataReader reader, ProviderName providerName)
+        public static IEnumerable<T> GetEnumerableObjects(IDataReader reader, ProviderName providerName,bool isFree=false)
         {
             Provider = providerName;
             Check.NotNull(reader, "IDataReader reader");
-            var res = Pizdaticus.GetRiderToList<T>(reader, providerName);
+            var res = Pizdaticus.GetRiderToList<T>(reader, providerName,isFree);
             return res;
         }
 
@@ -414,7 +399,7 @@ namespace ORM_1_21_
         {
             Provider = providerName;
             var sb = new StringBuilder();
-            sb.Append(StringConst.Select + " "); 
+            sb.Append(StringConst.Select + " ");
             var pk = PrimaryKeyAttribute.Value;
             if (providerName == ORM_1_21_.ProviderName.PostgreSql)
             {
@@ -424,17 +409,18 @@ namespace ORM_1_21_
             }
             else
             {
+                sb.AppendFormat(" {0}.{1} AS {2},",
+                    TableAttribute.Value.TableName(providerName),
+                    pk.GetColumnName(providerName),
+                    UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
+                        pk.GetColumnName(providerName)));
                 foreach (var a in AttributeDalList.Value)
                     sb.AppendFormat(" {0}.{1} AS {2},",
                         TableAttribute.Value.TableName(providerName),
                         a.GetColumnName(providerName),
                         UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
                             a.GetColumnName(providerName)));
-                sb.AppendFormat(" {0}.{1} AS {2},",
-                    TableAttribute.Value.TableName(providerName),
-                    pk.GetColumnName(providerName),
-                    UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
-                        pk.GetColumnName(providerName)));
+              
             }
 
             sb = new StringBuilder(sb.ToString().Trim(','));
@@ -443,159 +429,175 @@ namespace ORM_1_21_
             return sb.ToString();
         }
 
+        private static readonly Lazy<string> UpdateTemplateMysql =
+            new Lazy<string>(CreateUpdateTemplateMysql, LazyThreadSafetyMode.PublicationOnly);
 
-        public static void CreateUpdateCommandMysql(IDbCommand command, T item, ProviderName providerName,
-            params AppenderWhere[] whereObjects)
+        private static string CreateUpdateTemplateMysql()
         {
-            Provider = providerName;
-
+            string parName = UtilsCore.PrefParam(Provider);
             var allSql = new StringBuilder();
-
-
             var i = 0;
             var sb = new StringBuilder();
-
-
-            sb.Clear();
-
             var par = new StringBuilder();
+
             foreach (var pra in AttributeDalList.Value
                          .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
             {
                 if (pra.IsNotUpdateInsert) continue;
-                par.AppendFormat(" {0}.{1} = {3}p{2},", TableAttribute.Value.TableName(providerName),
-                    pra.GetColumnName(providerName), ++i,
-                    UtilsCore.PrefParam(providerName));
+                par.AppendFormat(" {0}.{1} = {3}p{2},", TableAttribute.Value.TableName(Provider),
+                    pra.GetColumnName(Provider), ++i, parName);
+            }
 
+            var pk = PrimaryKeyAttribute.Value;
+            sb.AppendFormat("UPDATE {0} SET {1} WHERE {0}.{2} = {4}p{3}  ",
+                TableAttribute.Value.TableName(Provider),
+                par.ToString().Trim(','),
+                pk.GetColumnName(Provider), ++i, parName);
+
+            return allSql.Append(sb).ToString();
+
+        }
+
+
+     
+
+        public static void CreateUpdateCommandMysql(IDbCommand command, T item, ProviderName providerName,
+           params AppenderWhere[] whereObjects)
+        { 
+            Provider = providerName;
+            var sql = UpdateTemplateMysql.Value;
+            string parName = UtilsCore.PrefParam(providerName);
+            var i = 0;
+            foreach (var pra in AttributeDalList.Value
+                         .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
+            {
+                if (pra.IsNotUpdateInsert) continue;
                 IDataParameter pr = command.CreateParameter();
-                pr.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
-                var prcore = item.GetType().GetProperties().First(a => a.Name == pra.PropertyName);
-                object vall;
-                var st = UtilsCore.GetSerializeType(prcore.PropertyType);
-                if (st == SerializeType.User)
-                    vall = ((IMapSerializable)GetValue.Value[prcore.Name](item)).Serialize();
-                else if (prcore.PropertyType.BaseType == typeof(Enum))
-                    vall = (int)GetValue.Value[prcore.Name](item);
-                else
-                    vall = GetValue.Value[prcore.Name](item);
+                pr.ParameterName = string.Format("{1}p{0}", ++i, parName);
+                object val;
 
-                pr.Value = vall ?? DBNull.Value;
+                if (pra.PropertyType.BaseType == typeof(Enum))
+                    val = (int)GetValue.Value[pra.PropertyName](item);
+                else
+                    val = GetValue.Value[pra.PropertyName](item);
+
+                pr.Value = val ?? DBNull.Value;
                 pr.DbType = pra.DbType();
                 command.Parameters.Add(pr);
             }
 
-
             var pk = PrimaryKeyAttribute.Value;
-            sb.AppendFormat("UPDATE {0} SET {1} WHERE {0}.{2} = {4}p{3}  ",
-                TableAttribute.Value.TableName(providerName),
-                par.ToString().Trim(','),
-                pk.GetColumnName(providerName), ++i,
-                UtilsCore.PrefParam(providerName));
-
             IDataParameter pr1 = command.CreateParameter();
-            pr1.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
-
-            var sxs = item.GetType().GetProperties().First(a => a.Name == pk.PropertyName);
-
-
-            var val1 = GetValue.Value[sxs.Name](item);
+            pr1.ParameterName = string.Format("{1}p{0}", ++i, parName);
+            var val1 = GetValue.Value[pk.PropertyName](item);
             pr1.Value = val1 ?? DBNull.Value;
             pr1.DbType = pk.DbType();
             command.Parameters.Add(pr1);
-            allSql.Append(sb);
-
 
             if (whereObjects != null && whereObjects.Length > 0)
+            {
+                StringBuilder builder = new StringBuilder(sql);
                 foreach (var o in whereObjects)
                 {
-                    var nameParam = $"{UtilsCore.PrefParam(providerName)}p{++i}";
-                    allSql.Append($" AND {o.ColumnName} = {nameParam}");
+                    var nameParam = $"{parName}p{++i}";
+                    builder.Append($" AND {o.ColumnName} = {nameParam}");
                     dynamic d = command.Parameters;
                     d.AddWithValue(nameParam, o.Value);
                 }
+                command.CommandText = builder.Append(";").ToString();
+            }
+            else
+            {
+                command.CommandText = sql + ";";
+            }
 
-            command.CommandText = allSql + ";";
         }
 
+        public static readonly Lazy<string> TemplateUpdatePostgres =
+            new Lazy<string>(CreateTemplateUpdatePostgres, LazyThreadSafetyMode.PublicationOnly);
 
-        public static void CreateUpdateCommandPostgres(IDbCommand command, T item, ProviderName providerName,
-            params AppenderWhere[] whereObjects)
+        private static string CreateTemplateUpdatePostgres()
         {
-            Provider = providerName;
-
+            string parName = UtilsCore.PrefParam(Provider);
             var allSql = new StringBuilder();
-
             var sb = new StringBuilder();
             var i = 0;
-
-
-            sb.Clear();
 
             var par = new StringBuilder();
             foreach (var pra in AttributeDalList.Value
                          .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
             {
                 if (pra.IsNotUpdateInsert) continue;
-                par.AppendFormat(" {0} = {2}p{1},", pra.GetColumnName(providerName), ++i,
-                    UtilsCore.PrefParam(providerName));
+                par.AppendFormat(" {0} = {2}p{1},", pra.GetColumnName(Provider), ++i, parName);
+            }
 
+            var pk = PrimaryKeyAttribute.Value;
+            sb.AppendFormat("UPDATE {0} SET {1} WHERE {2} = {4}p{3} ", TableAttribute.Value.TableName(Provider),
+                par.ToString().Trim(','),
+                pk.GetColumnName(Provider), ++i, parName);
+
+            return allSql.Append(sb).ToString();
+        }
+
+      
+        public static void CreateUpdateCommandPostgres(IDbCommand command, T item, ProviderName providerName,
+          params AppenderWhere[] whereObjects)
+        {
+            Provider = providerName;
+            var sql = TemplateUpdatePostgres.Value;
+            var parName = UtilsCore.PrefParam(providerName);
+            var i = 0;
+
+            foreach (var pra in AttributeDalList.Value
+                         .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
+            {
+                if (pra.IsNotUpdateInsert) continue;
                 IDataParameter pr = command.CreateParameter();
-                pr.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
-                var prCore =
-                    item.GetType()
-                        .GetProperties()
-                        .First(a => a.Name == pra.PropertyName);
+                pr.ParameterName = string.Format("{1}p{0}", ++i, parName);
                 object val;
-                var st = UtilsCore.GetSerializeType(prCore.PropertyType);
-                if (st == SerializeType.User)
-                    val = ((IMapSerializable)GetValue.Value[prCore.Name](item)).Serialize();
-                else if (prCore.PropertyType.BaseType == typeof(Enum))
-                    val = (int)GetValue.Value[prCore.Name](item);
+                if (pra.PropertyType.BaseType == typeof(Enum))
+                    val = (int)GetValue.Value[pra.PropertyName](item);
                 else
-                    val = GetValue.Value[prCore.Name](item);
+                    val = GetValue.Value[pra.PropertyName](item);
 
                 pr.Value = val ?? DBNull.Value;
-                if (prCore.PropertyType.BaseType == typeof(Enum))
+                if (pra.PropertyType.BaseType == typeof(Enum))
                     pr.DbType = DbTypeConverter.ConvertFrom(typeof(int));
                 else
                     pr.DbType = pra.DbType();
 
-                if (prCore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.SqLite)
+                if (pra.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.SqLite)
                 {
                     pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
-                    pr.Value = GetValue.Value[prCore.Name](item).ToString();
+                    pr.Value = GetValue.Value[pra.PropertyName](item).ToString();
                 }
-
                 command.Parameters.Add(pr);
             }
 
- 
             var pk = PrimaryKeyAttribute.Value;
-            sb.AppendFormat("UPDATE {0} SET {1} WHERE {2} = {4}p{3} ", TableAttribute.Value.TableName(providerName),
-                par.ToString().Trim(','),
-                pk.GetColumnName(providerName), ++i,
-                UtilsCore.PrefParam(providerName));
-
             IDataParameter pr1 = command.CreateParameter();
-            pr1.ParameterName = string.Format("{1}p{0}", i, UtilsCore.PrefParam(providerName));
-           
+            pr1.ParameterName = string.Format("{1}p{0}", ++i, parName);
             var val1 = GetValue.Value[pk.PropertyName](item);
             pr1.Value = val1 ?? DBNull.Value;
             pr1.DbType = pk.DbType();
             command.Parameters.Add(pr1);
-            allSql.Append(sb);
-
 
             if (whereObjects != null && whereObjects.Length > 0)
+            {
+                StringBuilder builder = new StringBuilder(sql);
                 foreach (var o in whereObjects)
                 {
-                    var nameParam = $"{UtilsCore.PrefParam(providerName)}p{++i}";
-                    allSql.Append($" AND {o.ColumnName} = {nameParam}");
+                    var nameParam = $"{parName}p{++i}";
+                    builder.Append($" AND {o.ColumnName} = {nameParam}");
                     dynamic d = command.Parameters;
                     d.AddWithValue(nameParam, o.Value);
                 }
-
-            command.CommandText = allSql + ";";
+                command.CommandText = builder.Append(";").ToString();
+            }
+            else
+            {
+                command.CommandText = sql + ";";
+            }
         }
 
         public static string CreateCommandLimitForMySql(List<OneComposite> listOne, ProviderName providerName)
@@ -745,137 +747,10 @@ namespace ORM_1_21_
             var e = PrimaryKeyAttribute.Value;
             if (e.Generator != Generator.Native) return;
             var valCore = UtilsCore.ConverterPrimaryKeyType(e.TypeColumn, Convert.ToDecimal(val));
-            item.GetType().GetProperty(e.PropertyName).SetValue(item, valCore, null);
+            SetValue.Value[e.PropertyName](item, valCore);
         }
 
-        public static void CreateInsetCommand(IDbCommand command, T obj, ProviderName providerName)
-        {
-            Provider = providerName;
-            var allSb = new StringBuilder();
-            const string par = "p";
-            var i = 0;
 
-
-            var sb = new StringBuilder();
-            var values = new StringBuilder(" VALUES (");
-            sb.AppendFormat("INSERT INTO {0} (", TableAttribute.Value.TableName(providerName));
-            var pk = PrimaryKeyAttribute.Value;
-
-            if (pk.IsNotUpdateInsert || pk.Generator != Generator.Assigned)
-            {
-
-            }
-            else
-            {
-                if (providerName == ORM_1_21_.ProviderName.PostgreSql ||
-                    providerName == ORM_1_21_.ProviderName.SqLite)
-                    sb.AppendFormat($"{pk.GetColumnName(providerName)}, ");
-                else
-                    sb.AppendFormat("{0}.{1}, ", TableAttribute.Value.TableName(providerName),
-                        pk.GetColumnName(providerName));
-                if (pk.IsForeignKey)
-                {
-                    values.Append(" @basekey, ");
-                }
-                else
-                {
-                    values.AppendFormat("{0}{1}{2},", UtilsCore.PrefParam(providerName), par, ++i);
-                    IDataParameter pr = command.CreateParameter(); // 
-                    pr.ParameterName = $"{UtilsCore.PrefParam(providerName)}{par}{i}";
-                    var val = GetValue.Value[pk.PropertyName](obj);
-                    pr.Value = val ?? DBNull.Value;
-                    pr.DbType = pk.DbType();
-                    command.Parameters.Add(pr);
-                }
-            }
-
-            foreach (var rtp in AttributeDalList.Value)
-            {
-                if (rtp.IsNotUpdateInsert) continue;
-
-                if (providerName == ORM_1_21_.ProviderName.PostgreSql ||
-                    providerName == ORM_1_21_.ProviderName.SqLite)
-                    sb.AppendFormat($"{rtp.GetColumnName(providerName)}, ");
-                else
-                    sb.AppendFormat("{0}.{1},", TableAttribute.Value.TableName(providerName),
-                        rtp.GetColumnName(providerName));
-
-                if (rtp.IsForeignKey)
-                {
-                    values.Append(" @basekey, ");
-                }
-                else
-                {
-                    var isEnum = false;
-                    values.AppendFormat("{0}{1}{2},", UtilsCore.PrefParam(providerName), par, ++i);
-                    IDataParameter pr = command.CreateParameter(); // ProviderFactories.GetParameter(providerName);
-                    pr.ParameterName = $"{UtilsCore.PrefParam(providerName)}{par}{i}";
-                    var prCore = obj.GetType().GetProperty(rtp.PropertyName);
-                    object val;
-                    var st = UtilsCore.GetSerializeType(prCore.PropertyType);
-                    if (prCore.PropertyType.BaseType == typeof(Enum))
-                    {
-                        val = (int)GetValue.Value[prCore.Name](obj);
-                        isEnum = true;
-                    }
-                    else if (st == SerializeType.User)
-                    {
-                        val = ((IMapSerializable)GetValue.Value[prCore.Name](obj)).Serialize();
-                    }
-                    else
-                    {
-                        val = GetValue.Value[prCore.Name](obj);
-                    }
-
-                    if (prCore.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.SqLite)
-                    {
-                        pr.Value = val.ToString();
-                        pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
-                    }
-                    else
-                    {
-                        pr.Value = val ?? DBNull.Value;
-                        pr.DbType = isEnum ? DbTypeConverter.ConvertFrom(typeof(int)) : rtp.DbType();
-                    }
-                    command.Parameters.Add(pr);
-                }
-            }
-
-            sb = new StringBuilder(sb.ToString().Trim(' ', ',') + ") ");
-            sb.Append(values.ToString().Trim(' ', ',') + ") ");
-            allSb.Append(sb);
-
-
-            if (PkAttribute(providerName).Generator == Generator.Native)
-                switch (providerName)
-                {
-                    case ORM_1_21_.ProviderName.MsSql:
-                        {
-                            allSb.Append($" SELECT IDENT_CURRENT ('{TableAttribute.Value.TableName(providerName)}')");
-                            break;
-                        }
-                    case ORM_1_21_.ProviderName.PostgreSql:
-                        {
-                            allSb.Append($" RETURNING {PkAttribute(providerName).GetColumnName(providerName)}");
-                            break;
-                        }
-                    case ORM_1_21_.ProviderName.SqLite:
-                        {
-                            allSb.Append(";select last_insert_rowid()");
-                            break;
-                        }
-                    case ORM_1_21_.ProviderName.MySql:
-                        {
-                            allSb.Append("; SELECT LAST_INSERT_ID()");
-                            break;
-                        }
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-
-
-            command.CommandText = allSb + ";";
-        }
 
         public static void CreateDeleteCommand(IDbCommand command, T obj, ProviderName providerName)
         {
@@ -902,5 +777,161 @@ namespace ORM_1_21_
         public static void Init()
         {
         }
+
+        private static readonly Lazy<string> InsertTemplate =
+            new Lazy<string>(CreateInsertTemplate, LazyThreadSafetyMode.PublicationOnly);
+
+        private static string CreateInsertTemplate()
+        {
+            string parName = UtilsCore.PrefParam(Provider);
+
+            var sb = new StringBuilder();
+            const string par = "p";
+            var i = 0;
+            var values = new StringBuilder(" VALUES (");
+
+            sb.AppendFormat("INSERT INTO {0} (", TableAttribute.Value.TableName(Provider));
+            var pk = PrimaryKeyAttribute.Value;
+
+            if (pk.IsNotUpdateInsert || pk.Generator != Generator.Assigned)
+            {
+
+            }
+            else
+            {
+                if (Provider == ORM_1_21_.ProviderName.PostgreSql ||
+                    Provider == ORM_1_21_.ProviderName.SqLite)
+                    sb.AppendFormat($"{pk.GetColumnName(Provider)}, ");
+                else
+                    sb.AppendFormat("{0}.{1}, ", TableAttribute.Value.TableName(Provider),
+                        pk.GetColumnName(Provider));
+
+                values.AppendFormat("{0}{1}{2},", parName, par, ++i);
+
+            }
+            foreach (var rtp in AttributeDalList.Value)
+            {
+                if (rtp.IsNotUpdateInsert) continue;
+
+                if (Provider == ORM_1_21_.ProviderName.PostgreSql ||
+                    Provider == ORM_1_21_.ProviderName.SqLite)
+                    sb.AppendFormat($"{rtp.GetColumnName(Provider)}, ");
+                else
+                    sb.AppendFormat("{0}.{1},", TableAttribute.Value.TableName(Provider), rtp.GetColumnName(Provider));
+                //sb = new StringBuilder(sb.ToString().Trim(' ', ',') + "");
+                values.AppendFormat("{0}{1}{2},", parName, par, ++i);
+
+            }
+
+            string s = sb.ToString().Trim(' ', ',');
+            sb.Clear().Append(s).Append(") ");
+
+
+            sb.Append(values.ToString().Trim(' ', ',')).Append(") ");
+
+
+
+
+
+            if (PkAttribute(Provider).Generator == Generator.Native)
+                switch (Provider)
+                {
+                    case ORM_1_21_.ProviderName.MsSql:
+                        {
+                            sb.Append($" SELECT IDENT_CURRENT ('{TableAttribute.Value.TableName(Provider)}')");
+                            break;
+                        }
+                    case ORM_1_21_.ProviderName.PostgreSql:
+                        {
+                            sb.Append($" RETURNING {PkAttribute(Provider).GetColumnName(Provider)}");
+                            break;
+                        }
+                    case ORM_1_21_.ProviderName.SqLite:
+                        {
+                            sb.Append(";select last_insert_rowid()");
+                            break;
+                        }
+                    case ORM_1_21_.ProviderName.MySql:
+                        {
+                            sb.Append("; SELECT LAST_INSERT_ID()");
+                            break;
+                        }
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+            sb.Append(";");
+
+            return sb.ToString();
+
+        }
+
+     
+
+        public static void CreateInsetCommand(IDbCommand command, T obj, ProviderName providerName)
+        { 
+            Provider = providerName;
+            var ssq = InsertTemplate.Value;
+         
+            string parName = UtilsCore.PrefParam(providerName);
+            const string par = "p";
+            var i = 0;
+            var pk = PrimaryKeyAttribute.Value;
+            if (pk.IsNotUpdateInsert || pk.Generator != Generator.Assigned)
+            {
+
+            }
+            else
+            {
+                IDataParameter pr = command.CreateParameter(); // 
+                pr.ParameterName = $"{parName}{par}{++i}";
+                var val = GetValue.Value[pk.PropertyName](obj);
+                pr.Value = val ?? DBNull.Value;
+                pr.DbType = pk.DbType();
+                command.Parameters.Add(pr);
+
+            }
+            foreach (var rtp in AttributeDalList.Value)
+            {
+                if (rtp.IsNotUpdateInsert) continue;
+                var isEnum = false;
+                IDataParameter pr = command.CreateParameter(); // ProviderFactories.GetParameter(providerName);
+                pr.ParameterName = $"{parName}{par}{++i}";
+                object val;
+                if (rtp.PropertyType.BaseType == typeof(Enum))
+                {
+                    val = (int)GetValue.Value[rtp.PropertyName](obj);
+                    isEnum = true;
+                }
+                else
+                {
+                    val = GetValue.Value[rtp.PropertyName](obj);
+                }
+
+                if (rtp.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.SqLite)
+                {
+                    pr.Value = val.ToString();
+                    pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
+                }
+                else
+                {
+                    pr.Value = val ?? DBNull.Value;
+                    pr.DbType = isEnum ? DbTypeConverter.ConvertFrom(typeof(int)) : rtp.DbType();
+                }
+                command.Parameters.Add(pr);
+            }
+            command.CommandText = ssq;
+        }
+
+
+
+    }
+
+    class DataRiderData
+    {
+       
+        public Type PropertyType { get; set; }
+        public string PropertyName { get; set; }
+
     }
 }

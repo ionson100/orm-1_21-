@@ -140,7 +140,7 @@ namespace ORM_1_21_.Linq
 
                 if (cancellationToken != default)
                 {
-                    registration = cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, _session.Transactionale, _providerName));
+                    registration = cancellationToken.Register(UtilsCore.CancelRegistr(com, cancellationToken, _session.Transactionale, _providerName));
                 }
 
                 if (PingCompositeE(Evolution.All, listCore))
@@ -349,8 +349,8 @@ namespace ORM_1_21_.Linq
                             var par = new List<object>();
                             for (var i = 0; i < count; i++)
                             {
-                                var val = Pizdaticus.MethodFree(_providerName, list[i], dataReader[i]);
-                                par.Add(dataReader[i] == DBNull.Value ? null : val);
+                                var val = Pizdaticus.MethodFreeIndex(_providerName, list[i], dataReader,i);
+                                par.Add(val);
                             }
                             var e = ci.Invoke(par.ToArray());
                             resDis.Add((TS)e);
@@ -386,9 +386,9 @@ namespace ORM_1_21_.Linq
                             var par = new List<object>();
                             for (var i = 0; i < count; i++)
                             {
-                                var val = Pizdaticus.MethodFree(_providerName, ci.GetParameters()[i].ParameterType,
-                                    dataReader[i]);
-                                par.Add(dataReader[i] == DBNull.Value ? null : val);
+                                var val = Pizdaticus.MethodFreeIndex(_providerName, ci.GetParameters()[i].ParameterType,
+                                    dataReader,i);
+                                par.Add(val);
                             }
 
                             var e = ci.Invoke(par.ToArray());
@@ -401,7 +401,7 @@ namespace ORM_1_21_.Linq
                              typeof(TS).GetInterface("IEnumerable") != null || typeof(TS).IsGenericTypeDefinition)
                     {
                         while (dataReader.Read())
-                            resDis.Add((TS)(dataReader[0] == DBNull.Value ? null : Pizdaticus.MethodFree(_providerName, typeof(TS), dataReader[0])));
+                            resDis.Add((TS)Pizdaticus.MethodFreeIndex(_providerName, typeof(TS), dataReader,0));
                     }
                     else
                     {

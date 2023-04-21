@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Text;
 
 namespace ORM_1_21_.Utils
@@ -30,7 +29,7 @@ namespace ORM_1_21_.Utils
                 if (map.TypeString == null)
                 {
                     builder.AppendLine(
-                        $" \"{UtilsCore.ClearTrim(map.ColumnNameForReader(providerName))}\" {GetTypePg(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,");
+                        $" \"{UtilsCore.ClearTrim(map.ColumnNameForReader(providerName))}\" {GetTypePg(map.PropertyType)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.PropertyType)} ,");
                 }
                 else
                 {
@@ -118,9 +117,9 @@ namespace ORM_1_21_.Utils
                 return "smallint";
             if (type == typeof(char) || type == typeof(char?))
                 return "character(1)";
-            var st = UtilsCore.GetSerializeType(type);
-            if (st==SerializeType.User) 
-                return "TEXT";
+           //var st = UtilsCore.GetSerializeType(type);
+           //if (st==SerializeType.User) 
+           //    return "TEXT";
 
             if (type == typeof(byte[])) 
                 return "BYTEA";

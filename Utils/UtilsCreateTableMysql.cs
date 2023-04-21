@@ -42,9 +42,9 @@ namespace ORM_1_21_.Utils
             //builder.AppendLine($" `{pk.ColumnNameForRider(providerName)}` {GetTypeMySql(pk.TypeColumn)}  PRIMARY KEY {(pk.Generator == Generator.Native ? "AUTO_INCREMENT" : "")},");
             foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
-                string typeColumn = map.TypeString ?? GetTypeMySql(map.TypeColumn);
+                string typeColumn = map.TypeString ?? GetTypeMySql(map.PropertyType);
                 string sd =
-                    $" `{map.ColumnNameForReader(providerName)}` {typeColumn} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)} ,";
+                    $" `{map.ColumnNameForReader(providerName)}` {typeColumn} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.PropertyType)} ,";
                 builder.AppendLine(sd);
             }
 

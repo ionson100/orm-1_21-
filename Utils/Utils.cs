@@ -1,6 +1,4 @@
-﻿using ORM_1_21_.Linq;
-using System;
-using System.Collections.Concurrent;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -8,18 +6,19 @@ using System.Data.Common;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-
+using ORM_1_21_.Linq;
 
 namespace ORM_1_21_.Utils
 {
     internal static class UtilsCore
     {
+        internal const string Bungalo = "____";
+
         private static readonly List<Evolution> EvolutionsList = new List<Evolution>
         {
             Evolution.FreeSql,
@@ -31,24 +30,8 @@ namespace ORM_1_21_.Utils
             Evolution.DataTable,
             Evolution.DropTable
         };
-        internal static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> source, int chunkLength)
-        {
-            var enumerable = source as IList<T> ?? source.ToList();
-            using (var enumerator = enumerable.GetEnumerator())
-            {
-                while (enumerator.MoveNext()) yield return InnerSplit(enumerator, chunkLength);
-            }
-        }
-        private static IEnumerable<T> InnerSplit<T>(IEnumerator<T> enumerator, int splitSize)
-        {
-            var count = 0;
-            do
-            {
-                count++;
-                yield return enumerator.Current;
-            } while (count % splitSize != 0
-                     && enumerator.MoveNext());
-        }
+
+
         private static readonly HashSet<Type> Hlam = new HashSet<Type>
         {
             typeof(uint),
@@ -83,25 +66,22 @@ namespace ORM_1_21_.Utils
             typeof(Guid?),
             typeof(Guid),
             typeof(Enum),
-            typeof(byte[]),
+            typeof(byte[])
+        };
 
-    };
-        // private static readonly ConcurrentDictionary<Type, bool> SerializableTypeDictionary = new ConcurrentDictionary<Type, bool>();
         private static readonly HashSet<Type> NumericTypes = new HashSet<Type>
         {
-
-           typeof(byte),
-           typeof(sbyte),
-           typeof(ushort),
-           typeof(uint),
-           typeof(ulong),
-           typeof(short),
-           typeof(int),
-           typeof(long),
-           typeof(decimal),
-           typeof(double),
-           typeof(float),
-
+            typeof(byte),
+            typeof(sbyte),
+            typeof(ushort),
+            typeof(uint),
+            typeof(ulong),
+            typeof(short),
+            typeof(int),
+            typeof(long),
+            typeof(decimal),
+            typeof(double),
+            typeof(float)
         };
 
         public static bool IsReceiverFreeSql<T>()
@@ -110,12 +90,12 @@ namespace ORM_1_21_.Utils
             if (typeof(T).IsGenericType) return false;
             return AttributesOfClass<T>.IsReceiverFreeSqlInner;
         }
+
         public static bool IsValid<T>()
         {
             if (Hlam.Contains(typeof(T))) return false;
             if (typeof(T).IsGenericType) return false;
             return AttributesOfClass<T>.IsValidInner;
-
         }
 
         internal static bool IsNumericType(Type type)
@@ -124,31 +104,8 @@ namespace ORM_1_21_.Utils
                    NumericTypes.Contains(Nullable.GetUnderlyingType(type));
         }
 
-        internal const string Bungalo = "____";
-
-
-        internal static string Pref(ProviderName providerName)
-        {
-
-            switch (providerName)
-            {
-                case ProviderName.MsSql:
-                    return "SELECT IDENT_CURRENT ('{1}');";
-                case ProviderName.MySql:
-                    return "SELECT LAST_INSERT_ID();";
-                case ProviderName.PostgreSql:
-                    return "RETURNING {2};";
-                case ProviderName.SqLite:
-                    return ";select last_insert_rowid();";
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-        }
-
         internal static string PrefParam(ProviderName providerName)
         {
-
             switch (providerName)
             {
                 case ProviderName.MsSql:
@@ -162,18 +119,15 @@ namespace ORM_1_21_.Utils
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
         }
 
-        internal static string Table1AliasForJoin = "tt1";
 
         internal static bool IsAnonymousType(Type type)
         {
             return Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
                    && type.IsGenericType && type.Name.Contains("AnonymousType")
                    && (type.Name.StartsWith("<>", StringComparison.OrdinalIgnoreCase) ||
-                       type.Name.StartsWith("VB$", StringComparison.OrdinalIgnoreCase))
-                   && (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
+                       type.Name.StartsWith("VB$", StringComparison.OrdinalIgnoreCase));
         }
 
 
@@ -278,7 +232,7 @@ namespace ORM_1_21_.Utils
             //    return new Guid(ob.ToString());
             //}
 
-            string message = string.Format(CultureInfo.CurrentCulture, "Can't convert type {0} as {1}",
+            var message = string.Format(CultureInfo.CurrentCulture, "Can't convert type {0} as {1}",
                 ob.GetType().FullName, typeof(TR));
             throw new Exception(message);
         }
@@ -289,11 +243,8 @@ namespace ORM_1_21_.Utils
             {
                 if (type.IsGenericType) return null;
 
-                if (!type.IsValueType) return (object)null;
-                if (type == typeof(DateTime))
-                {
-                    return DateTime.MinValue;
-                }
+                if (!type.IsValueType) return null;
+                if (type == typeof(DateTime)) return DateTime.MinValue;
 
                 return Activator.CreateInstance(type);
             }
@@ -334,102 +285,57 @@ namespace ORM_1_21_.Utils
             if (type == typeof(sbyte?)) return Convert.ToSByte(ob, CultureInfo.InvariantCulture);
             if (type == typeof(float?)) return Convert.ToSingle(ob, CultureInfo.InvariantCulture);
             if (type == typeof(byte[])) return (byte[])ob;
-            if (type == typeof(object)) return (object)ob;
+            if (type == typeof(object)) return ob;
             //var t = typeof(TR);
             //if (typeof(TR) == typeof(Guid))
             //{
             //    return new Guid(ob.ToString());
             //}
 
-            string message = string.Format(CultureInfo.CurrentCulture, "Can't convert type {0} as {1}",
+            var message = string.Format(CultureInfo.CurrentCulture, "Can't convert type {0} as {1}",
                 ob.GetType().FullName, type);
             throw new Exception(message);
         }
 
 
-
-
-
-
-
-
-        internal static string TanslycatorFieldParam1(string nameField, string table1)
-        {
-            var matsup =
-                new Regex(@"[aA-zZаА-яЯ\d[_]*]*\.[aA-zZаА-яЯ\d[_]*]*").Matches(nameField.Replace("`", "")
-                    .Replace("[", "").Replace("]", ""));
-            var dd = matsup[0].ToString().Split('.');
-            return string.Format("{0}.{1}", table1, dd[1]);
-        }
-
         internal static object ConverterPrimaryKeyType(Type typeColumn, object val)
         {
-
-
             if (typeColumn == typeof(string))
                 return val.ToString();
             if (typeColumn == typeof(Guid))
 
                 return (Guid)val;
             if (typeColumn == typeof(decimal))
-                return Convert.ToDecimal(val); ;
+                return Convert.ToDecimal(val);
             if (typeColumn == typeof(short))
-                return Convert.ToInt16(val); ;
+                return Convert.ToInt16(val);
             if (typeColumn == typeof(int))
-                return Convert.ToInt32(val); ;
+                return Convert.ToInt32(val);
             if (typeColumn == typeof(long))
-                return Convert.ToInt64(val); ;
+                return Convert.ToInt64(val);
             if (typeColumn == typeof(ushort))
-                return Convert.ToUInt16(val); ;
+                return Convert.ToUInt16(val);
             if (typeColumn == typeof(uint))
-                return Convert.ToUInt32(val); ;
+                return Convert.ToUInt32(val);
             if (typeColumn == typeof(ulong))
-                return Convert.ToUInt64(val); ;
+                return Convert.ToUInt64(val);
 
             if (typeColumn == typeof(double))
                 return Convert.ToDouble(val);
 
             if (typeColumn == typeof(float))
-                return (float)Convert.ToDouble(val); ;
+                return (float)Convert.ToDouble(val);
             throw new Exception($"Can't find type to convert primary key {typeColumn} {val}");
         }
 
         internal static bool ColumnExists(IDataReader reader, string columnName)
         {
             for (var i = 0; i < reader.FieldCount; i++)
-            {
-                if (reader.GetName(i) == columnName) return true;
-            }
+                if (reader.GetName(i) == columnName)
+                    return true;
 
             return false;
         }
-
-        private static readonly ConcurrentDictionary<Type, SerializeType> SerializeTypes = new ConcurrentDictionary<Type, SerializeType>();
-
-
-        internal static SerializeType GetSerializeType(Type type)
-        {
-            if (IsAnonymousType(type))
-                return SerializeType.None;
-            if (Hlam.Contains(type))
-                return SerializeType.None;
-            if (SerializeTypes.ContainsKey(type) == false)
-            {
-                if (type.GetInterfaces().Contains(typeof(IMapSerializable)))
-                {
-                    SerializeTypes.TryAdd(type, SerializeType.User);
-                }
-                else
-                {
-                    SerializeTypes.TryAdd(type, SerializeType.None);
-                }
-
-
-            }
-
-            return SerializeTypes[type];
-        }
-
 
 
         public static string ClearTrim(string tableName)
@@ -454,11 +360,11 @@ namespace ORM_1_21_.Utils
 
         public static string[] MySplit(string str)
         {
-            List<string> list = new List<string>();
+            var list = new List<string>();
             str = str.Trim(' ', ',');
-            StringBuilder builder = new StringBuilder();
-            int stop = 0;
-            foreach (char c in str)
+            var builder = new StringBuilder();
+            var stop = 0;
+            foreach (var c in str)
             {
                 if (c == '(') stop = ++stop;
                 if (c == ')') stop = --stop;
@@ -467,6 +373,7 @@ namespace ORM_1_21_.Utils
                     builder.Append(c);
                     continue;
                 }
+
                 if (c != ',')
                 {
                     builder.Append(c);
@@ -478,50 +385,33 @@ namespace ORM_1_21_.Utils
                 }
             }
 
-            if (builder.Length > 0)
-            {
-                list.Add(builder.ToString());
-            }
+            if (builder.Length > 0) list.Add(builder.ToString());
 
             return list.ToArray();
-
         }
-
-
 
 
         public static void AddParamsForCache(StringBuilder b, string sql, ProviderName providerName, List<object> param)
         {
             if (param == null) return;
             if (param.Count == 0) return;
-            Regex regex = new Regex(@"\@([\w.$]+|""[^""]+""|'[^']+')");
-            if (providerName == ProviderName.MySql)
-            {
-                regex = new Regex(@"\?([\w.$]+|""[^""]+""|'[^']+')");
-
-            }
-            MatchCollection matches = regex.Matches(sql);
-            for (var index = 0; index < matches.Count; index++)
-            {
-                b.Append($" {matches[index].Value} - {param[index]} ");
-            }
+            var regex = new Regex(@"\@([\w.$]+|""[^""]+""|'[^']+')");
+            if (providerName == ProviderName.MySql) regex = new Regex(@"\?([\w.$]+|""[^""]+""|'[^']+')");
+            var matches = regex.Matches(sql);
+            for (var index = 0; index < matches.Count; index++) b.Append($" {matches[index].Value} - {param[index]} ");
         }
+
         public static void AddParam(IDbCommand com, ProviderName providerName, object[] param)
         {
             if (param == null) return;
             if (param.Length == 0) return;
-            string sql = com.CommandText;
+            var sql = com.CommandText;
 
-            Regex regex = new Regex(@"\@([\w.$]+|""[^""]+""|'[^']+')");
-            if (providerName == ProviderName.MySql)
-            {
-                regex = new Regex(@"\?([\w.$]+|""[^""]+""|'[^']+')");
-
-            }
-            MatchCollection matches = regex.Matches(sql);
+            var regex = new Regex(@"\@([\w.$]+|""[^""]+""|'[^']+')");
+            if (providerName == ProviderName.MySql) regex = new Regex(@"\?([\w.$]+|""[^""]+""|'[^']+')");
+            var matches = regex.Matches(sql);
 
             for (var index = 0; index < matches.Count; index++)
-            {
                 if (param[index] is IDbDataParameter)
                 {
                     com.Parameters.Add((IDbDataParameter)param[index]);
@@ -531,13 +421,10 @@ namespace ORM_1_21_.Utils
                     dynamic d = com.Parameters;
                     d.AddWithValue(matches[index].Value, param[index] ?? DBNull.Value);
                 }
-
-
-
-            }
         }
 
-        public static Action CancellRegistr(IDbCommand com, CancellationToken cancellationToken, Transactionale transactionale, ProviderName providerName)
+        public static Action CancelRegistr(IDbCommand com, CancellationToken cancellationToken,
+            Transactionale transactionale, ProviderName providerName)
         {
             return () =>
             {
@@ -552,13 +439,9 @@ namespace ORM_1_21_.Utils
                     {
                         com.Cancel();
                     }
-
-
-
                 }
                 catch (Exception ex)
                 {
-                    
                     MySqlLogger.Error("cancellationToken", ex);
                 }
                 finally
@@ -572,7 +455,7 @@ namespace ORM_1_21_.Utils
 
         public static string CheckAny(List<OneComposite> listOne)
         {
-            foreach (Evolution evolution in EvolutionsList)
+            foreach (var evolution in EvolutionsList)
             {
                 var ss = listOne.FirstOrDefault(a => a.Operand == evolution);
                 if (ss != null)
@@ -587,21 +470,15 @@ namespace ORM_1_21_.Utils
             switch (type.ToLower().Trim())
             {
                 case "blob":
-                    {
-                        if (isPk)
-                        {
-                            return "Guid";
-                        }
-                        return "byte[]";
-                    }
+                {
+                    if (isPk) return "Guid";
+                    return "byte[]";
+                }
                 case "text":
-                    {
-                        if (isPk)
-                        {
-                            return "Guid";
-                        }
-                        return "string";
-                    }
+                {
+                    if (isPk) return "Guid";
+                    return "string";
+                }
                 case "integer": return "int";
                 case "real": return "Int16";
                 case "numeric": return "decimal";
@@ -615,6 +492,7 @@ namespace ORM_1_21_.Utils
                 case "tinyint": return "bool";
                 case "boolean": return "bool";
             }
+
             if (type.ToLower().Contains("text")) return "string";
             if (type.ToLower().Contains("double")) return "double";
             if (type.ToLower().Contains("decimal")) return "decimal";
@@ -623,16 +501,9 @@ namespace ORM_1_21_.Utils
             if (type.ToLower().Contains("uniqueidentifier")) return "Guid";
             if (type.ToLower().Contains("varchar")) return "string";
             if (type.ToLower().Contains("datetime")) return "DateTime";
-            
-            return type;
 
+            return type;
         }
     }
 
-    internal enum SerializeType
-    {
-        None, User
-    }
 }
-
-

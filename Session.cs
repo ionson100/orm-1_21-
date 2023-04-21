@@ -46,6 +46,12 @@ namespace ORM_1_21_
 
         object IServiceSessions.Locker { get; } = new object();
 
+        public int Insert<TSource>(TSource source) where TSource : class
+        {
+            Check.NotNull(source, nameof(source), () => Transactionale.isError = true);
+            return InsertNew(source);
+        }
+
         int ISession.Delete<TSource>(TSource source)
         {
             Check.NotNull(source, "source", () => Transactionale.isError = true);
@@ -308,7 +314,7 @@ namespace ORM_1_21_
                 if (cancellationToken != default)
                 {
                     registration =
-                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale, MyProviderName));
+                        cancellationToken.Register(UtilsCore.CancelRegistr(com, cancellationToken, Transactionale, MyProviderName));
                 }
                 return await com.ExecuteReaderAsync();
             }
@@ -343,7 +349,7 @@ namespace ORM_1_21_
                 if (cancellationToken != default)
                 {
                     registration =
-                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale, MyProviderName));
+                        cancellationToken.Register(UtilsCore.CancelRegistr(com, cancellationToken, Transactionale, MyProviderName));
                 }
 
                 return await com.ExecuteReaderAsync();
@@ -600,7 +606,7 @@ namespace ORM_1_21_
                 if (cancellationToken != default)
                 {
 
-                    registration = cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale, MyProviderName));
+                    registration = cancellationToken.Register(UtilsCore.CancelRegistr(com, cancellationToken, Transactionale, MyProviderName));
                 }
                 var res = await com.ExecuteNonQueryAsync();
                 if (registration.HasValue)
@@ -1032,6 +1038,93 @@ namespace ORM_1_21_
             com.CommandTimeout = timeOut;
         }
 
+        private int InsertNew<TSource>(TSource source) where TSource : class
+        {
+            var res = 0;
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            com.CommandText = string.Empty;
+            try
+            {
+                NotificBefore(source, ActionMode.Insert);
+                AttributesOfClass<TSource>.CreateInsetCommand(com, source, MyProviderName);
+                OpenConnectAndTransaction(com);
+                if (AttributesOfClass<TSource>.PkAttribute(MyProviderName).Generator == Generator.Assigned)
+                {
+                    var val = com.ExecuteNonQuery();
+                    if (val == 1)
+                    {
+                        ((ISession)this).ToPersistent(source);
+                        res = 1;
+                        this.CacheClear<TSource>();
+                        NotificAfter(source, ActionMode.Insert);
+                    }
+                }
+                else
+                {
+                    var val = com.ExecuteScalar();
+                    if (val != null)
+                    {
+                        AttributesOfClass<TSource>.RedefiningPrimaryKey(source, val, MyProviderName);
+                        ((ISession)this).ToPersistent(source);
+                        res = 1;
+                        this.CacheClear<TSource>();
+                        NotificAfter(source, ActionMode.Insert);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Transactionale.isError = true;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
+            }
+            finally
+            {
+                ComDisposable(com);
+            }
+
+            return res;
+        }
+
+        private int UpdateNew<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class
+        {
+            var res = 0;
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            com.CommandText = string.Empty;
+            try
+            {
+                NotificBefore(source, ActionMode.Update);
+                if (MyProviderName == ProviderName.PostgreSql || MyProviderName == ProviderName.SqLite)
+                    AttributesOfClass<TSource>.CreateUpdateCommandPostgres(com, source, MyProviderName,
+                        whereObjects);
+                else
+                    AttributesOfClass<TSource>.CreateUpdateCommandMysql(com, source, MyProviderName, whereObjects);
+
+
+                OpenConnectAndTransaction(com);
+                res = com.ExecuteNonQuery();
+                if (res == 1)
+                {
+                    this.CacheClear<TSource>();
+                    NotificAfter(source, ActionMode.Update);
+                }
+            }
+            catch (Exception ex)
+            {
+                Transactionale.isError = true;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
+            }
+            finally
+            {
+                ComDisposable(com);
+            }
+
+            return res;
+        }
+
         private int SaveNew<TSource>(TSource source, params AppenderWhere[] whereObjects) where TSource : class
         {
             var res = 0;
@@ -1120,7 +1213,7 @@ namespace ORM_1_21_
                 if (cancellationToken != default)
                 {
                     registration =
-                        cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, Transactionale, MyProviderName));
+                        cancellationToken.Register(UtilsCore.CancelRegistr(com, cancellationToken, Transactionale, MyProviderName));
                 }
                 if (UtilsCore.IsPersistent(source))
                 {

@@ -12,7 +12,6 @@ namespace ORM_1_21_.Utils
         public UtilsBulkMsSql(ProviderName providerName)
         {
             _providerName = providerName;
-
         }
 
         public string GetSql<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
@@ -21,12 +20,12 @@ namespace ORM_1_21_.Utils
             {
                 return GetSqlFile(list, fileCsv, fieldterminator);
             }
-
-            return GetSimpleSql2(list);
+            return GetSimpleSql2New(list);
         }
+
         public string GetSql<T>(IEnumerable<T> list)
         {
-            return GetSimpleSql2(list);
+            return GetSimpleSql2New(list);
         }
 
         private string GetSqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldterminator)
@@ -56,8 +55,6 @@ namespace ORM_1_21_.Utils
             builder.Append(rowHead.ToString().Substring(0, rowHead.ToString().LastIndexOf(';')))
                 .Append(Environment.NewLine);
 
-
-
             foreach (var ob in list)
             {
                 StringBuilder row = new StringBuilder();
@@ -79,7 +76,6 @@ namespace ORM_1_21_.Utils
         }
 
 
-
         private string GetSimpleSql2<T>(IEnumerable<T> list)
         {
             bool isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator == Generator.Assigned;
@@ -93,7 +89,7 @@ namespace ORM_1_21_.Utils
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
             {
-                if ( map.TypeColumn == typeof(byte[]))
+                if ( map.PropertyType == typeof(byte[]))
                 {
                     continue;
                 }
@@ -128,6 +124,56 @@ namespace ORM_1_21_.Utils
             }
             var res = builder.ToString().Substring(0, builder.ToString().LastIndexOf("UNION ALL", StringComparison.Ordinal));
             return "SET DATEFORMAT YMD;" + res;
+        }
+
+
+        private string GetSimpleSql2New<T>(IEnumerable<T> list)
+        {
+            var pk = AttributesOfClass<T>.PkAttribute(_providerName);
+            var listDal = AttributesOfClass<T>.CurrentTableAttributeDal(_providerName);
+            bool isAddPk = pk.Generator == Generator.Assigned;
+            
+            StringBuilder builder = new StringBuilder();
+            builder.Append("INSERT INTO ").Append(AttributesOfClass<T>.TableName(_providerName)).AppendLine("");
+
+            StringBuilder partBuilder = new StringBuilder("(");
+            if (isAddPk)
+            {
+                partBuilder.Append(pk.GetColumnName(_providerName)).Append(", ");
+            }
+            foreach (MapColumnAttribute mapColumnAttribute in listDal)
+            {
+                partBuilder.Append(mapColumnAttribute.GetColumnName(_providerName)).Append(", ");
+            }
+
+            builder.Append(partBuilder.ToString().Trim(' ', ',')).Append(")");
+            builder.AppendLine(" VALUES ");
+          
+            foreach (T ob in list)
+            {  partBuilder.Clear();
+                partBuilder.Append("(");
+                if (isAddPk)
+                {
+                    var o = AttributesOfClass<T>.GetValueE(_providerName, pk.PropertyName, ob);
+                    Type type = AttributesOfClass<T>.PropertyInfoList.Value[pk.PropertyName].PropertyType;
+                    string str = new UtilsBulkMySql(_providerName).GetValue(o, type);
+                    partBuilder.Append(str).Append(", ");
+                }
+                foreach (var column in listDal)
+                {
+                    var o = AttributesOfClass<T>.GetValueE(_providerName, column.PropertyName, ob);
+                    Type type = AttributesOfClass<T>.PropertyInfoList.Value[column.PropertyName].PropertyType;
+                    string str = new UtilsBulkMySql(_providerName).GetValue(o, type);
+                    partBuilder.Append(str).Append(", ");
+                }
+
+                string b = partBuilder.ToString().Trim(' ', ',') + "),";
+                builder.AppendLine(b);
+              
+            }
+
+            string sql = builder.ToString();
+            return sql.Substring(0,sql.LastIndexOf(",",StringComparison.CurrentCulture));
         }
 
         public static string InsertFile<T>(string fileCsv, string fieldterminator, ProviderName providerName)

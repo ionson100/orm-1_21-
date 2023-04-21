@@ -32,7 +32,7 @@ namespace ORM_1_21_
         {
         }
 
-        internal Type TypeColumn { get; set; }
+       
 
         internal string ColumnNameForReader(ProviderName providerName)
         {
@@ -42,7 +42,7 @@ namespace ORM_1_21_
 
         internal DbType DbType()
         {
-            return DbTypeConverter.ConvertFrom(TypeColumn);
+            return DbTypeConverter.ConvertFrom(PropertyType);
         }
     }
     

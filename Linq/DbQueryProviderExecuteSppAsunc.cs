@@ -54,7 +54,7 @@ namespace ORM_1_21_.Linq
                 await _session.OpenConnectAndTransactionAsync(com);
                 if (cancellationToken != default)
                 {
-                    registration = cancellationToken.Register(UtilsCore.CancellRegistr(com, cancellationToken, _session.Transactionale, _providerName));
+                    registration = cancellationToken.Register(UtilsCore.CancelRegistr(com, cancellationToken, _session.Transactionale, _providerName));
                 }
                 dataReader = await com.ExecuteReaderAsync();
 

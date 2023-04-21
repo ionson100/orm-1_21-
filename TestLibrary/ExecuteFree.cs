@@ -122,7 +122,7 @@ namespace TestLibrary
         [MapReceiverFreeSql]
         private class ProxyFreeSql
         {
-            public ProxyFreeSql(Guid id, int age, TestUser user)
+            public ProxyFreeSql(Guid id, int age, string user)
             {
                 Id = id;
                 Age = age;
@@ -131,10 +131,10 @@ namespace TestLibrary
 
             private Guid Id { get; }
             private int Age { get;  }
-            private TestUser User { get;  }
+            private string User { get;  }
             public override string ToString()
             {
-                return $"id=\"{Id}\"  Age=\"{Age}\"   UserName=\"{User.Name}\"";
+                return $"id=\"{Id}\"  Age=\"{Age}\"  ";
             }
         }
     }

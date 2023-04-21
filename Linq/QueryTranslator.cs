@@ -2453,15 +2453,15 @@ namespace ORM_1_21_.Linq
 
             if (m.Member.MemberType == MemberTypes.Field)
             {
-                var st = UtilsCore.GetSerializeType(((FieldInfo)m.Member).FieldType);
-
-                if (st == SerializeType.User)
-                {
-                    var o = Expression.Lambda<Func<object>>(m).Compile()();
-                    var v = ((IMapSerializable)o).Serialize();
-                    AddParameter(v);
-                    return;
-                }
+              // var st = UtilsCore.GetSerializeType(((FieldInfo)m.Member).FieldType);
+              //
+              // if (st == SerializeType.User)
+              // {
+              //     var o = Expression.Lambda<Func<object>>(m).Compile()();
+              //     var v = ((IMapSerializable)o).Serialize();
+              //     AddParameter(v);
+              //     return;
+              // }
             }
 
             if (m.Member.ReflectedType == typeof(DateTime))
@@ -2800,20 +2800,22 @@ namespace ORM_1_21_.Linq
                     BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
                 if (fieldInfo != null)
                 {
-                    var ty = fieldInfo.FieldType;
-                    var st = UtilsCore.GetSerializeType(ty);
-                    switch (st)
-                    {
-                        case SerializeType.None:
-                            value = fieldInfo.GetValue(str);
-                            break;
-
-                        case SerializeType.User:
-                            value = ((IMapSerializable)str).Serialize();
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
+                    
+                    value = fieldInfo.GetValue(str);
+                 //    var ty = fieldInfo.FieldType;
+                 // var st = UtilsCore.GetSerializeType(ty);
+                 // switch (st)
+                 // {
+                 //     case SerializeType.None:
+                 //         
+                 //         break;
+                 //
+                 //     case SerializeType.User:
+                 //         value = ((IMapSerializable)str).Serialize();
+                 //         break;
+                 //     default:
+                 //         throw new ArgumentOutOfRangeException();
+                 // }
                 }
             }
 
@@ -2956,19 +2958,19 @@ namespace ORM_1_21_.Linq
                 return nex;
             }
 
-            var st = UtilsCore.GetSerializeType(nex.Type);
-            switch (st)
-            {
-                case SerializeType.User:
-                {
-                    var str = Expression.Lambda<Func<object>>(nex).Compile()();
-                    var p = ParamName;
-                    StringB.Append(p);
-                    var value = ((IMapSerializable)str).Serialize();
-                    Param.Add(p, value);
-                    return nex;
-                }
-            }
+           // var st = UtilsCore.GetSerializeType(nex.Type);
+           // switch (st)
+           // {
+           //     case SerializeType.User:
+           //     {
+           //         var str = Expression.Lambda<Func<object>>(nex).Compile()();
+           //         var p = ParamName;
+           //         StringB.Append(p);
+           //         var value = ((IMapSerializable)str).Serialize();
+           //         Param.Add(p, value);
+           //         return nex;
+           //     }
+           // }
 
 
             IEnumerable<Expression> args = VisitExpressionList(nex.Arguments);

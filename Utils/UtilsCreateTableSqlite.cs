@@ -40,8 +40,9 @@ namespace ORM_1_21_.Utils
 
             foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
+                var ee = map.PropertyName;
                 builder.AppendLine(
-                    $" {map.GetColumnName(providerName)} {GetTypeColumn(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
+                    $" {map.GetColumnName(providerName)} {GetTypeColumn(map.PropertyType)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.PropertyType)},");
             }
 
             string str2 = builder.ToString();

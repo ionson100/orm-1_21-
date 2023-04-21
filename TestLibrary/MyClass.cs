@@ -20,7 +20,7 @@ namespace TestLibrary
     [MapTable("my_class5")]
     public class MyClassMysql : MyClassBase { }
     [MapTable("my_class5")]
-    class MyClassPostgres : MyClassBase { }
+    public class MyClassPostgres : MyClassBase { }
 
     [MapTable()]
     class MyClassMsSql : MyClassBase { }

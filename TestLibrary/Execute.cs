@@ -544,10 +544,10 @@ namespace TestLibrary
                 o = session.Query<T>().First();
                 var b = true;
                 Log(66, b, "test serialize");
-                o.TestUser.Id = 100;
+                o.TestUser="A";
                 session.Save(o);
                 o = session.Query<T>().First();
-                Log(67, o.TestUser.Id == 100);
+                Log(67, o.TestUser=="A");
                 session.TruncateTable<T>();
                 list22.Add(new T { ValInt4 = 20 });
                 list22.Add(new T { ValInt4 = 20 });

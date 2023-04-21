@@ -47,6 +47,6 @@ namespace TestLibrary
 
         [MapColumn("test9")] public Guid? ValGuid { get; set; }
 
-        [MapColumn("testuser")] public TestUser TestUser { get; set; } = new TestUser { Id = 23, Name = "23" };
+        [MapColumn("testuser")] public string TestUser { get; set; } ="asas";
     }
 }

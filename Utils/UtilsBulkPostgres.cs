@@ -77,7 +77,7 @@ namespace ORM_1_21_.Utils
                 rowHead.Append($"\"{UtilsCore.ClearTrim(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))}\"").Append(",");
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
             {
-                if ( map.TypeColumn == typeof(byte[])) continue;
+                //if ( map.PropertyType == typeof(byte[])) continue;
                 rowHead.Append($"\"{UtilsCore.ClearTrim(map.GetColumnName(_providerName))}\"").Append(",");
             }
 
@@ -98,7 +98,7 @@ namespace ORM_1_21_.Utils
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    if (type == typeof(byte[])) continue;
+                    //if (type == typeof(byte[])) continue;
                     var str = new UtilsBulkMySql(_providerName).GetValue(o, type);
                     row.Append(str).Append(",");
                 }
@@ -145,13 +145,6 @@ namespace ORM_1_21_.Utils
                 return v ? 0.ToString() : 1.ToString();
             }
 
-            var st = UtilsCore.GetSerializeType(type);
-         
-
-            if (st == SerializeType.User)
-            {
-                return $"'{((IMapSerializable)o).Serialize()}'";
-            } 
             return $"{o}";
         }
 

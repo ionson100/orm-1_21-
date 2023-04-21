@@ -58,7 +58,7 @@ namespace ORM_1_21_
             }
             if (type == typeof(char))
             {
-                return $"NOT NULL DEFAULT  '\0'";
+                return $"NOT NULL DEFAULT  ' '";
             }
 
             if (type == typeof(Guid))
@@ -66,7 +66,7 @@ namespace ORM_1_21_
                 return $"NOT NULL DEFAULT '{Guid.Empty}'";
             }
 
-            var st = UtilsCore.GetSerializeType(type);
+            //var st = UtilsCore.GetSerializeType(type);
           
             return "NULL";
 

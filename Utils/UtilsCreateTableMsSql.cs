@@ -44,12 +44,12 @@ namespace ORM_1_21_.Utils
                 var typeUser = map.TypeString;
                 if (typeUser == null)
                 {
-                    builder.AppendLine($" [{map.ColumnNameForReader(providerName)}] {GetTypeMsSQl(map.TypeColumn)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
+                    builder.AppendLine($" [{map.ColumnNameForReader(providerName)}] {GetTypeMsSQl(map.PropertyType)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.PropertyType)},");
                 }
                 else
                 {
                     builder.AppendLine(
-                        $" [{map.ColumnNameForReader(providerName)}] {typeUser} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.TypeColumn)},");
+                        $" [{map.ColumnNameForReader(providerName)}] {typeUser} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.PropertyType)},");
                 }
             }
 
@@ -133,11 +133,11 @@ namespace ORM_1_21_.Utils
             {
                 return "[uniqueidentifier]";
             }
-            var st = UtilsCore.GetSerializeType(type);
-            if (st==SerializeType.User)
-            {
-                return "[nvarchar] (max)";
-            }
+           // var st = UtilsCore.GetSerializeType(type);
+           // if (st==SerializeType.User)
+           // {
+           //     return "[nvarchar] (max)";
+           // }
 
             if ( type == typeof(byte[]))
             {

@@ -137,7 +137,6 @@
     <Compile Include="FactoryCreatorTable.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Linq\MsSqlConstructorSql.cs" />
-    <Compile Include="Linq\QueryTranslatorMsSql.cs" />
     <Compile Include="Linq\StringConst.cs" />
     <Compile Include="MySqlLogger.cs" />
     <Compile Include="Interface\IOtherDataBaseFactory.cs" />

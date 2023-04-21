@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
@@ -314,8 +315,8 @@ namespace ORM_1_21_.Linq
                             var par = new List<object>();
                             for (var i = 0; i < count; i++)
                             {
-                                var val = Pizdaticus.MethodFree(_providerName, list[i], dataReader[i]);
-                                par.Add(dataReader[i] == DBNull.Value ? null : val);
+                                var val = Pizdaticus.MethodFreeIndex(_providerName, list[i], dataReader,i);
+                                par.Add( val);
                             }
                             var e = ci.Invoke(par.ToArray());
                             resDis.Add((TS)e);
@@ -350,9 +351,9 @@ namespace ORM_1_21_.Linq
                             var par = new List<object>();
                             for (var i = 0; i < count; i++)
                             {
-                                var val = Pizdaticus.MethodFree(_providerName, ci.GetParameters()[i].ParameterType,
-                                    dataReader[i]);
-                                par.Add(dataReader[i] == DBNull.Value ? null : val);
+                                var val = Pizdaticus.MethodFreeIndex(_providerName, ci.GetParameters()[i].ParameterType,
+                                    dataReader,i);
+                                par.Add(val);
                             }
 
                             var e = ci.Invoke(par.ToArray());
@@ -366,7 +367,7 @@ namespace ORM_1_21_.Linq
                     {
                         while (dataReader.Read())
                         {
-                            resDis.Add((TS)(dataReader[0] == DBNull.Value ? null : Pizdaticus.MethodFree(_providerName, typeof(TS), dataReader[0])));
+                            resDis.Add((TS)(Pizdaticus.MethodFreeIndex(_providerName, typeof(TS), dataReader,0)));
                         }
                     }
                     else
@@ -534,7 +535,7 @@ namespace ORM_1_21_.Linq
                         var resDis = resT;
                         while (dataReader.Read())
                         {
-                            var val = Pizdaticus.MethodFree(_providerName, sas.TypeReturn, dataReader[0]);
+                            var val = Pizdaticus.MethodFreeIndex(_providerName, sas.TypeReturn, dataReader,0);
                             resDis.Add(val);
                         }
 
@@ -603,8 +604,7 @@ namespace ORM_1_21_.Linq
                 #endregion
 
                 dataReader = com.ExecuteReader();
-                IEnumerable<T> res1 = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
-
+               IEnumerable<T> res1 = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName,listCore.Any(a=>a.Operand==Evolution.FreeSql));
                 // if (postExpressions.Count > 0)
                 // {
                 //     FactoryExpression.GetData(res1, postExpressions);

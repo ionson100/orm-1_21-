@@ -51,6 +51,8 @@ namespace ORM_1_21_
         }
         internal bool IsNotUpdateInsert { get; set; }
 
+        internal Type PropertyType { get; set; }
+
         internal string TypeString { get; set; }
 
         internal string PropertyName { get; set; }

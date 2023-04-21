@@ -93,15 +93,15 @@ namespace ORM_1_21_
                 return v ? 0.ToString() : 1.ToString();
             }
 
-            switch (UtilsCore.GetSerializeType(type))
-            {
-               
-                case SerializeType.User:
-                {
-                   return $"{((IMapSerializable)o).Serialize()}";
-                }
-            }
-
+           // switch (UtilsCore.GetSerializeType(type))
+           // {
+           //    
+           //     case SerializeType.User:
+           //     {
+           //        return $"{((IMapSerializable)o).Serialize()}";
+           //     }
+           // }
+           //
             
             return $"{o.ToString().Replace("'", "''")}";
         }
