@@ -134,7 +134,7 @@ class PeopleOld : PeopleAllBase { }
   session.TableCreate<PeopleAll>();
   for (int i = 0; i < 10; i++)
   {
-      session.Save(new PeopleAll() { Age = i * 10, Name = "simpleName" });
+      session.Insert(new PeopleAll() { Age = i * 10, Name = "simpleName" });
   }
   session.Query<PeopleAll>().ForEach(a =>
   {
@@ -181,9 +181,9 @@ public class TSMsSql : TestTSBase
 }
  var session=Configure.Session;
  session.TableCreate<TSMsSql>();
- session.Save(new TSMsSql { Name = "123" });
+ session.Insert(new TSMsSql { Name = "123" });
  var t=session.Query<TSMsSql>().Single();
- session.Save(t);
+ session.Update(t);
  var res = session.Update(t, new AppenderWhere(session.ColumnName<TSMsSql>(d => d.Ts), t.Ts));
 ```
 ```sql
@@ -277,39 +277,6 @@ class Foo
   public int IntFoo{get;set;}=5;
 }
 ```
-#### Persistence
-All objects received or stored in the database are persistent.\
-On this marker, the method chooses to insert or update command.
-```C#
-MyClass myClass = new MyClass();
-ISession  session = Configure.Session;
-bool isPer = session.IsPersistent(myClass);// false
-session.Save(myClass); // Magic Insert command
-isPer = session.IsPersistent(myClass); //trye
-myClass=session.Query<MyClass>().First();
-isPer =session.IsPersistent(myClass); //trye
-session.Save(myClass);// Magic  update command
-isPer = session.IsPersistent(myClass); //trye
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <a name="linqtosql"></a> 
 #### Ling To SQL.
@@ -394,7 +361,7 @@ session.CacheClear<MyClass>();//Removing all caches for a type MyClass.
 ```C#
 ISession session = Configure.Session;
 
-var sql = $"select * from {session.TableName<MyClass>()} where {session.ColumnName<MyClass>(a => a.Age)} > {session.GetSymbolParam()}1";
+var sql = $"select * from {session.TableName<MyClass>()} where {session.ColumnName<MyClass>(a => a.Age)} > {session.SymbolParam}1";
 // for Postgres: select * from "my_class5" where "age" > @1
 // for MSSQL   : select * from [my_class5] where [age] > @1
 // for MySql   : select * from `my_class5` where `age` > ?1
@@ -449,7 +416,7 @@ var list = session.FreeSql<MyClass>($"select * from {session.TableName<MyClass>(
  foreach (var r in Configure.Session.FreeSql<MyEnum>("select enum as enum1 from my_class"))
    Console.WriteLine($" enum={r}");
 ```
-###### example: (using attribute:```MapReceiverFreeSqlAttribute```)
+###### example: (using attribute:```MapReceiverFreeSqlAttribute```) the presence of a constructor with parameters
 ```c#
 [MapReceiverFreeSql]
  lass MyFreeSql
@@ -474,6 +441,23 @@ var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {sessio
 //Must match the sequence of constructor parameter types.: MyFreeSql(Guid idGuid, string name, int age, MyEnum @enum)
 
 ```
+###### example: simple class 
+```c#
+
+ сlass MySimpleFreeSql
+ {
+     public Guid id { get; }
+     public string name { get; }
+   
+ }
+.....
+
+var tempFree = session.FreeSql<MyFreeSql>($"select id, name  {session.TableName<MyClass>()}");
+//Caution!
+//Table column names in sql query ( id ,name)
+//Must match the name of the public properties of the type
+
+```
 ###### example: (anonymous type)
 ```C#
  static IEnumerable<T> TempSql<T>(T t)
@@ -482,6 +466,11 @@ var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {sessio
  }
  foreach (var r in TempSql(new { enum1 = 1, age = 2 }))
     Console.WriteLine($"{r}");
+```
+###### example: (anonymous type)
+```C#
+  var res = Configure.Session.FreeSqlAsTemplate(new { id = 1, number = 1 },
+  $"select id, number from {session.TableName<MyClass>()}").ToList();
 ```
 <a name="interfaces"></a> 
 #### Interfaces.
@@ -533,7 +522,7 @@ var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {sessio
  var tr=session.BeginTransaction();
  try
  {
-    session.Save(new MyClass { Age=6,DateTime=DateTime.Now,Description="bla"});
+    session.Insert(new MyClass { Age=6,DateTime=DateTime.Now,Description="bla"});
     tr.Commit();
  }catch(Exception)
  {

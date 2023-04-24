@@ -25,6 +25,29 @@ namespace ORM_1_21_
 
 
         /// <summary>
+        ///     Getting the connection string for the current session
+        /// </summary>
+        string ConnectionString { get; }
+
+        /// <summary>
+        ///     Gets symbol of the parameter for sql request
+        /// </summary>
+        /// <returns></returns>
+        string SymbolParam { get; }
+
+        /// <summary>
+        ///     Current session provider name
+        /// </summary>
+        /// <returns></returns>
+        ProviderName ProviderName { get; }
+
+        /// <summary>
+        ///     Default timeout connection (second)
+        /// </summary>
+        int DefaultTimeOut { get; }
+
+
+        /// <summary>
         ///     Request for selection from IDataReader
         /// </summary>
         /// <param name="reader">IDataReader</param>
@@ -32,14 +55,8 @@ namespace ORM_1_21_
         /// <returns>IEnumerable</returns>
         IEnumerable<T> GetListMonster<T>(IDataReader reader) where T : class;
 
-       // /// <summary>
-       // ///     Saving an object in the database (insert or update), returns the number of rows affected
-       // /// </summary>
-       // int Save<TSource>(TSource source) where TSource : class;
-
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="source"></param>
         /// <typeparam name="TSource"></typeparam>
@@ -95,7 +112,7 @@ namespace ORM_1_21_
         ///     Getting ExecuteReader
         /// </summary>
         /// <param name="sql">request string</param>
-        /// <param name="params">parameters array( parameters name: mysql-?,PostgreSQL-@,msSql-@,SqLite-@)</param>
+        /// <param name="params">parameters array( parameters name: mysql-?, PostgreSQL-@, msSql-@, SqLite-@)</param>
         IDataReader ExecuteReader(string sql, params object[] @params);
 
         /// <summary>
@@ -118,7 +135,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="sql">sql text</param>
         /// <param name="timeout">timeout connection</param>
-        /// <param name="param">parameters array (parameters name: mysql-?,PostgreSQL-@,msSql-@,SqLite-@)</param>
+        /// <param name="param">parameters array (parameters name: mysql-?, PostgreSQL-@, msSql-@, SqLite-@)</param>
         DataTable GetDataTable(string sql, int timeout = 30, params object[] param);
 
         /// <summary>
@@ -156,7 +173,7 @@ namespace ORM_1_21_
         ///     Returns the first element of the request
         /// </summary>
         /// <param name="sql">sql text</param>
-        /// <param name="param">parameters array (parameters name: mysql-?,PostgreSQL-@,msSql-@,SqLite-@)</param>
+        /// <param name="param">parameters array (parameters name: mysql-?, PostgreSQL-@, msSql-@, SqLite-@)</param>
         /// <returns></returns>
         object ExecuteScalar(string sql, params object[] param);
 
@@ -166,7 +183,7 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="sql">sql text</param>
         /// <param name="timeOut">timeout connection</param>
-        /// <param name="param">parameter array (parameters name: mysql-?,PostgreSQL-@,msSql-@,SqLite-@)</param>
+        /// <param name="param">parameter array (parameters name: mysql-?, PostgreSQL-@, msSql-@, SqLite-@)</param>
         object ExecuteScalar(string sql, int timeOut = 30, params object[] param);
 
 
@@ -204,30 +221,24 @@ namespace ORM_1_21_
         IDbConnection GetConnection();
 
         /// <summary>
-        ///     Getting IDbDataAdapter? Dispose manual
+        ///     Getting IDbDataAdapter. Dispose manual
         /// </summary>
         IDbDataAdapter GetDataAdapter();
-
-
-        /// <summary>
-        ///     Getting the connection string for the current session
-        /// </summary>
-        string GetConnectionString();
 
         /// <summary>
         ///     Executes the query and returns the number of records affected
         /// </summary>
         /// <param name="sql">sql text</param>
-        /// <param name="param">parameters array (parameters name: mysql-?,postgresql-@,msSql-@,SqLite-@)</param>
+        /// <param name="param">parameters array (parameters name: mysql-?, postgresql-@, msSql-@, SqLite-@)</param>
         int ExecuteNonQuery(string sql, params object[] param);
 
 
         /// <summary>
-        ///     executes the query and returns the number of records affected
+        ///     Executes the query and returns the number of records affected
         /// </summary>
         /// <param name="sql">sql text</param>
         /// <param name="timeOut">timeout connection</param>
-        /// <param name="param">parameters array (parameters name: mysql-?,postgresql-@,msSql-@,SqLite-@)</param>
+        /// <param name="param">parameters array (parameters name: mysql-?, postgresql-@, msSql-@, SqLite-@)</param>
         int ExecuteNonQuery(string sql, int timeOut = 30, params object[] param);
 
 
@@ -237,7 +248,7 @@ namespace ORM_1_21_
         string TableName<TSource>() where TSource : class;
 
         /// <summary>
-        ///     Getting the field name for a table
+        ///     Getting the column name for a table
         /// </summary>
         string ColumnName<TSource>(Expression<Func<TSource, object>> property) where TSource : class;
 
@@ -323,13 +334,13 @@ namespace ORM_1_21_
         Task<int> ExecuteNonQueryAsync(string sql, object[] param, CancellationToken cancellationToken = default);
 
         /// <summary>
-        ///     Get DataTable  asynchronously
+        ///     Getting DataTable  asynchronously
         /// </summary>
         Task<DataTable> GetDataTableAsync(string sql, int timeOut, object[] param,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        ///     Get DataTable
+        ///     Getting  DataTable
         /// </summary>
         DataTable GetDataTable(string sql, params object[] param);
 
@@ -339,20 +350,26 @@ namespace ORM_1_21_
         Task<DataTable> GetDataTableAsync(string sql, object[] param, CancellationToken cancellationToken = default);
 
 
-
         /// <summary>
-        /// Asynchronously insert command
+        ///     Asynchronously insert command
         /// </summary>
         /// <param name="source">Object for insertion</param>
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TSource"></typeparam>
         /// <returns></returns>
-        Task<int> InsertAsync<TSource>(TSource source, CancellationToken cancellationToken = default) where TSource : class;
+        Task<int> InsertAsync<TSource>(TSource source, CancellationToken cancellationToken = default)
+            where TSource : class;
 
         /// <summary>
         ///     Update   asynchronously
         /// </summary>
         Task<int> UpdateAsync<TSource>(TSource source, AppenderWhere[] whereObjects,
+            CancellationToken cancellationToken = default) where TSource : class;
+
+        /// <summary>
+        ///     Update   asynchronously
+        /// </summary>
+        Task<int> UpdateAsync<TSource>(TSource source,
             CancellationToken cancellationToken = default) where TSource : class;
 
         /// <summary>
@@ -369,17 +386,9 @@ namespace ORM_1_21_
         Task<ITransaction> BeginTransactionAsync(IsolationLevel? value);
 
         /// <summary>
-        ///     Gets symbol of the parameter for sql request
-        /// </summary>
-        /// <returns></returns>
-        string GetSymbolParam();
-
-        /// <summary>
-        /// Approximate projection of a class from a database table
+        ///     Approximate projection of a class (C#), from a database table
         /// </summary>
         /// <param name="tableName">Table name</param>
         string ParseTableToClass(string tableName);
-
-        
     }
 }

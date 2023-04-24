@@ -767,10 +767,7 @@ namespace ORM_1_21_
             return ProviderFactories.GetDataAdapter(_factoryOtherBase);
         }
 
-        string ISession.GetConnectionString()
-        {
-            return _connect.ConnectionString;
-        }
+        string ISession.ConnectionString=>_connect.ConnectionString;
 
         int ISession.ExecuteNonQuery(string sql, params object[] param)
         {
@@ -846,27 +843,7 @@ namespace ORM_1_21_
         string ISession.GetSqlInsertCommand<TSource>(TSource source)
         {
             Check.NotNull(source, "source", () => Transactionale.isError = true);
-            try
-            {
-                switch (MyProviderName)
-                {
-                    case ProviderName.MsSql:
-                        throw new Exception("Not implemented");
-                    case ProviderName.MySql:
-                        throw new Exception("Not implemented");
-                    case ProviderName.PostgreSql:
-                        return new CommandNativePostgres(ProviderName.PostgreSql).GetInsertSql(source);
-                    case ProviderName.SqLite:
-                        throw new Exception("Not implemented");
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-            catch (Exception)
-            {
-                Transactionale.isError = true;
-                throw;
-            }
+            return new CommandNativeInsert(GetProviderName).GetInsertSql(source);
 
         }
 
@@ -882,7 +859,7 @@ namespace ORM_1_21_
                     case ProviderName.MySql:
                         throw new Exception("Not implemented");
                     case ProviderName.PostgreSql:
-                        return new CommandNativePostgres(ProviderName.PostgreSql).GetDeleteSql(source);
+                        return new CommandNativeInsert(ProviderName.PostgreSql).GetDeleteSql(source);
                     case ProviderName.SqLite:
                         throw new Exception("Not implemented");
                     default:
@@ -986,25 +963,13 @@ namespace ORM_1_21_
             return UpdateNewAsync(source, whereObjects, cancellationToken);
         }
 
-        public string GetSymbolParam()
+        public Task<int> UpdateAsync<TSource>(TSource source, CancellationToken cancellationToken = default) where TSource : class
         {
-
-            switch (MyProviderName)
-            {
-                case ProviderName.MsSql:
-                    return "@";
-                case ProviderName.MySql:
-                    return "?";
-                case ProviderName.PostgreSql:
-                    return "@";
-                case ProviderName.SqLite:
-                    return "@";
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
+            Check.NotNull(source, "source", () => Transactionale.isError = true);
+            return UpdateNewAsync(source, null, cancellationToken);
         }
 
+      
 
         private void SetTimeOut(IDbCommand com, int timeOut)
         {
@@ -1033,7 +998,6 @@ namespace ORM_1_21_
                     var val = com.ExecuteNonQuery();
                     if (val == 1)
                     {
-                       // ((ISession)this).ToPersistent(source);
                         res = 1;
                         this.CacheClear<TSource>();
                         NotificAfter(source, ActionMode.Insert);

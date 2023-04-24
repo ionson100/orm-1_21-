@@ -214,7 +214,7 @@ namespace ORM_1_21_
         /// <summary>
         ///     Executing an arbitrary query with parameters
         /// </summary>
-        /// <param name="ses">ISession</param>
+        /// <param name="ses">Extension session</param>
         /// <param name="sql">Request string</param>
         /// <param name="param">Request parameters</param>
         /// <returns>IEnumerableTResult</returns>
@@ -227,6 +227,46 @@ namespace ORM_1_21_
             if (param != null && param.Length > 0) db.GetParamFree().AddRange(param);
 
             return (IEnumerable<TResult>)db.Execute<TResult>(callExpr);
+        }
+        /// <summary>
+        ///   Executing an arbitrary query with parameters.
+        ///   Suitable for anonymous types.
+        /// </summary>
+        /// <param name="ses">Extension session</param>
+        /// <param name="temp">Type object, to get the type IEnumerable</param>
+        /// <param name="sql"></param>
+        /// <param name="param"></param>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<TResult> FreeSqlAsTemplate<TResult>(this ISession ses,TResult temp, string sql, params object[] param)
+        {
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(
+                Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
+            var db = new DbQueryProvider<TResult>((Session)ses);
+            if (param != null && param.Length > 0) db.GetParamFree().AddRange(param);
+
+            return (IEnumerable<TResult>)db.Execute<TResult>(callExpr);
+        }
+
+        /// <summary>
+        ///     Executing an asynchronously  request with parameters
+        ///     Suitable for anonymous types.
+        /// </summary>
+        /// <param name="ses">ISession</param>
+        /// <param name="temp">Type object, to get the type IEnumerable</param>
+        /// <param name="sql">Request string</param>
+        /// <param name="param">Request parameters</param>
+        public static async Task<IEnumerable<TResult>> FreeSqlAsTemplateAsync<TResult>(this ISession ses, TResult temp, string sql,
+            params object[] param)
+        {
+
+            var p = new V(sql);
+            Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
+            var db = new DbQueryProvider<TResult>((Session)ses);
+            if (param != null && param.Length > 0) db.GetParamFree().AddRange(param);
+            var res = (IEnumerable<TResult>)await db.ExecuteAsync<TResult>(callExpr, null, CancellationToken.None);
+            return res;
         }
 
         /// <summary>

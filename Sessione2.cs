@@ -37,11 +37,11 @@ namespace ORM_1_21_
         }
 
 
-       
+
         public Session(string connectionString)
         {
             _connectionString = connectionString;
-            _id= Guid.NewGuid();
+            _id = Guid.NewGuid();
             Check.NotEmpty(connectionString, "connectionString");
             _connect = ProviderFactories.GetConnect(null);
             _connect.ConnectionString = connectionString;
@@ -56,7 +56,7 @@ namespace ORM_1_21_
             _connect = factoryOtherBase.GetDbProviderFactories().CreateConnection();
             if (_connect == null) throw new Exception("Can't connect to another database");
             _connect.ConnectionString = factoryOtherBase.GetConnectionString();
-            _connectionString= factoryOtherBase.GetConnectionString();
+            _connectionString = factoryOtherBase.GetConnectionString();
             if (factoryOtherBase.GetProviderName() == ProviderName.PostgreSql)
             {
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -64,9 +64,9 @@ namespace ORM_1_21_
             }
 
         }
-       
 
-      
+
+
 
 
         private static void NotificAfter<TSource>(TSource source, ActionMode mode) where TSource : class
@@ -76,7 +76,7 @@ namespace ORM_1_21_
             switch (mode)
             {
                 case ActionMode.Insert:
-                    actionDal.ActionCommand(source,CommandMode.AfterInsert);
+                    actionDal.ActionCommand(source, CommandMode.AfterInsert);
                     break;
                 case ActionMode.Update:
                     actionDal.ActionCommand(source, CommandMode.AfterUpdate);
@@ -92,7 +92,7 @@ namespace ORM_1_21_
         private static void NotificBefore<TSource>(TSource source, ActionMode mode) where TSource : class
         {
 
-          
+
             if (mode == ActionMode.None) return;
             if (!(source is IMapAction<TSource> actionDal)) return;
             switch (mode)
@@ -111,7 +111,7 @@ namespace ORM_1_21_
             }
 
         }
-        
+
         ITransaction ISession.BeginTransaction()
         {
             if (Transactionale.MyStateTransaction == StateTransaction.Begin)
@@ -138,7 +138,7 @@ namespace ORM_1_21_
             Transactionale.Connection = _connect;
             Transactionale.isError = false;
             tk.SetResult(Transactionale);
-            return tk.Task ;
+            return tk.Task;
         }
 
 
@@ -172,22 +172,24 @@ namespace ORM_1_21_
             return tk.Task;
         }
 
+         
+
         public string ParseTableToClass(string tableName)
         {
-            var res= ((ISession)this).GetTableColumns(tableName);
+            var res = ((ISession)this).GetTableColumns(tableName);
             if (!res.Any()) throw new Exception($"Table: {tableName} not found in database.");
-            StringBuilder builder = new StringBuilder( );
+            StringBuilder builder = new StringBuilder();
             builder.AppendLine($"[MapTable(\"{UtilsCore.ClearTrim(tableName)}\")]");
             builder.AppendLine($"class {UtilsCore.ClearTrim(tableName)}");
             builder.AppendLine("{");
             int ic = 0;
-            foreach (TableColumn tableColumn in res.OrderByDescending(a=>a.IsPk))
+            foreach (TableColumn tableColumn in res.OrderByDescending(a => a.IsPk))
             {
                 if (ic == 0)
                 {
                     builder.AppendLine();
                     builder.AppendLine($"   [MapPrimaryKey(\"{tableColumn.ColumnName}\", Generator.Native)]");
-                    builder.AppendLine($"   public {UtilsCore.ColumnBuilder(tableColumn.ColumnType,tableColumn.IsPk)} {tableColumn.ColumnName} {{get;set;}}");
+                    builder.AppendLine($"   public {UtilsCore.ColumnBuilder(tableColumn.ColumnType, tableColumn.IsPk)} {tableColumn.ColumnName} {{get;set;}}");
                 }
                 else
                 {
@@ -202,6 +204,47 @@ namespace ORM_1_21_
             return builder.ToString();
         }
 
+        ProviderName ISession.ProviderName => MyProviderName;
+
+        string ISession.SymbolParam
+        {
+            get
+            {
+                switch (MyProviderName)
+                {
+                    case ProviderName.MsSql:
+                        return "@";
+                    case ProviderName.MySql:
+                        return "?";
+                    case ProviderName.PostgreSql:
+                        return "@";
+                    case ProviderName.SqLite:
+                        return "@";
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        int ISession.DefaultTimeOut
+        {
+            get
+            {
+                switch (MyProviderName)
+                {
+                    case ProviderName.MsSql:
+                        return 30;
+                    case ProviderName.MySql:
+                        return 30;
+                    case ProviderName.PostgreSql:
+                        return 30;
+                    case ProviderName.SqLite:
+                        return 30;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
         string ISession.IdSession => _id.ToString();
 
         ///<summary>
@@ -213,7 +256,7 @@ namespace ORM_1_21_
         }
         public async Task DisposeAsync()
         {
-          await  InnerDisposeAsync();
+            await InnerDisposeAsync();
         }
 
 
@@ -333,7 +376,7 @@ namespace ORM_1_21_
                 _isDispose = true;
                 foreach (var dbCommand in _dbCommands)
                 {
-                   await dbCommand.DisposeAsync();
+                    await dbCommand.DisposeAsync();
                 }
                 _dbCommands.Clear();
                 if (isFinalize == false)
@@ -370,7 +413,7 @@ namespace ORM_1_21_
 
         IEnumerable<TableColumn> ISession.GetTableColumns(string tableName)
         {
-            Check.NotEmpty(tableName, "tableName",() => Transactionale.isError = true);
+            Check.NotEmpty(tableName, "tableName", () => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
 

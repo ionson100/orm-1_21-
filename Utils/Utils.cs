@@ -409,7 +409,7 @@ namespace ORM_1_21_.Utils
 
             var regex = new Regex(@"\@([\w.$]+|""[^""]+""|'[^']+')");
             if (providerName == ProviderName.MySql) regex = new Regex(@"\?([\w.$]+|""[^""]+""|'[^']+')");
-            var matches = regex.Matches(sql);
+            MatchCollection matches = regex.Matches(sql);
 
             for (var index = 0; index < matches.Count; index++)
                 if (param[index] is IDbDataParameter)

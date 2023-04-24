@@ -5,11 +5,11 @@ using System.Text;
 
 namespace ORM_1_21_
 {
-    class CommandNativePostgres
+    class CommandNativeInsert
     {
         private readonly ProviderName _providerName;
 
-        public CommandNativePostgres(ProviderName providerName)
+        public CommandNativeInsert(ProviderName providerName)
         {
             _providerName = providerName;
         }
@@ -93,16 +93,6 @@ namespace ORM_1_21_
                 return v ? 0.ToString() : 1.ToString();
             }
 
-           // switch (UtilsCore.GetSerializeType(type))
-           // {
-           //    
-           //     case SerializeType.User:
-           //     {
-           //        return $"{((IMapSerializable)o).Serialize()}";
-           //     }
-           // }
-           //
-            
             return $"{o.ToString().Replace("'", "''")}";
         }
 
@@ -115,4 +105,6 @@ namespace ORM_1_21_
                 $"{AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName)} = {GetValue(o, type)}";
         }
     }
+
+    
 }

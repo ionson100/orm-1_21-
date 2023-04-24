@@ -13,7 +13,7 @@ namespace ORM_1_21_
         /// <param name="provider">Provider database</param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public string GetSymbolParam(ProviderName provider)
+        public string SymbolParam(ProviderName provider)
         {
             switch (provider)
             {

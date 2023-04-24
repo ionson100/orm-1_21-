@@ -8,8 +8,8 @@
     <ProjectGuid>{3D3C03BF-6EFE-4C92-9A91-FCEDA1823DC4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ORM_1_21_</RootNamespace>
-    <AssemblyName>ORM{1_21}</AssemblyName>
+    <RootNamespace>ORM</RootNamespace>
+    <AssemblyName>orm</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
@@ -52,7 +52,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\ORM{1_21}.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\orm.xml</DocumentationFile>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -66,7 +66,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
-    <DocumentationFile>bin\Release\ORM{1_21}.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\orm.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
@@ -92,7 +92,6 @@
     <Compile Include="ActionMode.cs" />
     <Compile Include="AppenderWhere.cs" />
     <Compile Include="AttributesOfClass.cs" />
-    <Compile Include="AttributesOfClass2.cs" />
     <Compile Include="Attribute\BaseAttribute.cs" />
     <Compile Include="Attribute\MapColumnTypeAttribute.cs" />
     <Compile Include="Attribute\MapDefaultValueAttribute.cs" />
@@ -131,13 +130,14 @@
     <Compile Include="StorageTypeAttribute.cs" />
     <Compile Include="TableColumn.cs" />
     <Compile Include="CallExp.cs" />
-    <Compile Include="CommandNativeInsert.cs" />
+    <Compile Include="CommandNativePostgres.cs" />
     <Compile Include="DbTypeConverter.cs" />
     <Compile Include="Configure.cs" />
     <Compile Include="Configure2.cs" />
     <Compile Include="FactoryCreatorTable.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Linq\MsSqlConstructorSql.cs" />
+    <Compile Include="Linq\QueryTranslatorMsSql.cs" />
     <Compile Include="Linq\StringConst.cs" />
     <Compile Include="MySqlLogger.cs" />
     <Compile Include="Interface\IOtherDataBaseFactory.cs" />
@@ -166,7 +166,7 @@
     <Compile Include="Linq\QueryTranslator.cs" />
     <Compile Include="Linq\TypeSystem.cs" />
     <Compile Include="Attribute\PersistentAttribute.cs" />
-    <Compile Include="Session.cs" />
+    <Compile Include="Sessione.cs" />
     <Compile Include="Sessione2.cs" />
     <Compile Include="Interface\ITransaction.cs" />
     <Compile Include="Interface\IValidateDAL.cs" />
@@ -205,6 +205,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="LICENSE.md" />
+    <None Include="ORM.nuspec" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>

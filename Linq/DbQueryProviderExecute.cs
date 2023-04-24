@@ -374,19 +374,22 @@ namespace ORM_1_21_.Linq
                     {
                         if (typeof(TS) != typeof(object) && typeof(TS).IsClass)
                         {
-                            object employee;
+                            
                             var isLegalese = AttributesOfClass<TS>.IsUsageActivator(_providerName);
-                            if (isLegalese)
-                            {
-                                employee = Activator.CreateInstance<TS>();
-                            }
-                            else
-                            {
-                                employee = (TS)FormatterServices.GetSafeUninitializedObject(typeof(TS));
-                            }
+                            
 
                             while (dataReader.Read())
                             {
+                                object employee;
+                                if (isLegalese)
+                                {
+                                    employee = Activator.CreateInstance<TS>();
+                                }
+                                else
+                                {
+                                    employee = (TS)FormatterServices.GetSafeUninitializedObject(typeof(TS));
+                                }
+                                var ty = typeof(TS).Name;
                                 for (var i = 0; i < dataReader.FieldCount; i++)
                                     AttributesOfClass<TS>.SetValueFreeSqlE(_providerName, dataReader.GetName(i),
                                         (TS)employee,
