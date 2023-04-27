@@ -6,16 +6,16 @@ namespace ORM_1_21_.Utils
 {
     internal class UtilsCreateTableMySql
     {
-        public static string Create<T>(ProviderName providerName)
+        public static string Create<T>(ProviderName providerName,bool isBlob)
         {
             StringBuilder builder = new StringBuilder();
 
-            var tableName = AttributesOfClass<T>.TableNameRaw(providerName);
-            builder.AppendLine($"CREATE TABLE IF NOT EXISTS `{tableName}` (");
-            var pk = AttributesOfClass<T>.PkAttribute(providerName);
+            var tableName = AttributesOfClass<T>.TableName(providerName);
+            builder.AppendLine($"CREATE TABLE IF NOT EXISTS {tableName} (");
+            MapPrimaryKeyAttribute pk = AttributesOfClass<T>.PkAttribute(providerName);
             if (pk.Generator == Generator.Native|| pk.Generator == Generator.NativeNotReturningId)
             {
-                var typePk = $" {GetTypeMySql(pk.TypeColumn)}  PRIMARY KEY AUTO_INCREMENT";
+                var typePk = $" {GetTypeMySql(pk,false)}  PRIMARY KEY AUTO_INCREMENT";
                 if (pk.TypeString != null)
                     typePk = pk.TypeString;
                 var defValue = "";
@@ -23,11 +23,11 @@ namespace ORM_1_21_.Utils
                 {
                     defValue = pk.DefaultValue;
                 }
-                builder.AppendLine($" `{pk.ColumnNameForRider(providerName)}` {typePk}  {defValue},");
+                builder.AppendLine($" {pk.GetColumnName(providerName)} {typePk}  {defValue},");
             }
             else
             {
-                var typePk = $" {GetTypeMySql(pk.TypeColumn)}  PRIMARY KEY";
+                var typePk = $" {GetTypeMySql(pk,isBlob)}  PRIMARY KEY";
                 if (pk.TypeString != null)
                     typePk = pk.TypeString;
                 var defValue = "";
@@ -35,17 +35,13 @@ namespace ORM_1_21_.Utils
                 {
                     defValue = pk.DefaultValue;
                 }
-                builder.AppendLine($" `{pk.ColumnNameForRider(providerName)}` {typePk} {defValue}  ,");
+                builder.AppendLine($" {pk.GetColumnName(providerName)} {typePk} {defValue}  ,");
             }
 
 
-            //builder.AppendLine($" `{pk.ColumnNameForRider(providerName)}` {GetTypeMySql(pk.TypeColumn)}  PRIMARY KEY {(pk.Generator == Generator.Native ? "AUTO_INCREMENT" : "")},");
             foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
-                string typeColumn = map.TypeString ?? GetTypeMySql(map.PropertyType);
-                string sd =
-                    $" `{map.ColumnNameForReader(providerName)}` {typeColumn} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.PropertyType)} ,";
-                builder.AppendLine(sd);
+                builder.AppendLine($" {map.GetColumnName(providerName)} {GetTypeMySql(map,isBlob)} {FactoryCreatorTable.GetDefaultValue(map,providerName,isBlob)} ,");
             }
 
             string str2 = builder.ToString();
@@ -54,83 +50,89 @@ namespace ORM_1_21_.Utils
             builder.Append(str2);
             builder.AppendLine(");").Append(AttributesOfClass<T>.GetTypeTable(providerName));
 
+            var tableNameRaw= AttributesOfClass<T>.TableNameRaw(providerName);
             foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 if (map.IsIndex)
                 {
                     builder.AppendLine(
-                        $"ALTER TABLE `{tableName}` ADD INDEX `INDEX_{tableName}_{map.GetColumnNameRaw()}` ({map.GetColumnNameRaw()});");
+                        $"ALTER TABLE {tableName} ADD INDEX `INDEX_{tableNameRaw}_{map.GetColumnNameRaw()}` ({map.GetColumnNameRaw()});");
                 }
             }
 
-            var eewe = builder.ToString();
-            return builder.ToString();
+            var res = builder.ToString();
+            return res;
         }
 
-        private static string GetTypeMySql(Type type)
+        private static string GetTypeMySql(BaseAttribute map,bool isBlob)
         {
-            if (type == typeof(Guid) || type == typeof(Guid?))
+            if (map.TypeString != null) return map.TypeString;
+
+            var type = UtilsCore.GetCoreType(map.PropertyType);
+
+            if (type == typeof(Guid))
             {
-                return "VARCHAR(36)";
+                return isBlob ? "BINARY(16)" : "VARCHAR(36)";
             }
-            if (type == typeof(long) || type == typeof(long?))//)
+
+            if (type == typeof(long))//)
             {
                 return "BIGINT";
             }
 
-            if (type == typeof(UInt64) || type == typeof(UInt64?))
+            if (type == typeof(UInt64))
             {
                 return "BIGINT UNSIGNED";
             }
 
             if (type == typeof(int) || type.BaseType == typeof(Enum))
             {
-                return "MEDIUMINT";
+                return "INT";
             }
-
-            if (type == typeof(uint) || type.BaseType == typeof(uint?))
+          
+            if (type == typeof(uint))
             {
                 return "MEDIUMINT UNSIGNED";
             }
-            if (type == typeof(short) || type.BaseType == typeof(short?))
+            if (type == typeof(short))
             {
                 return "SMALLINT";
             }
 
-            if (type == typeof(UInt16) || type == typeof(UInt16?))
+            if (type == typeof(UInt16))
             {
                 return "SMALLINT UNSIGNED";
             }
-            if (type == typeof(bool) || type == typeof(bool?))
+            if (type == typeof(bool))
             {
                 return "TINYINT(1)";
             }
 
-            if (type==typeof(Byte)|| type == typeof(Byte?)|| type == typeof(SByte) || type == typeof(SByte?))
+            if (type==typeof(Byte)|| type == typeof(SByte))
             {
                 return "TINYINT(1)";
             }
           
-            if (type == typeof(decimal) || type == typeof(decimal?))
+            if (type == typeof(decimal))
             {
                 return "DECIMAL(10,2)";
             }
-            if (type == typeof(float) || type == typeof(float?))
+            if (type == typeof(float))
             {
                 return "FLOAT";
             }
 
-            if (type == typeof(char) || type == typeof(char?))
+            if (type == typeof(char))
             {
                 return "CHAR(1)";
             }
 
-            if (type == typeof(double) || type == typeof(double?))
+            if (type == typeof(double))
             {
                 return "DOUBLE";
             }
 
-            if (type == typeof(DateTime) || type == typeof(DateTime?))
+            if (type == typeof(DateTime))
             {
                 return "DATETIME";
             }

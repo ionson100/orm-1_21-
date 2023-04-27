@@ -23,7 +23,7 @@ namespace TestLibrary
     public class MyClassPostgres : MyClassBase { }
 
     [MapTable()]
-    class MyClassMsSql : MyClassBase { }
+    public class MyClassMsSql : MyClassBase { }
     [MapTable("my_class5")]
     public class MyClassSqlite : MyClassBase { }
 

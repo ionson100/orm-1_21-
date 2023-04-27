@@ -22,7 +22,6 @@ namespace ORM_1_21_
             {
                 while (reader.Read())
                 {
-                    
                     TObj d;
                     if (isLegalese)
                         d = Activator.CreateInstance<TObj>();
@@ -54,31 +53,27 @@ namespace ORM_1_21_
                             {
                                 var n = reader.GetName(i);
                                 var s = list.FirstOrDefault(a => a.ColumnNameAlias == n || a.GetColumnNameRaw() == n);
-                                if(s==null) continue;
+                                if (s == null) continue;
                                 var resCore = MethodFreeIndex(providerName, s.PropertyType, reader, i);
                                 AttributesOfClass<TObj>.SetValueE(providerName, s.PropertyName, d, resCore);
                             }
                         }
                         catch (Exception e)
                         {
-                            throw new Exception($"reader engine: {typeof(TObj)} {e.Message}",e);
+                            throw new Exception($"reader engine: {typeof(TObj)} {e.Message}", e);
                         }
                     }
 
                     //UtilsCore.SetPersistent(d);
                     res.Add(d);
                 }
+
                 return res;
             }
             finally
             {
                 reader.Dispose();
-
             }
-           
-
-           
-            
         }
 
 
@@ -94,7 +89,7 @@ namespace ORM_1_21_
                     for (var i = 0; i < reader.FieldCount; i++)
                     {
                         var t = ((NewExpression)ss).Arguments[i].Type;
-                        var val = MethodFreeIndex(providerName, t, reader,i);
+                        var val = MethodFreeIndex(providerName, t, reader, i);
                         d[i] = val;
                     }
 
@@ -122,7 +117,7 @@ namespace ORM_1_21_
                     for (var i = 0; i < reader.FieldCount; i++)
                     {
                         var t = ((NewExpression)ss).Arguments[i].Type;
-                        var val = MethodFreeIndex(providerName, t, reader,i);
+                        var val = MethodFreeIndex(providerName, t, reader, i);
                         d[i] = val;
                     }
 
@@ -207,101 +202,55 @@ namespace ORM_1_21_
 
         public static object MethodFree(ProviderName providerName, Type type, object e)
         {
+            if (e == DBNull.Value) return null;
             if (type == typeof(string)) return e.ToString();
             if (type == typeof(int)) return e == DBNull.Value ? 0 : Convert.ToInt32(e);
 
+            type = UtilsCore.GetCoreType(type);
 
             if (type == typeof(bool))
             {
-                if (e == DBNull.Value) return false;
-
-                return Convert.ToBoolean(e);
+               return Convert.ToBoolean(e);
             }
-
-            if (type == typeof(bool?))
-            {
-                if (e == DBNull.Value) return null;
-
-                return Convert.ToBoolean(e);
-            }
-
             if (type == typeof(DateTime)) return providerName == ProviderName.SqLite ? DateTime.Parse(e.ToString()) : e;
-            if (type == typeof(DateTime?))
+           if (type.BaseType == typeof(Enum))
             {
-                if (providerName == ProviderName.SqLite)
-                {
-                    DateTime? dateTime = null;
-                    if (e != DBNull.Value) dateTime = DateTime.Parse(e.ToString());
-
-                    return dateTime;
-                }
-
-                return e;
-            }
-
-            if (type.BaseType == typeof(Enum))
-            {
-                if (e == DBNull.Value) return -1;
-
                 return Enum.Parse(type, Convert.ToInt32(e).ToString());
             }
-
             if (type == typeof(Guid))
             {
-                if (e == DBNull.Value) return Guid.Empty;
-
                 if (e is Guid) return e;
-
                 var guid = Guid.Empty;
                 if (e is byte[] bytes)
                     return bytes.Length == 16 ? new Guid(bytes) : new Guid(Encoding.ASCII.GetString(bytes));
-
                 return e is string ? new Guid(e.ToString()) : guid;
             }
-
-            if (type == typeof(Guid?)) return e == DBNull.Value ? (object)null : new Guid(e.ToString());
             if (type == typeof(float)) return e == DBNull.Value ? 0f : Convert.ToSingle(e);
-            if (type == typeof(float?)) return e == DBNull.Value ? (object)null : Convert.ToSingle(e);
             if (type == typeof(double)) return e == DBNull.Value ? 0 : Convert.ToDouble(e);
-            if (type == typeof(double?)) return e == DBNull.Value ? (object)null : Convert.ToDouble(e);
             if (type == typeof(decimal)) return e == DBNull.Value ? 0 : Convert.ToDecimal(e);
-            if (type == typeof(decimal?)) return e == DBNull.Value ? (object)null : Convert.ToDecimal(e);
-
-            if (type == typeof(int?)) return e == DBNull.Value ? (object)null : Convert.ToInt32(e);
             if (type == typeof(uint)) return e == DBNull.Value ? 0 : Convert.ToUInt32(e);
-            if (type == typeof(uint?)) return e == DBNull.Value ? (object)null : Convert.ToUInt32(e);
             if (type == typeof(ushort)) return e == DBNull.Value ? 0 : Convert.ToUInt16(e);
-            if (type == typeof(ushort?)) return e == DBNull.Value ? (object)null : Convert.ToUInt16(e);
             if (type == typeof(ulong)) return e == DBNull.Value ? 0 : Convert.ToUInt64(e);
-            if (type == typeof(ulong?)) return e == DBNull.Value ? (object)null : Convert.ToUInt64(e);
             if (type == typeof(byte)) return e == DBNull.Value ? 0 : Convert.ToByte(e);
-            if (type == typeof(byte?)) return e == DBNull.Value ? (object)null : Convert.ToByte(e);
             if (type == typeof(sbyte)) return e == DBNull.Value ? 0 : Convert.ToSByte(e);
-            if (type == typeof(sbyte?)) return e == DBNull.Value ? (object)null : Convert.ToSByte(e);
-            if (type == typeof(char?)) return e == DBNull.Value ? (object)null : Convert.ToChar(e);
             if (type == typeof(short)) return e == DBNull.Value ? 0 : Convert.ToInt16(e);
-            if (type == typeof(short?)) return e == DBNull.Value ? (object)null : Convert.ToInt16(e);
             if (type == typeof(long)) return e == DBNull.Value ? 0 : Convert.ToInt64(e);
-            if (type == typeof(long?)) return e == DBNull.Value ? (object)null : Convert.ToInt64(e);
             if (type == typeof(char)) return e == DBNull.Value ? '\0' : Convert.ToChar(e);
-            return e == DBNull.Value ? null : e;
+            return e = DBNull.Value;
         }
 
-
-
-       
 
         public static object MethodFreeIndex(ProviderName providerName, Type type, IDataReader reader, int index)
         {
             if (reader.IsDBNull(index)) return null;
+
+            type = UtilsCore.GetCoreType(type);
 
             if (providerName == ProviderName.SqLite)
             {
                 if (type == typeof(Guid))
                 {
                     var e = reader.GetValue(index);
-                    if (e == DBNull.Value) return Guid.Empty;
-
                     if (e is Guid) return e;
 
                     var guid = Guid.Empty;
@@ -312,42 +261,32 @@ namespace ORM_1_21_
                 }
 
                 if (type == typeof(DateTime)) return DateTime.Parse(reader.GetValue(index).ToString());
-                if (type == typeof(DateTime?))
-                {
-                    var e = reader.GetValue(index);
-                    DateTime? dateTime = null;
-                    if (e != DBNull.Value) dateTime = DateTime.Parse(e.ToString());
 
-                    return dateTime;
-                }
+                if (type == typeof(int)) return Convert.ToInt32(reader.GetValue(index));
 
+                if (type == typeof(long)) return Convert.ToInt64(reader.GetValue(index));
 
-                if (type == typeof(long) || type == typeof(long?)) return Convert.ToInt64(reader.GetValue(index));
+                if (type == typeof(uint)) return Convert.ToUInt32(reader.GetValue(index));
 
+                if (type == typeof(ulong)) return Convert.ToUInt64(reader.GetValue(index));
 
-                if (type == typeof(uint) || type == typeof(uint?)) return Convert.ToUInt32(reader.GetValue(index));
+                if (type == typeof(short)) return Convert.ToInt16(reader.GetValue(index));
 
-                if (type == typeof(ulong) || type == typeof(ulong?)) return Convert.ToUInt64(reader.GetValue(index));
+                if (type == typeof(ushort)) return Convert.ToUInt16(reader.GetValue(index));
 
-                if (type == typeof(short) || type == typeof(short?)) return Convert.ToInt16(reader.GetValue(index));
-
-                if (type == typeof(ushort) || type == typeof(ushort?)) return Convert.ToUInt16(reader.GetValue(index));
-
-                if (type == typeof(decimal) || type == typeof(decimal?))
+                if (type == typeof(decimal))
                     return Convert.ToDecimal(reader.GetValue(index));
 
-                if (type == typeof(float) || type == typeof(float?)) return Convert.ToSingle(reader.GetValue(index));
+                if (type == typeof(float)) return Convert.ToSingle(reader.GetValue(index));
 
-                if (type == typeof(char) || type == typeof(char?)) return Convert.ToChar(reader.GetValue(index));
+                if (type == typeof(bool)) return Convert.ToBoolean(reader.GetValue(index));
 
-                if (type == typeof(bool) || type == typeof(bool?)) return Convert.ToBoolean(reader.GetValue(index));
-
-                if (type == typeof(byte) || type == typeof(byte?)) return Convert.ToByte(reader.GetValue(index));
+                if (type == typeof(byte)) return Convert.ToByte(reader.GetValue(index));
             }
 
-            if (type == typeof(uint) || type == typeof(uint?)) return Convert.ToUInt32(reader.GetValue(index));
-            if (type == typeof(ulong) || type == typeof(ulong?)) return Convert.ToUInt64(reader.GetValue(index));
-            if (type == typeof(ushort) || type == typeof(ushort?)) return Convert.ToUInt16(reader.GetValue(index));
+            if (type == typeof(uint)) return Convert.ToUInt32(reader.GetValue(index));
+            if (type == typeof(ulong)) return Convert.ToUInt64(reader.GetValue(index));
+            if (type == typeof(ushort)) return Convert.ToUInt16(reader.GetValue(index));
             if (type.BaseType == typeof(Enum))
             {
                 var o = reader.GetValue(index);
@@ -356,6 +295,7 @@ namespace ORM_1_21_
 
                 return Enum.Parse(type, Convert.ToInt32(o).ToString());
             }
+
             if (type == typeof(string)) return reader.GetString(index);
             if (type == typeof(bool)) return reader.GetBoolean(index);
             if (type == typeof(byte)) return reader.GetByte(index);
@@ -366,8 +306,17 @@ namespace ORM_1_21_
             if (type == typeof(short)) return reader.GetInt16(index);
             if (type == typeof(int)) return reader.GetInt32(index);
             if (type == typeof(long)) return reader.GetInt64(index);
-            if (type == typeof(float)) return Convert.ToSingle(reader.GetValue(index));
-            if (type == typeof(float)) return reader.GetFloat(index);
+            if (type == typeof(float))
+            {
+                if (providerName == ProviderName.MsSql)
+                {
+                    var r = reader.GetValue(index);
+                    return Convert.ToSingle(r);
+                }
+
+                return reader.GetFloat(index);
+            }
+
             if (type == typeof(Guid)) return reader.GetGuid(index);
 
 

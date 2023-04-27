@@ -116,7 +116,7 @@ namespace ORM_1_21_
                             .Compile();
                         list.Add(propertyInfo.Name, res);
                     }
-
+                    
                     return list;
                 }, LazyThreadSafetyMode.PublicationOnly);
 
@@ -133,10 +133,9 @@ namespace ORM_1_21_
                     {
                         var instance = Expression.Parameter(propertyInfo.DeclaringType, "i");
                         var argument = Expression.Parameter(typeof(object), "a");
-                        var setterCall = Expression.Call(
-                            instance,
-                            propertyInfo.GetSetMethod(),
-                            Expression.Convert(argument, propertyInfo.PropertyType));
+                        MethodInfo method = UnaryConverter.GetMethodInfo(Provider, propertyInfo.PropertyType);
+                        UnaryExpression unary = Expression.Convert(argument, propertyInfo.PropertyType, method);
+                        var setterCall = Expression.Call(instance, propertyInfo.GetSetMethod(), unary);
                         var res = (Action<T, object>)Expression.Lambda(setterCall, instance, argument)
                             .Compile();
                         list.Add(propertyInfo.Name, res);
@@ -281,7 +280,6 @@ namespace ORM_1_21_
                 pr.PropertyName = f.Name;
                 pr.PropertyType = f.PropertyType;
                 pr.DeclareType = typeof(T);
-                pr.TypeColumn = f.PropertyType;
                 var o3 = f.GetCustomAttribute<MapDefaultValueAttribute>(true);
                 if (o3 != null)
                     pr.DefaultValue = o3.Value;
@@ -750,7 +748,7 @@ namespace ORM_1_21_
             Provider = providerName;
             var e = PrimaryKeyAttribute.Value;
             if (e.Generator != Generator.Native) return;
-            var valCore = UtilsCore.ConverterPrimaryKeyType(e.TypeColumn, Convert.ToDecimal(val));
+            var valCore = UtilsCore.ConverterPrimaryKeyType(e.PropertyType, Convert.ToDecimal(val));
             SetValue.Value[e.PropertyName](item, valCore);
         }
 
@@ -815,13 +813,7 @@ namespace ORM_1_21_
 
             string s = sb.ToString().Trim(' ', ',');
             sb.Clear().Append(s).Append(") ");
-
-
             sb.Append(values.ToString().Trim(' ', ',')).Append(") ");
-
-
-
-
 
             if (PkAttribute(Provider).Generator == Generator.Native)
                 switch (Provider)
@@ -853,7 +845,6 @@ namespace ORM_1_21_
             sb.Append(";");
 
             return sb.ToString();
-
         }
 
      
@@ -912,16 +903,6 @@ namespace ORM_1_21_
             }
             command.CommandText = ssq;
         }
-
-
-
     }
 
-    class DataRiderData
-    {
-       
-        public Type PropertyType { get; set; }
-        public string PropertyName { get; set; }
-
-    }
 }

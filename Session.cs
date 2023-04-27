@@ -96,7 +96,7 @@ namespace ORM_1_21_
 
         int ISession.TableCreate<TSource>()
         {
-            var ss = new FactoryCreatorTable().SqlCreate<TSource>(MyProviderName);
+            var ss = new FactoryCreatorTable().SqlCreate<TSource>(MyProviderName,IsBlobGuid);
             var p = new V(ss);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("TableCreate"));
@@ -105,7 +105,7 @@ namespace ORM_1_21_
         }
         Task<int> ISession.TableCreateAsync<TSource>(CancellationToken cancellationToken)
         {
-            var ss = new FactoryCreatorTable().SqlCreate<TSource>(MyProviderName);
+            var ss = new FactoryCreatorTable().SqlCreate<TSource>(MyProviderName,IsBlobGuid);
             var p = new V(ss);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("TableCreate"));
@@ -532,13 +532,13 @@ namespace ORM_1_21_
                     com.CommandText = new UtilsBulkMsSql(ProviderName.MsSql).GetSql(enumerable);
                     break;
                 case ProviderName.MySql:
-                    com.CommandText = new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable);
+                    com.CommandText = new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable,IsBlobGuid);
                     break;
                 case ProviderName.PostgreSql:
                     com.CommandText = new UtilsBulkPostgres(ProviderName.PostgreSql).GetSql(enumerable);
                     break;
                 case ProviderName.SqLite:
-                    com.CommandText = new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable);
+                    com.CommandText = new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable,IsBlobGuid);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -578,13 +578,13 @@ namespace ORM_1_21_
                     com.CommandText = new UtilsBulkMsSql(ProviderName.MsSql).GetSql(enumerable);
                     break;
                 case ProviderName.MySql:
-                    com.CommandText = new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable);
+                    com.CommandText = new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable,IsBlobGuid);
                     break;
                 case ProviderName.PostgreSql:
                     com.CommandText = new UtilsBulkPostgres(ProviderName.PostgreSql).GetSql(enumerable);
                     break;
                 case ProviderName.SqLite:
-                    com.CommandText = new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable);
+                    com.CommandText = new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable,IsBlobGuid);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -934,11 +934,11 @@ namespace ORM_1_21_
                     case ProviderName.MsSql:
                         return new UtilsBulkMsSql(ProviderName.MsSql).GetSql(enumerable);
                     case ProviderName.MySql:
-                        return new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable);
+                        return new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable,IsBlobGuid);
                     case ProviderName.PostgreSql:
                         return new UtilsBulkPostgres(ProviderName.PostgreSql).GetSql(enumerable);
                     case ProviderName.SqLite:
-                        return new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable);
+                        return new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable,IsBlobGuid);
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -969,7 +969,45 @@ namespace ORM_1_21_
             return UpdateNewAsync(source, null, cancellationToken);
         }
 
-      
+        private bool? _isBlobGuid;
+
+        public bool IsBlobGuid
+        {
+            get
+            {
+                if (_isBlobGuid == null)
+                {
+                    if (MyProviderName == ProviderName.PostgreSql || MyProviderName == ProviderName.MsSql) _isBlobGuid=false;
+                    var s = _connectionString.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (string s1 in s)
+                    {
+                       
+                        if (s1.ToUpper().Contains("BinaryGUID".ToUpper())|| s1.ToUpper().Contains("OldGuids".ToUpper()))
+                        {
+                            var t = s1.Split(new[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
+                            _isBlobGuid=bool.Parse(t[1]);
+                            break;
+                        }
+                    }
+
+                    if (MyProviderName == ProviderName.SqLite&& _isBlobGuid == null)
+                    {
+                        _isBlobGuid = true;
+                    }
+                    if (MyProviderName == ProviderName.MySql&& _isBlobGuid == null)
+                    {
+                        _isBlobGuid = false;
+                    }
+
+
+                }
+               
+
+                return _isBlobGuid != null && _isBlobGuid.Value;
+
+            }
+        }
+
 
         private void SetTimeOut(IDbCommand com, int timeOut)
         {

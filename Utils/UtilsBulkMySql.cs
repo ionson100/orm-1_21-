@@ -20,9 +20,9 @@ namespace ORM_1_21_.Utils
             return SqlSimple(list);
         }
 
-        public string GetSql<T>(IEnumerable<T> list)
+        public string GetSql<T>(IEnumerable<T> list, bool isBlob)
         {
-            return SqlSimple(list);
+            return SqlSimple(list, isBlob);
         }
 
         private string SqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldTerminator)
@@ -74,7 +74,7 @@ namespace ORM_1_21_.Utils
             return sql.ToString();
         }
 
-        private string SqlSimple<T>(IEnumerable<T> list)
+        private string SqlSimple<T>(IEnumerable<T> list, bool isBlob = false)
         {
             var builder = new StringBuilder($"INSERT INTO {AttributesOfClass<T>.TableName(_providerName)}");
             builder.Append(" ( ");
@@ -97,14 +97,14 @@ namespace ORM_1_21_.Utils
                         AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList
                         .Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
-                    row.Append(GetValue(o, type)).Append(",");
+                    row.Append(GetValue(o, type, isBlob)).Append(",");
                 }
 
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    var str = GetValue(o, type);
+                    var str = GetValue(o, type, isBlob);
                     row.Append(str).Append(",");
                 }
 
@@ -115,9 +115,11 @@ namespace ORM_1_21_.Utils
             return res;
         }
 
-        public string GetValue(object o, Type type)
+        public string GetValue(object o, Type type, bool isBlob = false)
         {
             if (o == null) return "null";
+
+            type = UtilsCore.GetCoreType(type);
 
             if (type == typeof(byte[]))
                 switch (_providerName)
@@ -133,36 +135,49 @@ namespace ORM_1_21_.Utils
                         throw new ArgumentOutOfRangeException();
                 }
 
+            if (type == typeof(Guid) && isBlob)
+            {
+                Guid guid = (Guid)o;
+                if (_providerName == ProviderName.SqLite)
+                {
+                    return "x'" + BitConverter.ToString(guid.ToByteArray()).Replace("-", "") + "'";
+                }
+
+                if (_providerName == ProviderName.MySql)
+                {
+                    return "0x" + BitConverter.ToString(guid.ToByteArray()).Replace("-", "");
+                }
+            }
+
 
             if (type == typeof(int)
-                || type == typeof(decimal)
+                || type == typeof(uint)
                 || type == typeof(decimal)
                 || type == typeof(long)
+                || type == typeof(ulong)
                 || type == typeof(double)
                 || type == typeof(float)
-                || type == typeof(uint)
+                || type == typeof(ushort)
                 || type == typeof(sbyte)
-                || type == typeof(short)
-                || type == typeof(int?)
-                || type == typeof(long?)
-                || type == typeof(double?)
-                || type == typeof(float?)
-                || type == typeof(uint?)
-                || type == typeof(sbyte?)
-                || type == typeof(short?))
+                || type == typeof(short))
                 return o.ToString().Replace(",", ".");
 
-            if (type == typeof(DateTime) || type == typeof(DateTime?))
+            if (type == typeof(DateTime))
                 return $"'{(DateTime)o:yyyy-MM-dd HH:mm:ss.fff}'";
 
             if (type.IsEnum) return Convert.ToInt32(o).ToString();
 
-            if (type == typeof(bool?) || type == typeof(bool))
+            if (type == typeof(bool))
             {
                 if (_providerName == ProviderName.PostgreSql) return o.ToString();
                 var v = Convert.ToBoolean(o);
-                return v ? 0.ToString() : 1.ToString();
+                return v == false ? "0" : "1";
             }
+            if(_providerName==ProviderName.SqLite)
+                if (type == typeof(char))
+                {
+                    return $"{Convert.ToByte(o)}";
+                }
 
             switch (_providerName)
             {

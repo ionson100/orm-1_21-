@@ -42,6 +42,14 @@ namespace ORM_1_21_
         /// </summary>
         public static class Utils
         {
+            /// <summary>
+            /// Only MSSql
+            /// </summary>
+            /// <returns></returns>
+            public static DateTime DefaultSqlDateTime()
+            {
+                return new DateTime(1753, 1, 1, 12, 0, 0);
+            }
 
             /// <summary>
             /// Convert date to SQL format

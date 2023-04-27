@@ -18,6 +18,8 @@ namespace ORM_1_21_
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static partial class Helper
     {
+
+
         /// <summary>
         /// 
         /// </summary>

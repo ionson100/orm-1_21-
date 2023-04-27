@@ -390,5 +390,10 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="tableName">Table name</param>
         string ParseTableToClass(string tableName);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        bool IsBlobGuid { get; }
     }
 }

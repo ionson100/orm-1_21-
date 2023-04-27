@@ -57,7 +57,7 @@ namespace ORM_1_21_
         private string GetValue(object o, Type type)
         {
             if (o == null) return "null";
-
+            type = UtilsCore.GetCoreType(type);
 
             if (type == typeof(int)
                 || type == typeof(decimal)
@@ -67,26 +67,19 @@ namespace ORM_1_21_
                 || type == typeof(float)
                 || type == typeof(uint)
                 || type == typeof(sbyte)
-                || type == typeof(short)
-                || type == typeof(int?)
-                || type == typeof(long?)
-                || type == typeof(double?)
-                || type == typeof(float?)
-                || type == typeof(uint?)
-                || type == typeof(sbyte?)
-                || type == typeof(short?))
+                || type == typeof(short))
                 return o.ToString().Replace(",", ".");
             if (type == typeof(Guid) || type == typeof(string))
             {
                 return $"'{o.ToString().Replace("'", "''")}'";
             }
-            if (type == typeof(DateTime) || type == typeof(DateTime?))
+            if (type == typeof(DateTime))
                 return $"'{((DateTime)o):yyyy-MM-dd HH:mm:ss.fff}'";
 
 
             if (type.IsEnum) return Convert.ToInt32(o).ToString();
 
-            if (type == typeof(bool?) || type == typeof(bool))
+            if (type == typeof(bool))
             {
                 if (_providerName == ProviderName.PostgreSql) return o.ToString();
                 var v = Convert.ToBoolean(o);

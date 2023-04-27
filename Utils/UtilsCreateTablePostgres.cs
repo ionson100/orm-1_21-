@@ -8,139 +8,109 @@ namespace ORM_1_21_.Utils
         public static string Create<T>(ProviderName providerName)
         {
             var builder = new StringBuilder();
-            var tableName = AttributesOfClass<T>.TableNameRaw(providerName);
-            builder.AppendLine($"CREATE TABLE IF NOT EXISTS \"{tableName}\" (");
+            var tableName = AttributesOfClass<T>.TableName(providerName);
+            
+            builder.AppendLine($"CREATE TABLE IF NOT EXISTS {tableName} (");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
 
-            var typePk = GetTypePgPk(pk.TypeColumn, pk.Generator);
+            var typePk = GetTypePgPk(pk.PropertyType, pk.Generator);
             if (pk.TypeString != null)
                 typePk = pk.TypeString;
             var defValue = "PRIMARY KEY";
-            if (pk.DefaultValue!=null)
+            if (pk.DefaultValue != null)
             {
                 defValue = pk.DefaultValue;
             }
 
-            builder.AppendLine($" \"{UtilsCore.ClearTrim(pk.ColumnNameForRider(providerName))}\" {typePk}  {defValue},");
+            builder.AppendLine($" {pk.GetColumnName(providerName)} {typePk}  {defValue},");
 
-
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
+            foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
-                if (map.TypeString == null)
-                {
-                    builder.AppendLine(
-                        $" \"{UtilsCore.ClearTrim(map.ColumnNameForReader(providerName))}\" {GetTypePg(map.PropertyType)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.PropertyType)} ,");
-                }
-                else
-                {
-                    builder.AppendLine(
-                        $" \"{UtilsCore.ClearTrim(map.ColumnNameForReader(providerName))}\" {map.TypeString} ,");
-                }
+                builder.AppendLine(
+                    $" {map.GetColumnName(providerName)} {GetTypePg(map)} {FactoryCreatorTable.GetDefaultValue(map,providerName)} ,");
             }
-
             var str2 = builder.ToString();
             str2 = str2.Substring(0, str2.LastIndexOf(','));
- 
-            
-
             builder.Clear();
             builder.Append(str2);
-
-          //  var l = AttributesOfClass<T>.GetConstraintKeyNameList(providerName);
-          //  if (l.Any())
-          //  {
-          //      builder.Append(",");
-          //      builder.AppendLine($" CONSTRAINT pk_1_{UtilsCore.ClearTrim(tableName).ToLower()} PRIMARY KEY ({pk.GetColumnName(providerName)},{string.Join(", ", l)})");
-          //  }
-
-
-
             builder.AppendLine(");");
-           
-           
-
+            var tableNameRaw = AttributesOfClass<T>.TableNameRaw(providerName);
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
                 if (map.IsIndex)
                 {
                     var colName = map.GetColumnNameRaw();
-
                     builder.AppendLine(
-                        $"CREATE INDEX IF NOT EXISTS \"INDEX_{tableName}_{colName}\" ON \"{tableName}\" (\"{colName}\");");
+                        $"CREATE INDEX IF NOT EXISTS \"INDEX_{tableNameRaw}_{colName}\" ON {tableName} (\"{colName}\");");
                 }
 
             return builder.ToString();
         }
 
 
-        private static string GetTypePg(Type type)
+        private static string GetTypePg(MapColumnAttribute map)
         {
+            if (map.TypeString != null) return map.TypeString;
+
+            var type = UtilsCore.GetCoreType(map.PropertyType);
+
             if (type == typeof(long) ||
-                type == typeof(long?)|| 
-                type == typeof(ulong?)||
-                type == typeof(ulong)) 
+                type == typeof(ulong))
                 return "BIGINT";
+
             if (type == typeof(int) ||
                 type.BaseType == typeof(Enum) ||
                 type == typeof(Enum) ||
-                type == typeof(int?)||
-                type == typeof(uint?)||
-                type == typeof(uint)||
-                type == typeof(ushort?)|| 
-                type == typeof(ushort)||
-                type == typeof(short)||
-                type == typeof(short?)
-                ) return "INTEGER";
-            if (type == typeof(bool) || 
-                type == typeof(bool?)) //real
+                type == typeof(uint) ||
+                type == typeof(ushort) ||
+                type == typeof(short)
+                )
+                return "INTEGER";
+
+            if (type == typeof(bool))
                 return "BOOLEAN";
-            if (type == typeof(decimal)|| 
-                type == typeof(decimal?))
+
+            if (type == typeof(decimal))
                 return "decimal";
-            if (type == typeof(float)||
-                type == typeof(float?))
+
+            if (type == typeof(float))
                 return "NUMERIC";
 
-            if (type == typeof(double)||
-                type == typeof(double?))
+            if (type == typeof(double))
                 return "double precision";
 
-            if (type == typeof(DateTime)||
-                type == typeof(DateTime?)) 
+            if (type == typeof(DateTime))
                 return "TIMESTAMP";
 
-            if (type == typeof(Guid)|| type == typeof(Guid?)) 
+            if (type == typeof(Guid))
                 return "UUID";
-            if (type == typeof(byte) || 
-                type == typeof(byte?)||
-                type == typeof(sbyte)|| 
-                type == typeof(sbyte?))
+
+            if (type == typeof(byte) ||
+                type == typeof(sbyte))
                 return "smallint";
-            if (type == typeof(char) || type == typeof(char?))
+
+            if (type == typeof(char))
                 return "character(1)";
-           //var st = UtilsCore.GetSerializeType(type);
-           //if (st==SerializeType.User) 
-           //    return "TEXT";
 
-            if (type == typeof(byte[])) 
+            if (type == typeof(byte[]))
                 return "BYTEA";
-
 
             return "VARCHAR(256)";
         }
 
         private static string GetTypePgPk(Type type, Generator generator)
         {
+            type = UtilsCore.GetCoreType(type);
             if (generator == Generator.Assigned)
             {
-                if (type == typeof(long) || type == typeof(long?)) return "BIGINT";
-                if (type == typeof(int) || type.BaseType == typeof(Enum) || type == typeof(int?)) return "INTEGER";
+                if (type == typeof(long)) return "BIGINT";
+                if (type == typeof(int) || type.BaseType == typeof(Enum) ) return "INTEGER";
                 if (type == typeof(Guid)) return "UUID";
             }
 
-            if (generator == Generator.Native||generator == Generator.NativeNotReturningId)
+            if (generator == Generator.Native || generator == Generator.NativeNotReturningId)
             {
-                if (type == typeof(long) || type == typeof(ulong) || type == typeof(long?)) return "BIGSERIAL";
-                if (type == typeof(int) || type == typeof(uint) || type.BaseType == typeof(Enum) || type == typeof(int?)) return "SERIAL";
+                if (type == typeof(long) || type == typeof(ulong)) return "BIGSERIAL";
+                if (type == typeof(int) || type == typeof(uint) || type.BaseType == typeof(Enum)) return "SERIAL";
                 if (type == typeof(Guid)) return "UUID";
             }
 

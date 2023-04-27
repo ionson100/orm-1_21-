@@ -125,6 +125,7 @@
     <Compile Include="Linq\ITranslate.cs" />
     <Compile Include="Linq\OldExpressionVisitor.cs" />
     <Compile Include="Linq\PostExpression.cs" />
+    <Compile Include="Linq\UnaryConverter.cs" />
     <Compile Include="MyCache.cs" />
     <Compile Include="ProxyAttribute.cs" />
     <Compile Include="StorageOtherBaseFactory.cs" />

@@ -9,10 +9,10 @@ namespace TestLibrary
     {
         public static void Run()
         {
-            //InnerRun<MyDbPostgres>();
+            InnerRun<MyDbPostgres>();
             //InnerRun<MyDbMySql>();
             //InnerRun<MyDbMsSql>();
-            InnerRun<MyDbSqlite>();
+            //InnerRun<MyDbSqlite>();
         }
         private static void InnerRun<TB>() where TB : IOtherDataBaseFactory, new()
         {

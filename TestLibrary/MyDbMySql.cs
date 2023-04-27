@@ -2,18 +2,22 @@
 using ORM_1_21_;
 using System;
 using System.Data.Common;
+using System.IO;
 
 namespace TestLibrary
 {
    public static class ConnectionStrings
     {
-        public const string Sqlite = "Data Source=mydb.db;Version=3;BinaryGUID=False;";
-        public const string Mysql = "Server=localhost;Database=test;Uid=root;Pwd=12345;";
+        public const string Sqlite = "Data Source=mydb.db;Version=3;BinaryGUID=fALSE;";//
+        public const string Mysql = "Server=localhost;Database=test;Uid=root;Pwd=12345;";//OldGuids=true;
         public const string Postgesql =
             "Server=localhost;Port=5432;Database=testorm;User Id=user;Password=postgres;";
-        public const string MsSql= "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=test;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+        public static string MsSql =
+            $"Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=" +
+            $"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.mdf")};Integrated Security=True";
+
     }
-  public  class MyDbMySql : IOtherDataBaseFactory
+    public  class MyDbMySql : IOtherDataBaseFactory
     {
         private static readonly Lazy<DbProviderFactory> DbProviderFactory = 
             new Lazy<DbProviderFactory>(() => new MySqlClientFactory());

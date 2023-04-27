@@ -848,7 +848,7 @@ namespace ORM_1_21_
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            var ex = Expression.Call(null, _average_Long_Selector.MakeGenericMethod(typeof(TSource)), new []
+            var ex = Expression.Call(null, _average_LongNullable_Selector.MakeGenericMethod(typeof(TSource)), new []
             {
                 source.Expression,
                 Expression.Quote(selector)

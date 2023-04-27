@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace TestLibrary
 {
@@ -17,7 +18,7 @@ namespace TestLibrary
             NewExe<CapacityMysql, MyDbMySql>();
             NewExe<CapacityMsSql, MyDbMsSql>();
 
-            Console.ReadKey();
+            
         }
 
         private static void NewExe<T, Tb>(bool isNative = false) where T : CapacityBase, new() where Tb : IOtherDataBaseFactory, new()
@@ -277,22 +278,22 @@ namespace TestLibrary
         }
 
         [MapTable]
-        class CapacityPostgres : CapacityBase
+        public class CapacityPostgres : CapacityBase
         {
 
         }
         [MapTable]
-        class CapacityMysql : CapacityBase
+        internal class CapacityMysql : CapacityBase
         {
 
         }
         [MapTable]
-        class CapacityMsSql : CapacityBase
+        internal class CapacityMsSql : CapacityBase
         {
 
         }
         [MapTable]
-        class CapacitySqlite : CapacityBase
+        internal class CapacitySqlite : CapacityBase
         {
 
         }

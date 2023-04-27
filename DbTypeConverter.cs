@@ -111,93 +111,9 @@ namespace ORM_1_21_
                 return ConvertFrom(type.GetGenericArguments()[0]);
             }
 
-          // var st = UtilsCore.GetSerializeType(type);
-          // if ( st == SerializeType.User)
-          // {
-          //     return DbType.String;
-          //
-          // }
-          
             throw new NotSupportedException(string.Format("Unable to convert {0} to a DbType enum value.", type.FullName));
         }
 
-        public static string ConvertSqlType(Type type)
-        {
-            if (type == typeof(Char[]))
-            {
-                return "char(100)";
-            }
-            if (type == typeof(float))
-            {
-                return "float ";
-            }
-            if (type == typeof(Byte))
-            {
-                return "varbinary";
-            }
-            if (type == typeof(Char))
-            {
-                return "char ";
-            }
-
-            if (type == typeof(decimal))
-            {
-                return "decimal";
-            }
-            if (type == typeof(double))
-            {
-                return "float";
-            }
-            if (type == typeof(Int16))
-            {
-                return "int";
-            }
-            if (type == typeof(Int32))
-            {
-                return "int";
-            }
-            if (type == typeof(Int64))
-            {
-                return "int";
-            }
-            if (type == typeof(SByte))
-            {
-                return "int";
-            }
-            if (type == typeof(Single))
-            {
-                return "float ";
-            }
-            if (type == typeof(String))
-            {
-                return "ntext ";
-            }
-            if (type == typeof(UInt16))
-            {
-                return "int";
-            }
-            if (type == typeof(UInt32))
-            {
-                return "int";
-            }
-            if (type == typeof(UInt64))
-            {
-                return "int";
-            }
-
-            if (type == typeof(Guid))
-            {
-                return "ntext";
-            }
-            if (type == typeof(byte[]))
-            {
-                return "varbinary";
-            }
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                return ConvertSqlType(type.GetGenericArguments()[0]);
-            }
-            throw new NotSupportedException(string.Format("Unable to convert {0} to a SqlType enum value.", type.FullName));
-        }
+      
     }
 }

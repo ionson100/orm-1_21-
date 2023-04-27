@@ -22,7 +22,7 @@ namespace TestLibrary
             where TB : IOtherDataBaseFactory, new()
         {
             var sb = Activator.CreateInstance<TB>();
-            Configure.WriteLogFile(
+            Console.WriteLine(
                 $"**************************{sb.GetProviderName()} Async*****************************");
             var session = await Configure.GetSessionAsync<TB>();
 
@@ -109,7 +109,7 @@ namespace TestLibrary
             count = await session.Query<T>().SumAsync(a => a.Age);
             Execute.Log(16, count == 70);
 
-            float sd = await session.Query<T>().AverageAsync(a => a.Age);
+            int sd = await session.Query<T>().AverageAsync(a => a.Age);
             Execute.Log(17, Math.Abs(sd - 23f) < 2);
 
             var v1 = await session.ExecuteNonQueryAsync("select 1", null);

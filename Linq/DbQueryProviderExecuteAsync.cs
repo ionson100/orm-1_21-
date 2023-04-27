@@ -19,7 +19,6 @@ namespace ORM_1_21_.Linq
     {
         public async Task<object> ExecuteAsync<TS>(Expression expression, object[] param, CancellationToken cancellationToken)
         {
-            var tt = typeof(TS);
             var tk = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             CancellationTokenRegistration? registration = null;
@@ -334,28 +333,27 @@ namespace ORM_1_21_.Linq
                     dataReader = await com.ExecuteReaderAsync();
                     var count = dataReader.FieldCount;
                     var list = new List<Type>();
-                    for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
                     var resDis = new List<TS>();
                     if (UtilsCore.IsAnonymousType(typeof(TS)))
                     {
-                        var ci = typeof(TS).GetConstructor(list.ToArray());
-                        if (ci == null)
+                        var ci = typeof(TS).GetConstructors().First();
+                        foreach (var parameterInfo in ci.GetParameters())
                         {
-                            throw new Exception($"Can't find constructor for anonymous type: {typeof(TS).Name}");
+                            list.Add(parameterInfo.ParameterType);
                         }
 
+                        if (count != list.Count) throw new Exception("The number of anonymous type parameters does not match the number of sql query fields");
                         while (dataReader.Read())
                         {
                             var par = new List<object>();
                             for (var i = 0; i < count; i++)
                             {
-                                var val = Pizdaticus.MethodFreeIndex(_providerName, list[i], dataReader,i);
+                                var val = Pizdaticus.MethodFreeIndex(_providerName, list[i], dataReader, i);
                                 par.Add(val);
                             }
                             var e = ci.Invoke(par.ToArray());
                             resDis.Add((TS)e);
                         }
-
                     }
                     else if (UtilsCore.IsReceiverFreeSql<TS>())
                     {
@@ -374,7 +372,7 @@ namespace ORM_1_21_.Linq
 
                         var ci = c[0];
 
-                        if (ci.GetParameters().Length != list.Count)
+                        if (ci.GetParameters().Length != count)
                         {
                             throw new Exception(
                                 $"The number of parameters of the constructor method:{ci.GetParameters().Length}  is not equal to the number of" +
@@ -461,13 +459,10 @@ namespace ORM_1_21_.Linq
                     object rObj = null;
                     while (dataReader.Read())
                     {
-                        rObj = dataReader[0];
+                        rObj = UtilsCore.Convertor(dataReader.GetValue(0), typeof(TS));
                         break;
                     }
-
-
-                    dataReader.Dispose();
-                    var res = UtilsCore.Convertor<TS>(rObj);
+                    var res = rObj;
                     if (isCacheUsage)
                     {
                         MyCache<T>.Push(hashCode, res);
@@ -479,38 +474,20 @@ namespace ORM_1_21_.Linq
 
 
 
-                // if (PingCompositeE(Evolution.Join, listCore))
-                // {
-                //     dataReader = await _com.ExecuteReaderAsync();
-                //     var res = new List<TS>();
-                //     var ss = listCore.Single(a => a.Operand == Evolution.Join).NewConstructor;
-                //     if (ss == null)
-                //         while (dataReader.Read())
-                //             res.Add((TS)dataReader[0]);
-                //     else
-                //         res = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss, _providerName);
-                //
-                //     if (isCacheUsage)
-                //     {
-                //         MyCache<T>.Push(hashCode, res);
-                //     }
-                //
-                //     tk.SetResult(res);
-                //     return await tk.Task;
-                // }
-
-
                 if (PingCompositeE(Evolution.Select, listCore) &&
                     !PingCompositeE(Evolution.SelectNew, listCore))
                 {
                     var type = typeof(TS);
                     if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     {
-                        var ttType = typeof(TS).GenericTypeArguments[0];
                         var lees = new List<object>();
                         dataReader = await com.ExecuteReaderAsync();
-                        while (dataReader.Read()) lees.Add(UtilsCore.Convertor(dataReader[0], ttType));
-                        dataReader.Dispose();
+                        while (dataReader.Read())
+                        {
+                            lees.Add(Pizdaticus.MethodFreeIndex(_providerName, typeof(TS), dataReader, 0));
+                        }
+
+                        
 
                         var listNativeInvoke = DbHelp.CastList(lees);
                         var devastatingly1 = Pizdaticus.SingleData(listCore, lees, out var active1);
@@ -527,7 +504,10 @@ namespace ORM_1_21_.Linq
                     {
                         var lees = new List<TS>();
                         dataReader = await com.ExecuteReaderAsync();
-                        while (dataReader.Read()) lees.Add((TS)UtilsCore.Convertor<TS>(dataReader[0]));
+                        while (dataReader.Read())
+                        {
+                            lees.Add((TS)Pizdaticus.MethodFreeIndex(_providerName, typeof(TS), dataReader, 0));
+                        }
                         dataReader.Dispose();
                         var devastatingly1 = Pizdaticus.SingleData(listCore, lees, out var active1);
                         var res = !active1 ? (object)lees : devastatingly1;
@@ -609,7 +589,7 @@ namespace ORM_1_21_.Linq
                         var resDis = resT;
                         while (dataReader.Read())
                         {
-                            var val = Pizdaticus.MethodFree(_providerName, sas.TypeReturn, dataReader[0]);
+                            var val = Pizdaticus.MethodFreeIndex(_providerName, sas.TypeReturn, dataReader,0);
                             resDis.Add(val);
                         }
 

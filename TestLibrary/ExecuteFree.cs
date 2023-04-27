@@ -1,5 +1,4 @@
-﻿using Org.BouncyCastle.Asn1.X509;
-using ORM_1_21_;
+﻿using ORM_1_21_;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,8 +22,8 @@ namespace TestLibrary
             var s = Activator.CreateInstance<TB>();
             Console.WriteLine($"**************************{s.GetProviderName()}*****************************");
             ISession session = Configure.GetSession<TB>();
-            session.DropTableIfExists<T>();
-            session.TableCreate<T>();
+            await session.DropTableIfExistsAsync<T>();
+            await session.TableCreateAsync<T>();
             session.InsertBulk(new List<T>
             {
                 new T { Age = 100, Name = "100",DateTime = DateTime.Now},
@@ -86,18 +85,22 @@ namespace TestLibrary
                 Console.WriteLine(i.ToString());
             }
 
-            var res = session.FreeSqlAsTemplate(new { id = Guid.Empty,age=1 },
+
+
+            var res = session.FreeSqlAsTemplate(new { id = Guid.Empty, age = 1 },
                 $"select id, age from {session.TableName<T>()}").ToList();
             foreach (var re in res)
             {
                 Console.WriteLine(re);
             }
-            var tst = await session.FreeSqlAsTemplateAsync(new { id = Guid.Empty, age = 1 },
-                $"select id, age from {session.TableName<T>()}");
+            var tst = await session.FreeSqlAsTemplateAsync(new { id = Guid.Empty, age = 1 ,ss=MyEnum.First},
+                $"select id, age, enum from {session.TableName<T>()}");
             foreach (var x1 in tst)
             {
                 Console.WriteLine(x1);
             }
+
+
             var free = session.FreeSql<FreeClass>($"select id, age from {session.TableName<T>()}").ToList();
             free.ForEach(Console.WriteLine);
 

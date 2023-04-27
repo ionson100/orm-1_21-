@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
@@ -301,22 +300,22 @@ namespace ORM_1_21_.Linq
                     dataReader = com.ExecuteReader();
                     var count = dataReader.FieldCount;
                     var list = new List<Type>();
-                    for (var i = 0; i < count; i++) list.Add(dataReader.GetFieldType(i));
                     var resDis = new List<TS>();
                     if (UtilsCore.IsAnonymousType(typeof(TS)))
                     {
-                        var ci = typeof(TS).GetConstructor(list.ToArray());
-                        if (ci == null)
+                        var ci = typeof(TS).GetConstructors().First();
+                        foreach (var parameterInfo in ci.GetParameters())
                         {
-                            throw new Exception($"Can't find constructor for anonymous type: {typeof(TS).Name}");
+                            list.Add(parameterInfo.ParameterType);
                         }
+                        if (count != list.Count) throw new Exception("The number of anonymous type parameters does not match the number of sql query fields");
                         while (dataReader.Read())
                         {
                             var par = new List<object>();
                             for (var i = 0; i < count; i++)
                             {
-                                var val = Pizdaticus.MethodFreeIndex(_providerName, list[i], dataReader,i);
-                                par.Add( val);
+                                var val = Pizdaticus.MethodFreeIndex(_providerName, list[i], dataReader, i);
+                                par.Add(val);
                             }
                             var e = ci.Invoke(par.ToArray());
                             resDis.Add((TS)e);
@@ -339,7 +338,7 @@ namespace ORM_1_21_.Linq
 
                         var ci = c[0];
 
-                        if (ci.GetParameters().Length != list.Count)
+                        if (ci.GetParameters().Length != count)
                         {
                             throw new Exception(
                                 $"The number of parameters of the constructor method:{ci.GetParameters().Length}  is not equal to the number of" +
@@ -352,7 +351,7 @@ namespace ORM_1_21_.Linq
                             for (var i = 0; i < count; i++)
                             {
                                 var val = Pizdaticus.MethodFreeIndex(_providerName, ci.GetParameters()[i].ParameterType,
-                                    dataReader,i);
+                                    dataReader, i);
                                 par.Add(val);
                             }
 
@@ -367,16 +366,16 @@ namespace ORM_1_21_.Linq
                     {
                         while (dataReader.Read())
                         {
-                            resDis.Add((TS)(Pizdaticus.MethodFreeIndex(_providerName, typeof(TS), dataReader,0)));
+                            resDis.Add((TS)(Pizdaticus.MethodFreeIndex(_providerName, typeof(TS), dataReader, 0)));
                         }
                     }
                     else
                     {
                         if (typeof(TS) != typeof(object) && typeof(TS).IsClass)
                         {
-                            
+
                             var isLegalese = AttributesOfClass<TS>.IsUsageActivator(_providerName);
-                            
+
 
                             while (dataReader.Read())
                             {
@@ -389,7 +388,6 @@ namespace ORM_1_21_.Linq
                                 {
                                     employee = (TS)FormatterServices.GetSafeUninitializedObject(typeof(TS));
                                 }
-                                var ty = typeof(TS).Name;
                                 for (var i = 0; i < dataReader.FieldCount; i++)
                                     AttributesOfClass<TS>.SetValueFreeSqlE(_providerName, dataReader.GetName(i),
                                         (TS)employee,
@@ -430,12 +428,10 @@ namespace ORM_1_21_.Linq
                     object rObj = null;
                     while (dataReader.Read())
                     {
-                        rObj = dataReader[0];
+                        rObj = UtilsCore.Convertor(dataReader.GetValue(0), typeof(TS));
                         break;
                     }
-
-                    dataReader.Dispose();
-                    var res = UtilsCore.Convertor<TS>(rObj);
+                    var res = rObj;
                     if (isCacheUsage)
                     {
                         MyCache<T>.Push(hashCode, res);
@@ -452,8 +448,11 @@ namespace ORM_1_21_.Linq
                         var ttType = typeof(TS).GenericTypeArguments[0];
                         var lees = new List<object>();
                         dataReader = com.ExecuteReader();
-                        while (dataReader.Read()) lees.Add(UtilsCore.Convertor(dataReader[0], ttType));
-                        dataReader.Dispose();
+                        while (dataReader.Read())
+                        {
+                            lees.Add(Pizdaticus.MethodFreeIndex(_providerName, ttType, dataReader, 0));
+
+                        }
 
                         var listNativeInvoke = DbHelp.CastList(lees);
                         var devastatingly1 = Pizdaticus.SingleData(listCore, lees, out var active1);
@@ -470,8 +469,10 @@ namespace ORM_1_21_.Linq
                     {
                         var lees = new List<TS>();
                         dataReader = com.ExecuteReader();
-                        while (dataReader.Read()) lees.Add((TS)UtilsCore.Convertor<TS>(dataReader[0]));
-                        dataReader.Dispose();
+                        while (dataReader.Read())
+                        {
+                            lees.Add((TS)Pizdaticus.MethodFreeIndex(_providerName, typeof(TS), dataReader, 0));
+                        }
                         var devastatingly1 = Pizdaticus.SingleData(listCore, lees, out var active1);
                         var res = !active1 ? (object)lees : devastatingly1;
                         if (isCacheUsage)
@@ -538,7 +539,7 @@ namespace ORM_1_21_.Linq
                         var resDis = resT;
                         while (dataReader.Read())
                         {
-                            var val = Pizdaticus.MethodFreeIndex(_providerName, sas.TypeReturn, dataReader,0);
+                            var val = Pizdaticus.MethodFreeIndex(_providerName, sas.TypeReturn, dataReader, 0);
                             resDis.Add(val);
                         }
 
@@ -607,7 +608,7 @@ namespace ORM_1_21_.Linq
                 #endregion
 
                 dataReader = com.ExecuteReader();
-               IEnumerable<T> res1 = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName,listCore.Any(a=>a.Operand==Evolution.FreeSql));
+                IEnumerable<T> res1 = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName, listCore.Any(a => a.Operand == Evolution.FreeSql));
                 // if (postExpressions.Count > 0)
                 // {
                 //     FactoryExpression.GetData(res1, postExpressions);
@@ -631,12 +632,13 @@ namespace ORM_1_21_.Linq
 
             finally
             {
-                _session.ComDisposable(com);
                 if (dataReader != null)
                 {
                     dataReader.Close();
                     dataReader.Dispose();
                 }
+                _session.ComDisposable(com);
+
             }
         }
     }

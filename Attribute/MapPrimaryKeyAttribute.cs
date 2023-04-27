@@ -31,7 +31,7 @@ namespace ORM_1_21_
             Generator = generator;
         }
 
-        internal Type TypeColumn { get; set; }
+        
 
         internal Generator Generator { get; }
 
@@ -42,7 +42,7 @@ namespace ORM_1_21_
 
         internal DbType DbType()
         {
-            return DbTypeConverter.ConvertFrom(TypeColumn);
+            return DbTypeConverter.ConvertFrom(PropertyType);
         }
     }
 

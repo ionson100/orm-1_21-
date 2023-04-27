@@ -14,7 +14,7 @@ namespace ORM_1_21_.Utils
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
             if (pk.Generator == Generator.Native|| pk.Generator == Generator.NativeNotReturningId)
             {
-                var typePk = $" {GetTypeMsSQl(pk.TypeColumn)}IDENTITY(1,1) NOT NULL";
+                var typePk = $" {GetTypeMsSQl(pk)}IDENTITY(1,1) NOT NULL";
                 if (pk.TypeString != null)
                     typePk = pk.TypeString;
                 var defValue = "PRIMARY KEY";
@@ -22,7 +22,7 @@ namespace ORM_1_21_.Utils
                 {
                     defValue = pk.DefaultValue;
                 }
-                builder.AppendLine($"[{pk.ColumnNameForRider(providerName)}]  {typePk} {defValue},");
+                builder.AppendLine($"{pk.GetColumnName(providerName)} {typePk} {defValue},");
             }
             if (pk.Generator == Generator.Assigned)
             {
@@ -35,22 +35,15 @@ namespace ORM_1_21_.Utils
                     defValue = pk.DefaultValue;
                 }
 
-                builder.AppendLine($"[{pk.ColumnNameForRider(providerName)}]  {typePk} {defValue},");
+                builder.AppendLine($"{pk.GetColumnName(providerName)} {typePk} {defValue},");
             }
 
-
+           
             foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
-                var typeUser = map.TypeString;
-                if (typeUser == null)
-                {
-                    builder.AppendLine($" [{map.ColumnNameForReader(providerName)}] {GetTypeMsSQl(map.PropertyType)} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.PropertyType)},");
-                }
-                else
-                {
-                    builder.AppendLine(
-                        $" [{map.ColumnNameForReader(providerName)}] {typeUser} {FactoryCreatorTable.GetDefaultValue(map.DefaultValue, map.PropertyType)},");
-                }
+             
+                builder.AppendLine($"{map.GetColumnName(providerName)} {GetTypeMsSQl(map)} {FactoryCreatorTable.GetDefaultValue(map,providerName)},");
+               
             }
 
             string res = builder.ToString().Trim(' ', ',') + ");";
@@ -66,78 +59,74 @@ namespace ORM_1_21_.Utils
 
             return builder.ToString();
         }
-        private static string GetTypeMsSQl(Type type)
+        private static string GetTypeMsSQl(BaseAttribute map)
         {
-            if (type == typeof(long) || type == typeof(long?))
+            if (map.TypeString != null) return map.TypeString;
+            var type = UtilsCore.GetCoreType(map.PropertyType);
+            if (type == typeof(long))
             {
                 return "[bigint]";
             }
-            if (type == typeof(int) || type.BaseType == typeof(Enum) || type == typeof(int?))
+            if (type == typeof(int) || type.BaseType == typeof(Enum))
             {
                 return "[INT]";
             }
 
-            if (type == typeof(UInt32) || type == typeof(UInt32?))
+            if (type == typeof(UInt32))
             {
                 return "[INT]";
             }
-            if (type == typeof(Int16) || type == typeof(Int16?))
+            if (type == typeof(Int16))
             {
                 return "[SMALLINT]";
             }
 
-            if (type == typeof(UInt16) || type == typeof(UInt16?))
+            if (type == typeof(UInt16))
             {
                 return "[SMALLINT]";
             }
 
-            if (type == typeof(UInt64) || type == typeof(UInt64?))
+            if (type == typeof(UInt64))
             {
                 return "[bigint]";
             }
 
-            if (type == typeof(Byte) || type == typeof(Byte?) || type == typeof(SByte) || type == typeof(SByte?))
+            if (type == typeof(Byte)|| type == typeof(SByte) )
             {
                 return "[TINYINT]";
             }
 
-            if (type == typeof(char) || type == typeof(char?))
+            if (type == typeof(char))
             {
                 return "[char](1)";
             }
-            if (type == typeof(bool) || type == typeof(bool?))//real
+            if (type == typeof(bool))
             {
                 return "[BIT]";
             }
-            if (type == typeof(decimal) || type == typeof(decimal?))
+            if (type == typeof(decimal))
             {
-                return "[decimal]";
+                return "[decimal](10,2)";
             }
-            if (type == typeof(float) || type == typeof(float?))
-            {
-                return "[float]";
-            }
-
-            if (type == typeof(double) || type == typeof(double?))
+            if (type == typeof(float))
             {
                 return "[float]";
             }
 
-            if (type == typeof(DateTime) || type == typeof(DateTime?))
+            if (type == typeof(double))
+            {
+                return "[float]";
+            }
+
+            if (type == typeof(DateTime))
             {
                 return "[DATETIME]";
             }
-
 
             if (type == typeof(Guid))
             {
                 return "[uniqueidentifier]";
             }
-           // var st = UtilsCore.GetSerializeType(type);
-           // if (st==SerializeType.User)
-           // {
-           //     return "[nvarchar] (max)";
-           // }
 
             if ( type == typeof(byte[]))
             {

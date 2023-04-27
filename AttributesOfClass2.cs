@@ -219,25 +219,17 @@ namespace ORM_1_21_
                       }
                       else
                       {
-                          if (pra.PropertyType == typeof(Guid) && Provider == ORM_1_21_.ProviderName.SqLite)
-                          {
-                              void Command1(T obj, int ip, IDbCommand dbCommand)
+                          
+                              void Command(T obj, int ip, IDbCommand dbCommand)
                               {
                                   IDataParameter pr = dbCommand.CreateParameter();
                                   pr.ParameterName = string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider));
-                                  pr.Value = GetValue.Value[pra.PropertyName](obj).ToString();
+                                  pr.Value = GetValue.Value[pra.PropertyName](obj) ?? DBNull.Value;
                                   dbCommand.Parameters.Add(pr);
                               }
-                              list.Add(Command1);
-                          }
-                          void Command(T obj, int ip, IDbCommand dbCommand)
-                          {
-                              IDataParameter pr = dbCommand.CreateParameter();
-                              pr.ParameterName = string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider));
-                              pr.Value = GetValue.Value[pra.PropertyName](obj)??DBNull.Value;
-                              dbCommand.Parameters.Add(pr);
-                          }
-                          list.Add(Command);
+                              list.Add(Command);
+                          
+                          
                       }
                     
                   }

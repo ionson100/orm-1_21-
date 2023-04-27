@@ -98,7 +98,6 @@ namespace ORM_1_21_.Utils
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    //if (type == typeof(byte[])) continue;
                     var str = new UtilsBulkMySql(_providerName).GetValue(o, type);
                     row.Append(str).Append(",");
                 }
@@ -114,31 +113,27 @@ namespace ORM_1_21_.Utils
         {
             if (o == null) return "null";
 
+            type = UtilsCore.GetCoreType(type);
 
             if (type == typeof(int)
-                || type == typeof(decimal)
-                || type == typeof(decimal)
-                || type == typeof(long)
-                || type == typeof(double)
-                || type == typeof(float)
                 || type == typeof(uint)
+                || type == typeof(decimal)
+                || type == typeof(long) 
+                || type == typeof(ulong)
+                || type == typeof(double) 
+                || type == typeof(float)
+                || type==typeof(ushort)
                 || type == typeof(sbyte)
                 || type == typeof(short)
-                || type == typeof(int?)
-                || type == typeof(long?)
-                || type == typeof(double?)
-                || type == typeof(float?)
-                || type == typeof(uint?)
-                || type == typeof(sbyte?)
-                || type == typeof(short?))
+               )
                 return o.ToString().Replace(",", ".");
 
-            if (type == typeof(DateTime) || type == typeof(DateTime?))
+            if (type == typeof(DateTime))
                 return $"'{(DateTime)o:yyyy-MM-dd HH:mm:ss.fff}'";
 
             if (type.IsEnum) return Convert.ToInt32(o).ToString();
 
-            if (type == typeof(bool?) || type == typeof(bool))
+            if (type == typeof(bool))
             {
                 if (_providerName == ProviderName.PostgreSql) return o.ToString();
                 var v = Convert.ToBoolean(o);
