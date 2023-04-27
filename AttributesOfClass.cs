@@ -13,11 +13,6 @@ using System.Threading;
 
 namespace ORM_1_21_
 {
-    internal static partial class AttributesOfClass<T>
-    {
-
-    }
-
 
     [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
     [SuppressMessage("ReSharper", "StaticMemberInGenericType")]
@@ -48,7 +43,6 @@ namespace ORM_1_21_
         private static readonly Lazy<List<MapColumnAttribute>> AttributeDalList =
             new Lazy<List<MapColumnAttribute>>(GetListActivateDallAll, LazyThreadSafetyMode.PublicationOnly);
 
-    
 
         private static readonly Lazy<MapTableAttribute> TableAttribute =
             new Lazy<MapTableAttribute>(GetTableAttribute, LazyThreadSafetyMode.PublicationOnly);
@@ -181,7 +175,6 @@ namespace ORM_1_21_
                         ProviderName = value;
                     }
                 }
-               
             }
         }
 
@@ -191,11 +184,9 @@ namespace ORM_1_21_
 
         private static string SqlWhereBase => SqlWhere;
 
-
         public static bool IsValidInner => IsValid.Value;
 
         public static bool IsReceiverFreeSqlInner => IsReceiverFreeSql.Value;
-
 
         private static ProviderName? ProviderName { get; set; }
 
@@ -422,7 +413,6 @@ namespace ORM_1_21_
                         a.GetColumnName(providerName),
                         UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
                             a.GetColumnName(providerName)));
-              
             }
 
             sb = new StringBuilder(sb.ToString().Trim(','));
@@ -457,11 +447,7 @@ namespace ORM_1_21_
                 pk.GetColumnName(Provider), ++i, parName);
 
             return allSql.Append(sb).ToString();
-
         }
-
-
-     
 
         public static void CreateUpdateCommandMysql(IDbCommand command, T item, ProviderName providerName,
            params AppenderWhere[] whereObjects)
@@ -474,27 +460,11 @@ namespace ORM_1_21_
                          .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
             {
                 if (pra.IsNotUpdateInsert) continue;
-                IDataParameter pr = command.CreateParameter();
-                pr.ParameterName = string.Format("{1}p{0}", ++i, parName);
-                object val;
-
-                if (pra.PropertyType.BaseType == typeof(Enum))
-                    val = (int)GetValue.Value[pra.PropertyName](item);
-                else
-                    val = GetValue.Value[pra.PropertyName](item);
-
-                pr.Value = val ?? DBNull.Value;
-                pr.DbType = pra.DbType();
-                command.Parameters.Add(pr);
+                command.AddParameter(string.Format("{1}p{0}", ++i, parName),GetValue.Value[pra.PropertyName](item));
             }
 
             var pk = PrimaryKeyAttribute.Value;
-            IDataParameter pr1 = command.CreateParameter();
-            pr1.ParameterName = string.Format("{1}p{0}", ++i, parName);
-            var val1 = GetValue.Value[pk.PropertyName](item);
-            pr1.Value = val1 ?? DBNull.Value;
-            pr1.DbType = pk.DbType();
-            command.Parameters.Add(pr1);
+            command.AddParameter(string.Format("{1}p{0}", ++i, parName),GetValue.Value[pk.PropertyName](item));
 
             if (whereObjects != null && whereObjects.Length > 0)
             {
@@ -540,7 +510,6 @@ namespace ORM_1_21_
 
             return allSql.Append(sb).ToString();
         }
-
       
         public static void CreateUpdateCommandPostgres(IDbCommand command, T item, ProviderName providerName,
           params AppenderWhere[] whereObjects)
@@ -554,36 +523,12 @@ namespace ORM_1_21_
                          .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
             {
                 if (pra.IsNotUpdateInsert) continue;
-                IDataParameter pr = command.CreateParameter();
-                pr.ParameterName = string.Format("{1}p{0}", ++i, parName);
-                object val;
-                if (pra.PropertyType.BaseType == typeof(Enum))
-                    val = (int)GetValue.Value[pra.PropertyName](item);
-                else
-                    val = GetValue.Value[pra.PropertyName](item);
-
-                pr.Value = val ?? DBNull.Value;
-                if (pra.PropertyType.BaseType == typeof(Enum))
-                    pr.DbType = DbTypeConverter.ConvertFrom(typeof(int));
-                else
-                    pr.DbType = pra.DbType();
-
-                if (pra.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.SqLite)
-                {
-                    pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
-                    pr.Value = GetValue.Value[pra.PropertyName](item).ToString();
-                }
-                command.Parameters.Add(pr);
+                command.AddParameter(string.Format("{1}p{0}", ++i, parName),GetValue.Value[pra.PropertyName](item));
             }
 
             var pk = PrimaryKeyAttribute.Value;
-            IDataParameter pr1 = command.CreateParameter();
-            pr1.ParameterName = string.Format("{1}p{0}", ++i, parName);
-            var val1 = GetValue.Value[pk.PropertyName](item);
-            pr1.Value = val1 ?? DBNull.Value;
-            pr1.DbType = pk.DbType();
-            command.Parameters.Add(pr1);
-
+            command.AddParameter(string.Format("{1}p{0}", ++i, parName),GetValue.Value[pk.PropertyName](item));
+          
             if (whereObjects != null && whereObjects.Length > 0)
             {
                 StringBuilder builder = new StringBuilder(sql);
@@ -674,13 +619,9 @@ namespace ORM_1_21_
         {
             Provider = providerName;
             const string table = "tt1";
-
             var dd = listOne.Single(a => a.Operand == Evolution.Limit).Body.Replace("LIMIT", "").Trim(' ').Split(',');
-
             var start = int.Parse(dd[0]);
             var count = int.Parse(dd[1]);
-
-
             var where = listOne.Where(a => a.Operand == Evolution.Where);
             var sbWhere = new StringBuilder();
             var sbOrderBy = new StringBuilder();
@@ -692,7 +633,6 @@ namespace ORM_1_21_
                     sbWhere.AppendFormat(" {0} ", oneComposite.Body);
                     continue;
                 }
-
                 sbWhere.AppendFormat("AND  {0} ", oneComposite.Body);
             }
 
@@ -738,7 +678,6 @@ namespace ORM_1_21_
                 start,
                 start + count - 1);
 
-
             return ff;
         }
 
@@ -751,10 +690,6 @@ namespace ORM_1_21_
             var valCore = UtilsCore.ConverterPrimaryKeyType(e.PropertyType, Convert.ToDecimal(val));
             SetValue.Value[e.PropertyName](item, valCore);
         }
-
-
-
-       
 
         public static string GetNameFieldForQuery(string member, Type type, ProviderName providerName)
         {
@@ -813,6 +748,7 @@ namespace ORM_1_21_
 
             string s = sb.ToString().Trim(' ', ',');
             sb.Clear().Append(s).Append(") ");
+
             sb.Append(values.ToString().Trim(' ', ',')).Append(") ");
 
             if (PkAttribute(Provider).Generator == Generator.Native)
@@ -847,8 +783,6 @@ namespace ORM_1_21_
             return sb.ToString();
         }
 
-     
-
         public static void CreateInsetCommand(IDbCommand command, T obj, ProviderName providerName)
         { 
             Provider = providerName;
@@ -864,45 +798,14 @@ namespace ORM_1_21_
             }
             else
             {
-                IDataParameter pr = command.CreateParameter(); // 
-                pr.ParameterName = $"{parName}{par}{++i}";
-                var val = GetValue.Value[pk.PropertyName](obj);
-                pr.Value = val ?? DBNull.Value;
-                pr.DbType = pk.DbType();
-                command.Parameters.Add(pr);
-
+                command.AddParameter( $"{parName}{par}{++i}",GetValue.Value[pk.PropertyName](obj));
             }
             foreach (var rtp in AttributeDalList.Value)
             {
                 if (rtp.IsNotUpdateInsert) continue;
-                var isEnum = false;
-                IDataParameter pr = command.CreateParameter(); // ProviderFactories.GetParameter(providerName);
-                pr.ParameterName = $"{parName}{par}{++i}";
-                object val;
-                if (rtp.PropertyType.BaseType == typeof(Enum))
-                {
-                    val = (int)GetValue.Value[rtp.PropertyName](obj);
-                    isEnum = true;
-                }
-                else
-                {
-                    val = GetValue.Value[rtp.PropertyName](obj);
-                }
-
-                if (rtp.PropertyType == typeof(Guid) && providerName == ORM_1_21_.ProviderName.SqLite)
-                {
-                    pr.Value = val.ToString();
-                    pr.DbType = DbTypeConverter.ConvertFrom(typeof(string));
-                }
-                else
-                {
-                    pr.Value = val ?? DBNull.Value;
-                    pr.DbType = isEnum ? DbTypeConverter.ConvertFrom(typeof(int)) : rtp.DbType();
-                }
-                command.Parameters.Add(pr);
+                command.AddParameter($"{parName}{par}{++i}",GetValue.Value[rtp.PropertyName](obj));
             }
             command.CommandText = ssq;
         }
     }
-
 }

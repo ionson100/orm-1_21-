@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
@@ -18,7 +19,31 @@ namespace ORM_1_21_
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static partial class Helper
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="name"></param>
+        /// <param name="o"></param>
+        public static void AddParameter(this IDbCommand command, string name, object o)
+        {
+            IDataParameter p = command.CreateParameter();
+            p.ParameterName = name;
+            p.Value = AddParam(o);
+            command.Parameters.Add(p);
 
+        }
+
+        static object AddParam(object o)
+        {
+            if (o == null) return DBNull.Value;
+            if (o.GetType().BaseType == typeof(Enum))
+            {
+                return (int)o;
+            }
+
+            return o;
+        }
 
         /// <summary>
         /// 

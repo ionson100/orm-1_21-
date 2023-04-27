@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -30,11 +29,7 @@ namespace ORM_1_21_
                     {
                         void Command(T obj, int ip, IDbCommand dbCommand)
                         {
-                            IDataParameter pr = dbCommand.CreateParameter();
-                            pr.ParameterName = $"{parName}{par}{ip}";
-                            pr.Value = GetValue.Value[pk.PropertyName](obj) ?? DBNull.Value;
-                            //pr.DbType = pk.DbType();
-                            dbCommand.Parameters.Add(pr);
+                            dbCommand.AddParameter($"{parName}{par}{ip}",GetValue.Value[pk.PropertyName](obj));
                         }
 
                         list.Add(Command);
@@ -44,30 +39,12 @@ namespace ORM_1_21_
                     {
                         if (rtp.IsNotUpdateInsert) continue;
 
-                        if (rtp.PropertyType.BaseType == typeof(Enum))
+                        void Command(T obj, int ip, IDbCommand dbCommand)
                         {
-                            void Command(T obj, int ip, IDbCommand dbCommand)
-                            {
-                                IDataParameter pr = dbCommand.CreateParameter();
-                                pr.ParameterName = $"{parName}{par}{ip}";
-                                pr.Value = (int)GetValue.Value[rtp.PropertyName](obj);
-                                //pr.DbType = DbTypeConverter.ConvertFrom(typeof(int));
-                                dbCommand.Parameters.Add(pr);
-                            }
-                            list.Add(Command);
+                            dbCommand.AddParameter($"{parName}{par}{ip}",GetValue.Value[rtp.PropertyName](obj));
                         }
-                        else
-                        {
-                            void Command(T obj, int ip, IDbCommand dbCommand)
-                            {
-                                IDataParameter pr = dbCommand.CreateParameter();
-                                pr.ParameterName = $"{parName}{par}{ip}";
-                                pr.Value = GetValue.Value[rtp.PropertyName](obj) ?? DBNull.Value;
-                                //pr.DbType = rtp.DbType();
-                                dbCommand.Parameters.Add(pr);
-                            }
-                            list.Add(Command);
-                        }
+                        list.Add(Command);
+
                     }
 
                     return list;
@@ -94,55 +71,19 @@ namespace ORM_1_21_
                    {
                        if (pra.IsNotUpdateInsert) continue;
 
-
-
-                       if (pra.PropertyType.BaseType == typeof(Enum))
+                       void Command(T obj, int ip, IDbCommand dbCommand)
                        {
-                           void Command(T obj, int ip, IDbCommand dbCommand)
-                           {
-                               IDataParameter pr = dbCommand.CreateParameter();
-                               pr.ParameterName = string.Format("{1}p{0}", ip, parName);
-                               pr.Value = (int)GetValue.Value[pra.PropertyName](obj);
-                               //pr.DbType = pra.DbType();
-                               dbCommand.Parameters.Add(pr);
-                           }
-
-                           list.Add(Command);
-
-
+                           dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName),GetValue.Value[pra.PropertyName](obj));
                        }
-
-                       else
-                       {
-                           void Command(T obj, int ip, IDbCommand dbCommand)
-                           {
-                               IDataParameter pr = dbCommand.CreateParameter();
-                               pr.ParameterName = string.Format("{1}p{0}", ip, parName);
-                               pr.Value = GetValue.Value[pra.PropertyName](obj) ?? DBNull.Value;
-                               //pr.DbType = pra.DbType();
-                               dbCommand.Parameters.Add(pr);
-                           }
-                           list.Add(Command);
-                       }
-
+                       list.Add(Command);
                    }
 
                    var pk = PrimaryKeyAttribute.Value;
                    void CommandPk(T obj, int ip, IDbCommand dbCommand)
                    {
-                       IDataParameter pr1 = dbCommand.CreateParameter();
-                       pr1.ParameterName = string.Format("{1}p{0}", ip, parName);
-                       pr1.Value = GetValue.Value[pk.PropertyName](obj);
-                       //pr1.DbType = pk.DbType();
-                       dbCommand.Parameters.Add(pr1);
+                       dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName),GetValue.Value[pk.PropertyName](obj));
                    }
                    list.Add(CommandPk);
-
-
-
-
-
-
 
                    return list;
                }, LazyThreadSafetyMode.PublicationOnly);
@@ -188,10 +129,7 @@ namespace ORM_1_21_
             Provider = providerName;
 
             command.CommandText = DeleteTemplate.Value;
-            IDataParameter pr = command.CreateParameter();
-            pr.ParameterName = $"{UtilsCore.PrefParam(providerName)}p1";
-            pr.Value = GetValue.Value[PrimaryKeyAttribute.Value.PropertyName](obj); ;
-            command.Parameters.Add(pr);
+            command.AddParameter($"{UtilsCore.PrefParam(providerName)}p1",GetValue.Value[PrimaryKeyAttribute.Value.PropertyName](obj));
         }
 
         private static readonly Lazy<List<Action<T, int, IDbCommand>>> UpdatePostgresActionParam =
@@ -199,48 +137,20 @@ namespace ORM_1_21_
               () =>
               {
                   List<Action<T, int, IDbCommand>> list = new List<Action<T, int, IDbCommand>>();
-                 
-              
-
                   foreach (var pra in AttributeDalList.Value)
                   {
                       if (pra.IsNotUpdateInsert) continue;
 
-                      if (pra.PropertyType.BaseType == typeof(Enum))
+                      void Command(T obj, int ip, IDbCommand dbCommand)
                       {
-                          void Command(T obj, int ip, IDbCommand dbCommand)
-                          {
-                              IDataParameter pr = dbCommand.CreateParameter();
-                              pr.ParameterName = string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider));
-                              pr.Value=  (int)GetValue.Value[pra.PropertyName](obj);
-                              dbCommand.Parameters.Add(pr);
-                          }
-                          list.Add(Command);
+                          dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),GetValue.Value[pra.PropertyName](obj));
                       }
-                      else
-                      {
-                          
-                              void Command(T obj, int ip, IDbCommand dbCommand)
-                              {
-                                  IDataParameter pr = dbCommand.CreateParameter();
-                                  pr.ParameterName = string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider));
-                                  pr.Value = GetValue.Value[pra.PropertyName](obj) ?? DBNull.Value;
-                                  dbCommand.Parameters.Add(pr);
-                              }
-                              list.Add(Command);
-                          
-                          
-                      }
-                    
+                      list.Add(Command);
                   }
                   void Command2(T obj, int ip, IDbCommand dbCommand)
                   {
-                     
                       var pk = PrimaryKeyAttribute.Value;
-                      IDataParameter pr = dbCommand.CreateParameter();
-                      pr.ParameterName = string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider));
-                      pr.Value = GetValue.Value[pk.PropertyName](obj);
-                      dbCommand.Parameters.Add(pr);
+                      dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),GetValue.Value[pk.PropertyName](obj));
                   }
                   list.Add(Command2);
                   return list;
@@ -253,7 +163,7 @@ namespace ORM_1_21_
             var sql = TemplateUpdatePostgres.Value;
             var parName = UtilsCore.PrefParam(providerName);
             var i = 0;
-            UpdatePostgresActionParam.Value.ForEach(a=>a.Invoke(item,++i,command));
+            UpdatePostgresActionParam.Value.ForEach(a => a.Invoke(item, ++i, command));
 
 
             if (whereObjects != null && whereObjects.Length > 0)
