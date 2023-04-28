@@ -19,6 +19,37 @@ namespace ORM_1_21_.Utils
     {
         internal const string Bungalo = "____";
 
+        public static void AddParameter(this IDbCommand command, string name, object o)
+        {
+            IDataParameter p = command.CreateParameter();
+            p.ParameterName = name;
+            p.Value = AddParam(o);
+            command.Parameters.Add(p);
+
+        }
+
+        static object AddParam(object o)
+        {
+            if (o == null) return DBNull.Value;
+            if (o.GetType().BaseType == typeof(Enum))
+            {
+                return (int)o;
+            }
+
+            return o;
+        }
+
+        public static void SpotRider<T>(this IDataReader reader, ProviderName providerName, T d)
+        {
+            AttributesOfClass<T>.SpotRider(reader, providerName, d);
+        }
+
+       
+        public static void SpotRiderFree<T>(this IDataReader reader, ProviderName providerName, T d)
+        {
+            AttributesOfClass<T>.SpotRiderFree(reader, providerName, d);
+        }
+
         private static readonly List<Evolution> EvolutionsList = new List<Evolution>
         {
             Evolution.FreeSql,

@@ -19,31 +19,10 @@ namespace ORM_1_21_
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static partial class Helper
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="command"></param>
-        /// <param name="name"></param>
-        /// <param name="o"></param>
-        public static void AddParameter(this IDbCommand command, string name, object o)
-        {
-            IDataParameter p = command.CreateParameter();
-            p.ParameterName = name;
-            p.Value = AddParam(o);
-            command.Parameters.Add(p);
 
-        }
+        
 
-        static object AddParam(object o)
-        {
-            if (o == null) return DBNull.Value;
-            if (o.GetType().BaseType == typeof(Enum))
-            {
-                return (int)o;
-            }
-
-            return o;
-        }
+       
 
         /// <summary>
         /// 
@@ -431,58 +410,14 @@ namespace ORM_1_21_
             return source;
         }
 
-        /// <summary>
-        ///     Request using cache, if there is no cache, it will be created
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        public static IQueryable<TSource> CacheUsage<TSource>(this IQueryable<TSource> source)
-        {
-            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { TypeEvolution = Evolution.CacheUsage });
-            return source;
-        }
+       
 
-        /// <summary>
-        ///     Request with cache rewrite, if there is no cache, the cache will be created,
-        ///     the old cache will be overwritten
-        /// </summary>
-        public static IQueryable<TSource> CacheOver<TSource>(this IQueryable<TSource> source)
-        {
-            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { TypeEvolution = Evolution.CacheOver });
-            return source;
-        }
 
-        /// <summary>
-        ///     Clears the cache for a type :TSource
-        /// </summary>
-        public static void CacheClear<TSource>(this ISession session)
-        {
-            MyCache<TSource>.Clear();
-        }
+       
 
-        /// <summary>
-        ///     Get key to get cache value
-        /// </summary>
-        public static int CacheGetKey<TSource>(this IQueryable<TSource> source)
-        {
-            var ses = ((ISqlComposite)source.Provider).Sessione;
-            var provider = new DbQueryProvider<TSource>((Session)ses);
-            provider.ListCastExpression.Add(new ContainerCastExpression
-                { TypeEvolution = Evolution.CacheKey });
-            return (int)provider.Execute<int>(source.Expression);
-        }
+        
 
-        /// <summary>
-        ///     Get value from cache by key
-        /// </summary>
-        public static object CacheGetValue<TSource>(this ISession session, int key)
-        {
-            return MyCache<TSource>.GetValue(key);
-        }
-
+       
 
         /// <summary>
         ///     The BETWEEN operator selects values within a given range.

@@ -69,26 +69,7 @@ namespace ORM_1_21_.Linq
             return TranslateString(expression);
         }
 
-        private CacheState CacheState
-        {
-            get
-            {
-                if (ListCastExpression.Any(t => t.TypeEvolution == Evolution.CacheUsage))
-                {
-                    return CacheState.CacheUsage;
-                }
-                if (ListCastExpression.Any(t => t.TypeEvolution == Evolution.CacheOver))
-                {
-                    return CacheState.CacheOver;
-                }
-                if (ListCastExpression.Any(t => t.TypeEvolution == Evolution.CacheKey))
-                {
-                    return CacheState.CacheKey;
-                }
-
-                return CacheState.NoCache;
-            }
-        }
+       
 
         private async Task<List<TResult>> ActionCoreGroupBy<TResult>(Expression expression, CancellationToken cancellationToken)
         {

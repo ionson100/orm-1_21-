@@ -12,7 +12,7 @@
 
 Simple micro ОРМ ( MySql, PostgreSQL, MSSQL, Sqlite).\
 Allows access to different databases (MSSQL, Postgresql, MySQL, Sqlite) from one application context.\
-CodeFirst, Linq to sql, free sql, caching.
+CodeFirst, Linq to sql, free sql.
 #### Restrictions.
 All bases must be created before use, with the exception of Sqlite,\
  if the file does not exist, the ORM will create it.\
@@ -348,15 +348,6 @@ var f = await session.Query<MyClass>().Where(a => a.Age > 0).SetTimeOut(30).Sing
 ```
 <span style="color:red">Important</span>\
 *Replace expression in queries ``` "str1"+"str2"``` to ```string.Concat("str1","str2")```*
-######  Caching:
-```C#
-var res = session.Query<MyClass>().Where(a => a.Age = 10).CacheUsage().ToList();//First call to create cache
-res = session.Query<MyClass>().Where(a => a.Age = 10).CacheUsage().ToList();//Next calls - get from cache
-res = session.Query<MyClass>().Where(a => a.Age = 10).CacheOver().ToList();//If cache exists, will be overwritten
-session.CacheClear<MyClass>();//Removing all caches for a type MyClass.
-```
-<span style="color:red">Important</span>\
-*Removing all caches for a type MyClass, when calling any command Insert or Update.*
 ###### Sql Builder:
 ```C#
 ISession session = Configure.Session;

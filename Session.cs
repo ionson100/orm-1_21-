@@ -65,7 +65,6 @@ namespace ORM_1_21_
                 var res = com.ExecuteNonQuery();
                 if (res == 1)
                 {
-                    this.CacheClear<TSource>();
                     NotificAfter(source, ActionMode.Delete);
                 }
 
@@ -1037,7 +1036,6 @@ namespace ORM_1_21_
                     if (val == 1)
                     {
                         res = 1;
-                        this.CacheClear<TSource>();
                         NotificAfter(source, ActionMode.Insert);
                     }
                 }
@@ -1048,7 +1046,6 @@ namespace ORM_1_21_
                     {
                         AttributesOfClass<TSource>.RedefiningPrimaryKey(source, val, MyProviderName);
                         res = 1;
-                        this.CacheClear<TSource>();
                         NotificAfter(source, ActionMode.Insert);
                     }
                 }
@@ -1085,7 +1082,6 @@ namespace ORM_1_21_
                 res = com.ExecuteNonQuery();
                 if (res == 1)
                 {
-                    this.CacheClear<TSource>();
                     NotificAfter(source, ActionMode.Update);
                 }
             }
@@ -1126,7 +1122,6 @@ namespace ORM_1_21_
                     if (val == 1)
                     {
                         res = 1;
-                        this.CacheClear<TSource>();
                         NotificAfter(source, ActionMode.Insert);
                     }
                 }
@@ -1137,7 +1132,6 @@ namespace ORM_1_21_
                     {
                         AttributesOfClass<TSource>.RedefiningPrimaryKey(source, val, MyProviderName);
                         res = 1;
-                        this.CacheClear<TSource>();
                         NotificAfter(source, ActionMode.Insert);
                     }
                 }
@@ -1185,7 +1179,6 @@ namespace ORM_1_21_
                 res = com.ExecuteNonQuery();
                 if (res == 1)
                 {
-                    this.CacheClear<TSource>();
                     NotificAfter(source, ActionMode.Update);
                 }
             }

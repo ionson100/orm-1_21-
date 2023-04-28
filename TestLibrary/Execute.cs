@@ -431,21 +431,16 @@ namespace TestLibrary
                                                           $"name,age,enum from {session.TableName<T>()}");
 
                 Log(49, tempFree.Count() == 5);
-                res = session.Query<T>().Where(a => a.Age < 200).CacheUsage().ToList();
-                Log(50, res.Count() == 5);
-                res = session.Query<T>().Where(a => a.Age < 200).CacheUsage().ToList();
-                Log(51, res.Count() == 5);
-                var ii = session.Query<T>().Where(a => a.Age < 200).CacheGetKey();
-                res = (List<T>)session.CacheGetValue<T>(ii);
-                Log(52, res.Count() == 5);
+               
+               
+               
+               
 
                 session.Query<T>().Where(a => a.Age == 20).Update(f => new Dictionary<object, object>
                 {
                     { f.Age, 400 }
                 });
-                res = session.Query<T>().Where(a => a.Age < 200).CacheOver().ToList();
-                res = session.Query<T>().Where(a => a.Age < 200).CacheUsage().ToList();
-                Log(53, res.Count() == 4);
+             
                 var ano = session.Query<T>().Where(a => a.Age < 500).Select(f =>
                     new { e = f.MyEnum, c = f.DateTime }).ToList();
                 Log(54, ano.Count() == 5);

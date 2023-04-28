@@ -93,6 +93,7 @@
     <Compile Include="AppenderWhere.cs" />
     <Compile Include="AttributesOfClass.cs" />
     <Compile Include="AttributesOfClass2.cs" />
+    <Compile Include="AttributesOfClass3.cs" />
     <Compile Include="Attribute\BaseAttribute.cs" />
     <Compile Include="Attribute\MapColumnTypeAttribute.cs" />
     <Compile Include="Attribute\MapDefaultValueAttribute.cs" />
@@ -102,7 +103,6 @@
     <Compile Include="Attribute\MapTableAttribute.cs" />
     <Compile Include="Attribute\MapTypeMysqlTableAttribute.cs" />
     <Compile Include="Attribute\MapUsageActivatorAttribute.cs" />
-    <Compile Include="CacheState.cs" />
     <Compile Include="ColumnsTableFactory.cs" />
     <Compile Include="Extensions\GroupedEnumerable.cs" />
     <Compile Include="Extensions\HelperGroupBy.cs" />

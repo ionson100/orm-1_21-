@@ -58,6 +58,8 @@ namespace ORM_1_21_
             command.CommandText = sql;
         }
 
+      
+
         private static readonly Lazy<List<Action<T, int, IDbCommand>>> UpdateMysqlActionParam =
            new Lazy<List<Action<T, int, IDbCommand>>>(
                () =>

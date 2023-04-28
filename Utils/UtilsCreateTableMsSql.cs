@@ -98,7 +98,7 @@ namespace ORM_1_21_.Utils
 
             if (type == typeof(char))
             {
-                return "[char](1)";
+                return "[CHAR](1)";
             }
             if (type == typeof(bool))
             {
@@ -110,7 +110,7 @@ namespace ORM_1_21_.Utils
             }
             if (type == typeof(float))
             {
-                return "[float]";
+                return "[REAL]";
             }
 
             if (type == typeof(double))

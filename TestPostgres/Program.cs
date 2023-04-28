@@ -34,18 +34,18 @@ namespace TestPostgres
             //Execute.RunThread();
             //Console.ReadKey();
             //Console.ReadKey();
-            Execute.TotalTest();
-            Execute.TestNativeInsert();
-            Execute.TestAssignetInsert();
-            Execute2.TestTimeStamp();
-            await Execute3.TotalTestAsync();
-            await ExecuteLinqAll.Run();
-            ExecutePrimaryKey.Run();
-            await ExecuteFree.Run();
-            await ExecuteSp.Run();
-            TestCapacity.Run();
-            await TestSelector.Run();
-            InsertUpdate.Run();
+            //Execute.TotalTest();
+            //Execute.TestNativeInsert();
+            //Execute.TestAssignetInsert();
+            //Execute2.TestTimeStamp();
+            //await Execute3.TotalTestAsync();
+            //await ExecuteLinqAll.Run();
+            //ExecutePrimaryKey.Run();
+            //await ExecuteFree.Run();
+            //await ExecuteSp.Run();
+            //TestCapacity.Run();
+            //await TestSelector.Run();
+            //InsertUpdate.Run();
 
 
 
@@ -54,15 +54,14 @@ namespace TestPostgres
             ISession session = Configure.Session;
             {
                 var sas = session.IsBlobGuid;
-                session.DropTableIfExists<Sqlite>();
-                session.TableCreate<Sqlite>();
-                var rr = new Sqlite();
-                // session.InsertBulk(new List<Sqlite>
-                // {
-                //    rr
-                // });
-                session.Insert(rr);
-                var res = session.Query<Sqlite>().First();
+                session.DropTableIfExists<OrderMsSql>();
+                session.TableCreate<OrderMsSql>();
+               
+                session.Insert(new Order(){Date = Configure.Utils.DefaultSqlDateTime(),Double = 34.4});
+                session.Insert(new Order() { Date = Configure.Utils.DefaultSqlDateTime(), Float = 34.4f });
+                var res = session.Query<OrderMsSql>().ToList();
+                var s = session.Query<OrderMsSql>().GroupByCore(a => a.Float).ToList();
+                var sasfree = session.FreeSql<OrderMsSql>($"select * from {session.TableName<OrderMsSql>()}").ToList();
 
 
 
@@ -77,9 +76,11 @@ namespace TestPostgres
             [MapPrimaryKey(Generator.Assigned)]
             public Guid id { get; set; } = Guid.NewGuid();
 
-            [MapColumn] public DateTime DateTime { get; set; } = Configure.Utils.DefaultSqlDateTime();
-            // [MapColumn]
-            // public Guid idcore { get; set; }
+            //[MapColumn] public DateTime DateTime { get; set; } = Configure.Utils.DefaultSqlDateTime();
+            //[MapColumn] public int Int { get; set; }
+            [MapColumn] public char Long { get; set; }
+            //[MapColumn] public Guid idcore { get; set; }
+
             // [MapColumn]
             // public Guid? idcorenull { get; set; }
             // [MapColumn]
