@@ -12,6 +12,34 @@ namespace ORM_1_21_
 {
     internal static class Pizdaticus
     {
+         static readonly Dictionary<Type, Func<IDataReader,ProviderName, int, object>> TypeStorage = new Dictionary<Type, Func<IDataReader, ProviderName, int, object>> {
+            { typeof(int), (a,p,index) => a.GetInt32(index) },
+            { typeof(string), (a,p,index) => a.GetString(index)},
+            { typeof(bool), (a,p, index) => a.GetBoolean(index)},
+            { typeof(DateTime), (a,p, index) => a.GetDateTime(index)},
+            { typeof(decimal), (a,p, index) => a.GetDecimal(index)},
+            { typeof(double), (a,p, index) => a.GetDouble(index)},
+            { typeof(short), (a,p, index) => a.GetInt16(index)},
+            { typeof(long), (a,p, index) => a.GetInt64(index)},
+            { typeof(uint), (a,p, index) => Convert.ToUInt32(a.GetValue(index))},
+            { typeof(ulong), (a,p, index) => Convert.ToUInt64(a.GetValue(index))},
+            { typeof(ushort), (a,p, index) => Convert.ToUInt16(a.GetValue(index))},
+            { typeof(byte), (a,p, index) => a.GetByte(index)},
+            { typeof(float), (a,p, index) => a.GetFloat(index)},
+            { typeof(Guid), (a,p, index) => a.GetGuid(index)},
+            { typeof(byte[]), (a,p, index) => a.GetValue(index)},
+            { typeof(object), (a,p, index) => a.GetValue(index)},
+            {typeof(Char), (a, p, index) =>
+            {
+                if (p == ProviderName.MsSql)
+                {
+                    return Convert.ToChar(a.GetValue(index));
+                }
+                return a.GetChar(index);
+            }}
+
+
+        };
         public static IEnumerable<TObj> GetRiderToList<TObj>(IDataReader reader, ProviderName providerName, bool isFree)
         {
             var isLegalese = AttributesOfClass<TObj>.IsUsageActivator(providerName);
@@ -171,38 +199,19 @@ namespace ORM_1_21_
             if (reader.IsDBNull(index)) return null;
             type = UtilsCore.GetCoreType(type);
 
-            if (type == typeof(int))
+            if (TypeStorage.ContainsKey(type))
             {
-                var ss = reader.GetValue(index).GetType();
-                return reader.GetInt32(index);
+               return TypeStorage[type].Invoke(reader,providerName, index);
             }
-            if (type == typeof(string)) return reader.GetString(index);
-            if (type == typeof(bool)) return reader.GetBoolean(index);
-            if (type == typeof(DateTime)) return reader.GetDateTime(index);
-            if (type == typeof(decimal)) return reader.GetDecimal(index);
-            if (type == typeof(double)) return reader.GetDouble(index);
-            if (type == typeof(short)) return reader.GetInt16(index);
-            if (type == typeof(long)) return reader.GetInt64(index);
-            if (type == typeof(uint)) return Convert.ToUInt32(reader.GetValue(index));
-            if (type == typeof(ulong)) return Convert.ToUInt64(reader.GetValue(index));
-            if (type == typeof(ushort)) return Convert.ToUInt16(reader.GetValue(index));
-            if (type == typeof(byte)) return reader.GetByte(index);
-            if (type == typeof(char))
-            {
-                if (providerName == ProviderName.MsSql)
-                {
-                    return Convert.ToChar(reader.GetValue(index));
-                }
-                return reader.GetChar(index);
-            }
+            
+          
 
-            if (type == typeof(float)) return reader.GetFloat(index);
-            if (type == typeof(Guid)) return reader.GetGuid(index);
             if (type.BaseType == typeof(Enum))
             {
                 var o = reader.GetValue(index);
                 return Enum.Parse(type, Convert.ToInt32(o).ToString());
             }
+           
             var res = reader.GetValue(index);
             return res;
         }

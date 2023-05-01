@@ -16,7 +16,7 @@ namespace TestLibrary
 #if DEBUG
             path = @"myLog.txt";
 #endif
-            _ = new Configure(conSre,provider);
+            _ = new Configure(conSre,provider,path);
             using (var ses = Configure.Session)
             {
                 if (ses.TableExists<MyClass>())

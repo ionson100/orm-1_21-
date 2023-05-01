@@ -75,7 +75,16 @@ namespace ORM_1_21_
 
                        void Command(T obj, int ip, IDbCommand dbCommand)
                        {
-                           dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName),GetValue.Value[pra.PropertyName](obj));
+                           var r = GetValue.Value[pra.PropertyName](obj);
+                           if (ProviderName == ORM_1_21_.ProviderName.MsSql && pra.PropertyType == typeof(byte[])&&r==null)
+                           {
+                               ((dynamic)dbCommand).Parameters.Add(string.Format("{1}p{0}", ip, parName), SqlDbType.VarBinary, -1).Value = DBNull.Value; 
+                           }
+                           else
+                           {
+                               dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), r);
+                           }
+                           
                        }
                        list.Add(Command);
                    }

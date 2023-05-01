@@ -48,5 +48,8 @@ namespace TestLibrary
         [MapColumn("test9")] public Guid? ValGuid { get; set; }
 
         [MapColumn("testuser")] public string TestUser { get; set; } ="asas";
+        [MapColumn("datenull")] public DateTime? DateTimeNull { get; set; }
+        [MapColumn("bytes")] public byte[] Bytes { get; set; } = { 1, 2, 3 };
+
     }
 }

@@ -83,7 +83,7 @@ namespace ORM_1_21_.Utils
 
             var type = UtilsCore.GetCoreType(map.PropertyType);
 
-            if (type == typeof(Guid) || type == typeof(Guid?))
+            if (type == typeof(Guid))
             {
                 if (isBlob)
                 {

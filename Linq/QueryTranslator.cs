@@ -2303,8 +2303,9 @@ namespace ORM_1_21_.Linq
                     case TypeCode.String:
 
                         var p = ParamName;
-                        StringB.Append(p);
-                        Param.Add(p, c.Value);
+                        //StringB.Append(p);
+                        AddParameter(c.Value);
+                        //Param.Add(p, c.Value);
                         break;
                     case TypeCode.Object:
                         {
@@ -2937,12 +2938,13 @@ namespace ORM_1_21_.Linq
         {
             if (nex.Type == typeof(Guid))
             {
-                if (_providerName == ProviderName.PostgreSql)
+                if (_providerName == ProviderName.PostgreSql|| _providerName == ProviderName.MySql)
                 {
                     var str = Expression.Lambda<Func<Guid>>(nex).Compile()();
                     var p = ParamName;
-                    StringB.Append(p);
-                    Param.Add(p, str);
+                    //StringB.Append(p);
+                    AddParameter(str);
+                    //Param.Add(p, str);
                     return nex;
                 }
 
@@ -2954,8 +2956,9 @@ namespace ORM_1_21_.Linq
             {
                 var str = Expression.Lambda<Func<DateTime>>(nex).Compile()();
                 var p = ParamName;
-                StringB.Append(p);
-                Param.Add(p, str);
+                //StringB.Append(p);
+                AddParameter(str);
+                //Param.Add(p, str);
                 return nex;
             }
 

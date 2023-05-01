@@ -124,6 +124,19 @@ namespace ORM_1_21_
         }
 
         /// <summary>
+        ///     LIMIT is always placed at the end of the sentence
+        ///     (amount from beginning)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="length">Record length</param>
+        public static IQueryable<TSource> Limit<TSource>(this IQueryable<TSource> source,  int length)
+        {
+            ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
+                { TypeEvolution = Evolution.Limit, ParamList = new List<object> { 0, length } });
+            return source;
+        }
+
+        /// <summary>
         ///     Partitioning a sequence IQueryable
         /// </summary>
         /// <param name="source">An System.Linq.IQueryable`1 to return the first element of</param>

@@ -1,5 +1,6 @@
 ﻿using ORM_1_21_.Utils;
 using System;
+using System.Collections.Generic;
 using System.Data;
 
 
@@ -7,113 +8,38 @@ namespace ORM_1_21_
 {
     internal static class DbTypeConverter
     {
-        public static DbType ConvertFrom(Type type)
+        private static readonly Dictionary<Type, DbType> DbTypes = new Dictionary<Type, DbType>
         {
-
-            if (type == null)
-                throw new ArgumentNullException(nameof(type));
-
-            if (type == typeof(Int32))
-            {
-                return DbType.Int32;
-            }
-            if (type == typeof(String))
-            {
-                return DbType.String;
-            }
-            if (type == typeof(Char[]))
-            {
-                return DbType.AnsiStringFixedLength;
-            }
-            if (type == typeof(DateTimeOffset))
-            {
-                return DbType.DateTimeOffset;
-            }
-
-            if (type == typeof(Byte[]))
-            {
-                return DbType.Binary;
-            }
-            if (type == typeof(Boolean))
-            {
-                return DbType.Boolean;
-            }
-
-            if (type == typeof(Byte))
-            {
-                return DbType.Byte;
-            }
-            if (type == typeof(Char))
-            {
-                return DbType.String;
-            }
-            if (type == typeof(DateTime))
-            {
-                return DbType.DateTime;
-            }
-            if (type == typeof(decimal))
-            {
-                return DbType.Decimal;
-            }
-            if (type == typeof(double))
-            {
-                return DbType.Double;
-            }
-            if (type == typeof(Int16))
-            {
-                return DbType.Int16;
-            }
+            { typeof(Int32),DbType.Int32 },
+            {typeof(String),DbType.String},
+            {typeof(Char[]),DbType.AnsiStringFixedLength},
+            {typeof(DateTimeOffset),DbType.DateTimeOffset},
+            {typeof(Byte[]),DbType.Binary},
+            {typeof(Boolean),DbType.Boolean},
+            {typeof(Byte),DbType.Byte},
+            {typeof(Char),DbType.String},
+            {typeof(DateTime),DbType.DateTime},
+            {typeof(decimal),DbType.Decimal},
+            {typeof(double),DbType.Double},
+            {typeof(Int16),DbType.Int16},
+            {typeof(Int64),DbType.Int64},
+            {typeof(SByte),DbType.SByte},
+            {typeof(Single),DbType.Single},
+            {typeof(UInt16),DbType.UInt16},
+            {typeof(UInt32),DbType.UInt32},
+            {typeof(UInt64),DbType.UInt64},
+            {typeof(Guid),DbType.Guid},
+            {typeof(byte[]),DbType.Binary},
+            {typeof(DateTimeOffset),DbType.DateTimeOffset},
            
-            if (type == typeof(Int64))
-            {
-                return DbType.Int64;
-            }
-            if (type == typeof(SByte))
-            {
-                return DbType.SByte;
-            }
-            if (type == typeof(Single))
-            {
-                return DbType.Single;
-            }
-            
-            if (type == typeof(UInt16))
-            {
-                return DbType.UInt16;
-            }
-            if (type == typeof(UInt32))
-            {
-                return DbType.UInt32;
-            }
-            if (type == typeof(UInt64))
-            {
-                return DbType.UInt64;
-            }
-
-            if (type == typeof(Guid))
-            {
-                return DbType.Guid;
-            }
-            if (type == typeof(byte[]))
-            {
-                return DbType.Binary;
-            }
-            if (type.BaseType == typeof(Enum))
-            {
-                return DbType.Int32;
-            }
-            if (type == typeof(DateTimeOffset))
-            {
-                return DbType.DateTimeOffset;
-            }
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                return ConvertFrom(type.GetGenericArguments()[0]);
-            }
-
+        };
+       public static DbType ConvertFrom(Type type)
+        {
+            if (type == null)throw new ArgumentNullException(nameof(type));
+            type = UtilsCore.GetCoreType(type);
+            if(DbTypes.ContainsKey(type)) return DbTypes[type];
+            if (type.BaseType == typeof(Enum))return DbType.Int32;
             throw new NotSupportedException(string.Format("Unable to convert {0} to a DbType enum value.", type.FullName));
         }
-
-      
     }
 }

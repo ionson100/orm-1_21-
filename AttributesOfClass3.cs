@@ -13,11 +13,12 @@ namespace ORM_1_21_
         public static void SpotRider(IDataReader reader, ProviderName name, T d)
         {
             var list = ListBaseAttrE(name);
-            for (int i = 0; i < list.Count; i++)
-            {
-                var resCore = Pizdaticus.MethodFreeIndex(name, list[i].PropertyType, reader, i);
-                SetValueE(name, list[i].PropertyName, d, resCore);
-            }
+           
+           for (int i = 0; i < list.Count; i++)
+           {
+               var resCore = Pizdaticus.MethodFreeIndex(name, list[i].PropertyType, reader, i);
+               SetValueE(name, list[i].PropertyName, d, resCore);
+           }
 
         }
 
@@ -27,8 +28,8 @@ namespace ORM_1_21_
                 ParameterExpression s1 = Expression.Parameter(typeof(IDataReader), "reader");
                 ParameterExpression s2 = Expression.Parameter(typeof(ProviderName), "name");
                 ParameterExpression s3 = Expression.Parameter(typeof(T));
-                MethodInfo miContain = typeof(AttributesOfClass<T>).GetMethod("SpotRider", new[] { typeof(IDataReader), typeof(ProviderName), typeof(T) });
-                MethodCallExpression body = Expression.Call(miContain, s1, s2, s3);
+                MethodInfo m = typeof(AttributesOfClass<T>).GetMethod("SpotRider");
+                MethodCallExpression body = Expression.Call(m, s1, s2, s3);
                 Expression<Action<IDataReader, ProviderName, T>> ss = Expression.Lambda<Action<IDataReader, ProviderName, T>>(body, s1, s2, s3);
                 return ss.Compile();
             }, LazyThreadSafetyMode.PublicationOnly);

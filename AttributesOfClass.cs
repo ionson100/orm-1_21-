@@ -17,7 +17,7 @@ namespace ORM_1_21_
     [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
     [SuppressMessage("ReSharper", "StaticMemberInGenericType")]
     [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
-    internal  static partial class AttributesOfClass<T>
+    internal static partial class AttributesOfClass<T>
     {
         internal static readonly object LockO = new object();
 
@@ -110,7 +110,7 @@ namespace ORM_1_21_
                             .Compile();
                         list.Add(propertyInfo.Name, res);
                     }
-                    
+
                     return list;
                 }, LazyThreadSafetyMode.PublicationOnly);
 
@@ -152,7 +152,7 @@ namespace ORM_1_21_
             StorageTypeAttribute.DictionaryAttribute.TryAdd(typeof(T), new ProxyAttribute<T>());
         }
 
-       
+
 
         private static ProviderName Provider
         {
@@ -311,10 +311,26 @@ namespace ORM_1_21_
             SetValue.Value[name](t, a);
         }
 
-        public static void SetValueFreeSqlE(ProviderName providerName, string name, T t, object a)
+        public static void SetValueFreeSqlE(ProviderName providerName, string name, T t, object o)
         {
             Provider = providerName;
-            SetValueFreeSql.Value[name](t, a);
+            //if (o == null)
+            //{
+            //    PropertyInfo prop = t.GetType().GetProperty(name);
+            //    prop.SetValue(t, null);
+            //}
+            //else
+            //{
+            //     SetValueFreeSql.Value[name](t, o);
+            //}
+            if (SetValueFreeSql.Value.ContainsKey(name))
+            {
+                SetValueFreeSql.Value[name](t, o);
+            }
+
+
+
+
         }
 
         public static List<MapColumnAttribute> CurrentTableAttributeDal(ProviderName providerName)
@@ -379,11 +395,11 @@ namespace ORM_1_21_
             return string.Empty;
         }
 
-        public static IEnumerable<T> GetEnumerableObjects(IDataReader reader, ProviderName providerName,bool isFree=false)
+        public static IEnumerable<T> GetEnumerableObjects(IDataReader reader, ProviderName providerName, bool isFree = false)
         {
             Provider = providerName;
             Check.NotNull(reader, "IDataReader reader");
-            var res = Pizdaticus.GetRiderToList<T>(reader, providerName,isFree);
+            var res = Pizdaticus.GetRiderToList<T>(reader, providerName, isFree);
             return res;
         }
 
@@ -451,7 +467,7 @@ namespace ORM_1_21_
 
         public static void CreateUpdateCommandMysql(IDbCommand command, T item, ProviderName providerName,
            params AppenderWhere[] whereObjects)
-        { 
+        {
             Provider = providerName;
             var sql = UpdateTemplateMysql.Value;
             string parName = UtilsCore.PrefParam(providerName);
@@ -460,11 +476,11 @@ namespace ORM_1_21_
                          .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
             {
                 if (pra.IsNotUpdateInsert) continue;
-                command.AddParameter(string.Format("{1}p{0}", ++i, parName),GetValue.Value[pra.PropertyName](item));
+                command.AddParameter(string.Format("{1}p{0}", ++i, parName), GetValue.Value[pra.PropertyName](item));
             }
 
             var pk = PrimaryKeyAttribute.Value;
-            command.AddParameter(string.Format("{1}p{0}", ++i, parName),GetValue.Value[pk.PropertyName](item));
+            command.AddParameter(string.Format("{1}p{0}", ++i, parName), GetValue.Value[pk.PropertyName](item));
 
             if (whereObjects != null && whereObjects.Length > 0)
             {
@@ -510,7 +526,7 @@ namespace ORM_1_21_
 
             return allSql.Append(sb).ToString();
         }
-      
+
         public static void CreateUpdateCommandPostgres(IDbCommand command, T item, ProviderName providerName,
           params AppenderWhere[] whereObjects)
         {
@@ -523,12 +539,12 @@ namespace ORM_1_21_
                          .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
             {
                 if (pra.IsNotUpdateInsert) continue;
-                command.AddParameter(string.Format("{1}p{0}", ++i, parName),GetValue.Value[pra.PropertyName](item));
+                command.AddParameter(string.Format("{1}p{0}", ++i, parName), GetValue.Value[pra.PropertyName](item));
             }
 
             var pk = PrimaryKeyAttribute.Value;
-            command.AddParameter(string.Format("{1}p{0}", ++i, parName),GetValue.Value[pk.PropertyName](item));
-          
+            command.AddParameter(string.Format("{1}p{0}", ++i, parName), GetValue.Value[pk.PropertyName](item));
+
             if (whereObjects != null && whereObjects.Length > 0)
             {
                 StringBuilder builder = new StringBuilder(sql);
@@ -687,7 +703,8 @@ namespace ORM_1_21_
             Provider = providerName;
             var e = PrimaryKeyAttribute.Value;
             if (e.Generator != Generator.Native) return;
-            var valCore = UtilsCore.ConverterPrimaryKeyType(e.PropertyType, Convert.ToDecimal(val));
+            //var valCore = UtilsCore.ConverterPrimaryKeyType(e.PropertyType, Convert.ToDecimal(val));
+            var valCore = UtilsCore.ConverterPrimaryKeyType(e.PropertyType, val);
             SetValue.Value[e.PropertyName](item, valCore);
         }
 
@@ -784,10 +801,10 @@ namespace ORM_1_21_
         }
 
         public static void CreateInsetCommand(IDbCommand command, T obj, ProviderName providerName)
-        { 
+        {
             Provider = providerName;
             var ssq = InsertTemplate.Value;
-         
+
             string parName = UtilsCore.PrefParam(providerName);
             const string par = "p";
             var i = 0;
@@ -798,12 +815,12 @@ namespace ORM_1_21_
             }
             else
             {
-                command.AddParameter( $"{parName}{par}{++i}",GetValue.Value[pk.PropertyName](obj));
+                command.AddParameter($"{parName}{par}{++i}", GetValue.Value[pk.PropertyName](obj));
             }
             foreach (var rtp in AttributeDalList.Value)
             {
                 if (rtp.IsNotUpdateInsert) continue;
-                command.AddParameter($"{parName}{par}{++i}",GetValue.Value[rtp.PropertyName](obj));
+                command.AddParameter($"{parName}{par}{++i}", GetValue.Value[rtp.PropertyName](obj));
             }
             command.CommandText = ssq;
         }

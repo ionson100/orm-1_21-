@@ -32,7 +32,7 @@ namespace ORM_1_21_
             }
 
             var type = map.PropertyType;
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (type.IsGenericType && UtilsCore.IsNullableType(type))
             {
                 return "NULL";
             }

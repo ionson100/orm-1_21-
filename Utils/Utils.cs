@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
@@ -50,7 +49,7 @@ namespace ORM_1_21_.Utils
             AttributesOfClass<T>.SpotRiderFree(reader, providerName, d);
         }
 
-        private static readonly List<Evolution> EvolutionsList = new List<Evolution>
+        private static readonly HashSet<Evolution> EvolutionsList = new HashSet<Evolution>
         {
             Evolution.FreeSql,
             Evolution.TableCreate,
@@ -205,52 +204,32 @@ namespace ORM_1_21_.Utils
                 .Trim().ToLower();
         }
 
-       // internal static bool IsPersistent(object obj)
-       // {
-       //     return TypeDescriptor.GetAttributes(obj).Contains(new PersistentAttribute());
-       // }
 
+        private static readonly Dictionary<Type, Func<object, object>> convertorPkDictionary =
+            new Dictionary<Type, Func<object, object>>
+            {
+                {typeof(string),val=>val.ToString()},
+                {typeof(Guid),val=>(Guid)val},
+                {typeof(decimal),val=>Convert.ToDecimal(val)},
+                {typeof(short),val=>Convert.ToInt16(val)},
+                {typeof(int),val=>Convert.ToInt32(val)},
+                {typeof(long),val=>Convert.ToInt64(val)},
+                {typeof(ushort),val=>Convert.ToUInt16(val)},
+                {typeof(uint),val=>Convert.ToUInt32(val)},
+                {typeof(ulong),val=>Convert.ToUInt64(val)},
+                {typeof(double),val=>Convert.ToDouble(val)},
+                {typeof(float),val=>Convert.ToSingle(val)},
+            };
+
+        internal static object ConverterPrimaryKeyType(Type type, object o)
+        {
+            if(convertorPkDictionary.ContainsKey(type))
+                return convertorPkDictionary[type].Invoke(o);
+          
+            throw new Exception($"Can't find type to convert primary key {type} {o}");
+        }
 
        
-
-        internal static object ConverterPrimaryKeyType(Type typeColumn, object val)
-        {
-            if (typeColumn == typeof(string))
-                return val.ToString();
-            if (typeColumn == typeof(Guid))
-
-                return (Guid)val;
-            if (typeColumn == typeof(decimal))
-                return Convert.ToDecimal(val);
-            if (typeColumn == typeof(short))
-                return Convert.ToInt16(val);
-            if (typeColumn == typeof(int))
-                return Convert.ToInt32(val);
-            if (typeColumn == typeof(long))
-                return Convert.ToInt64(val);
-            if (typeColumn == typeof(ushort))
-                return Convert.ToUInt16(val);
-            if (typeColumn == typeof(uint))
-                return Convert.ToUInt32(val);
-            if (typeColumn == typeof(ulong))
-                return Convert.ToUInt64(val);
-
-            if (typeColumn == typeof(double))
-                return Convert.ToDouble(val);
-
-            if (typeColumn == typeof(float))
-                return (float)Convert.ToDouble(val);
-            throw new Exception($"Can't find type to convert primary key {typeColumn} {val}");
-        }
-
-        internal static bool ColumnExists(IDataReader reader, string columnName)
-        {
-            for (var i = 0; i < reader.FieldCount; i++)
-                if (reader.GetName(i) == columnName)
-                    return true;
-
-            return false;
-        }
 
 
         public static string ClearTrim(string tableName)
@@ -306,15 +285,6 @@ namespace ORM_1_21_.Utils
         }
 
 
-        public static void AddParamsForCache(StringBuilder b, string sql, ProviderName providerName, List<object> param)
-        {
-            if (param == null) return;
-            if (param.Count == 0) return;
-            var regex = new Regex(@"\@([\w.$]+|""[^""]+""|'[^']+')");
-            if (providerName == ProviderName.MySql) regex = new Regex(@"\?([\w.$]+|""[^""]+""|'[^']+')");
-            var matches = regex.Matches(sql);
-            for (var index = 0; index < matches.Count; index++) b.Append($" {matches[index].Value} - {param[index]} ");
-        }
 
         public static void AddParam(IDbCommand com, ProviderName providerName, object[] param)
         {
@@ -419,51 +389,63 @@ namespace ORM_1_21_.Utils
 
             return type;
         }
+
+        private static readonly Dictionary<Type, Func<object, object>> DictionaryConvertor =
+            new Dictionary<Type, Func<object, object>>
+            {
+                {typeof(uint), ob => Convert.ToUInt32(ob) },
+                {typeof(ulong), ob => Convert.ToUInt64(ob) },
+                {typeof(ushort), ob => Convert.ToUInt16(ob) },
+                {typeof(bool), ob =>Convert.ToBoolean(ob)  },
+                {typeof(byte), ob => Convert.ToByte(ob) },
+                {typeof(char), ob =>Convert.ToChar(ob)  },
+                {typeof(DateTime), ob => Convert.ToDateTime(ob) },
+                {typeof(decimal), ob =>Convert.ToDecimal(ob)  },
+                {typeof(double), ob =>Convert.ToDouble(ob)  },
+                {typeof(short), ob => Convert.ToInt16(ob) },
+                {typeof(int), ob => Convert.ToInt32(ob) },
+                {typeof(long), ob => Convert.ToInt64(ob) },
+                {typeof(sbyte), ob =>Convert.ToSByte(ob)  },
+                {typeof(float), ob => Convert.ToSingle(ob) },
+                {typeof(string), ob =>Convert.ToString(ob)  },
+                {typeof(byte[]), ob => (byte[])ob },
+                {typeof(Guid), ob =>
+                { if (ob is Guid) return ob;
+                    var guid = Guid.Empty;
+                    if (ob is byte[] bytes)
+                        return bytes.Length == 16 ? new Guid(bytes) : new Guid(Encoding.ASCII.GetString(bytes));
+
+                    return ob is string ? new Guid(ob.ToString()) : guid;
+
+                } },
+               
+            };
         internal static object Convertor(object ob, Type type)
         {
-            if (ob is DBNull)
-                return null;
-            type = UtilsCore.GetCoreType(type);
-            if (type == typeof(Guid))
+            try
             {
-                if (ob is Guid) return ob;
-                var guid = Guid.Empty;
-                if (ob is byte[] bytes)
-                    return bytes.Length == 16 ? new Guid(bytes) : new Guid(Encoding.ASCII.GetString(bytes));
+                if (ob is DBNull)
+                    return null;
+                type = GetCoreType(type);
 
-                return ob is string ? new Guid(ob.ToString()) : guid;
+                if (type.BaseType == typeof(Enum))
+                {
+                    return Enum.Parse(type, Convert.ToInt32(ob).ToString());
+                }
+
+                return DictionaryConvertor[type].Invoke(ob);
             }
-
-            if (type.BaseType == typeof(Enum))
+            catch (Exception e)
             {
-                return Enum.Parse(type, Convert.ToInt32(ob).ToString());
+                var message = string.Format(CultureInfo.CurrentCulture, "Can't convert type {0} as {1}",
+                    ob.GetType().FullName, type);
+                throw new Exception(message,e);
             }
+        }
 
-            if (type == typeof(uint)) return Convert.ToUInt32(ob);
-            if (type == typeof(ulong)) return Convert.ToUInt64(ob);
-            if (type == typeof(ushort)) return Convert.ToUInt16(ob);
-            if (type == typeof(bool)) return Convert.ToBoolean(ob);
-            if (type == typeof(byte)) return Convert.ToByte(ob);
-
-            if (type == typeof(char)) return Convert.ToChar(ob);
-            if (type == typeof(DateTime)) return Convert.ToDateTime(ob);
-            if (type == typeof(decimal)) return Convert.ToDecimal(ob);
-            if (type == typeof(double)) return Convert.ToDouble(ob);
-            if (type == typeof(short)) return Convert.ToInt16(ob);
-            if (type == typeof(int)) return Convert.ToInt32(ob);
-            if (type == typeof(long)) return Convert.ToInt64(ob);
-            if (type == typeof(sbyte)) return Convert.ToSByte(ob);
-            if (type == typeof(float)) return Convert.ToSingle(ob);
-            if (type == typeof(string)) return Convert.ToString(ob);
-            if (type == typeof(byte[])) return (byte[])ob;
-            
-            
-            
-
-       
-            var message = string.Format(CultureInfo.CurrentCulture, "Can't convert type {0} as {1}",
-                ob.GetType().FullName, type);
-            throw new Exception(message);
+        internal static bool IsNullableType(Type type)
+        {
+            return type != null && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
         }
     }
 

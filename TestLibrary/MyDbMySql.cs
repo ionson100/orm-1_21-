@@ -8,8 +8,8 @@ namespace TestLibrary
 {
    public static class ConnectionStrings
     {
-        public const string Sqlite = "Data Source=mydb.db;Version=3;BinaryGUID=fALSE;";//
-        public const string Mysql = "Server=localhost;Database=test;Uid=root;Pwd=12345;";//OldGuids=true;
+        public const string Sqlite = "Data Source=mydb.db;Version=3;BinaryGUID=true;";//
+        public const string Mysql = "Server=localhost;Database=test;Uid=root;Pwd=12345;OldGuids=true;";//
         public const string Postgesql =
             "Server=localhost;Port=5432;Database=testorm;User Id=user;Password=postgres;";
         public static string MsSql =

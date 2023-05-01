@@ -179,9 +179,9 @@ namespace ORM_1_21_.Linq
                 {
                     com.CommandText = listCore.First(a => a.Operand == Evolution.DataTable).Body;
                     var table = new DataTable();
-                    var reader = await com.ExecuteReaderAsync();
+                    dataReader = await com.ExecuteReaderAsync();
                     table.BeginLoadData();
-                    table.Load(reader);
+                    table.Load(dataReader);
                     table.EndLoadData();
                     tk.SetResult(table);
                     return await tk.Task;
@@ -343,9 +343,12 @@ namespace ORM_1_21_.Linq
                             while (dataReader.Read())
                             {
                                 for (var i = 0; i < dataReader.FieldCount; i++)
+                                {
                                     AttributesOfClass<TS>.SetValueFreeSqlE(_providerName, dataReader.GetName(i),
                                         (TS)employee,
                                         dataReader[i] == DBNull.Value ? null : dataReader[i]);
+
+                                }
                                 resDis.Add((TS)employee);
                             }
                         }

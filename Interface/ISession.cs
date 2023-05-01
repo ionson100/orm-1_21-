@@ -14,7 +14,7 @@ namespace ORM_1_21_
     public interface ISession : IDisposable
     {
         /// <summary>
-        ///     iS call Dispose
+        ///     Is call Dispose
         /// </summary>
         bool IsDispose { get; }
 

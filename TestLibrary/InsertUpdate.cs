@@ -53,10 +53,36 @@ namespace TestLibrary
             Execute.Log(2, res.Differences.Count == 0, "update");
 
             session.TruncateTable<T>();
-            o.GuidNull=Guid.NewGuid();
-            session.InsertBulk(new List<T>() { o });
+
+            var r = new T()
+            {
+                Id = new Guid("3b0744b5-4ecd-4d95-9a84-8f03622b52b8"),
+                Date = Configure.Utils.DefaultSqlDateTime(),
+                BoolNull = true,
+                ByteNull = 1,
+                CharNull = 'c',
+                DateNull = Configure.Utils.DefaultSqlDateTime(),
+                DecimalNull = new Decimal(1),
+                DoubleNull = 1.2d,
+                FloatNull = 1.2f,
+                GuidNull = Guid.Empty,
+                IntNull = 11,
+                LongNull = 11,
+                ShortNull = 11,
+                Text = "assa"
+            };
+            session.InsertBulk(new List<T>()
+            {
+                r
+            });
             var o3 = session.Query<T>().First();
-            res = compareLogic.Compare(o, o3);
+
+
+
+
+           
+
+            res = compareLogic.Compare(r, o3);
             Console.WriteLine(o.Date.ToString());
             Console.WriteLine(o3.Date.ToString());
             Execute.Log(3, res.Differences.Count == 0, "bulk");

@@ -118,7 +118,6 @@
     <Compile Include="Linq\DbQueryProviderExecute.cs" />
     <Compile Include="Linq\DbQueryProviderExecuteSpp.cs" />
     <Compile Include="Linq\DbQueryProviderExecuteSppAsunc.cs" />
-    <Compile Include="Linq\EnumerableRewriter.cs" />
     <Compile Include="Linq\FactoryExpression.cs" />
     <Compile Include="Linq\GroupException.cs" />
     <Compile Include="Linq\LambdaFactory.cs" />

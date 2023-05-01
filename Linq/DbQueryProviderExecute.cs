@@ -169,9 +169,9 @@ namespace ORM_1_21_.Linq
                 {
                     com.CommandText = listCore.First(a => a.Operand == Evolution.DataTable).Body;
                     var table = new DataTable();
-                    var reader = com.ExecuteReader();
+                    dataReader = com.ExecuteReader();
                     table.BeginLoadData();
-                    table.Load(reader);
+                    table.Load(dataReader);
                     table.EndLoadData();
                     return table;
                 }

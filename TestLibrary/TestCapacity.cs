@@ -21,14 +21,14 @@ namespace TestLibrary
             
         }
 
-        private static void NewExe<T, Tb>(bool isNative = false) where T : CapacityBase, new() where Tb : IOtherDataBaseFactory, new()
+        private static void NewExe<T, TB>(bool isNative = false) where T : CapacityBase, new() where TB : IOtherDataBaseFactory, new()
         {
-            const int count = 1000;
-            var s = Activator.CreateInstance<Tb>();
+            const int count = 10000;
+            var s = Activator.CreateInstance<TB>();
             ISession GetSession()
             {
                 if (isNative == false)
-                    return Configure.GetSession<Tb>();
+                    return Configure.GetSession<TB>();
                 else
                 {
                     return Configure.Session;
@@ -70,25 +70,25 @@ namespace TestLibrary
                 GC.Collect();
             }
 
-            using (var session = GetSession())
-            {
-               
-                Stopwatch stopwatch = new Stopwatch();
-                var sql = session.GetSqlInsertCommand(new T());
-                stopwatch.Start();
-                for (int i = 0; i < count; i++)
-                {
-                   var ee= session.ExecuteNonQuery(sql);
-                }
-                stopwatch.Stop();
-                Console.WriteLine($"{stopwatch.ElapsedMilliseconds}  insert native ");
-                GC.Collect();
-            }
+          //  using (var session = GetSession())
+          //  {
+          //     
+          //      Stopwatch stopwatch = new Stopwatch();
+          //      var sql = session.GetSqlInsertCommand(new T());
+          //      stopwatch.Start();
+          //      for (int i = 0; i < count; i++)
+          //      {
+          //         var ee= session.ExecuteNonQuery(sql);
+          //      }
+          //      stopwatch.Stop();
+          //      Console.WriteLine($"{stopwatch.ElapsedMilliseconds}  insert native ");
+          //      GC.Collect();
+          //  }
 
 
             using (var session = GetSession())
             {
-                //var myClassBase = session.Query<T>().First();
+                var myClassBase = session.Query<T>().First();
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
                 var list = session.Query<T>().ToList();
@@ -108,11 +108,15 @@ namespace TestLibrary
 
             using (var session = GetSession())
             {
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
-                var list = session.Query<T>().ToList();
-                stopwatch.Stop();
-                Console.WriteLine($"{stopwatch.ElapsedMilliseconds}  select3 {list.Count()}");
+                using (session.BeginTransaction())
+                {
+                    Stopwatch stopwatch = new Stopwatch();
+                    stopwatch.Start();
+                    var list = session.Query<T>().ToList();
+                    stopwatch.Stop();
+                    Console.WriteLine($"{stopwatch.ElapsedMilliseconds}  select3 tr {list.Count()}");
+                }
+                
                 GC.Collect();
             }
 

@@ -14,7 +14,7 @@ namespace ORM_1_21_
         ///     Purpose of the primary key field.
         /// </summary>
         /// <param name="columnName">Column table name</param>
-        /// <param name="generator">Primary key type, native-autoincrement ,assigned-user assigned</param>
+        /// <param name="generator">Primary key type, native - autoincrement ,assigned-user assigned</param>
         public MapPrimaryKeyAttribute(string columnName, Generator generator) : base(columnName)
         {
             if (string.IsNullOrWhiteSpace(columnName)) throw new ArgumentException("column name zero");
@@ -31,8 +31,6 @@ namespace ORM_1_21_
             Generator = generator;
         }
 
-        
-
         internal Generator Generator { get; }
 
         internal string ColumnNameForRider(ProviderName providerName)
@@ -46,27 +44,4 @@ namespace ORM_1_21_
         }
     }
 
-  //  /// <summary>
-  //  ///     Additional primary key constraint
-  //  /// </summary>
-  //  public sealed class MapConstraintKeyAttribute : BaseAttribute
-  //  {
-  //      /// <summary>
-  //      ///     Purpose of the primary key field.
-  //      /// </summary>
-  //      /// <param name="columnName">Column table name</param>
-  //      /// <exception cref="ArgumentException"></exception>
-  //      public MapConstraintKeyAttribute(string columnName) : base(columnName)
-  //      {
-  //          if (string.IsNullOrWhiteSpace(columnName)) throw new ArgumentException("column name zero");
-  //      }
-  //
-  //      /// <summary>
-  //      ///     Purpose of the primary key field.
-  //      ///     The name of the primary key field, corresponds to the name of the property.
-  //      /// </summary>
-  //      public MapConstraintKeyAttribute() 
-  //      {
-  //      }
-  //  }
 }

@@ -100,8 +100,23 @@ namespace TestLibrary
                 Console.WriteLine(x1);
             }
 
+            list = session.FreeSql<T>($"select * from {session.TableName<T>()}").ToList();
+            foreach (T f in list)
+            {
+                f.ValInt = 10;
+                f.MyEnum = MyEnum.First;
+                f.Valfloat = 3.4f;
+                f.Name = null;
+                f.DateTimeNull= Configure.Utils.DefaultSqlDateTime();
+                f.Bytes =  new byte[0];
+                
 
-            var free = session.FreeSql<FreeClass>($"select id, age from {session.TableName<T>()}").ToList();
+                session.Update(f);
+            }
+            list = session.FreeSql<T>($"select * from {session.TableName<T>()}").ToList();
+            var free = session.FreeSql<FreeClass>($"select * from {session.TableName<T>()}").ToList();
+            free.ForEach(Console.WriteLine);
+            free = (List<FreeClass>)await session.FreeSqlAsync<FreeClass>($"select * from {session.TableName<T>()}");
             free.ForEach(Console.WriteLine);
 
 
@@ -110,8 +125,15 @@ namespace TestLibrary
 
         class FreeClass
         {
+            public byte[] bytes { get; set; } = {  };
+            public DateTime? datenull { get; set; }
+            public string name { get; set; }
             public Guid id { get; set; }
             public int age { get; set; }
+            public int? test1 { get; set; }
+
+            public int @enum { get; set; }
+             public float? test6 { get; set; }
         }
         [MapReceiverFreeSql]
         public class ProxyFreeSql
@@ -130,6 +152,46 @@ namespace TestLibrary
             {
                 return $"id=\"{Id}\"  Age=\"{Age}\"  ";
             }
+        }
+        public class MyClassproxy
+        {
+           
+
+            public int Issa { get; set; } = 100;
+
+
+            public Guid Id { get; set; } = Guid.NewGuid();
+
+
+             public string Name { get; set; }
+
+           
+            public int Age { get; set; }
+
+            
+            public string Description { get; set; }
+
+            public MyEnum MyEnum { get; set; } 
+
+             public DateTime DateTime { get; set; } 
+
+             public int? ValInt { get; set; }
+
+             public bool? Valbool { get; set; }
+
+             public double? Valdouble { get; set; }
+
+             public decimal? Valdecimal { get; set; }
+
+             public float? Valfloat { get; set; }
+
+             public short? ValInt16 { get; set; }
+
+             public long? ValInt4 { get; set; }
+
+            public Guid? ValGuid { get; set; }
+
+             public string TestUser { get; set; } 
         }
     }
 }

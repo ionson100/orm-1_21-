@@ -354,8 +354,6 @@ namespace TestLibrary
                 count = session.Query<T>().Where(a => a.Name == "name").OrderBy(r => r.Age).ToList().Sum(a => a.Age);
                 Log(36, count == 110);
 
-                // var groupList = session.Query<T>().GroupBy(r => r.Name).ToListAsync().Result;
-                // Log(37, groupList.Count() == 2 && groupList[0].Count() == 3 && groupList[1].Count() == 3);
 
 
                 o = session.Query<T>().OrderBy(a => a.Age).First();
@@ -779,6 +777,16 @@ namespace TestLibrary
                     .Select((d, index) => new { Age = d.Age, Name = string.Concat(index, "-", d.Name) }).ToListAsync()
                     .Result;
                 Log(98, listOb.Count == 10);
+                session.TruncateTable<T>();
+                session.Insert(new T());
+                session.Insert(new T());
+                session.Insert(new T());
+                count = session.Query<T>().Count();
+                Log(99,count==3);
+                session.Query<T>().ForEach(a=>session.Delete(a));
+                count=session.Query<T>().Count();
+                Log(100, count == 0);
+
             }
         }
 
@@ -963,9 +971,9 @@ namespace TestLibrary
         public static void TestNativeInsert()
         {
             TestNativeInser<TiPostgresNative, MyDbPostgres>();
-            // TestNativeInser<TiMysqlNative, MyDbMySql>();
-            // TestNativeInser<TiMsSqlNative, MyDbMsSql>();
-            // TestNativeInser<TiSqliteNative, MyDbSqlite>();
+             TestNativeInser<TiMysqlNative, MyDbMySql>();
+             TestNativeInser<TiMsSqlNative, MyDbMsSql>();
+             TestNativeInser<TiSqliteNative, MyDbSqlite>();
         }
 
         static void TestNativeInser<T, Tb>() where Tb : IOtherDataBaseFactory, new()
