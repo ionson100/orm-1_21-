@@ -1,22 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{3D3C03BF-6EFE-4C92-9A91-FCEDA1823DC4}</ProjectGuid>
+    <TargetFramework>net461</TargetFramework>
+ 
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ORM_1_21_</RootNamespace>
-    <AssemblyName>ORM{1_21}</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>3.5</OldToolsVersion>
     <PublishUrl>http://localhost/ORM{1_21}/</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Web</InstallFrom>
@@ -32,158 +19,50 @@
     <IsWebBootstrapper>true</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <SccProjectName>
-    </SccProjectName>
-    <SccLocalPath>
-    </SccLocalPath>
-    <SccAuxPath>
-    </SccAuxPath>
-    <SccProvider>
-    </SccProvider>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <SccProjectName></SccProjectName>
+    <SccLocalPath></SccLocalPath>
+    <SccAuxPath></SccAuxPath>
+    <SccProvider></SccProvider>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
+<PropertyGroup>
+    
+ <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+ 
+   
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  
+  
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <ItemGroup>
+   <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\ORM{1_21}.XML</DocumentationFile>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
     <DocumentationFile>bin\Release\ORM{1_21}.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System" />
-    <Reference Include="System.Core">
+    <Reference Update="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.Data">
+    <Reference Update="System.Data">
       <Private>True</Private>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ActionMode.cs" />
-    <Compile Include="AppenderWhere.cs" />
-    <Compile Include="AttributesOfClass.cs" />
-    <Compile Include="AttributesOfClass2.cs" />
-    <Compile Include="AttributesOfClass3.cs" />
-    <Compile Include="Attribute\BaseAttribute.cs" />
-    <Compile Include="Attribute\MapColumnTypeAttribute.cs" />
-    <Compile Include="Attribute\MapDefaultValueAttribute.cs" />
-    <Compile Include="Attribute\MapIndexAttribute.cs" />
-    <Compile Include="Attribute\MapNotInsertUpdateAttribute.cs" />
-    <Compile Include="Attribute\MapReceiverFreeSqlAttribute.cs" />
-    <Compile Include="Attribute\MapTableAttribute.cs" />
-    <Compile Include="Attribute\MapTypeMysqlTableAttribute.cs" />
-    <Compile Include="Attribute\MapUsageActivatorAttribute.cs" />
-    <Compile Include="ColumnsTableFactory.cs" />
-    <Compile Include="Extensions\GroupedEnumerable.cs" />
-    <Compile Include="Extensions\HelperGroupBy.cs" />
-    <Compile Include="Extensions\HelperJoin.cs" />
-    <Compile Include="Extensions\HelpUnion.cs" />
-    <Compile Include="Extensions\HeplerAsync.cs" />
-    <Compile Include="Extensions\IdentityFunction.cs" />
-    <Compile Include="Extensions\Set.cs" />
-    <Compile Include="Extensions\Sweetmeat.cs" />
-    <Compile Include="Interface\IMapSerializable.cs" />
-    <Compile Include="IProxy.cs" />
-    <Compile Include="Linq\DbQueryProviderExecuteAsync.cs" />
-    <Compile Include="Linq\DbQueryProviderExecute.cs" />
-    <Compile Include="Linq\DbQueryProviderExecuteSpp.cs" />
-    <Compile Include="Linq\DbQueryProviderExecuteSppAsunc.cs" />
-    <Compile Include="Linq\FactoryExpression.cs" />
-    <Compile Include="Linq\GroupException.cs" />
-    <Compile Include="Linq\LambdaFactory.cs" />
-    <Compile Include="Linq\ITranslate.cs" />
-    <Compile Include="Linq\OldExpressionVisitor.cs" />
-    <Compile Include="Linq\PostExpression.cs" />
-    <Compile Include="Linq\UnaryConverter.cs" />
-    <Compile Include="MyCache.cs" />
-    <Compile Include="ProxyAttribute.cs" />
-    <Compile Include="StorageOtherBaseFactory.cs" />
-    <Compile Include="StorageTypeAttribute.cs" />
-    <Compile Include="TableColumn.cs" />
-    <Compile Include="CallExp.cs" />
-    <Compile Include="CommandNativeInsert.cs" />
-    <Compile Include="DbTypeConverter.cs" />
-    <Compile Include="Configure.cs" />
-    <Compile Include="Configure2.cs" />
-    <Compile Include="FactoryCreatorTable.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Linq\MsSqlConstructorSql.cs" />
-    <Compile Include="Linq\StringConst.cs" />
-    <Compile Include="MySqlLogger.cs" />
-    <Compile Include="Interface\IOtherDataBaseFactory.cs" />
-    <Compile Include="Parametr.cs" />
-    <Compile Include="Pizdaticus.cs" />
-    <Compile Include="ProviderName.cs" />
-    <Compile Include="ProviderFactories.cs" />
-    <Compile Include="Interface\IServiceSessions.cs" />
-    <Compile Include="Linq\ContainerCastExpression.cs" />
-    <Compile Include="Linq\Evalition.cs" />
-    <Compile Include="Extensions\Helper.cs" />
-    <Compile Include="Generator.cs" />
-    <Compile Include="Attribute\MapPrimaryKeyAttribute.cs" />
-    <Compile Include="Attribute\MapColumnAttribute.cs" />
-    <Compile Include="Interface\ISession.cs" />
-    <Compile Include="Linq\Creator.cs" />
-    <Compile Include="Linq\DbQueryProvider.cs" />
-    <Compile Include="Linq\IGetTypeQuery.cs" />
-    <Compile Include="Linq\ISqlListCoposite.cs" />
-    <Compile Include="Linq\JoinAlias.cs" />
-    <Compile Include="Linq\ExpressionVisitor.cs" />
-    <Compile Include="Linq\MySqlConstructorSql.cs" />
-    <Compile Include="Linq\OneCoprosite.cs" />
-    <Compile Include="Linq\Query.cs" />
-    <Compile Include="Linq\QueryProvider.cs" />
-    <Compile Include="Linq\QueryTranslator.cs" />
-    <Compile Include="Linq\TypeSystem.cs" />
-    <Compile Include="Attribute\PersistentAttribute.cs" />
-    <Compile Include="Session.cs" />
-    <Compile Include="Sessione2.cs" />
-    <Compile Include="Interface\ITransaction.cs" />
-    <Compile Include="Interface\IValidateDAL.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Transactionale.cs" />
-    <Compile Include="Utils\Check.cs" />
-    <Compile Include="Utils\GroupExpression.cs" />
-    <Compile Include="Utils\Utils.cs" />
-    <Compile Include="Utils\UtilsBulkMsSql.cs" />
-    <Compile Include="Utils\UtilsBulkMySql.cs" />
-    <Compile Include="Utils\UtilsBulkPostgres.cs" />
-    <Compile Include="Utils\UtilsCreateTableMsSql.cs" />
-    <Compile Include="Utils\UtilsCreateTableMysql.cs" />
-    <Compile Include="Utils\UtilsCreateTablePostgres.cs" />
-    <Compile Include="Utils\UtilsCreateTableSqLite.cs" />
-    <Compile Include="V.cs" />
-    <Compile Include="WrapperVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -203,24 +82,84 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-    <None Include="LICENSE.md" />
-    <None Include="README.md" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Linq.png" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Example\obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
+    <Compile Remove="Example\obj\Release\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
+    <Compile Remove="Example\Program.cs" />
+    <Compile Remove="Example\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Example\Starter.cs" />
+    <Compile Remove="Example\User.cs" />
+    <Compile Remove="TestLibrary\Execute.cs" />
+    <Compile Remove="TestLibrary\Execute2.cs" />
+    <Compile Remove="TestLibrary\Execute3.cs" />
+    <Compile Remove="TestLibrary\ExecuteFree.cs" />
+    <Compile Remove="TestLibrary\ExecuteLinqAll.cs" />
+    <Compile Remove="TestLibrary\ExecutePrimaryKey.cs" />
+    <Compile Remove="TestLibrary\ExecuteSp.cs" />
+    <Compile Remove="TestLibrary\InsertUpdate.cs" />
+    <Compile Remove="TestLibrary\MyClass.cs" />
+    <Compile Remove="TestLibrary\MyClassBase.cs" />
+    <Compile Remove="TestLibrary\MyClassNull.cs" />
+    <Compile Remove="TestLibrary\MyClassTemp.cs" />
+    <Compile Remove="TestLibrary\MyDbMySql.cs" />
+    <Compile Remove="TestLibrary\MyEnum.cs" />
+    <Compile Remove="TestLibrary\MyTest.cs" />
+    <Compile Remove="TestLibrary\obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
+    <Compile Remove="TestLibrary\obj\Release\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
+    <Compile Remove="TestLibrary\Order.cs" />
+    <Compile Remove="TestLibrary\Properties\AssemblyInfo.cs" />
+    <Compile Remove="TestLibrary\Starter.cs" />
+    <Compile Remove="TestLibrary\TestCapacity.cs" />
+    <Compile Remove="TestLibrary\TestInsertBase.cs" />
+    <Compile Remove="TestLibrary\TestSelector.cs" />
+    <Compile Remove="TestLibrary\TestSerialize.cs" />
+    <Compile Remove="TestLibrary\TestUser.cs" />
+    <Compile Remove="TestPostgres\obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
+    <Compile Remove="TestPostgres\obj\Release\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
+    <Compile Remove="TestPostgres\Program.cs" />
+    <Compile Remove="TestPostgres\Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>bitnic.orm</Title>
+    <Version>2.0.6</Version>
+    <Authors>ion100</Authors>
+    <Description>micro orm postgres mysql mssql sqlite</Description>
+    <PackageId>bitnic.orm</PackageId>
+    <IncludeSymbols>True</IncludeSymbols>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageTags>orm</PackageTags>
+    <PackAsTool>False</PackAsTool>
+    <ToolCommandName>bitnic.orm</ToolCommandName>
+    <PackageOutputPath>bin\Release\</PackageOutputPath>
+    <PackageProjectUrl>https://github.com/ionson100/ORM-1_21-</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

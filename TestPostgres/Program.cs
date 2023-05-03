@@ -35,19 +35,19 @@ namespace TestPostgres
             //  Execute.RunThread();
             //  //Console.ReadKey();
             //  Console.ReadKey();
-            // Execute.TotalTest();
-            // Execute.TestNativeInsert();
-            // Execute.TestAssignetInsert();
-            // Execute2.TestTimeStamp();
-            // await Execute3.TotalTestAsync();
-            // await ExecuteLinqAll.Run();
-            // ExecutePrimaryKey.Run();
-            // await ExecuteFree.Run();
-            // await ExecuteSp.Run();
-            // TestCapacity.Run();
-            // await TestSelector.Run();
+             Execute.TotalTest();
+             Execute.TestNativeInsert();
+             Execute.TestAssignetInsert();
+             Execute2.TestTimeStamp();
+             await Execute3.TotalTestAsync();
+             await ExecuteLinqAll.Run();
+             ExecutePrimaryKey.Run();
+             await ExecuteFree.Run();
+             await ExecuteSp.Run();
+             TestCapacity.Run();
+             await TestSelector.Run();
              InsertUpdate.Run();
-            // Console.ReadKey();
+             Console.ReadKey();
 
 
 
