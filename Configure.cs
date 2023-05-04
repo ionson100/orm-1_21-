@@ -29,6 +29,71 @@ namespace ORM_1_21_
         {
         }
 
+
+        void CreateFactoryPostgres()
+        {
+            try
+            {
+                var a = AppDomain.CurrentDomain.Load("Npgsql");
+                var b = a.GetType("Npgsql.NpgsqlFactory");
+                var field = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
+                CurFactory = (DbProviderFactory)field.GetValue(null);
+                AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+                AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+            }
+            catch (Exception e)
+            {
+                MySqlLogger.Info($"{e.Message}{Environment.NewLine}{e}");
+                throw;
+            }
+        }
+
+        private void CreateFactoryMysql()
+        {
+            try
+            {
+                var a = AppDomain.CurrentDomain.Load("Mysql.Data");
+                var b = a.GetType("MySql.Data.MySqlClient.MySqlClientFactory");
+                CurFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
+            }
+            catch (Exception e)
+            {
+                MySqlLogger.Info($"{e.Message}{Environment.NewLine}{e}");
+                throw;
+            }
+        }
+
+        private void CreateFactorySqlite()
+        {
+            try
+            {
+                var a = AppDomain.CurrentDomain.Load("System.Data.SQLite");
+                var b = a.GetType("System.Data.SQLite.SQLiteFactory");
+                var field = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
+                CurFactory = (DbProviderFactory)field.GetValue(null);
+            }
+            catch (Exception e)
+            {
+                MySqlLogger.Info($"{e.Message}{Environment.NewLine}{e}");
+                throw;
+            }
+        }
+
+        private void CreateFactoryMsSql()
+        {
+            try
+            {
+                var a = AppDomain.CurrentDomain.Load("System.Data.SqlClient");
+                var b = a.GetType("System.Data.SqlClient.SqlClientFactory");
+                CurFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
+            }
+            catch (Exception e)
+            {
+                MySqlLogger.Info($"{e.Message}{Environment.NewLine}{e}");
+                throw;
+            }
+        }
+
         /// <summary>
         ///     Constructor
         /// </summary>
@@ -49,82 +114,83 @@ namespace ORM_1_21_
             switch (provider)
             {
                 case ProviderName.PostgreSql:
-                {
-                    try
                     {
-                        if (!isSearchGac1) throw new Exception("disable usage GAC");
-                        CurFactory = DbProviderFactories.GetFactory("Npgsql");
-                    }
-                    catch
-                    {
+
+#if NET461
                         try
                         {
-                            var a = AppDomain.CurrentDomain.Load("Npgsql");
-                            var b = a.GetType("Npgsql.NpgsqlFactory");
-                            var field = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
-                            CurFactory = (DbProviderFactory)field.GetValue(null);
-                            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-                            AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+                            if (!isSearchGac1) throw new Exception("disable usage GAC");
+                            CurFactory = DbProviderFactories.GetFactory("Npgsql");
                         }
-                        catch (Exception e)
+                        catch
                         {
-                            MySqlLogger.Info($"{e.Message}{Environment.NewLine}{e}");
-                            throw;
+                            CreateFactoryPostgres();
                         }
+#elif NETSTANDARD2_0
+                        CreateFactoryPostgres();
+#endif
+
+
+                        break;
                     }
-
-
-                    break;
-                }
                 case ProviderName.MySql:
-                {
-                    try
                     {
-                        if (!isSearchGac1) throw new Exception("Search ban GAC");
-                        CurFactory = DbProviderFactories.GetFactory("MySql.Data.MySqlClient");
-                    }
-                    catch
-                    {
-                        var a = AppDomain.CurrentDomain.Load("Mysql.Data");
-                        var b = a.GetType("MySql.Data.MySqlClient.MySqlClientFactory");
-                        CurFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
-                    }
 
-                    break;
-                }
+#if NET461
+                        try
+                        {
+                            if (!isSearchGac1) throw new Exception("Search ban GAC");
+                            CurFactory = DbProviderFactories.GetFactory("MySql.Data.MySqlClient");
+                        }
+                        catch
+                        {
+                            CreateFactoryMysql();
+                        }
+#elif NETSTANDARD2_0
+                          CreateFactoryMysql();
+#endif
+
+
+                        break;
+                    }
                 case ProviderName.SqLite:
-                {
-                    try
                     {
-                        if (!isSearchGac1) throw new Exception("Search ban  GAC");
-                        CurFactory = DbProviderFactories.GetFactory("System.Data.SQLite.SQLiteFactory");
-                    }
-                    catch
-                    {
-                        var a = AppDomain.CurrentDomain.Load("System.Data.SQLite");
-                        var b = a.GetType("System.Data.SQLite.SQLiteFactory");
-                        var field = b.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
-                        CurFactory = (DbProviderFactory)field.GetValue(null);
-                    }
+#if NET461
+                        try
+                        {
+                            if (!isSearchGac1) throw new Exception("Search ban  GAC");
+                            CurFactory = DbProviderFactories.GetFactory("System.Data.SQLite.SQLiteFactory");
+                        }
+                        catch
+                        {
+                            CreateFactorySqlite();
+                        }
+#elif NETSTANDARD2_0
+                         CreateFactorySqlite();
+#endif
 
-                    break;
-                }
+
+                        break;
+                    }
                 case ProviderName.MsSql:
-                {
-                    try
                     {
-                        if (!isSearchGac1) throw new Exception("Search ban GAC");
-                        CurFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
-                    }
-                    catch
-                    {
-                        var a = AppDomain.CurrentDomain.Load("System.Data.SqlClient");
-                        var b = a.GetType("System.Data.SqlClient.SqlClientFactory");
-                        CurFactory = (DbProviderFactory)b.GetField("Instance").GetValue(null);
-                    }
+#if NET461
+                        try
+                        {
+                            if (!isSearchGac1) throw new Exception("Search ban GAC");
+                            CurFactory = DbProviderFactories.GetFactory("System.Data.SqlClient");
+                        }
+                        catch
+                        {
+                            CreateFactoryMsSql();
+                        }
+#elif NETSTANDARD2_0
+                        CreateFactoryMsSql();
+#endif
 
-                    break;
-                }
+
+                        break;
+                    }
             }
         }
 

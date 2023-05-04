@@ -1,8 +1,9 @@
-﻿using ORM_1_21_;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ORM_1_21_;
 using TestLibrary;
 
 
@@ -10,23 +11,23 @@ namespace TestPostgres
 {
     internal class Program
     {
-        private const ProviderName ProviderName = ORM_1_21_.ProviderName.MsSql;
+        private static ProviderName ProviderNamee = ORM_1_21_.ProviderName.MsSql;
         static async Task Main(string[] args)
         {
 
-            switch (ProviderName)
+            switch (ProviderNamee)
             {
                 case ProviderName.MsSql:
-                    Starter.Run(ConnectionStrings.MsSql, ProviderName);
+                    Starter.Run(ConnectionStrings.MsSql, ProviderNamee);
                     break;
                 case ProviderName.MySql:
-                    Starter.Run(ConnectionStrings.Mysql, ProviderName);
+                    Starter.Run(ConnectionStrings.Mysql, ProviderNamee);
                     break;
                 case ProviderName.PostgreSql:
-                    Starter.Run(ConnectionStrings.Postgesql, ProviderName);
+                    Starter.Run(ConnectionStrings.Postgesql, ProviderNamee);
                     break;
                 case ProviderName.SqLite:
-                    Starter.Run(ConnectionStrings.Sqlite, ProviderName);//
+                    Starter.Run(ConnectionStrings.Sqlite, ProviderNamee);//
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

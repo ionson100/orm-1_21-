@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
  
     <OutputType>Library</OutputType>
     <RootNamespace>ORM_1_21_</RootNamespace>
@@ -125,25 +125,17 @@
     <Compile Remove="TestPostgres\Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Properties\Settings.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <None Update="LICENSE.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
-    </None>
-    <None Update="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Update="README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -154,12 +146,12 @@
     <PackageId>bitnic.orm</PackageId>
     <IncludeSymbols>True</IncludeSymbols>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+   
     <PackageTags>orm</PackageTags>
     <PackAsTool>False</PackAsTool>
     <ToolCommandName>bitnic.orm</ToolCommandName>
     <PackageOutputPath>bin\Release\</PackageOutputPath>
     <PackageProjectUrl>https://github.com/ionson100/ORM-1_21-</PackageProjectUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+   
   </PropertyGroup>
 </Project>
