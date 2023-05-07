@@ -28,7 +28,7 @@ string path = null;
 #if DEBUG
     path = "SqlLog.txt";
 #endif
-_ = new Configure("ConnectionString",ProviderName.Postgresql, path);
+_ = new Configure("ConnectionString",ProviderName.PostgreSql, path);
     using (var ses=Configure.Session)
     {
       if (ses.TableExists<MyClass>())
@@ -89,9 +89,6 @@ using ORM_1_21_;
      [MapColumn("desc")] //or [MapColumn]
      [MapColumnType("TEXT")]
       public string Description { get; set; }
-
-     [MapColumn("enum")] //or [MapColumn] 
-      public MyEnum MyEnum { get; set; } = MyEnum.First;
 
      [MapColumn("date")] //or [MapColumn] 
       public DateTime DateTime { get; set; } = DateTime.Now;
