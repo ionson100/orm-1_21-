@@ -137,22 +137,34 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\ionson100\ORM-1_21-\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\ionson100\ORM-1_21-\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>bitnic.orm</Title>
     <Version>2.1.9-alpha</Version>
     <Authors>ion100</Authors>
-    <Description>micro orm postgres mysql mssql sqlite</Description>
+    <Description>micro orm postgres mysql mssql sqlite.</Description>
     <PackageId>bitnic.orm</PackageId>
     <IncludeSymbols>True</IncludeSymbols>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
    
-    <PackageTags>orm postgres mysql mssql sqlite </PackageTags>
+    <PackageTags>orm postgres mysql mssql sqlite</PackageTags>
     <PackAsTool>False</PackAsTool>
     <ToolCommandName>bitnic.orm</ToolCommandName>
     <PackageOutputPath>bin\Release\</PackageOutputPath>
     <PackageProjectUrl>https://github.com/ionson100/ORM-1_21-</PackageProjectUrl>
-    <PackageReleaseNotes>added the concept of persistence</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>add persistent essence</PackageReleaseNotes>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
    
   </PropertyGroup>
 </Project>
