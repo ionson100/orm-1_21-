@@ -43,6 +43,7 @@ namespace ORM_1_21_
         public static IEnumerable<TObj> GetRiderToList<TObj>(IDataReader reader, ProviderName providerName, bool isFree)
         {
             var isLegalese = AttributesOfClass<TObj>.IsUsageActivator(providerName);
+            bool isPersistent = AttributesOfClass<TObj>.IsUsagePersistent.Value;
             var res = new List<TObj>();
             try
             {
@@ -61,6 +62,11 @@ namespace ORM_1_21_
                     else
                     {
                         reader.SpotRiderFree(providerName,d);
+                    }
+
+                    if (isPersistent)
+                    {
+                        UtilsCore.SetPersistent(d);
                     }
                     res.Add(d);
                 }

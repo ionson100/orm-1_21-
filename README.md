@@ -7,6 +7,7 @@
 + [Interfaces](#interfaces)
 + [Accessing another database](#anotherdatabase)
 + [Work with subclasses](#subclass)
++ [The concept of persistence](#persistence)
 + [License](./LICENSE.md)
 
 
@@ -673,6 +674,35 @@ list = (IEnumerable<MyClass>) session.ProcedureCallParam<MyClass>("getCountList"
 var count=par2.Value;
 ```
 
+<a name="persistence"></a> 
+##### The concept of persistence
+To work with persistence, you need the type to be marked with an attribute:\
+```[MapUsagePersistentAttribute]```\
+This allows the code to know where the object was received from.
+```C#
+[MapUsagePersistentAttribute]//For derived types only
+[MapTable]
+class Foo
+{
+  [MapPrimaryKey("id",Generator.Assigned)] 
+   public Guid Id { get; set; } = Guid.NewGuid();
+}
+Foo o=new Foo();
+bool r = session.IsPersistent(o);
+//r -false The object is not from the database
+
+
+session.Save(o);// Only for working with objects 
+                //where the type is marked with an attribute:MapUsagePersistentAttribute
+                //The ORM itself determines what to do with the object, insert or update.
+
+
+r = session.IsPersistent(o);
+//r -true The object from the database
+r = session.Get<Foo>(o.Id);//Get by primary key
+r = session.IsPersistent(o);
+//r -true The object from the database
+```
 <a name="subclass"></a> 
 ##### Work with subclasses
 

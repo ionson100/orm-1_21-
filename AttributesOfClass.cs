@@ -28,6 +28,14 @@ namespace ORM_1_21_
             return false;
         }, LazyThreadSafetyMode.PublicationOnly);
 
+
+        public static Lazy<bool> IsUsagePersistent = new Lazy<bool>(() =>
+        {
+            var t = typeof(T).GetCustomAttribute(typeof(MapUsagePersistentAttribute), false);
+            if (t != null) return true;
+            return false;
+        }, LazyThreadSafetyMode.ExecutionAndPublication);
+
         private static readonly Lazy<Dictionary<string, string>> ColumnName = new Lazy<Dictionary<string, string>>(() =>
         {
             var list = new List<BaseAttribute>();

@@ -48,6 +48,7 @@ namespace TestPostgres
              TestCapacity.Run();
              await TestSelector.Run();
              InsertUpdate.Run();
+             await ExecAdd.Run();
              Console.ReadKey();
 
 

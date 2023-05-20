@@ -1,14 +1,14 @@
-﻿using System;
+﻿using ORM_1_21_.Extensions;
+using ORM_1_21_.Linq;
+using ORM_1_21_.Utils;
+using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_.Extensions;
-using ORM_1_21_.Linq;
-using ORM_1_21_.Utils;
+using static System.Collections.Specialized.BitVector32;
 
 namespace ORM_1_21_
 {
@@ -20,9 +20,9 @@ namespace ORM_1_21_
     public static partial class Helper
     {
 
-        
 
-       
+
+
 
         /// <summary>
         /// 
@@ -32,7 +32,7 @@ namespace ORM_1_21_
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TSource"></typeparam>
         /// <returns></returns>
-        public static Task<TSource> ExecuteAsync<TSource>(this  IQueryProvider provider,Expression expression,CancellationToken cancellationToken = default)
+        public static Task<TSource> ExecuteAsync<TSource>(this IQueryProvider provider, Expression expression, CancellationToken cancellationToken = default)
         {
             var p = (QueryProvider)provider;
             return p.ExecuteExtensionAsync<TSource>(expression, null, cancellationToken);
@@ -92,7 +92,7 @@ namespace ORM_1_21_
             where TSource : class
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { CustomExpression = exp, TypeEvolution = Evolution.Delete });
+            { CustomExpression = exp, TypeEvolution = Evolution.Delete });
             return source.Provider.Execute<int>(source.Expression);
         }
 
@@ -103,23 +103,148 @@ namespace ORM_1_21_
             Expression<Func<TSource, bool>> exp = null) where TSource : class
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { CustomExpression = exp, TypeEvolution = Evolution.Delete });
+            { CustomExpression = exp, TypeEvolution = Evolution.Delete });
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(source.Expression, null,
                 CancellationToken.None);
         }
 
+        /// <summary>
+        /// Getting an object by key field
+        /// </summary>
+        /// <param name="session">Current session</param>
+        /// <param name="key">Primary key value</param>
+        /// <typeparam name="T"></typeparam>
+        public static T Get<T>(this ISession session, object key) where T : class
+        {
+            Check.NotNull(key, nameof(key));
+            var s = AttributesOfClass<T>.PkAttribute(session.ProviderName).GetColumnName(session.ProviderName);
+            string sql = $"select * from {session.TableName<T>()} where {s} = {session.SymbolParam}1;";
+            var res = session.FreeSql<T>(sql, key);
+            switch (res.Count())
+            {
+                case 0:
+                    {
+                        return null;
+                    }
+                case 1:
+                    {
+                        return res.First();
+                    }
+                default:
+                    {
+                        throw new Exception($"When querying by key field, more than one value was received: {res.Count()}");
+                    }
+            }
+        }
+        /// <summary>
+        /// Getting an object by key field
+        /// </summary>
+        /// <param name="session">Current session</param>
+        /// <param name="key">Primary key value</param>
+        /// <typeparam name="T"></typeparam>
+        public static async Task<T> GetAsync<T>(this ISession session, object key) where T : class
+        {
+            Check.NotNull(key, nameof(key));
+            var s = AttributesOfClass<T>.PkAttribute(session.ProviderName).GetColumnName(session.ProviderName);
+            string sql = $"select * from {session.TableName<T>()} where {s} = {session.SymbolParam}1;";
+            var res = await session.FreeSqlAsync<T>(sql, key);
+            switch (res.Count())
+            {
+                case 0:
+                    {
+                        return null;
+                    }
+                case 1:
+                    {
+                        return res.First();
+                    }
+                default:
+                    {
+                        throw new Exception($"When querying by key field, more than one value was received: {res.Count()}");
+                    }
+            }
+        }
 
         /// <summary>
-        ///     LIMIT is always placed at the end of the sentence
-        ///     (the beginning of the position, taking into account zero, the number in the sample)
+        /// Modification of an object in the database (insert, update).
+        /// The object is marked with the attribute: MapUsagePersistentAttribute.
         /// </summary>
-        /// <param name="source"></param>
-        /// <param name="start">Position start</param>
-        /// <param name="length">Record length</param>
-        public static IQueryable<TSource> Limit<TSource>(this IQueryable<TSource> source, int start, int length)
+        /// <param name="session">Current session.</param>
+        /// <param name="ob">Modification object.</param>
+        /// <typeparam name="T">Type modification object.</typeparam>
+        /// <returns>Number of rows modified in the database.</returns>
+        public static int Save<T>(this ISession session,T ob) where T : class
+        {
+            Check.NotNull(ob, nameof(ob));
+            if (UtilsCore.IsPersistent(ob))
+            {
+                return session.Update(ob);
+            }
+
+            return session.Insert(ob);
+        }
+
+        /// <summary>
+        /// Asynchronous operation.
+        /// Modification of an object in the database (insert, update).
+        /// The object is marked with the attribute: MapUsagePersistentAttribute.
+        /// </summary>
+        /// <param name="session">Current session.</param>
+        /// <param name="ob">Modification object</param>
+        /// <param name="cancellationToken">Cancel token.</param>
+        /// <typeparam name="T">Type modification object.</typeparam>
+        /// <returns>Number of rows modified in the database.</returns>
+        public static async Task<int> SaveAsync<T>(this ISession session, T ob,CancellationToken cancellationToken= default) where T : class
+        {
+            Check.NotNull(ob, nameof(ob));
+            if (UtilsCore.IsPersistent(ob))
+            {
+                return await session.UpdateAsync(ob,cancellationToken);
+            }
+
+            return await session.InsertAsync(ob, cancellationToken);
+        }
+
+
+        /// <summary>
+        /// Mark an object as being received from a database.
+        /// </summary>
+        /// <param name="session">Current session</param>
+        /// <param name="obj">The object type must have an attribute: MapUsagePersistentAttribute</param>
+        /// <typeparam name="T">Object type</typeparam>
+        public static void ToPersistent<T>(this ISession session,T obj) where T : class
+        {
+            Check.NotNull(session, nameof(session));
+            Check.NotNull(obj, nameof(obj));
+            if (AttributesOfClass<T>.IsUsagePersistent.Value == false)
+            {
+                throw new Exception("The object type  does not have an attribute: MapUsagePersistentAttribute");
+            }
+            UtilsCore.SetPersistent(obj);
+        }
+
+        /// <summary>
+        /// Checking where an object came from.
+        /// True - object from database. False - object not from database.
+        /// </summary>
+        /// <returns>True - object from database. False - object not from database.</returns>
+        public static bool IsPersistent<T>(this ISession session, T obj) where T : class
+        {
+            return UtilsCore.IsPersistent(obj);
+        }
+
+
+        /// <summary>
+            ///     LIMIT is always placed at the end of the sentence
+            ///     (the beginning of the position, taking into account zero, the number in the sample)
+            /// </summary>
+            /// <param name="source"></param>
+            /// <param name="start">Position start</param>
+            /// <param name="length">Record length</param>
+            public static IQueryable<TSource> Limit<TSource>(this IQueryable<TSource> source, int start, int length)
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { TypeEvolution = Evolution.Limit, ParamList = new List<object> { start, length } });
+            { TypeEvolution = Evolution.Limit, ParamList = new List<object> { start, length } });
             return source;
         }
 
@@ -129,10 +254,10 @@ namespace ORM_1_21_
         /// </summary>
         /// <param name="source"></param>
         /// <param name="length">Record length</param>
-        public static IQueryable<TSource> Limit<TSource>(this IQueryable<TSource> source,  int length)
+        public static IQueryable<TSource> Limit<TSource>(this IQueryable<TSource> source, int length)
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { TypeEvolution = Evolution.Limit, ParamList = new List<object> { 0, length } });
+            { TypeEvolution = Evolution.Limit, ParamList = new List<object> { 0, length } });
             return source;
         }
 
@@ -169,7 +294,7 @@ namespace ORM_1_21_
         /// <param name="chunkSize">Quantity per piece</param>
         /// <param name="cancellationToken"></param>
         public static async Task<IEnumerable<IEnumerable<TSource>>> SplitAsync<TSource>(this IQueryable<TSource> source,
-            int chunkSize,CancellationToken cancellationToken=default)
+            int chunkSize, CancellationToken cancellationToken = default)
         {
             var res = await QueryableToListAsync(source, cancellationToken);
             return res.Split(chunkSize);
@@ -211,7 +336,7 @@ namespace ORM_1_21_
             Expression<Func<TSource, Dictionary<object, object>>> param) where TSource : class
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { CustomExpression = param, TypeEvolution = Evolution.Update });
+            { CustomExpression = param, TypeEvolution = Evolution.Update });
             return source.Provider.Execute<int>(source.Expression);
         }
 
@@ -225,7 +350,7 @@ namespace ORM_1_21_
             Expression<Func<TSource, Dictionary<object, object>>> param) where TSource : class
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { CustomExpression = param, TypeEvolution = Evolution.Update });
+            { CustomExpression = param, TypeEvolution = Evolution.Update });
             return ((QueryProvider)source.Provider).ExecuteExtensionAsync<int>(source.Expression, null,
                 CancellationToken.None);
         }
@@ -257,7 +382,7 @@ namespace ORM_1_21_
         /// <param name="param"></param>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public static IEnumerable<TResult> FreeSqlAsTemplate<TResult>(this ISession ses,TResult temp, string sql, params object[] param)
+        public static IEnumerable<TResult> FreeSqlAsTemplate<TResult>(this ISession ses, TResult temp, string sql, params object[] param)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(
@@ -297,7 +422,7 @@ namespace ORM_1_21_
         public static async Task<IEnumerable<TResult>> FreeSqlAsync<TResult>(this ISession ses, string sql,
             params object[] param)
         {
-           
+
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
             var db = new DbQueryProvider<TResult>((Session)ses);
@@ -326,11 +451,11 @@ namespace ORM_1_21_
         /// <param name="ses">ISession</param>
         /// <param name="sql">Procedure name</param>
         /// <param name="cancellationToken">Object of the canceling to asynchronous operation</param>
-        public static async Task<object> ProcedureCallAsync<TResult>(this ISession ses, string sql,CancellationToken cancellationToken=default)
+        public static async Task<object> ProcedureCallAsync<TResult>(this ISession ses, string sql, CancellationToken cancellationToken = default)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            return await new DbQueryProvider<TResult>((Session)ses).ExecuteCallAsync<TResult>(callExpr,cancellationToken);
+            return await new DbQueryProvider<TResult>((Session)ses).ExecuteCallAsync<TResult>(callExpr, cancellationToken);
         }
 
         /// <summary>
@@ -355,11 +480,11 @@ namespace ORM_1_21_
         /// <param name="param">Request parameters</param>
         /// <param name="cancellationToken">Object of the canceling to asynchronous operation</param>
         public static async Task<object> ProcedureCallParamAsync<TResult>(this ISession ses, string sql,
-             ParameterStoredPr[] param,CancellationToken cancellationToken=default)
+             ParameterStoredPr[] param, CancellationToken cancellationToken = default)
         {
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
-            return await  new DbQueryProvider<TResult>((Session)ses).ExecuteCallParamAsync<TResult>(callExpr, param,cancellationToken);
+            return await new DbQueryProvider<TResult>((Session)ses).ExecuteCallParamAsync<TResult>(callExpr, param, cancellationToken);
         }
 
         /// <summary>
@@ -419,18 +544,18 @@ namespace ORM_1_21_
         public static IQueryable<TSource> SetTimeOut<TSource>(this IQueryable<TSource> source, int value)
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
-                { Timeout = value, TypeEvolution = Evolution.Timeout });
+            { Timeout = value, TypeEvolution = Evolution.Timeout });
             return source;
         }
 
-       
 
 
-       
 
-        
 
-       
+
+
+
+
 
         /// <summary>
         ///     The BETWEEN operator selects values within a given range.
@@ -541,7 +666,7 @@ namespace ORM_1_21_
 
         static async Task<List<T>> QueryableToListAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken = default)
         {
-            return await source.Provider.ExecuteAsync<List<T>>(source.Expression,cancellationToken);
+            return await source.Provider.ExecuteAsync<List<T>>(source.Expression, cancellationToken);
         }
 
         /// <summary>
@@ -821,7 +946,9 @@ namespace ORM_1_21_
         public static IEnumerable<TResult> CastCore<TResult>(this IQueryable source)
         {
             Check.NotNull(source, nameof(source));
-            return source.Cast<TResult>();
+            var provider = (QueryProvider)source.Provider;
+            IEnumerable<object> t1 = (IEnumerable<object>)provider.Execute<IEnumerable<object>>(source.Expression);
+            return t1.Cast<TResult>();
         }
 
 
@@ -832,13 +959,13 @@ namespace ORM_1_21_
         /// <param name="cancellationToken">Object of the canceling to asynchronous operation</param>
         /// <typeparam name="TResult">The type to cast the elements of source to.</typeparam>
         /// <returns>IEnumerable&lt;TResult&gt;</returns>
-        public static Task<IEnumerable<TResult>> CastCoreAsync<TResult>(this IQueryable source,
+        public static async Task<IEnumerable<TResult>> CastCoreAsync<TResult>(this IQueryable source,
             CancellationToken cancellationToken = default)
         {
             Check.NotNull(source, nameof(source));
-            var tk = new TaskCompletionSource<IEnumerable<TResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
-            tk.SetResult(source.Cast<TResult>());
-            return tk.Task;
+            var provider = (QueryProvider)source.Provider;
+            IEnumerable<object> t1 = await provider.ExecuteAsync<IEnumerable<object>>(source.Expression,cancellationToken);
+            return t1.Cast<TResult>();
         }
 
         #endregion
@@ -1123,7 +1250,7 @@ namespace ORM_1_21_
         /// <returns>An IEnumerable&lt;T&gt; that contains the concatenated elements of the two input sequences.</returns>
         public static async Task<IEnumerable<TSource>> ConcatCoreAsync<TSource>(
             this IQueryable<TSource> first,
-            IQueryable<TSource> second, 
+            IQueryable<TSource> second,
             CancellationToken cancellationToken = default) where TSource : class
         {
             Check.NotNull(first, nameof(first));
@@ -1230,8 +1357,8 @@ namespace ORM_1_21_
             Func<TSource, IEnumerable<TResult>> selector)
         {
             foreach (var item in source)
-            foreach (var item2 in selector(item))
-                yield return item2;
+                foreach (var item2 in selector(item))
+                    yield return item2;
         }
 
         private static IEnumerable<TResult> SelectManyIterator<TSource, TResult>(IEnumerable<TSource> source,
@@ -1262,8 +1389,8 @@ namespace ORM_1_21_
             Func<TSource, TCollection, TResult> resultSelector)
         {
             foreach (var element in source)
-            foreach (var item in collectionSelector(element))
-                yield return resultSelector(element, item);
+                foreach (var item in collectionSelector(element))
+                    yield return resultSelector(element, item);
         }
 
 

@@ -140,18 +140,19 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>bitnic.orm</Title>
-    <Version>2.0.8</Version>
+    <Version>2.1.9-alpha</Version>
     <Authors>ion100</Authors>
     <Description>micro orm postgres mysql mssql sqlite</Description>
     <PackageId>bitnic.orm</PackageId>
     <IncludeSymbols>True</IncludeSymbols>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
    
-    <PackageTags>orm</PackageTags>
+    <PackageTags>orm postgres mysql mssql sqlite </PackageTags>
     <PackAsTool>False</PackAsTool>
     <ToolCommandName>bitnic.orm</ToolCommandName>
     <PackageOutputPath>bin\Release\</PackageOutputPath>
     <PackageProjectUrl>https://github.com/ionson100/ORM-1_21-</PackageProjectUrl>
+    <PackageReleaseNotes>added the concept of persistence</PackageReleaseNotes>
    
   </PropertyGroup>
 </Project>

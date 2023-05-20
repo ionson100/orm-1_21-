@@ -88,14 +88,14 @@ namespace ORM_1_21_
             return AttributesOfClass<TSource>.GetEnumerableObjects(reader, MyProviderName);
         }
 
-        public  Task<int> InsertAsync<TSource>(TSource source, CancellationToken cancellationToken = default) where TSource : class
+        public Task<int> InsertAsync<TSource>(TSource source, CancellationToken cancellationToken = default) where TSource : class
         {
-            return  InsertNewAsync(source, cancellationToken);
+            return InsertNewAsync(source, cancellationToken);
         }
 
         int ISession.TableCreate<TSource>()
         {
-            var ss = new FactoryCreatorTable().SqlCreate<TSource>(MyProviderName,IsBlobGuid);
+            var ss = new FactoryCreatorTable().SqlCreate<TSource>(MyProviderName, IsBlobGuid);
             var p = new V(ss);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("TableCreate"));
@@ -104,7 +104,7 @@ namespace ORM_1_21_
         }
         Task<int> ISession.TableCreateAsync<TSource>(CancellationToken cancellationToken)
         {
-            var ss = new FactoryCreatorTable().SqlCreate<TSource>(MyProviderName,IsBlobGuid);
+            var ss = new FactoryCreatorTable().SqlCreate<TSource>(MyProviderName, IsBlobGuid);
             var p = new V(ss);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("TableCreate"));
@@ -531,13 +531,13 @@ namespace ORM_1_21_
                     com.CommandText = new UtilsBulkMsSql(ProviderName.MsSql).GetSql(enumerable);
                     break;
                 case ProviderName.MySql:
-                    com.CommandText = new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable,IsBlobGuid);
+                    com.CommandText = new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable, IsBlobGuid);
                     break;
                 case ProviderName.PostgreSql:
                     com.CommandText = new UtilsBulkPostgres(ProviderName.PostgreSql).GetSql(enumerable);
                     break;
                 case ProviderName.SqLite:
-                    com.CommandText = new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable,IsBlobGuid);
+                    com.CommandText = new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable, IsBlobGuid);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -548,7 +548,11 @@ namespace ORM_1_21_
                 OpenConnectAndTransaction(com);
                 SetTimeOut(com, timeOut);
                 var res = com.ExecuteNonQuery();
-                //foreach (var iSource in enumerable) ((ISession)this).ToPersistent(iSource);
+                if (AttributesOfClass<TSource>.IsUsagePersistent.Value&&res==enumerable.Length)
+                {
+                    foreach (var iSource in enumerable) UtilsCore.SetPersistent(iSource);
+                }
+
                 return res;
             }
             catch (Exception ex)
@@ -577,13 +581,13 @@ namespace ORM_1_21_
                     com.CommandText = new UtilsBulkMsSql(ProviderName.MsSql).GetSql(enumerable);
                     break;
                 case ProviderName.MySql:
-                    com.CommandText = new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable,IsBlobGuid);
+                    com.CommandText = new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable, IsBlobGuid);
                     break;
                 case ProviderName.PostgreSql:
                     com.CommandText = new UtilsBulkPostgres(ProviderName.PostgreSql).GetSql(enumerable);
                     break;
                 case ProviderName.SqLite:
-                    com.CommandText = new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable,IsBlobGuid);
+                    com.CommandText = new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable, IsBlobGuid);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -766,7 +770,7 @@ namespace ORM_1_21_
             return ProviderFactories.GetDataAdapter(_factoryOtherBase);
         }
 
-        string ISession.ConnectionString=>_connect.ConnectionString;
+        string ISession.ConnectionString => _connect.ConnectionString;
 
         int ISession.ExecuteNonQuery(string sql, params object[] param)
         {
@@ -933,11 +937,11 @@ namespace ORM_1_21_
                     case ProviderName.MsSql:
                         return new UtilsBulkMsSql(ProviderName.MsSql).GetSql(enumerable);
                     case ProviderName.MySql:
-                        return new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable,IsBlobGuid);
+                        return new UtilsBulkMySql(ProviderName.MySql).GetSql(enumerable, IsBlobGuid);
                     case ProviderName.PostgreSql:
                         return new UtilsBulkPostgres(ProviderName.PostgreSql).GetSql(enumerable);
                     case ProviderName.SqLite:
-                        return new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable,IsBlobGuid);
+                        return new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable, IsBlobGuid);
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -976,31 +980,31 @@ namespace ORM_1_21_
             {
                 if (_isBlobGuid == null)
                 {
-                    if (MyProviderName == ProviderName.PostgreSql || MyProviderName == ProviderName.MsSql) _isBlobGuid=false;
+                    if (MyProviderName == ProviderName.PostgreSql || MyProviderName == ProviderName.MsSql) _isBlobGuid = false;
                     var s = _connectionString.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (string s1 in s)
                     {
-                       
-                        if (s1.ToUpper().Contains("BinaryGUID".ToUpper())|| s1.ToUpper().Contains("OldGuids".ToUpper()))
+
+                        if (s1.ToUpper().Contains("BinaryGUID".ToUpper()) || s1.ToUpper().Contains("OldGuids".ToUpper()))
                         {
                             var t = s1.Split(new[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
-                            _isBlobGuid=bool.Parse(t[1]);
+                            _isBlobGuid = bool.Parse(t[1]);
                             break;
                         }
                     }
 
-                    if (MyProviderName == ProviderName.SqLite&& _isBlobGuid == null)
+                    if (MyProviderName == ProviderName.SqLite && _isBlobGuid == null)
                     {
                         _isBlobGuid = true;
                     }
-                    if (MyProviderName == ProviderName.MySql&& _isBlobGuid == null)
+                    if (MyProviderName == ProviderName.MySql && _isBlobGuid == null)
                     {
                         _isBlobGuid = false;
                     }
 
 
                 }
-               
+
 
                 return _isBlobGuid != null && _isBlobGuid.Value;
 
@@ -1061,6 +1065,11 @@ namespace ORM_1_21_
                 ComDisposable(com);
             }
 
+            if (AttributesOfClass<TSource>.IsUsagePersistent.Value)
+            {
+                UtilsCore.SetPersistent(source);
+            }
+
             return res;
         }
 
@@ -1099,7 +1108,7 @@ namespace ORM_1_21_
             return res;
         }
 
-        private async Task<int> InsertNewAsync<TSource>(TSource source,CancellationToken cancellationToken) where TSource : class
+        private async Task<int> InsertNewAsync<TSource>(TSource source, CancellationToken cancellationToken) where TSource : class
         {
             CancellationTokenRegistration? registration = null;
             var res = 0;
@@ -1201,7 +1210,7 @@ namespace ORM_1_21_
 
 
 
-    
+
 
         internal void ComDisposable(IDbCommand com)
         {

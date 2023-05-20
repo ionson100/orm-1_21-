@@ -193,7 +193,7 @@ namespace TestLibrary
             {
                 T my2 = session.Query<T>().FirstOrDefault(A => A.Age == 12);
                 my2.Name = "dnamed";
-                var ss=session.Update(my2);
+                var ss = session.Update(my2);
                 res = session.Query<T>().Where(a => a.Age == 12 && a.Name.Trim('4') == "dnamed").ToList();
                 Log(22, res.Count == 1);
 
@@ -429,16 +429,16 @@ namespace TestLibrary
                                                           $"name,age,enum from {session.TableName<T>()}");
 
                 Log(49, tempFree.Count() == 5);
-               
-               
-               
-               
+
+
+
+
 
                 session.Query<T>().Where(a => a.Age == 20).Update(f => new Dictionary<object, object>
                 {
                     { f.Age, 400 }
                 });
-             
+
                 var ano = session.Query<T>().Where(a => a.Age < 500).Select(f =>
                     new { e = f.MyEnum, c = f.DateTime }).ToList();
                 Log(54, ano.Count() == 5);
@@ -537,10 +537,10 @@ namespace TestLibrary
                 o = session.Query<T>().First();
                 var b = true;
                 Log(66, b, "test serialize");
-                o.TestUser="A";
+                o.TestUser = "A";
                 session.Update(o);
                 o = session.Query<T>().First();
-                Log(67, o.TestUser=="A");
+                Log(67, o.TestUser == "A");
                 session.TruncateTable<T>();
                 list22.Add(new T { ValInt4 = 20 });
                 list22.Add(new T { ValInt4 = 20 });
@@ -782,9 +782,9 @@ namespace TestLibrary
                 session.Insert(new T());
                 session.Insert(new T());
                 count = session.Query<T>().Count();
-                Log(99,count==3);
-                session.Query<T>().ForEach(a=>session.Delete(a));
-                count=session.Query<T>().Count();
+                Log(99, count == 3);
+                session.Query<T>().ForEach(a => session.Delete(a));
+                count = session.Query<T>().Count();
                 Log(100, count == 0);
 
             }
@@ -971,9 +971,9 @@ namespace TestLibrary
         public static void TestNativeInsert()
         {
             TestNativeInser<TiPostgresNative, MyDbPostgres>();
-             TestNativeInser<TiMysqlNative, MyDbMySql>();
-             TestNativeInser<TiMsSqlNative, MyDbMsSql>();
-             TestNativeInser<TiSqliteNative, MyDbSqlite>();
+            TestNativeInser<TiMysqlNative, MyDbMySql>();
+            TestNativeInser<TiMsSqlNative, MyDbMsSql>();
+            TestNativeInser<TiSqliteNative, MyDbSqlite>();
         }
 
         static void TestNativeInser<T, Tb>() where Tb : IOtherDataBaseFactory, new()
@@ -993,15 +993,15 @@ namespace TestLibrary
             var i = session.Insert(t);
             Log(1, i == 1);
             Log(2, t.Id == 1);
-           // Log(3, session.IsPersistent(t));
+            // Log(3, session.IsPersistent(t));
             List<T> list = new List<T>
             {
                 new T(), new T(), new T()
             };
             i = session.InsertBulk(list);
             Log(4, i == 3);
-           // i = list.Where(a => session.IsPersistent(a)).Count();
-           // Log(5, i == 3);
+            // i = list.Where(a => session.IsPersistent(a)).Count();
+            // Log(5, i == 3);
             i = session.Query<T>().Count();
             Log(6, i == 4);
         }
@@ -1031,15 +1031,15 @@ namespace TestLibrary
             var i = session.Insert(t);
             Log(1, i == 1);
 
-           // Log(3, session.IsPersistent(t));
+            // Log(3, session.IsPersistent(t));
             List<T> list = new List<T>
             {
                 new T(), new T(), new T()
             };
             i = session.InsertBulk(list);
             Log(4, i == 3);
-           // i = list.Where(a => session.IsPersistent(a)).Count();
-           // Log(5, i == 3);
+            // i = list.Where(a => session.IsPersistent(a)).Count();
+            // Log(5, i == 3);
             i = session.Query<T>().Count();
             Log(6, i == 4);
         }
@@ -1077,6 +1077,100 @@ namespace TestLibrary
             public string Name { get; }
             public int Age { get; }
             public MyEnum MyEnum { get; }
+        }
+
+    }
+    public class ExecAdd
+    {
+
+        public static async Task Run()
+        {
+            await NewExe<AddClassPostgres, MyDbPostgres>();
+            await NewExe<AddClassMysql, MyDbMySql>();
+            await NewExe<AddClassMsSql, MyDbMsSql>();
+            await NewExe<AddClassSqlite, MyDbSqlite>();
+        }
+        private static async Task NewExe<T, Tb>() where T : MyClassBase, new() where Tb : IOtherDataBaseFactory, new()
+        {
+            var s = Activator.CreateInstance<Tb>();
+            Console.WriteLine($"**************************{s.GetProviderName()}*****************************");
+            ISession session = await Configure.GetSessionAsync<Tb>();
+
+
+            if (await session.TableExistsAsync<T>())
+            {
+                await session.DropTableAsync<T>();
+            }
+
+            await session.TableCreateAsync<T>();
+            T ts = new T { Age = 12, Name = "simple name" };
+            bool r = session.IsPersistent(ts);
+            Execute.Log(1, r == false);
+            var res = session.Insert(ts);
+            r = session.IsPersistent(ts);
+            Execute.Log(2, r == true && res == 1);
+            List<T> list = new List<T>();
+            for (int i = 0; i < 10; i++)
+            {
+                list.Add(new T { Age = i, Name = i.ToString() });
+            }
+
+            res = session.InsertBulk(list);
+            r = session.IsPersistent(list.First());
+            Execute.Log(3, r == true && res == 10);
+            var tt = session.Get<T>(list.First().Id);
+            Execute.Log(4, tt.Id == list[0].Id);
+            tt = await session.GetAsync<T>(list.First().Id);
+            Execute.Log(5, tt.Id == list[0].Id);
+            tt = await session.Query<T>().SingleAsync(a => a.Id == list[0].Id);
+            r = session.IsPersistent(ts);
+            Execute.Log(6, r == true);
+            tt = new T() { Age = 100 };
+            res =session.Save(tt);
+            r = session.IsPersistent(ts);
+            Execute.Log(7, r == true && res == 1);
+            tt = session.Get<T>(tt.Id);
+            tt.Name = "100";
+            res = session.Save(tt);
+            r = session.IsPersistent(ts);
+            Execute.Log(8, r == true && res == 1);
+            tt = session.Get<T>(tt.Id);
+            r = session.IsPersistent(tt);
+            Execute.Log(9, tt.Name=="100"&&r==true);
+            tt = await session.Query<T>().SingleAsync(a => a.Name == "100");
+            r = session.IsPersistent(tt);
+            Execute.Log(10, tt.Name == "100"&&r==true);
+            var ee = session.Query<T>().Where(a => a.Age > 3 && a.Name == "100").OrderBy(ws => ws.Age)
+                .CastCore<MyClassBase>().Count();
+            Execute.Log(11, ee==1);
+            var sres=await session.Query<T>().Where(a => a.Age > 3 && a.Name == "100").OrderBy(ws => ws.Age)
+                .CastCoreAsync<MyClassBase>();
+            ee = sres.Count();
+            Execute.Log(12, ee == 1);
+
+
+
+        }
+
+        [MapTable]
+        [MapUsagePersistent]
+        public class AddClassSqlite : TestLibrary.MyClassBase
+        {
+        }
+        [MapTable]
+        [MapUsagePersistent]
+        public class AddClassMsSql : MyClassBase
+        {
+        }
+        [MapTable]
+        [MapUsagePersistent]
+        public class AddClassMysql : MyClassBase
+        {
+        }
+        [MapTable]
+        [MapUsagePersistent]
+        public class AddClassPostgres : MyClassBase
+        {
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
@@ -446,6 +447,20 @@ namespace ORM_1_21_.Utils
         internal static bool IsNullableType(Type type)
         {
             return type != null && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+        }
+        internal static bool IsPersistent<T>(T obj) where T : class
+        {
+            if (AttributesOfClass<T>.IsUsagePersistent.Value == false)
+            {
+                throw new Exception("The object type you are trying to modify does not have an attribute: MapUsagePersistentAttribute");
+            }
+            return TypeDescriptor.GetAttributes(obj).Contains(new PersistentAttribute());
+        }
+
+
+        internal static void SetPersistent(object obj)
+        {
+            TypeDescriptor.AddAttributes(obj, new PersistentAttribute());
         }
     }
 
