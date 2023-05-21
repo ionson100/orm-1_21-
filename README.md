@@ -676,6 +676,7 @@ var count=par2.Value;
 
 <a name="persistence"></a> 
 ##### The concept of persistence
+Attention! Attribute use: MapUsagePersistentAttribute, lengthens the execution of the select command.\
 To work with persistence, you need the type to be marked with an attribute:\
 ```[MapUsagePersistentAttribute]```\
 This allows the code to know where the object was received from.
