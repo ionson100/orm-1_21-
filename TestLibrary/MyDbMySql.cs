@@ -14,7 +14,7 @@ namespace TestLibrary
             "Server=localhost;Port=5432;Database=testorm;User Id=user;Password=postgres;";
         public static string MsSql =
             $"Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=" +
-            $"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test.mdf")};Integrated Security=True";
+            $"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "test1.mdf")};Integrated Security=True";
 
     }
     public  class MyDbMySql : IOtherDataBaseFactory

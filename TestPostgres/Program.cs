@@ -11,7 +11,7 @@ namespace TestPostgres
 {
     internal class Program
     {
-        private static ProviderName ProviderNamee = ORM_1_21_.ProviderName.MsSql;
+        private static ProviderName ProviderNamee = ORM_1_21_.ProviderName.PostgreSql;
         static async Task Main(string[] args)
         {
 
@@ -95,6 +95,7 @@ namespace TestPostgres
                 ss1.ShortNull = null;
                 ss1.Text = "assa";
                 session.Update(ss1);
+                
 
                 ss1.Date = DateTime.Now;
                 ss1.BoolNull = true;

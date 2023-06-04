@@ -83,6 +83,37 @@ namespace ORM_1_21_
             }
         }
 
+        async Task<int> ISession.DeleteAsync<TSource>(TSource source,CancellationToken cancellationToken)
+        {
+            Check.NotNull(source, "source", () => Transactionale.isError = true);
+            var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
+            com.Connection = _connect;
+            AttributesOfClass<TSource>.CreateDeleteCommand(com, source, MyProviderName);
+            try
+            {
+                NotificBefore(source, ActionMode.Delete);
+                await OpenConnectAndTransactionAsync(com);
+                var res = await com.ExecuteNonQueryAsync();
+                if (res == 1)
+                {
+                    NotificAfter(source, ActionMode.Delete);
+                }
+
+                return res;
+
+            }
+            catch (Exception ex)
+            {
+                Transactionale.isError = true;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
+                throw;
+            }
+            finally
+            {
+                await ComDisposableAsync(com);
+            }
+        }
+
         IEnumerable<TSource> ISession.GetListMonster<TSource>(IDataReader reader)
         {
             return AttributesOfClass<TSource>.GetEnumerableObjects(reader, MyProviderName);

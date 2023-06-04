@@ -1147,6 +1147,21 @@ namespace TestLibrary
                 .CastCoreAsync<MyClassBase>();
             ee = sres.Count();
             Execute.Log(12, ee == 1);
+            session.TruncateTable<T>();
+            var to = new T();
+            var si=session.Insert(to);
+            Execute.Log(13, si==1); 
+            si = session.Delete(to);
+            Execute.Log(14, si == 1);
+            
+            si = session.Insert(to);
+            Execute.Log(15, si == 1);
+            si = await session.DeleteAsync(to);
+            Execute.Log(16, si == 1);
+
+            var count = session.Query<T>().Count();
+
+            Execute.Log(17, count==0);
 
 
 

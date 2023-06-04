@@ -69,6 +69,11 @@ namespace ORM_1_21_
         int Delete<TSource>(TSource source) where TSource : class;
 
         /// <summary>
+        ///     Removing asynchronously an object from the database, return the number of affected rows
+        /// </summary>
+        Task<int> DeleteAsync<TSource>(TSource source, CancellationToken cancellationToken = default) where TSource : class;
+
+        /// <summary>
         ///     Getting ITransaction with the start of the transaction
         /// </summary>
         ITransaction BeginTransaction();

@@ -129,7 +129,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="bin\Debug\1.png" />
-    <Content Include="test.mdf">
+    <Content Include="test1.mdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
