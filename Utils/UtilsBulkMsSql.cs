@@ -148,7 +148,8 @@ namespace ORM_1_21_.Utils
 
             builder.Append(partBuilder.ToString().Trim(' ', ',')).Append(")");
             builder.AppendLine(" VALUES ");
-          
+
+            var rt = new UtilsBulkMySql(_providerName);
             foreach (T ob in list)
             {  partBuilder.Clear();
                 partBuilder.Append("(");
@@ -156,14 +157,14 @@ namespace ORM_1_21_.Utils
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, pk.PropertyName, ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[pk.PropertyName].PropertyType;
-                    string str = new UtilsBulkMySql(_providerName).GetValue(o, type);
+                    string str = rt.GetValue(o, type);
                     partBuilder.Append(str).Append(", ");
                 }
                 foreach (var column in listDal)
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, column.PropertyName, ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[column.PropertyName].PropertyType;
-                    string str = new UtilsBulkMySql(_providerName).GetValue(o, type);
+                    string str = rt.GetValue(o, type);
                     partBuilder.Append(str).Append(", ");
                 }
 
@@ -179,11 +180,12 @@ namespace ORM_1_21_.Utils
         public static string InsertFile<T>(string fileCsv, string fieldterminator, ProviderName providerName)
         {
             StringBuilder sql = new StringBuilder("bulk insert " + AttributesOfClass<T>.TableName(providerName));
-            sql.AppendLine($"from '{fileCsv}'");
-            sql.AppendLine(" with(");
-            sql.AppendLine("FIRSTROW = 2,");
-            sql.AppendLine($"FIELDTERMINATOR = '{fieldterminator}',");
-            sql.AppendLine("ROWTERMINATOR = '\n'");
+            sql.AppendLine($" from '{fileCsv}'");
+            sql.AppendLine(" with( ");
+           
+            sql.AppendLine("FIRSTROW = 2, CODEPAGE = '65001',");
+            sql.AppendLine($"FIELDTERMINATOR = '{fieldterminator}', ");
+            sql.AppendLine("ROWTERMINATOR = '\n'");//
             sql.AppendLine(")");
             return sql.ToString();
         }

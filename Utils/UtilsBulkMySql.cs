@@ -28,10 +28,10 @@ namespace ORM_1_21_.Utils
         private string SqlFile<T>(IEnumerable<T> list, string fileCsv, string fieldTerminator)
         {
             var sql = new StringBuilder($"LOAD DATA INFILE '{fileCsv}'");
-            sql.AppendLine($"INTO TABLE {AttributesOfClass<T>.TableName(_providerName)}");
-            sql.AppendLine($"FIELDS TERMINATED BY '{fieldTerminator}'");
-            sql.AppendLine("ENCLOSED BY '\"'");
-            sql.AppendLine("LINES TERMINATED BY '\n'");
+            sql.AppendLine($" INTO TABLE {AttributesOfClass<T>.TableName(_providerName)}");
+            sql.AppendLine($" FIELDS TERMINATED BY '{fieldTerminator}'");
+            //sql.AppendLine("ENCLOSED BY '\"'");
+            //sql.AppendLine("LINES TERMINATED BY '\n'");
             sql.AppendLine("IGNORE 1 ROWS");
             var builder = new StringBuilder();
             var isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator == Generator.Assigned;
@@ -196,12 +196,12 @@ namespace ORM_1_21_.Utils
 
         public static string InsertFile<T>(string fileCsv, string fieldterminator, ProviderName providerName)
         {
-            var sql = new StringBuilder($"LOAD DATA INFILE '{fileCsv}'");
-            sql.AppendLine($"INTO TABLE {AttributesOfClass<T>.TableName(providerName)}");
-            sql.AppendLine($"FIELDS TERMINATED BY '{fieldterminator}'");
-            sql.AppendLine("ENCLOSED BY '\"'");
-            sql.AppendLine("LINES TERMINATED BY '\n'");
-            sql.AppendLine("IGNORE 1 ROWS");
+            var sql = new StringBuilder($".import '{fileCsv}' {AttributesOfClass<T>.TableName(providerName)}");
+           //sql.AppendLine($"INTO TABLE ");
+           //sql.AppendLine($"FIELDS TERMINATED BY '{fieldterminator}'");
+           //sql.AppendLine("ENCLOSED BY '\"'");
+           //sql.AppendLine("LINES TERMINATED BY '\n'");
+           //sql.AppendLine("IGNORE 1 ROWS");
             return sql.ToString();
         }
     }

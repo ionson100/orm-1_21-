@@ -400,5 +400,14 @@ namespace ORM_1_21_
         /// 
         /// </summary>
         bool IsBlobGuid { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="file"></param>
+        /// <param name="p2"></param>
+        /// <typeparam name="T"></typeparam>
+        void CreateCsvFile<T>(List<T> list, string file, string p2);
     }
 }

@@ -64,7 +64,7 @@ namespace ORM_1_21_.Utils
 
             return sql.ToString();
         }
-
+       
         private string SqlSimple<T>(IEnumerable<T> list)
         {
             var builder = new StringBuilder($"INSERT INTO {AttributesOfClass<T>.TableName(_providerName)}");
@@ -83,6 +83,7 @@ namespace ORM_1_21_.Utils
 
             builder.Append(rowHead.ToString()
                 .Substring(0, rowHead.ToString().LastIndexOf(",", StringComparison.Ordinal))).Append(") VALUES");
+            var rt = new UtilsBulkMySql(_providerName);
             foreach (var ob in list)
             {
                 var row = new StringBuilder("(");
@@ -91,14 +92,14 @@ namespace ORM_1_21_.Utils
                     var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList
                         .Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
-                    row.Append(new UtilsBulkMySql(_providerName).GetValue(o, type)).Append(",");
+                    row.Append(rt.GetValue(o, type)).Append(",");
                 }
 
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    var str = new UtilsBulkMySql(_providerName).GetValue(o, type);
+                    var str = rt.GetValue(o, type);
                     row.Append(str).Append(",");
                 }
 
@@ -145,7 +146,7 @@ namespace ORM_1_21_.Utils
 
         public static string InsertFile<T>(string fileCsv, string fieldterminator, ProviderName providerName)
         {
-            return $"COPY {AttributesOfClass<T>.TableName(providerName)} FROM '{fileCsv}' DELIMITER '{fieldterminator}';";
+            return $"COPY {AttributesOfClass<T>.TableName(providerName)} FROM '{fileCsv}' DELIMITER '{fieldterminator}' CSV HEADER;";
         }
     }
 }

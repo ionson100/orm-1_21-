@@ -1,9 +1,10 @@
 ﻿
+using ORM_1_21_;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using ORM_1_21_;
 using TestLibrary;
 
 
@@ -11,7 +12,8 @@ namespace TestPostgres
 {
     internal class Program
     {
-        private static ProviderName ProviderNamee = ORM_1_21_.ProviderName.PostgreSql;
+        private static ProviderName ProviderNamee = ORM_1_21_.ProviderName.SqLite;
+
         static async Task Main(string[] args)
         {
 
@@ -27,29 +29,30 @@ namespace TestPostgres
                     Starter.Run(ConnectionStrings.Postgesql, ProviderNamee);
                     break;
                 case ProviderName.SqLite:
-                    Starter.Run(ConnectionStrings.Sqlite, ProviderNamee);//
+                    Starter.Run(ConnectionStrings.Sqlite, ProviderNamee); //
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
             //  Execute.RunOtherSession();
             //  Execute.RunThread();
             //  //Console.ReadKey();
             //  Console.ReadKey();
-             Execute.TotalTest();
-             Execute.TestNativeInsert();
-             Execute.TestAssignetInsert();
-             Execute2.TestTimeStamp();
-             await Execute3.TotalTestAsync();
-             await ExecuteLinqAll.Run();
-             ExecutePrimaryKey.Run();
-             await ExecuteFree.Run();
-             await ExecuteSp.Run();
-             TestCapacity.Run();
-             await TestSelector.Run();
-             InsertUpdate.Run();
-             await ExecAdd.Run();
-             Console.ReadKey();
+            //Execute.TotalTest();
+            //Execute.TestNativeInsert();
+            //Execute.TestAssignetInsert();
+            //Execute2.TestTimeStamp();
+            //await Execute3.TotalTestAsync();
+            //await ExecuteLinqAll.Run();
+            //ExecutePrimaryKey.Run();
+            //await ExecuteFree.Run();
+            //await ExecuteSp.Run();
+            //TestCapacity.Run();
+            //await TestSelector.Run();
+            //InsertUpdate.Run();
+            //await ExecAdd.Run();
+            //Console.ReadKey();
 
 
 
@@ -60,124 +63,82 @@ namespace TestPostgres
 
                 session.DropTableIfExists<Order1>();
                 session.TableCreate<Order1>();
-                session.InsertBulk(new List<Order1>
+
+                List<Order1> list = new List<Order1>();
+                list.Add(new Order1());
+                //list.Add(new Order1() { Number = 2 });
+                //list.Add(new Order1() { Number = 3 });
+                //session.InsertBulk(list);
+                if (ProviderNamee == ProviderName.MySql)
                 {
-                    new Order1()
-                    {
-                        Date = DateTime.Now,
-                        BoolNull = true,
-                        ByteNull = 1,
-                        CharNull = 'c',
-                        DateNull = DateTime.Now,
-                        DecimalNull = new Decimal(1),
-                        DoubleNull = 1.2d,
-                        FloatNull = 1.2f,
-                        GuidNull = Guid.Empty,
-                        IntNull = 11,
-                        LongNull = 11, 
-                        ShortNull = 11,
-                        Text = "assa"
-                    }
+                    string file = "C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Data\\test\\aassas.csv";
+                    session.CreateCsvFile(list, file, ";");
+                    var res = session.InsertBulkFromFile<Order1>("aassas.csv", ";");
+                    var l = session.Query<Order1>().ToList();
+                }
+                else
+                {
+                    string file = Path.Combine("C:\\aassas.csv1");//Environment.CurrentDirectory,
+                    session.CreateCsvFile(list, file, "\t");
+                    var res = session.InsertBulkFromFile<Order1>(file, "\t");
+                    var l = session.Query<Order1>().ToList();
+                }
 
-                });
-                var ss1 = session.Query<Order1>().First();
-               
-                ss1.BoolNull = null;
-                ss1.ByteNull = null;
-                ss1.CharNull = null;
-                ss1.DateNull = null;
-                ss1.DecimalNull = null;
-                ss1.DoubleNull = null;
-                ss1.FloatNull = null;
-                ss1.GuidNull = null;
-                ss1.IntNull = null;
-                ss1.LongNull = null;
-                ss1.ShortNull = null;
-                ss1.Text = "assa";
-                session.Update(ss1);
-                
 
-                ss1.Date = DateTime.Now;
-                ss1.BoolNull = true;
-                ss1.ByteNull = 1;
-                ss1.CharNull = 'c';
-                ss1.DateNull = DateTime.Now;
-                ss1.DecimalNull = new Decimal(1);
-                ss1.DoubleNull = 1.2d;
-                ss1.FloatNull = 1.2f;
-                ss1.GuidNull = Guid.Empty;
-                ss1.IntNull = 11;
-                ss1.LongNull = 11;
-                ss1.ShortNull = 11;
-                ss1.Text = "assa";
-                session.Update(ss1);
-                var ss = session.FreeSql<Order1>($"select * from {session.TableName<Order1>()}").ToList();
 
 
             }
 
-
-
         }
+
         [MapTable("Order")]
         public class Order1
         {
-            [MapPrimaryKey("id", Generator.Assigned)]
-            public Guid Id { get; set; } = System.Guid.NewGuid();
-            [MapColumn("number")]
-            public int Number { get; set; }
-            [MapColumn]
-            public string Text { get; set; }
-            [MapColumn]
-            public int CustomerId { get; set; }
-
-            [MapColumn] public int? IntNull { get; set; }
-
-
-
-            [MapColumn] public long Long { get; set; } = 33;
-            [MapColumn] public long? LongNull { get; set; }
-
-            [MapColumn] public short Short { get; set; } = 33;
-            [MapColumn] public short? ShortNull { get; set; }
-
-            //[MapColumn] public uint Uint { get; set; } = 33;
-            //[MapColumn] public uint? UintNull { get; set; }
-            //
-            //[MapColumn] public ushort Ushort { get; set; } = 33;
-            //[MapColumn] public ushort? UshortNull { get; set; }
-            //
-            //[MapColumn] public ulong Ulong { get; set; } = 33;
-            //[MapColumn] public ulong? UlongNull { get; set; }
-
-            [MapColumn] public decimal Decimal { get; set; } = 33;
-            [MapColumn] public decimal? DecimalNull { get; set; }
-
-            [MapColumn] public float Float { get; set; } = 33;
-            [MapColumn] public float? FloatNull { get; set; }
-
-            [MapColumn] public char Char { get; set; } = '1';
-            [MapColumn] public char? CharNull { get; set; }
+            [MapPrimaryKey("id", Generator.Assigned)]public Guid Id { get; set; } = System.Guid.NewGuid();
+            
+            [MapColumn("number")] public int Number { get; set; }
+            // [MapColumn] public byte[] Bytes { get; set; } = { 1, 2 };
+           [MapColumn] public string Text { get; set; } = "рвыроврывор";
+           //[MapColumn] public int CustomerId { get; set; }
+           //
+           //[MapColumn] public int? IntNull { get; set; }
+           //
+           //
+           //
+           //[MapColumn] public long Long { get; set; } = 33;
+           //[MapColumn] public long? LongNull { get; set; }
+           //
+           //[MapColumn] public short Short { get; set; } = 33;
+           //[MapColumn] public short? ShortNull { get; set; }
+           //
+           //[MapColumn] public decimal Decimal { get; set; } = 33;
+           //[MapColumn] public decimal? DecimalNull { get; set; }
+           //
+           //[MapColumn] public float Float { get; set; } = 33;
+           //[MapColumn] public float? FloatNull { get; set; }
+           //
+           //[MapColumn] public char Char { get; set; } = '1';
+           //[MapColumn] public char? CharNull { get; set; }
+           ///
+           ///
+           //[MapColumn] public bool Bool { get; set; }
+           //[MapColumn] public bool? BoolNull { get; set; }
+           //
+           //[MapColumn] public byte Byte { get; set; } = 33;
+           //[MapColumn] public byte? ByteNull { get; set; }
 
 
-            [MapColumn] public bool Bool { get; set; }
-            [MapColumn] public bool? BoolNull { get; set; }
 
-            [MapColumn] public byte Byte { get; set; } = 33;
-            [MapColumn] public byte? ByteNull { get; set; }
-
-            [MapColumn] public byte[] Bytes { get; set; } = { 1, 2 };
-
-            [MapColumn] public Guid Guid { get; set; } = System.Guid.NewGuid();
-            [MapColumn] public Guid? GuidNull { get; set; }
-
-            [MapColumn] public DateTime Date { get; set; }// = DateTime.Now;
-            [MapColumn] public DateTime? DateNull { get; set; }
-
-            [MapColumn] public double Double { get; set; }
-
-            [MapColumn] public double? DoubleNull { get; set; }
-
+           // [MapColumn] public Guid Guid { get; set; } = System.Guid.NewGuid();
+           // [MapColumn] public Guid? GuidNull { get; set; }
+           //
+           [MapColumn] public DateTime? Date { get; set; } = DateTime.Now;
+           // [MapColumn] public DateTime? DateNull { get; set; }
+           //
+           //
+           //
+           //[MapColumn] public double? DoubleNull { get; set; }
+           //[MapColumn] public double Double { get; set; }
 
         }
 
@@ -214,7 +175,7 @@ namespace TestPostgres
 
             public char? CharNull { get; set; }
 
-             public bool? Bool { get; set; }
+            public bool? Bool { get; set; }
 
             public bool? BoolNull { get; set; }
 

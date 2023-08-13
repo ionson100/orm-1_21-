@@ -601,9 +601,10 @@ namespace ORM_1_21_
         public async Task<int> InsertBulkAsync<TSource>(IEnumerable<TSource> list, int timeOut, CancellationToken cancellationToken = default) where TSource : class
         {
             CancellationTokenRegistration? registration = null;
+            
+            Check.NotNull(list, "list", () => Transactionale.isError = true);
+            if (list.Any() == false) return 0;
             var enumerable = list as TSource[] ?? list.ToArray();
-            Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
-            Check.NotNull(enumerable, "list", () => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
             switch (MyProviderName)
@@ -682,7 +683,6 @@ namespace ORM_1_21_
             try
             {
                 OpenConnectAndTransaction(com);
-                com.CommandTimeout = 30;
                 return com.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -1040,6 +1040,21 @@ namespace ORM_1_21_
                 return _isBlobGuid != null && _isBlobGuid.Value;
 
             }
+        }
+
+        public void CreateCsvFile<T>(List<T> list, string file, string p2)
+        {
+            try
+            {new CreatorCopy(MyProviderName, IsBlobGuid).CreateCsvFile(list,file,p2);
+
+            }
+            catch (Exception)
+            {
+                Transactionale.isError = true;
+                throw;
+                
+            }
+            
         }
 
 
