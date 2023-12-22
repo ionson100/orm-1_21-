@@ -1,4 +1,5 @@
-﻿using ORM_1_21_.Utils;
+﻿using ORM_1_21_.geo;
+using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -195,6 +196,11 @@ namespace ORM_1_21_.Linq
             var ss = AttributesOfClass<T>.GetNameFieldForQuery(member, type, _providerName);
             return ss;
         }
+        private string GetColumnNameSimple(string member, Type type)
+        {
+            var ss = AttributesOfClass<T>.GetNameSimpleColumnForQuery(member, _providerName);
+            return ss;
+        }
 
         private static Expression StripQuotes(Expression e)
         {
@@ -266,6 +272,52 @@ namespace ORM_1_21_.Linq
             //
             //     _currentMethod = "join";
             //
+            //     return m;
+            // }
+            if (m.Method.Name == "ST_GeogFromText")
+            {
+                var lambda = (MemberExpression)m.Arguments[0];
+                var dd = lambda.Member;
+                StringB.Append($" ST_GeogFromText(ST_AsText(");
+                Visit(lambda);
+                StringB.Append("))::bytea, ");
+
+                _geoAsName = null;
+                return m;
+            }
+          
+            if (m.Method.Name.StartsWith("ST_"))
+            {
+                var lambda = (MemberExpression)m.Arguments[0];
+                var dd = lambda.Member;
+                StringB.Append($" {m.Method.Name}(");
+                Visit(lambda);
+                StringB.Append("), ");
+                _geoAsName = null;
+                return m;
+            }
+
+            // if (m.Method.Name == "ST_Length")
+            // {
+            //
+            //     var lambda = (MemberExpression)m.Arguments[0];
+            //     var dd = lambda.Member;
+            //     StringB.Append($" ST_Length(");
+            //     Visit(lambda);
+            //     StringB.Append("), ");
+            //     _geoAsName = null;
+            //     return m;
+            // }
+            //
+            // if (m.Method.Name == "ST_AsText")
+            // {
+            //
+            //     var lambda = (MemberExpression)m.Arguments[0];
+            //     var dd = lambda.Member;
+            //     StringB.Append($" ST_AsText(");
+            //     Visit(lambda);
+            //     StringB.Append("), ");
+            //     _geoAsName = null;
             //     return m;
             // }
 
@@ -1596,6 +1648,190 @@ namespace ORM_1_21_.Linq
                 return m;
             }
 
+            
+
+            if (m.Method.Name == "GeoST_GeometryType")
+            {
+                var c = m.Arguments[0] as ConstantExpression;
+                var nameColumn = c.Value;
+
+                var c1 = m.Arguments[1] as ConstantExpression;
+                var enumType = c1.Value;
+                GeoType type = (GeoType)enumType;
+                string s = "none";
+                switch (type)
+                {
+                    case GeoType.None:
+                        throw new ArgumentOutOfRangeException();
+                    case GeoType.Point:
+                        s = "ST_Point";
+                        break;
+                    case GeoType.LineString:
+                        s = "ST_LineString";
+                        break;
+                    case GeoType.Polygon:
+                        s = "ST_Polygon";
+                        break;
+                    case GeoType.MultiPoint:
+                        s = "ST_MultiPoint";
+                        break;
+                    case GeoType.MultiLineString:
+                        s = "ST_MultiLineString";
+                        break;
+                    case GeoType.MultiPolygon:
+                        s = "ST_MultiPolygon";
+                        break;
+                    case GeoType.GeometryCollection:
+                        s = "ST_GeometryCollection";
+                        break;
+                    case GeoType.CircularString:
+                        s = "ST_CircularString";
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+
+
+
+
+                var o = new OneComposite { Operand = Evolution.Where };
+                StringB.Length = 0;
+                StringB.Append($" ST_GeometryType({nameColumn}) = ");
+                AddParameter(s);
+
+                o.Body = StringB.ToString();
+                StringB.Clear();
+                AddListOne(o);
+                return m;
+            }
+
+            if (m.Method.Name == "GeoST_Contains")
+            {
+                var c = m.Arguments[0] as ConstantExpression;
+                var nameColumn = c.Value;
+
+                var c2 = m.Arguments[1] as ConstantExpression;
+                IGeoShape geoShape = (IGeoShape)c2.Value;
+
+                var c3 = m.Arguments[2] as ConstantExpression;
+                bool actionResult = (bool)c3.Value;
+                var o = new OneComposite { Operand = Evolution.Where };
+                StringB.Length = 0;
+                StringB.Append($" ST_Contains({nameColumn},");
+                AddParameter(geoShape.GeoData);
+                StringB.Append(actionResult ? ")" : ") = false");
+                o.Body = StringB.ToString();
+                StringB.Clear();
+                AddListOne(o);
+                return m;
+            }
+
+
+            if (m.Method.Name == "GeoST_DWithin")
+            {
+                var c = m.Arguments[0] as ConstantExpression;
+                var nameColumn = c.Value;
+
+                var c2 = m.Arguments[1] as ConstantExpression;
+                IGeoShape geoShape = (IGeoShape)c2.Value;
+
+                var c3 = m.Arguments[2] as ConstantExpression;
+                int distancion = (int)c3.Value;
+
+                var c4 = m.Arguments[3] as ConstantExpression;
+                bool actionResult = (bool)c4.Value;
+                var o = new OneComposite { Operand = Evolution.Where };
+                StringB.Length = 0;
+                StringB.Append($" ST_DWithin({nameColumn},");
+                AddParameter($"SRID={geoShape.Srid};{geoShape.GeoData}");
+                StringB.Append(actionResult ? $"::geometry,{distancion} )" : $"::geometry, {distancion}) = false");
+                o.Body = StringB.ToString();
+                StringB.Clear();
+                AddListOne(o);
+                return m;
+            }
+
+
+            if (m.Method.Name == "GeoST_Intersects")
+            {
+                var c = m.Arguments[0] as ConstantExpression;
+                var nameColumn = c.Value;
+
+                var c2 = m.Arguments[1] as ConstantExpression;
+                IGeoShape geoShape = (IGeoShape)c2.Value;
+
+                var c3 = m.Arguments[2] as ConstantExpression;
+                bool actionResult = (bool)c3.Value;
+                var o = new OneComposite { Operand = Evolution.Where };
+                StringB.Length = 0;
+                StringB.Append($" ST_Intersects({nameColumn}::geometry,");
+                AddParameter(geoShape.GeoData);
+                StringB.Append(actionResult ? "::geometry)" : "::geometry) = false");
+                o.Body = StringB.ToString();
+                StringB.Clear();
+                AddListOne(o);
+                return m;
+            }
+            if (m.Method.Name == "GeoST_Disjoint")
+            {
+                var c = m.Arguments[0] as ConstantExpression;
+                var nameColumn = c.Value;
+
+                var c2 = m.Arguments[1] as ConstantExpression;
+                IGeoShape geoShape = (IGeoShape)c2.Value;
+
+                var c3 = m.Arguments[2] as ConstantExpression;
+                bool actionResult = (bool)c3.Value;
+                var o = new OneComposite { Operand = Evolution.Where };
+                StringB.Length = 0;
+                StringB.Append($" ST_Disjoint({nameColumn}::geometry,");
+                AddParameter(geoShape.GeoData);
+                StringB.Append(actionResult ? "::geometry)" : "::geometry) = false");
+                o.Body = StringB.ToString();
+                StringB.Clear();
+                AddListOne(o);
+                return m;
+            }
+
+            if (m.Method.Name == "GeoST_IsValid")
+            {
+                var c = m.Arguments[0] as ConstantExpression;
+                var nameColumn = c.Value;
+                var c1 = m.Arguments[1] as ConstantExpression;
+                bool actionResult = (bool)c1.Value;
+
+                var o = new OneComposite { Operand = Evolution.Where };
+                StringB.Append($"ST_IsValid({nameColumn}) = ");
+                AddParameter(actionResult);
+                o.Body = StringB.ToString();
+                AddListOne(o);
+                return m;
+
+            }
+
+            if (m.Method.Name == "GetData")
+            {
+                // StringB.Append("ST_AsText(");
+                //     m.Method.Invoke()
+                // Visit(m);
+                // StringB.Append(")");
+                // var c = m.Arguments[0] as ConstantExpression;
+                // var nameColumn = c.Value;
+                // var c1 = m.Arguments[1] as ConstantExpression;
+                // int sq = (int)c1.Value;
+                // var c2 = m.Arguments[2] as ConstantExpression;
+                // bool usSpheroid = (bool)c2.Value;
+
+                // var o = new OneComposite { Operand = Evolution.Where };
+                // StringB.Append($"ST_IsValid({nameColumn}) = ");
+                // AddParameter(actionResult);
+                // o.Body = StringB.ToString();
+                // AddListOne(o);
+                return m;
+
+            }
+
             if (m.Method.DeclaringType == typeof(Queryable))
             {
                 switch (m.Method.Name)
@@ -1689,7 +1925,17 @@ namespace ORM_1_21_.Linq
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 AddPostExpression(Evolution.Select, m);
+                // bool isGeo = lambda.Body.Type.GetInterfaces().Contains(typeof(IGeoShape));
+                // if (isGeo)
+                // {
+                //     StringB.Append(" ST_AsText(");
+                // }
+
                 Visit(lambda.Body);
+                // if (isGeo)
+                // {
+                //     StringB.Append($") as {_geoAsName} ");
+                // }
                 var o = new OneComposite { Operand = Evolution.Select, Body = StringB.ToString().Trim(' ', ',') };
                 if (!string.IsNullOrEmpty(StringB.ToString())) AddListOne(o);
                 StringB.Length = 0;
@@ -2332,6 +2578,7 @@ namespace ORM_1_21_.Linq
             return c;
         }
 
+        private string _geoAsName = null;
         protected override Expression VisitMemberAccess(MemberExpression m)
         {
             if (m.Expression != null
@@ -2344,6 +2591,7 @@ namespace ORM_1_21_.Linq
                 else
                 {
                     StringB.Append(GetColumnName(m.Member.Name, m.Expression.Type));
+                    _geoAsName = GetColumnNameSimple(m.Member.Name, m.Expression.Type);
                 }
 
                 return m;
@@ -2465,6 +2713,25 @@ namespace ORM_1_21_.Linq
                 //     return;
                 // }
             }
+
+            if (_providerName == ProviderName.PostgreSql)
+            {
+                if (m.Member.DeclaringType == typeof(GeoObject))
+                {
+                    switch (m.Member.Name)
+                    {
+                        case "GeoData":
+                            {
+                                StringB.Append("ST_AsText(");
+                                Visit(m.Expression);
+                                StringB.Append(")");
+                                break;
+                            }
+                    }
+                    return;
+                }
+            }
+
 
             if (m.Member.ReflectedType == typeof(DateTime))
             {
@@ -2917,6 +3184,12 @@ namespace ORM_1_21_.Linq
             for (int i = 0, n = original.Count; i < n; i++)
             {
                 StringB.Append(" ,");
+                // bool isGeo = original[i].Type.GetInterfaces().Contains(typeof(IGeoShape));
+                //if (isGeo)
+                //{
+                //    StringB.Append("ST_AsText(");
+                //
+                //}
                 var p = Visit(original[i]);
                 if (list != null)
                 {
@@ -2928,6 +3201,11 @@ namespace ORM_1_21_.Linq
                     for (var j = 0; j < i; j++) list.Add(original[j]);
                     list.Add(p);
                 }
+
+                // if (isGeo)
+                // {
+                //     StringB.Append($") as {_geoAsName}");
+                // }
             }
 
             if (list != null) return list.AsReadOnly();
@@ -2938,7 +3216,7 @@ namespace ORM_1_21_.Linq
         {
             if (nex.Type == typeof(Guid))
             {
-                if (_providerName == ProviderName.PostgreSql|| _providerName == ProviderName.MySql)
+                if (_providerName == ProviderName.PostgreSql || _providerName == ProviderName.MySql)
                 {
                     var str = Expression.Lambda<Func<Guid>>(nex).Compile()();
                     var p = ParamName;

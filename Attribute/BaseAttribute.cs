@@ -53,6 +53,8 @@ namespace ORM_1_21_
 
         internal Type PropertyType { get; set; }
 
+        internal bool IsInheritIGeoShape { get; set; }
+
         internal string TypeString { get; set; }
 
         internal string PropertyName { get; set; }

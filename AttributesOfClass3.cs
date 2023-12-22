@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
+using ORM_1_21_.geo;
 
 namespace ORM_1_21_
 {
@@ -13,12 +14,23 @@ namespace ORM_1_21_
         public static void SpotRider(IDataReader reader, ProviderName name, T d)
         {
             var list = ListBaseAttrE(name);
-           
-           for (int i = 0; i < list.Count; i++)
-           {
-               var resCore = Pizdaticus.MethodFreeIndex(name, list[i].PropertyType, reader, i);
-               SetValueE(name, list[i].PropertyName, d, resCore);
-           }
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].IsInheritIGeoShape)
+                {
+                    var resGeoCore = Pizdaticus.MethodFreeIndex(name, list[i].PropertyType, reader, i);
+                    // var o= Activator.CreateInstance(list[i].PropertyType);
+                    // ((IGeoShape)o).GeoData=resGeoCore.ToString();
+                    SetValueE(name, list[i].PropertyName, d, resGeoCore);
+                }
+                else
+                {
+                    var resCore = Pizdaticus.MethodFreeIndex(name, list[i].PropertyType, reader, i);
+                    SetValueE(name, list[i].PropertyName, d, resCore);
+                }
+
+            }
 
         }
 

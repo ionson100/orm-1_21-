@@ -5,6 +5,8 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
+using ORM_1_21_.geo;
+using System.Linq;
 
 namespace ORM_1_21_
 {
@@ -41,7 +43,16 @@ namespace ORM_1_21_
 
                         void Command(T obj, int ip, IDbCommand dbCommand)
                         {
-                            dbCommand.AddParameter($"{parName}{par}{ip}",GetValue.Value[rtp.PropertyName](obj));
+                            if (rtp.IsInheritIGeoShape)
+                            {
+                               
+                                dbCommand.AddParameter($"{parName}{par}{ip}", $"SRID={((IGeoShape)GetValue.Value[rtp.PropertyName](obj)).Srid};{((IGeoShape)GetValue.Value[rtp.PropertyName](obj)).GeoData}");
+                            }
+                            else
+                            { 
+                                dbCommand.AddParameter($"{parName}{par}{ip}",GetValue.Value[rtp.PropertyName](obj));
+                            }
+                           
                         }
                         list.Add(Command);
 
@@ -54,7 +65,10 @@ namespace ORM_1_21_
             Provider = providerName;
             var sql = InsertTemplate.Value;
             int i = 0;
-            InsertActionParam.Value.ForEach(s => s.Invoke(obj, ++i, command));
+            InsertActionParam.Value.ForEach(s =>
+            {
+                s.Invoke(obj, ++i, command);
+            });
             command.CommandText = sql;
         }
 

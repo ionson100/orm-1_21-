@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using ORM_1_21_.geo;
 
 namespace ORM_1_21_
 {
@@ -34,6 +35,12 @@ namespace ORM_1_21_
             var t = typeof(T).GetCustomAttribute(typeof(MapUsagePersistentAttribute), false);
             if (t != null) return true;
             return false;
+        }, LazyThreadSafetyMode.ExecutionAndPublication);
+
+        public static Lazy<bool> IsGeoShape = new Lazy<bool>(() =>
+        {
+            return typeof(T).GetInterfaces().Contains(typeof(IGeoShape));
+          
         }, LazyThreadSafetyMode.ExecutionAndPublication);
 
         private static readonly Lazy<Dictionary<string, string>> ColumnName = new Lazy<Dictionary<string, string>>(() =>
@@ -89,8 +96,7 @@ namespace ORM_1_21_
                         var instance = Expression.Parameter(typeof(T));
                         var property = Expression.Property(instance, propertyInfo);
                         var convert = Expression.TypeAs(property, typeof(object));
-                        dictionary.Add(propertyInfo.Name,
-                            Expression.Lambda<Func<T, object>>(convert, instance).Compile());
+                        dictionary.Add(propertyInfo.Name, Expression.Lambda<Func<T, object>>(convert, instance).Compile());
                     }
 
                     return dictionary;
@@ -228,6 +234,8 @@ namespace ORM_1_21_
 
                 columnAttribute.PropertyName = f.Name;
                 columnAttribute.PropertyType = f.PropertyType;
+                columnAttribute.IsInheritIGeoShape =
+                    columnAttribute.PropertyType.GetInterfaces().Contains(typeof(IGeoShape));
                 columnAttribute.DeclareType = typeof(T);
                 if (o3 != null)
                     columnAttribute.DefaultValue = o3.Value;
@@ -722,6 +730,12 @@ namespace ORM_1_21_
             return TableAttribute.Value.TableName(providerName) + "." + ColumnName.Value[member];
         }
 
+        public static string GetNameSimpleColumnForQuery(string member, ProviderName providerName)
+        {
+            Provider = providerName;
+            return  ColumnName.Value[member];
+        }
+
         public static void Init()
         {
         }
@@ -766,8 +780,15 @@ namespace ORM_1_21_
                     sb.AppendFormat($"{rtp.GetColumnName(Provider)}, ");
                 else
                     sb.AppendFormat("{0}.{1},", TableAttribute.Value.TableName(Provider), rtp.GetColumnName(Provider));
-                //sb = new StringBuilder(sb.ToString().Trim(' ', ',') + "");
-                values.AppendFormat("{0}{1}{2},", parName, par, ++i);
+                if (rtp.IsInheritIGeoShape)
+                {
+                    values.AppendFormat("ST_GeomFromText({0}{1}{2}),", parName, par, ++i);
+                }
+                else
+                {
+                    values.AppendFormat("{0}{1}{2},", parName, par, ++i);
+                }
+                
 
             }
 

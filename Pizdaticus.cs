@@ -1,4 +1,5 @@
-﻿using ORM_1_21_.Linq;
+﻿using ORM_1_21_.geo;
+using ORM_1_21_.Linq;
 using ORM_1_21_.Utils;
 using System;
 using System.Collections;
@@ -12,7 +13,7 @@ namespace ORM_1_21_
 {
     internal static class Pizdaticus
     {
-         static readonly Dictionary<Type, Func<IDataReader,ProviderName, int, object>> TypeStorage = new Dictionary<Type, Func<IDataReader, ProviderName, int, object>> {
+        static readonly Dictionary<Type, Func<IDataReader, ProviderName, int, object>> TypeStorage = new Dictionary<Type, Func<IDataReader, ProviderName, int, object>> {
             { typeof(int), (a,p,index) => a.GetInt32(index) },
             { typeof(string), (a,p,index) => a.GetString(index)},
             { typeof(bool), (a,p, index) => a.GetBoolean(index)},
@@ -57,11 +58,11 @@ namespace ORM_1_21_
 
                     if (isFree == false)
                     {
-                        reader.SpotRider(providerName,d);
+                        reader.SpotRider(providerName, d);
                     }
                     else
                     {
-                        reader.SpotRiderFree(providerName,d);
+                        reader.SpotRiderFree(providerName, d);
                     }
 
                     if (isPersistent)
@@ -93,7 +94,17 @@ namespace ORM_1_21_
                     {
                         var t = ((NewExpression)ss).Arguments[i].Type;
                         var val = MethodFreeIndex(providerName, t, reader, i);
-                        d[i] = val;
+                        if (t.GetInterfaces().Contains(typeof(IGeoShape)))
+                        {
+                            var o = Activator.CreateInstance(t);
+                            ((IGeoShape)o).GeoData=val.ToString();
+                            d[i]=o;
+                        }
+                        else
+                        {
+                            d[i] = val;
+                        }
+
                     }
 
                     var ee = ctor.Invoke(d);
@@ -207,18 +218,26 @@ namespace ORM_1_21_
 
             if (TypeStorage.ContainsKey(type))
             {
-               return TypeStorage[type].Invoke(reader,providerName, index);
+                return TypeStorage[type].Invoke(reader, providerName, index);
             }
-            
-          
+
+
 
             if (type.BaseType == typeof(Enum))
             {
                 var o = reader.GetValue(index);
                 return Enum.Parse(type, Convert.ToInt32(o).ToString());
             }
-           
             var res = reader.GetValue(index);
+
+            if (type.GetInterfaces().Contains(typeof(IGeoShape)))
+            {
+                var o = Activator.CreateInstance(type);
+                ((IGeoShape)o).GeoData = res.ToString();
+                return o;
+            }
+
+            
             return res;
         }
     }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ORM_1_21_.geo;
 
 namespace ORM_1_21_.Utils
 {
@@ -96,10 +97,21 @@ namespace ORM_1_21_.Utils
 
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                 {
-                    var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
-                    var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    var str = new UtilsBulkMySql(_providerName).GetValue(o, type);
-                    row.Append(str).Append(",");
+                    if (map.IsInheritIGeoShape)
+                    {
+                        var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
+                        IGeoShape shape = (IGeoShape)o;
+                        var str = $"'{shape.GeoData}'";
+                        row.Append(str).Append(",");
+                    }
+                    else
+                    {
+                        var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
+                        var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
+                        var str = new UtilsBulkMySql(_providerName).GetValue(o, type);
+                        row.Append(str).Append(",");
+                    }
+                    
                 }
 
                 builder.AppendLine(row.ToString().Substring(0, row.ToString().LastIndexOf(',')) + "),");

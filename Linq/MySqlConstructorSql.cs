@@ -174,18 +174,28 @@ namespace ORM_1_21_.Linq
                                     : ""));
                             foreach (var i in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                             {
-                                sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
-                                    AttributesOfClass<T>.TableName(providerName) + "." + i.GetColumnName(_providerName),
-                                    listOne.Any(a => a.Operand == Evolution.DistinctCore && a.Body == i.GetColumnName(_providerName))
-                                        ? " Distinct "
-                                        : ""));
+                                if (i.IsInheritIGeoShape)
+                                {
+                                    sbb.Append(
+                                        $" ST_AsText({AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}) as {i.GetColumnName(_providerName)}, ");
+                                   
+                                }
+                                else
+                                {
+                                    sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
+                                        AttributesOfClass<T>.TableName(providerName) + "." + i.GetColumnName(_providerName),
+                                        listOne.Any(a => a.Operand == Evolution.DistinctCore && a.Body == i.GetColumnName(_providerName))
+                                            ? " Distinct "
+                                            : ""));
+                                }
+                               
                             }
                         }
 
                     }
 
 
-                    var str = sbb.ToString().TrimEnd(',');
+                    var str = sbb.ToString().TrimEnd(' ', ',');
                     sbb.Length = 0;
                     sbb.Append(str);
                 }
