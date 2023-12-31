@@ -402,12 +402,10 @@ namespace ORM_1_21_
         bool IsBlobGuid { get; }
 
         /// <summary>
-        /// 
+        /// Query field string that replaces the * character
         /// </summary>
-        /// <param name="list"></param>
-        /// <param name="file"></param>
-        /// <param name="p2"></param>
-        /// <typeparam name="T"></typeparam>
-        void CreateCsvFile<T>(List<T> list, string file, string p2);
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        string StarSql<TSource>();
     }
 }

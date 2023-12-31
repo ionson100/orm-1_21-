@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
+using ORM_1_21_.geo;
+using ORM_1_21_.Linq;
 
 namespace ORM_1_21_.Utils
 {
@@ -39,8 +43,23 @@ namespace ORM_1_21_.Utils
                 if (map.IsIndex)
                 {
                     var colName = map.GetColumnNameRaw();
-                    builder.AppendLine(
-                        $"CREATE INDEX IF NOT EXISTS \"INDEX_{tableNameRaw}_{colName}\" ON {tableName} (\"{colName}\");");
+                    if (map.IsInheritIGeoShape)
+                    {
+                        builder.AppendLine(
+                            $"CREATE INDEX IF NOT EXISTS  \"idx_{tableNameRaw}_{colName}_geom\" ON \"{tableNameRaw}\" USING gist (\"{colName}\");");
+                        
+                    }else if (map.IsJson)
+                    {
+                        builder.AppendLine(
+                            $"CREATE INDEX IF NOT EXISTS \"idx_{tableNameRaw}_{colName}_json\" ON \"{tableNameRaw}\" USING GIN (\"{colName}\");");
+                    }
+                    else
+                    {
+                        builder.AppendLine(
+                            $"CREATE INDEX IF NOT EXISTS  \"INDEX_{tableNameRaw}_{colName}\" ON {tableName} (\"{colName}\");");
+                    }
+                    
+                    
                 }
 
             return builder.ToString();
@@ -50,8 +69,22 @@ namespace ORM_1_21_.Utils
         private static string GetTypePg(MapColumnAttribute map)
         {
             if (map.TypeString != null) return map.TypeString;
+            if (map.IsInheritIGeoShape)
+            {
+                return "geometry";
+            }
+
+            if (map.IsJson)
+            {
+                return "jsonb";
+            }
 
             var type = UtilsCore.GetCoreType(map.PropertyType);
+            if (type == null) return null;
+            if (type.GetInterfaces().Contains(typeof(IGeoShape)) )
+            {
+                return "geometry";
+            }
 
             if (type == typeof(long) ||
                 type == typeof(ulong))

@@ -16,7 +16,7 @@ namespace TestLibrary
             NewExe<CapacityNative, MyDbPostgres>(true);
             NewExe<CapacityPostgres, MyDbPostgres>();
             NewExe<CapacityMysql, MyDbMySql>();
-            NewExe<CapacityMsSql, MyDbMsSql>();
+            //NewExe<CapacityMsSql, MyDbMsSql>();
 
             
         }

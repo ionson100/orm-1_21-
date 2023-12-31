@@ -1304,5 +1304,18 @@ namespace ORM_1_21_
                 }
             }
         }
+        string ISession.StarSql<TSource>()
+        {
+            try
+            {
+                return AttributesOfClass<TSource>.GetListFieldFreeSqlStar(MyProviderName);
+
+            }
+            catch (Exception)
+            {
+                Transactionale.isError = true;
+                throw;
+            }
+        }
     }
 }

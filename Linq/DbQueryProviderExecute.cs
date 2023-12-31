@@ -497,11 +497,7 @@ namespace ORM_1_21_.Linq
                 dataReader = com.ExecuteReader();
                
                 IEnumerable<T> res1 = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName, listCore.Any(a => a.Operand == Evolution.FreeSql));
-                // if (postExpressions.Count > 0)
-                // {
-                //     FactoryExpression.GetData(res1, postExpressions);
-                // }
-                //
+               
                 var dataSingle = Pizdaticus.SingleData(listCore, res1, out var isActive);
                 var res2 = !isActive ? (object)res1 : dataSingle;
                 return res2;

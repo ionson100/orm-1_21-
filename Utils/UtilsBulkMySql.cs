@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -101,11 +102,23 @@ namespace ORM_1_21_.Utils
                 }
 
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
-                {
+                { 
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
-                    var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    var str = GetValue(o, type, isBlob);
-                    row.Append(str).Append(",");
+                    if (map.IsJson)
+                    {
+                       
+                        var json = JsonConvert.SerializeObject(o);
+                        row.Append($"CAST('{json}' AS JSON)").Append(",");
+
+                    }
+                    else
+                    {
+                        var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
+                        var str = GetValue(o, type, isBlob);
+                        row.Append(str).Append(",");
+                    }
+                   
+                    
                 }
 
                 builder.AppendLine(row.ToString().Substring(0, row.ToString().LastIndexOf(',')) + "),");

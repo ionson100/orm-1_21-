@@ -5,6 +5,9 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
+using ORM_1_21_.geo;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace ORM_1_21_
 {
@@ -41,7 +44,20 @@ namespace ORM_1_21_
 
                         void Command(T obj, int ip, IDbCommand dbCommand)
                         {
-                            dbCommand.AddParameter($"{parName}{par}{ip}",GetValue.Value[rtp.PropertyName](obj));
+                            if (rtp.IsJson)
+                            {
+                                dbCommand.AddParameter($"{parName}{par}{ip}", JsonConvert.SerializeObject(GetValue.Value[rtp.PropertyName](obj)));
+                            }
+                            else if (rtp.IsInheritIGeoShape)
+                            {
+                               
+                                dbCommand.AddParameter($"{parName}{par}{ip}", $"SRID={((IGeoShape)GetValue.Value[rtp.PropertyName](obj)).Srid};{((IGeoShape)GetValue.Value[rtp.PropertyName](obj)).GeoData}");
+                            }
+                            else
+                            { 
+                                dbCommand.AddParameter($"{parName}{par}{ip}",GetValue.Value[rtp.PropertyName](obj));
+                            }
+                           
                         }
                         list.Add(Command);
 
@@ -54,7 +70,10 @@ namespace ORM_1_21_
             Provider = providerName;
             var sql = InsertTemplate.Value;
             int i = 0;
-            InsertActionParam.Value.ForEach(s => s.Invoke(obj, ++i, command));
+            InsertActionParam.Value.ForEach(s =>
+            {
+                s.Invoke(obj, ++i, command);
+            });
             command.CommandText = sql;
         }
 
@@ -151,10 +170,19 @@ namespace ORM_1_21_
                   foreach (var pra in AttributeDalList.Value)
                   {
                       if (pra.IsNotUpdateInsert) continue;
-
+                     
                       void Command(T obj, int ip, IDbCommand dbCommand)
                       {
-                          dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),GetValue.Value[pra.PropertyName](obj));
+                          if (pra.IsJson)//todo geo
+                          {
+                              dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),
+                                  JsonConvert.SerializeObject(GetValue.Value[pra.PropertyName](obj)));
+                          }
+                          else
+                          {
+                              dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)), GetValue.Value[pra.PropertyName](obj));
+                          }
+                          
                       }
                       list.Add(Command);
                   }

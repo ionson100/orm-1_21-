@@ -50,7 +50,9 @@
         DataTable,
         Between,
         SelectJoin,
-        SelectNewGroup
+        SelectNewGroup,
+        WhereGeo,
+        FromString
     }
 
 }

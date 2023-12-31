@@ -52,10 +52,12 @@ namespace ORM_1_21_.Linq
             {
                 throw new ArgumentNullException(nameof(expression));
             }
-            if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
-            {
-                throw new ArgumentOutOfRangeException(nameof(expression));
-            }
+
+           // var sdds = typeof(IQueryable<T>);
+           // if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
+           // {
+           //     throw new ArgumentOutOfRangeException(nameof(expression));
+           // }
 
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
 

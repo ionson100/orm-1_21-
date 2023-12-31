@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using ORM_1_21_.geo;
 
 namespace ORM_1_21_
 {
@@ -35,6 +36,12 @@ namespace ORM_1_21_
             if (t != null) return true;
             return false;
         }, LazyThreadSafetyMode.ExecutionAndPublication);
+
+       //public static Lazy<bool> IsGeoShape = new Lazy<bool>(() =>
+       //{
+       //    return typeof(T).GetInterfaces().Contains(typeof(IGeoShape));
+       //  
+       //}, LazyThreadSafetyMode.ExecutionAndPublication);
 
         private static readonly Lazy<Dictionary<string, string>> ColumnName = new Lazy<Dictionary<string, string>>(() =>
         {
@@ -89,8 +96,7 @@ namespace ORM_1_21_
                         var instance = Expression.Parameter(typeof(T));
                         var property = Expression.Property(instance, propertyInfo);
                         var convert = Expression.TypeAs(property, typeof(object));
-                        dictionary.Add(propertyInfo.Name,
-                            Expression.Lambda<Func<T, object>>(convert, instance).Compile());
+                        dictionary.Add(propertyInfo.Name, Expression.Lambda<Func<T, object>>(convert, instance).Compile());
                     }
 
                     return dictionary;
@@ -222,12 +228,15 @@ namespace ORM_1_21_
                 }
 
                 var o2 = f.GetCustomAttribute<MapIndexAttribute>(true);
+                var o6 = f.GetCustomAttribute<MapColumnTypeJson>(true);
                 columnAttribute.IsBaseKey = false;
                 columnAttribute.IsForeignKey = false;
                 if (o2 != null) columnAttribute.IsIndex = true;
+                
 
                 columnAttribute.PropertyName = f.Name;
                 columnAttribute.PropertyType = f.PropertyType;
+                columnAttribute.IsInheritIGeoShape = columnAttribute.PropertyType == typeof(IGeoShape);//    columnAttribute.PropertyType.GetInterfaces().Contains(typeof(IGeoShape));
                 columnAttribute.DeclareType = typeof(T);
                 if (o3 != null)
                     columnAttribute.DefaultValue = o3.Value;
@@ -244,6 +253,14 @@ namespace ORM_1_21_
                 var o5 = f.GetCustomAttribute<MapNotInsertUpdateAttribute>(true);
                 if (o5 != null) columnAttribute.IsNotUpdateInsert = true;
 
+                if (o6 != null)
+                {
+                    UtilsCore.HashSetJsonType.Add(columnAttribute.PropertyType);
+                    columnAttribute.IsJson = true;
+                }
+
+                
+
 
                 res.Add(columnAttribute);
             }
@@ -253,6 +270,7 @@ namespace ORM_1_21_
 
         private static MapTableAttribute GetTableAttribute()
         {
+
             var d = typeof(T).GetCustomAttribute<MapTableAttribute>(true);
 
             if (d == null) throw new Exception($"There is no attribute: MapTableAttribute that defines the name of the table for type: {typeof(T).Name}");
@@ -524,7 +542,15 @@ namespace ORM_1_21_
                          .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
             {
                 if (pra.IsNotUpdateInsert) continue;
-                par.AppendFormat(" {0} = {2}p{1},", pra.GetColumnName(Provider), ++i, parName);
+                if (pra.IsJson)//todo geo
+                {
+                    par.AppendFormat(" {0} = CAST({2}p{1} AS JSON),", pra.GetColumnName(Provider), ++i, parName);
+                }
+                else
+                {
+                    par.AppendFormat(" {0} = {2}p{1},", pra.GetColumnName(Provider), ++i, parName);
+                }
+                
             }
 
             var pk = PrimaryKeyAttribute.Value;
@@ -583,7 +609,23 @@ namespace ORM_1_21_
                 foreach (var s in eee)
                 {
                     var enumerable = s as string[] ?? s.ToArray();
-                    if (enumerable.Any()) sb.AppendFormat(" {0} = {1},", enumerable.First(), enumerable.Last());
+                    if (enumerable.Any())
+                    {
+                        if (providerName == ORM_1_21_.ProviderName.PostgreSql && enumerable.First().StartsWith("(json)"))//todo geo
+                        {
+                            sb.AppendFormat(" {0} = CAST({1} AS JSON),", enumerable.First().Replace("(json)",string.Empty), enumerable.Last());
+                        }else if (providerName == ORM_1_21_.ProviderName.PostgreSql && enumerable.First().StartsWith("(geo)"))//todo geo
+                        {
+                            sb.AppendFormat(" {0} = ST_GeomFromText({1}),", enumerable.First().Replace("(geo)", string.Empty), enumerable.Last());
+                        }
+                        else
+                        {
+                            sb.AppendFormat(" {0} = {1},", enumerable.First(), enumerable.Last());
+                        }
+                    }
+                    
+                    
+                    //sb.AppendFormat(" {0} = {1},", enumerable.First(), enumerable.Last());
                 }
             }
 
@@ -722,6 +764,12 @@ namespace ORM_1_21_
             return TableAttribute.Value.TableName(providerName) + "." + ColumnName.Value[member];
         }
 
+        public static string GetNameSimpleColumnForQuery(string member, ProviderName providerName)
+        {
+            Provider = providerName;
+            return  ColumnName.Value[member];
+        }
+
         public static void Init()
         {
         }
@@ -766,8 +814,19 @@ namespace ORM_1_21_
                     sb.AppendFormat($"{rtp.GetColumnName(Provider)}, ");
                 else
                     sb.AppendFormat("{0}.{1},", TableAttribute.Value.TableName(Provider), rtp.GetColumnName(Provider));
-                //sb = new StringBuilder(sb.ToString().Trim(' ', ',') + "");
-                values.AppendFormat("{0}{1}{2},", parName, par, ++i);
+                if (rtp.IsJson)
+                {
+                    values.AppendFormat("CAST({0}{1}{2} AS json),", parName, par, ++i);//todo geo
+                }
+                else if (rtp.IsInheritIGeoShape)
+                {
+                    values.AppendFormat("ST_GeomFromText({0}{1}{2}),", parName, par, ++i);
+                }
+                else
+                {
+                    values.AppendFormat("{0}{1}{2},", parName, par, ++i);
+                }
+                
 
             }
 

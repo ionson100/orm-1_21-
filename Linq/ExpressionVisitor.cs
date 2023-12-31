@@ -270,6 +270,7 @@ namespace ORM_1_21_.Linq
             List<ElementInit> list = null;
             for (int i = 0, n = original.Count; i < n; i++)
             {
+                
                 var init = VisitElementInitializer(original[i]);
                 if (list != null)
                 {
@@ -325,6 +326,7 @@ namespace ORM_1_21_.Linq
 
         private Expression VisitListInit(ListInitExpression init)
         {
+            
             var n = VisitNew(init.NewExpression);
             var initializer =
               VisitElementInitializerList(init.Initializers);

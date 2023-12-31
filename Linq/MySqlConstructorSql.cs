@@ -45,7 +45,8 @@ namespace ORM_1_21_.Linq
 
             //if (PingComposite(Evolution.FreeSql)) return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
 
-            if (PingComposite(Evolution.Update)) return AttributesOfClass<T>.CreateCommandLimitForMySql(_listOne, providerName);
+            if (PingComposite(Evolution.Update)) 
+                return AttributesOfClass<T>.CreateCommandLimitForMySql(_listOne, providerName);
 
             if (PingComposite(Evolution.All))
             {
@@ -174,26 +175,44 @@ namespace ORM_1_21_.Linq
                                     : ""));
                             foreach (var i in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                             {
-                                sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
-                                    AttributesOfClass<T>.TableName(providerName) + "." + i.GetColumnName(_providerName),
-                                    listOne.Any(a => a.Operand == Evolution.DistinctCore && a.Body == i.GetColumnName(_providerName))
-                                        ? " Distinct "
-                                        : ""));
+                                if (i.IsInheritIGeoShape)
+                                {
+                                    sbb.Append(
+                                        $" ST_AsText({AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}) as {i.GetColumnName(_providerName)}, ");
+                                   
+                                }
+                                else
+                                {
+                                    sbb.Append(string.Format(CultureInfo.CurrentCulture, "{1} {0},",
+                                        AttributesOfClass<T>.TableName(providerName) + "." + i.GetColumnName(_providerName),
+                                        listOne.Any(a => a.Operand == Evolution.DistinctCore && a.Body == i.GetColumnName(_providerName))
+                                            ? " Distinct "
+                                            : ""));
+                                }
+                               
                             }
                         }
 
                     }
 
 
-                    var str = sbb.ToString().TrimEnd(',');
+                    var str = sbb.ToString().TrimEnd(' ', ',');
                     sbb.Length = 0;
                     sbb.Append(str);
                 }
             }
 
+            var fromS = listOne.FirstOrDefault(a => a.Operand == Evolution.FromString);
+            if (fromS != null)
+            {
+                sbb.Append($" FROM ({fromS.Body})");
+            }
+            else
+            {
+                sbb.Append(" FROM ");
+            }
 
-
-            sbb.Append(" FROM ");
+           
             sbb.Append(AttributesOfClass<T>.TableName(providerName)).Append(" ");
             //if (PingComposite(Evolution.Join))
             //{
