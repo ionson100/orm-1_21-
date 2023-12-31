@@ -51,7 +51,8 @@
         Between,
         SelectJoin,
         SelectNewGroup,
-        WhereGeo
+        WhereGeo,
+        FromString
     }
 
 }

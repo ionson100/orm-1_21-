@@ -55,6 +55,8 @@ namespace ORM_1_21_
 
         internal bool IsInheritIGeoShape { get; set; }
 
+        internal bool IsJson { get; set; }
+
         internal string TypeString { get; set; }
 
         internal string PropertyName { get; set; }

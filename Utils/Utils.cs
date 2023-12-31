@@ -6,11 +6,13 @@ using System.Data.Common;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using ORM_1_21_.geo;
 using ORM_1_21_.Linq;
 
 namespace ORM_1_21_.Utils
@@ -18,6 +20,21 @@ namespace ORM_1_21_.Utils
     internal static class UtilsCore
     {
         internal const string Bungalo = "____";
+
+        public static HashSet<Type> HashSetJsonType=new HashSet<Type>();
+       
+
+        public static bool IsJson(Type type)
+        {
+            return HashSetJsonType.Contains(type);
+        }
+        public static bool IsGeo(Type type)
+        {
+            if(type==typeof(IGeoShape)||type==typeof(GeoObject)) 
+                return true;
+            return false;
+        }
+
 
         public static void AddParameter(this IDbCommand command, string name, object o)
         {
@@ -43,6 +60,8 @@ namespace ORM_1_21_.Utils
         {
             AttributesOfClass<T>.SpotRider(reader, providerName, d);
         }
+
+
 
        
         public static void SpotRiderFree<T>(this IDataReader reader, ProviderName providerName, T d)
@@ -461,6 +480,12 @@ namespace ORM_1_21_.Utils
         internal static void SetPersistent(object obj)
         {
             TypeDescriptor.AddAttributes(obj, new PersistentAttribute());
+        }
+
+        private static string GetTableName<T>()
+        {
+            var ss = AttributesOfClass<T>.TableName(ProviderName.PostgreSql);
+            return ss;
         }
     }
 

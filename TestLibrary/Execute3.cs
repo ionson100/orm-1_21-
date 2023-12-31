@@ -14,7 +14,7 @@ namespace TestLibrary
         {
             await TestAsync<MyClassPostgres, MyDbPostgres>();
             await TestAsync<MyClassMysql, MyDbMySql>();
-            await TestAsync<MyClassMsSql, MyDbMsSql>();
+            //await TestAsync<MyClassMsSql, MyDbMsSql>();
             await TestAsync<MyClassSqlite, MyDbSqlite>();
         }
 

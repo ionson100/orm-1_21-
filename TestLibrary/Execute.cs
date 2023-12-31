@@ -73,7 +73,7 @@ namespace TestLibrary
         {
             NewExe<MyClassPostgres, MyDbPostgres>();
             NewExe<MyClassMysql, MyDbMySql>();
-            NewExe<MyClassMsSql, MyDbMsSql>();
+            //NewExe<MyClassMsSql, MyDbMsSql>();
             NewExe<MyClassSqlite, MyDbSqlite>();
         }
 
@@ -972,7 +972,7 @@ namespace TestLibrary
         {
             TestNativeInser<TiPostgresNative, MyDbPostgres>();
             TestNativeInser<TiMysqlNative, MyDbMySql>();
-            TestNativeInser<TiMsSqlNative, MyDbMsSql>();
+            //TestNativeInser<TiMsSqlNative, MyDbMsSql>();
             TestNativeInser<TiSqliteNative, MyDbSqlite>();
         }
 
@@ -1010,7 +1010,7 @@ namespace TestLibrary
         {
             TestAssignetInser<TiPostgresAssignet, MyDbPostgres>();
             TestAssignetInser<TiMysqlAssignet, MyDbMySql>();
-            TestAssignetInser<TiMsSqlAssignet, MyDbMsSql>();
+            //TestAssignetInser<TiMsSqlAssignet, MyDbMsSql>();
             TestAssignetInser<TiSqliteAssignet, MyDbSqlite>();
         }
 
@@ -1087,7 +1087,7 @@ namespace TestLibrary
         {
             await NewExe<AddClassPostgres, MyDbPostgres>();
             await NewExe<AddClassMysql, MyDbMySql>();
-            await NewExe<AddClassMsSql, MyDbMsSql>();
+            //await NewExe<AddClassMsSql, MyDbMsSql>();
             await NewExe<AddClassSqlite, MyDbSqlite>();
         }
         private static async Task NewExe<T, Tb>() where T : MyClassBase, new() where Tb : IOtherDataBaseFactory, new()

@@ -3,12 +3,14 @@ using ORM_1_21_.Linq;
 using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using static System.Collections.Specialized.BitVector32;
 
 namespace ORM_1_21_
 {
@@ -19,7 +21,143 @@ namespace ORM_1_21_
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static partial class Helper
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="selector"></param>
+        /// <param name="o"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TS"></typeparam>
+        /// <returns></returns>
+        public static IQueryable<T> WhereIn<T,TS>(this IQueryable<T> query, Expression<Func<T, TS>> selector, params TS[] o)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(selector, nameof(selector));
+            Check.NotNull(o, nameof(o));
+            var selectE = selector.Body;
+            var mi = typeof(V).GetMethod("WhereIn");
+            var miConstructed = mi.MakeGenericMethod(typeof(TS));
 
+            ReadOnlyCollection<ParameterExpression> selectorParameters = selector.Parameters;
+            var paramsE = Expression.Constant(o);
+            Expression check = Expression.Call(null, miConstructed, selectE, paramsE);
+            var lambada = Expression.Lambda<Func<T, bool>>(check, selectorParameters);
+            return query.Where(lambada);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="sql"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static IQueryable<T> WhereSql<T>(this IQueryable<T> query,   string sql)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(sql, nameof(sql));
+            var t=Expression.Parameter(typeof(T));
+            var sqlE = Expression.Constant(sql);
+            Expression check = Expression.Call(null, typeof(V).GetMethod("WhereString"), sqlE);
+            var lambada = Expression.Lambda<Func<T, bool>>(check,t);
+            return query.Where(lambada);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="sql"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static IQueryable<T> FromSql<T>(this IQueryable<T> query, string sql)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(sql, nameof(sql));
+         
+            var sqlE = Expression.Constant(sql);
+            var queryE = Expression.Constant(query);
+            var mi = typeof(V).GetMethod("FromString");
+            var miConstructed = mi.MakeGenericMethod(typeof(T));
+            Expression check = Expression.Call(null, miConstructed, sqlE,queryE);
+            return query.Provider.CreateQuery<T>(check);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="sql"></param>
+        /// <param name="sqlParams"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static IQueryable<T> FromSql<T>(this IQueryable<T> query, string sql,params SqlParam[] sqlParams)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(sql, nameof(sql));
+            Check.NotNull(sqlParams, nameof(sqlParams));
+
+            var sqlE = Expression.Constant(sql);
+            var sqlParamsE = Expression.Constant(sqlParams);
+            var queryE = Expression.Constant(query);
+            var mi = typeof(V).GetMethod("FromStringP");
+            var miConstructed = mi.MakeGenericMethod(typeof(T));
+            Expression check = Expression.Call(null, miConstructed, sqlE,sqlParamsE ,queryE);
+            return query.Provider.CreateQuery<T>(check);
+        }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="sql"></param>
+        /// <param name="sqlParams"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static IQueryable<T> WhereSql<T>(this IQueryable<T> query, string sql,params SqlParam[] sqlParams)
+        {
+
+            Check.NotNull(sql, nameof(sql));
+            List<ParameterExpression> list = new List<ParameterExpression>();
+            var t = Expression.Parameter(typeof(T));
+            var sqlE = Expression.Constant(sql);
+            var sqlParamsE = Expression.Constant(sqlParams);
+            Expression check = Expression.Call(null, typeof(V).GetMethod("WhereStringP"), sqlE,sqlParamsE);
+            var lambada = Expression.Lambda<Func<T, bool>>(check, t);
+            return query.Where(lambada);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="selector"></param>
+        /// <param name="o"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TS"></typeparam>
+        /// <returns></returns>
+        public static IQueryable<T> WhereNotIn<T, TS>(this IQueryable<T> query, Expression<Func<T, TS>> selector, params TS[] o)
+        {
+            Check.NotNull(selector, nameof(selector));
+            Check.NotNull(o, nameof(o));
+            var selectE = selector.Body;
+            var mi = typeof(V).GetMethod("WhereNotIn");
+            var miConstructed = mi.MakeGenericMethod(typeof(TS));
+
+            var selectorParameters = selector.Parameters;
+            var paramsE = Expression.Constant(o);
+            Expression check = Expression.Call(null, miConstructed, selectE, paramsE);
+            var lambada = Expression.Lambda<Func<T, bool>>(check, selectorParameters);
+            return query.Where(lambada);
+        }
+
+
+       
 
 
 
@@ -300,18 +438,7 @@ namespace ORM_1_21_
             return res.Split(chunkSize);
         }
 
-        //private static async Task<List<List<T>>> InnerSplitQueryable<T>(this IQueryable<T> coll, int chunkSize)
-        //{
-        //    return await Task.Run(() =>
-        //    {
-        //        var enumerable = coll.ToList();
-        //        return enumerable
-        //            .Select((x, i) => new { Index = i, Value = x })
-        //            .GroupBy(x => x.Index / chunkSize)
-        //            .Select(x => x.Select(v => v.Value).ToList())
-        //            .ToList();
-        //    }).ConfigureAwait(false);
-        //}
+        
 
 
         /// <summary>

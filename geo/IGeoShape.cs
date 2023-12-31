@@ -24,12 +24,12 @@ namespace ORM_1_21_.geo
         /// </summary>
         string GeoData { get; set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="points"></param>
-        void SetGeoTypePoints(GeoType type, double[] points);
+       // /// <summary>
+       // /// 
+       // /// </summary>
+       // /// <param name="type"></param>
+       // /// <param name="points"></param>
+       // void SetGeoTypePoints(GeoType type, double[] points);
 
         /// <summary>
         /// 
@@ -51,7 +51,7 @@ namespace ORM_1_21_.geo
         /// <summary>
         /// 
         /// </summary>
-        object ArrayCoordinate { get; set; }
+        object ArrayCoordinate { get;  }
 
 
     }

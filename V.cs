@@ -1,4 +1,7 @@
-﻿namespace ORM_1_21_
+﻿using System;
+using System.Linq;
+
+namespace ORM_1_21_
 {
     class V
     {
@@ -14,7 +17,36 @@
             return _sql;
         }
 
-        
+        public static bool WhereIn<T>(T d, T[] z)
+        {
+            return true;
+        }
+        public static bool WhereNotIn<T>(T d, T[] z)
+        {
+            return true;
+        }
+
+        public static bool WhereString( string sql)
+        {
+            return true;
+        }
+
+        public static IQueryable<T> FromString<T>(string sql, IQueryable<T> queryable)
+        {
+            return queryable;
+        }
+        public static IQueryable<T> FromStringP<T>(string sql, SqlParam[] sqlParams, IQueryable<T> queryable)
+        {
+            return queryable;
+        }
+
+        public static bool WhereStringP(string sql,params SqlParam[] sqlParams)
+        {
+            return true;
+        }
+
+
+
         public static bool GeoST_Contains(object s, object d,  bool f)
         {
             return true;

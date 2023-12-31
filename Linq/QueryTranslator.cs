@@ -1,6 +1,7 @@
 ﻿using ORM_1_21_.geo;
 using ORM_1_21_.Utils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -8,6 +9,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ORM_1_21_.Linq
 {
@@ -1648,7 +1651,130 @@ namespace ORM_1_21_.Linq
                 return m;
             }
 
-            
+            if (m.Method.Name == "FromString")
+            {
+                var u = m.Arguments[0] as ConstantExpression;
+                var o = new OneComposite { Operand = Evolution.FromString,Body = u.Value.ToString()};
+                AddListOne(o);
+                StringB.Length = 0;
+                return m;
+            }
+            if (m.Method.Name == "FromStringP")
+            {
+                var u = m.Arguments[0] as ConstantExpression;
+                var o = new OneComposite { Operand = Evolution.FromString, Body = u.Value.ToString() };
+                var p = m.Arguments[1] as ConstantExpression;
+                var pv = (SqlParam[])p.Value;
+                foreach (SqlParam param in pv)
+                {
+                    Param.Add(param.Name, param.Value);
+                }
+                AddListOne(o);
+                StringB.Length = 0;
+                return m;
+            }
+
+            if (m.Method.Name == "WhereString")
+            {
+                var t = m.Arguments[0] as ConstantExpression;
+                var v=t.Value;
+                StringB.Append(v);
+              
+                return m;
+            }
+            if (m.Method.Name == "WhereStringP")
+            {
+                var t = m.Arguments[0] as ConstantExpression;
+                var v = t.Value;
+                StringB.Append(v);
+
+                var p = m.Arguments[1] as ConstantExpression;
+                var pv = (SqlParam[])p.Value;
+                foreach (SqlParam param in pv)
+                {
+                    Param.Add(param.Name, param.Value);
+                }
+               
+
+                return m;
+            }
+            if (m.Method.Name == "WhereIn")
+            {
+
+                StringB.Append("(");
+                Visit(m.Arguments[0]);
+                var sp = m.Arguments[1] as ConstantExpression;
+                var o = sp.Value as IEnumerable;
+                StringB.Append(" IN (");
+                foreach (var o1 in o)
+                {
+                    if (o1 == null)
+                    {
+                        StringB.Append("null").Append(", ");
+                    }
+                    else
+                    {
+                        var typeCore = o1.GetType();
+                        if (UtilsCore.IsNumericType(typeCore))
+                        {
+                            StringB.Append(o1).Append(", ");
+
+                        }
+                        else if (typeCore.IsEnum)
+                        {
+                            StringB.Append((int)o1).Append(", ");
+                        }
+                        else
+                        {
+                            AddParameter(o1);
+                        }
+                    }
+                }
+
+                var str = StringB.ToString().TrimEnd(',',' ');
+                StringB.Clear().Append(str).Append("))");
+                return m;
+            }
+
+            if (m.Method.Name == "WhereNotIn")
+            {
+                StringB.Append("(");
+                Visit(m.Arguments[0]);
+                var sp = m.Arguments[1] as ConstantExpression;
+                var o = sp.Value as IEnumerable;
+                StringB.Append(" NOT IN (");
+                foreach (var o1 in o)
+                {
+                    if (o1 == null)
+                    {
+                        StringB.Append("null").Append(", ");
+                    }
+                    else
+                    {
+                        var typeCore = o1.GetType();
+                        if (UtilsCore.IsNumericType(typeCore))
+                        {
+                            StringB.Append(o1).Append(", ");
+
+                        }
+                        else if (typeCore.IsEnum)
+                        {
+                            StringB.Append((int)o1).Append(", ");
+                        }
+                        else
+                        {
+                            AddParameter(o1);
+                        }
+                    }
+                }
+
+                var str = StringB.ToString().TrimEnd(',', ' ');
+                StringB.Clear().Append(str).Append("))");
+                return m;
+                
+            }
+
+
 
             if (m.Method.Name == "GeoST_GeometryType")
             {
@@ -1925,22 +2051,14 @@ namespace ORM_1_21_.Linq
                 Visit(m.Arguments[0]);
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
                 AddPostExpression(Evolution.Select, m);
-                // bool isGeo = lambda.Body.Type.GetInterfaces().Contains(typeof(IGeoShape));
-                // if (isGeo)
-                // {
-                //     StringB.Append(" ST_AsText(");
-                // }
+                
 
                 Visit(lambda.Body);
-                // if (isGeo)
-                // {
-                //     StringB.Append($") as {_geoAsName} ");
-                // }
-                var o = new OneComposite { Operand = Evolution.Select, Body = StringB.ToString().Trim(' ', ',') };
+               
+                var o = new OneComposite { Operand = Evolution.Select, Body = StringB.ToString().Replace("(json)",string.Empty).Replace("(geo)",string.Empty).Trim(' ', ',') };
                 if (!string.IsNullOrEmpty(StringB.ToString())) AddListOne(o);
                 StringB.Length = 0;
                 _currentMethod = null;
-                // isAddPost = true;
                 return m;
             }
 
@@ -2307,6 +2425,13 @@ namespace ORM_1_21_.Linq
                     return m;
                 }
 
+                if (m.Method.Name == "WhereOn")
+                {
+                    return m;
+                }
+
+               
+
 
                 var la = new List<object>();
                 foreach (var i in m.Arguments)
@@ -2395,32 +2520,7 @@ namespace ORM_1_21_.Linq
                         StringB.Append(" is ");
                         break;
                     }
-                    //if (_listOne.Any(a=>a.Operand == Evolution.FindLikeContains))
-                    //{
-                    //    StringB.Append(" LIKE CONCAT('%',");
-                    //    Visit(b.Right);
-                    //    StringB.Append(",'%')) ");
-
-                    //    return b;
-                    //}
-
-                    //if (_listOne.Any(a=>a.Operand == Evolution.FindLikeStartsWith))
-                    //{
-                    //    StringB.Append(" LIKE CONCAT(");
-                    //    Visit(b.Right);
-                    //    StringB.Append(",'%')) ");
-
-                    //    return b;
-                    //}
-
-                    //if (_listOne.Any(a=>a.Operand == Evolution.FindLikeEndsWith))
-                    //{
-                    //    StringB.Append(" LIKE CONCAT('%',");
-                    //    Visit(b.Right);
-                    //    StringB.Append(")) ");
-
-                    //    return b;
-                    //}
+                    
                     StringB.Append(" = ");
                     break;
                 case ExpressionType.NotEqual:
@@ -3094,6 +3194,7 @@ namespace ORM_1_21_.Linq
                     BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
                 value = ass.GetValue(str, null);
             }
+            
 
             AddParameter(value);
         }
@@ -3112,6 +3213,21 @@ namespace ORM_1_21_.Linq
                     StringB.Append(p1);
                     Param.Add(p1, value);
                 }
+            }
+            else if(UtilsCore.IsJson(value.GetType())) //todo geo
+            {
+                var p1 = ParamName;
+                
+                StringB.Append(p1);
+                Param.Add(p1, JsonConvert.SerializeObject(value));
+            }
+            
+            else if (_providerName == ProviderName.PostgreSql && UtilsCore.IsGeo(value.GetType())) //todo geo
+            {
+                var p1 = ParamName;
+
+                StringB.Append(p1);
+                Param.Add(p1, ((IGeoShape)value).GeoData);
             }
             else
             {
@@ -3184,13 +3300,23 @@ namespace ORM_1_21_.Linq
             for (int i = 0, n = original.Count; i < n; i++)
             {
                 StringB.Append(" ,");
-                // bool isGeo = original[i].Type.GetInterfaces().Contains(typeof(IGeoShape));
-                //if (isGeo)
-                //{
-                //    StringB.Append("ST_AsText(");
-                //
-                //}
+                if (UtilsCore.IsJson(original[i].Type)&&_providerName==ProviderName.PostgreSql)//todo geo
+                {
+                    if (i==0||i % 2 == 0)
+                    {
+                        StringB.Append("(json)");
+                    }
+                }
+                if (UtilsCore.IsGeo(original[i].Type) && _providerName == ProviderName.PostgreSql)//todo geo
+                {
+                    if (i == 0 || i % 2 == 0)
+                    {
+                        StringB.Append("(geo)");
+                    }
+                }
+
                 var p = Visit(original[i]);
+               
                 if (list != null)
                 {
                     list.Add(p);
@@ -3202,10 +3328,6 @@ namespace ORM_1_21_.Linq
                     list.Add(p);
                 }
 
-                // if (isGeo)
-                // {
-                //     StringB.Append($") as {_geoAsName}");
-                // }
             }
 
             if (list != null) return list.AsReadOnly();

@@ -8,6 +8,7 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace ORM_1_21_
 {
@@ -235,6 +236,11 @@ namespace ORM_1_21_
                 var o = Activator.CreateInstance(type);
                 ((IGeoShape)o).GeoData = res.ToString();
                 return o;
+            }
+
+            if (UtilsCore.IsJson(type))
+            {
+                return JsonConvert.DeserializeObject(res.ToString(), type);
             }
 
             

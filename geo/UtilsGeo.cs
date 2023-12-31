@@ -64,7 +64,16 @@ namespace ORM_1_21_.geo
                         foreach (Match match in matches)
                         {
                             var rr = match.Value.Trim('(', ')', ' ');
-                            geoShapes.Add(new GeoObject($"POINT({rr})"));
+                            string[] d = rr.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                            foreach (string s in d)
+                            {
+                                string[] ds = s.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                                var sp = new GeoPoint
+                                    { Latitude = double.Parse(ds[0]), Longitude = double.Parse(ds[1]) };
+                                list.Add(sp);
+                                geoShapes.Add(new GeoObject(GeoType.Point,sp));
+                            }
+                            //geoShapes.Add(new GeoObject($"POINT({rr})"));
 
                         }
 
@@ -127,7 +136,7 @@ namespace ORM_1_21_.geo
                         foreach (Match match in matches)
                         {
                             var rr = match.Value.Trim('(', ')', ' ');
-                            geoShapes.Add(new GeoObject($"POLYGON({rr})"));
+                            geoShapes.Add(new GeoObject($"POLYGON(({rr}))"));
 
                         }
 

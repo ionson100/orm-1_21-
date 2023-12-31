@@ -410,10 +410,10 @@ namespace ORM_1_21_.Extensions
         /// Returns a geography object from the well-known text representation. SRID 4326 is assumed if unspecified.
         /// </summary>
         /// <returns></returns>
-        public static object ST_GeogFromText(this IGeoShape shape, ISession session)
+        public static byte[] ST_GeogFromText(this IGeoShape shape, ISession session)
         {
             if(session == null) return null;
-            return session.ExecuteScalar($"SELECT ST_GeogFromText(@1)::bytea ", shape.GeoData);
+            return session.ExecuteScalar($"SELECT ST_GeogFromText(@1)::bytea ", shape.GeoData) as byte[];
          
         }
        
@@ -435,7 +435,7 @@ namespace ORM_1_21_.Extensions
 
 
 
-        private static ConstantExpression GetNameColumnCore<T>(Expression<Func<T, IGeoShape>> selector)
+         static ConstantExpression GetNameColumnCore<T>(Expression<Func<T, IGeoShape>> selector)
         {
             var m = (selector.Body as MemberExpression);
             var nameColumn = GetColumnNameSimple<T>(m.Member.Name, m.Expression.Type);

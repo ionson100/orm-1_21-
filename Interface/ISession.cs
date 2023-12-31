@@ -400,5 +400,12 @@ namespace ORM_1_21_
         /// 
         /// </summary>
         bool IsBlobGuid { get; }
+
+        /// <summary>
+        /// Query field string that replaces the * character
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <returns></returns>
+        string StarSql<TSource>();
     }
 }

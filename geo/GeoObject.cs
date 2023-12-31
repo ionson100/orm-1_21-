@@ -10,7 +10,7 @@ namespace ORM_1_21_.geo
     /// <summary>
     /// 
     /// </summary>
-    public class GeoObject : IGeoShape
+      class GeoObject : IGeoShape
     {
         private string _innerStringGeo;
         private List<IGeoShape> _multiGeoShapes = new List<IGeoShape>();
@@ -52,7 +52,7 @@ namespace ORM_1_21_.geo
         /// <returns></returns>
         public static GeoObject CreateGeoPolygonWithHole(double[] p1, double[] p2)
         {
-            return new GeoObject(GeoType.PolygonWithHole, new List<IGeoShape> { new GeoObject(GeoType.Polygon, p1), new GeoObject(GeoType.Polygon, p2) });
+            return new GeoObject(GeoType.PolygonWithHole,  new GeoObject(GeoType.Polygon, p1), new GeoObject(GeoType.Polygon, p2) );
         }
         /// <summary>
         /// 
@@ -62,7 +62,7 @@ namespace ORM_1_21_.geo
         /// <returns></returns>
         public static GeoObject CreateGeoPolygonWithHole(IGeoShape p1, IGeoShape p2)
         {
-            return new GeoObject(GeoType.PolygonWithHole, new List<IGeoShape> { p1, p2 });
+            return new GeoObject(GeoType.PolygonWithHole,  p1, p2 );
         }
 
         /// <summary>
@@ -70,19 +70,19 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="geoType"></param>
         /// <param name="geoShapes"></param>
-        public GeoObject(GeoType geoType, List<IGeoShape> geoShapes)
+        public GeoObject(GeoType geoType, params IGeoShape[] geoShapes)
         {
             this.GeoType = geoType;
             string type = this.GeoType.ToString();
 
             if (geoType == GeoType.PolygonWithHole)
             {
-                if (geoShapes.Count != 2)
+                if (geoShapes.Length != 2)
                 {
                     throw new ArgumentException("Полигон с дырой должен состоять из двух геометрий");
                 }
 
-                _multiGeoShapes = geoShapes;
+                _multiGeoShapes = new List<IGeoShape>(geoShapes);
                 StringBuilder builderP = new StringBuilder("POLYGON(");
                 builderP.Append("(");
                 foreach (GeoPoint point in geoShapes[0].ListGeoPoints)
@@ -104,7 +104,7 @@ namespace ORM_1_21_.geo
             }
 
 
-            this._multiGeoShapes = geoShapes;
+            _multiGeoShapes = new List<IGeoShape>(geoShapes);
             StringBuilder builder = new StringBuilder($"{type}(");
 
 
@@ -217,11 +217,11 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="geoType"></param>
         /// <param name="points"></param>
-        public GeoObject(GeoType geoType, List<GeoPoint> points)
+        public GeoObject(GeoType geoType, params GeoPoint[] points)
         {
             if (geoType == GeoType.PolygonWithHole) throw new Exception("Запрещено создавать полигон с дырой");
             ListGeoPoints = new List<GeoPoint>();
-            double[] l = new double[points.Count * 2];
+            double[] l = new double[points.Length * 2];
             int i = 0;
             foreach (GeoPoint doubles in points)
             {
@@ -329,6 +329,7 @@ namespace ORM_1_21_.geo
                     throw new Exception("Точка должна определяться двумя координатами");
                 case GeoType.Point:
                     _innerStringGeo = $"POINT({points[0].ToString(CultureInfo.InvariantCulture)} {points[1].ToString(CultureInfo.InvariantCulture)})";
+                    ListGeoPoints.Add(new GeoPoint{Latitude = points[0],Longitude = points[1] });
                     break;
                 case GeoType.LineString:
                     {
@@ -381,7 +382,7 @@ namespace ORM_1_21_.geo
                         }
                         foreach (GeoPoint geoPoint in ListGeoPoints)
                         {
-                            _multiGeoShapes.Add(new GeoObject(GeoType.Point, new List<GeoPoint> { geoPoint }));
+                            _multiGeoShapes.Add(new GeoObject(GeoType.Point,  geoPoint ));
                         }
                         _innerStringGeo = builder.ToString().Trim(' ', ',') + ")";
                         break;
@@ -397,7 +398,7 @@ namespace ORM_1_21_.geo
                         }
                         foreach (GeoPoint geoPoint in ListGeoPoints)
                         {
-                            _multiGeoShapes.Add(new GeoObject(GeoType.Point, new List<GeoPoint> { geoPoint }));
+                            _multiGeoShapes.Add(new GeoObject(GeoType.Point, geoPoint));
                         }
                         _innerStringGeo = builder.ToString().Trim(' ', ',') + ")";
                         break;

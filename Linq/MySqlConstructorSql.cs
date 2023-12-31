@@ -45,7 +45,8 @@ namespace ORM_1_21_.Linq
 
             //if (PingComposite(Evolution.FreeSql)) return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
 
-            if (PingComposite(Evolution.Update)) return AttributesOfClass<T>.CreateCommandLimitForMySql(_listOne, providerName);
+            if (PingComposite(Evolution.Update)) 
+                return AttributesOfClass<T>.CreateCommandLimitForMySql(_listOne, providerName);
 
             if (PingComposite(Evolution.All))
             {
@@ -201,9 +202,17 @@ namespace ORM_1_21_.Linq
                 }
             }
 
+            var fromS = listOne.FirstOrDefault(a => a.Operand == Evolution.FromString);
+            if (fromS != null)
+            {
+                sbb.Append($" FROM ({fromS.Body})");
+            }
+            else
+            {
+                sbb.Append(" FROM ");
+            }
 
-
-            sbb.Append(" FROM ");
+           
             sbb.Append(AttributesOfClass<T>.TableName(providerName)).Append(" ");
             //if (PingComposite(Evolution.Join))
             //{

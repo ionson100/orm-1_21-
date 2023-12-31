@@ -3,7 +3,10 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 using System.Threading;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ORM_1_21_.geo;
 
 namespace ORM_1_21_
@@ -11,23 +14,58 @@ namespace ORM_1_21_
 
     internal static partial class AttributesOfClass<T>
     {
+        internal static Lazy<string> StarSql = new Lazy<string>(() =>
+        {
+            var list = ListBaseAttrE(Provider);
+            StringBuilder sb = new StringBuilder();
+            foreach (BaseAttribute baseAttribute in list)
+            {
+                sb.Append($"{baseAttribute.GetColumnName(Provider)}, ");
+            }
+
+            return sb.ToString().Trim(' ', ',');
+        });
+        public static string GetListFieldFreeSqlStar(ProviderName name)
+        {
+            Provider = name;
+            return StarSql.Value;
+        }
+
         public static void SpotRider(IDataReader reader, ProviderName name, T d)
         {
             var list = ListBaseAttrE(name);
 
             for (int i = 0; i < list.Count; i++)
             {
-                if (list[i].IsInheritIGeoShape)
+                var valCore = Pizdaticus.MethodFreeIndex(name, list[i].PropertyType, reader, i);
+                if (list[i].IsJson)
                 {
-                    var resGeoCore = Pizdaticus.MethodFreeIndex(name, list[i].PropertyType, reader, i);
-                    // var o= Activator.CreateInstance(list[i].PropertyType);
+                    if (valCore == null)
+                    {
+                        SetValueE(name, list[i].PropertyName, d, null);
+                    }else if ( valCore is string)
+                    {
+                        var dd = JsonConvert.DeserializeObject(valCore.ToString(), list[i].PropertyType);
+                        SetValueE(name, list[i].PropertyName, d, dd);
+                    }
+                    else 
+                    {
+                        SetValueE(name, list[i].PropertyName, d, valCore);
+                    }
+                    
+
+                }
+                else if (list[i].IsInheritIGeoShape)
+                {
+                   
+                     //var o= Activator.CreateInstance(list[i].PropertyType);
                     // ((IGeoShape)o).GeoData=resGeoCore.ToString();
-                    SetValueE(name, list[i].PropertyName, d, resGeoCore);
+                    SetValueE(name, list[i].PropertyName, d,FactoryGeo.CreateGeo(valCore.ToString()));
                 }
                 else
                 {
-                    var resCore = Pizdaticus.MethodFreeIndex(name, list[i].PropertyType, reader, i);
-                    SetValueE(name, list[i].PropertyName, d, resCore);
+                    
+                    SetValueE(name, list[i].PropertyName, d, valCore);
                 }
 
             }

@@ -48,6 +48,10 @@ namespace ORM_1_21_.Utils
                         builder.AppendLine(
                             $"CREATE INDEX IF NOT EXISTS  \"idx_{tableNameRaw}_{colName}_geom\" ON \"{tableNameRaw}\" USING gist (\"{colName}\");");
                         
+                    }else if (map.IsJson)
+                    {
+                        builder.AppendLine(
+                            $"CREATE INDEX IF NOT EXISTS \"idx_{tableNameRaw}_{colName}_json\" ON \"{tableNameRaw}\" USING GIN (\"{colName}\");");
                     }
                     else
                     {
@@ -65,6 +69,15 @@ namespace ORM_1_21_.Utils
         private static string GetTypePg(MapColumnAttribute map)
         {
             if (map.TypeString != null) return map.TypeString;
+            if (map.IsInheritIGeoShape)
+            {
+                return "geometry";
+            }
+
+            if (map.IsJson)
+            {
+                return "jsonb";
+            }
 
             var type = UtilsCore.GetCoreType(map.PropertyType);
             if (type == null) return null;
