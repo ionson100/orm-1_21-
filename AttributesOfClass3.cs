@@ -20,7 +20,15 @@ namespace ORM_1_21_
             StringBuilder sb = new StringBuilder();
             foreach (BaseAttribute baseAttribute in list)
             {
-                sb.Append($"{baseAttribute.GetColumnName(Provider)}, ");
+                if (baseAttribute.IsInheritIGeoShape)
+                {
+                    sb.Append($"ST_AsText({baseAttribute.GetColumnName(Provider)}) as {baseAttribute.GetColumnName(Provider)}, ");
+                }
+                else
+                {
+                    sb.Append($"{baseAttribute.GetColumnName(Provider)}, ");
+                }
+                
             }
 
             return sb.ToString().Trim(' ', ',');
@@ -55,12 +63,18 @@ namespace ORM_1_21_
                     
 
                 }
-                else if (list[i].IsInheritIGeoShape)
+                else if (list[i].IsInheritIGeoShape)// todo geo
                 {
                    
-                     //var o= Activator.CreateInstance(list[i].PropertyType);
-                    // ((IGeoShape)o).GeoData=resGeoCore.ToString();
-                    SetValueE(name, list[i].PropertyName, d,FactoryGeo.CreateGeo(valCore.ToString()));
+                    if (valCore is string)
+                    { 
+                        SetValueE(name, list[i].PropertyName, d,FactoryGeo.CreateGeo(valCore.ToString()));
+                    }
+                    else
+                    {
+                        SetValueE(name, list[i].PropertyName, d,valCore);
+                    }
+                   
                 }
                 else
                 {

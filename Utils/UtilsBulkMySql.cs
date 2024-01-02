@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ORM_1_21_.geo;
 
 namespace ORM_1_21_.Utils
 {
@@ -61,10 +62,19 @@ namespace ORM_1_21_.Utils
 
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                 {
-                    var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
-                    var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    var str = GetValue(o, type);
-                    row.Append(str).Append(";");
+                    if (map.IsInheritIGeoShape)
+                    {
+                        var geoJson = ((IGeoShape)ob).GeoData;
+                        row.Append($"ST_GeomFromText('{geoJson}')").Append(";");
+                    }
+                    else
+                    {
+                        var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
+                        var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
+                        var str = GetValue(o, type);
+                        row.Append(str).Append(";");
+                    }
+                    
                 }
 
                 var s = row.ToString().Substring(0, row.ToString().LastIndexOf(";", StringComparison.Ordinal)) + "\n";
@@ -110,6 +120,10 @@ namespace ORM_1_21_.Utils
                         var json = JsonConvert.SerializeObject(o);
                         row.Append($"CAST('{json}' AS JSON)").Append(",");
 
+                    } else if (map.IsInheritIGeoShape)
+                    {
+                        var geoJson = ((IGeoShape)o).GeoData;
+                        row.Append($"ST_GeomFromText('{geoJson}')").Append(", ");
                     }
                     else
                     {

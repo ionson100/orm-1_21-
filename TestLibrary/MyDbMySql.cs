@@ -58,7 +58,28 @@ namespace TestLibrary
           return DbProviderFactory.Value;
       }
   }
-  public class MyDbMsSql : IOtherDataBaseFactory
+  public class MyDbPostgresGeo : IOtherDataBaseFactory
+  {
+      private static readonly Lazy<DbProviderFactory> DbProviderFactory =
+          new Lazy<DbProviderFactory>(() => Npgsql.NpgsqlFactory.Instance);
+      public ProviderName GetProviderName()
+      {
+          return ProviderName.PostgreSql;
+      }
+      public string GetConnectionString()
+      {
+          return "Server=localhost;Port=5432;Database=test_geo;User Id=postgres;Password=ion100312873;";
+      }
+
+      public DbProviderFactory GetDbProviderFactories()
+      {
+          //return Npgsql.NpgsqlFactory.Instance;
+
+
+          return DbProviderFactory.Value;
+      }
+  }
+    public class MyDbMsSql : IOtherDataBaseFactory
   {
       private static readonly Lazy<DbProviderFactory> DbProviderFactory = 
           new Lazy<DbProviderFactory>(() => System.Data.SqlClient.SqlClientFactory.Instance);

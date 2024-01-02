@@ -72,6 +72,11 @@ namespace ORM_1_21_.Utils
                 return "JSON";
             }
 
+            if (map.IsInheritIGeoShape)
+            {
+                return "GEOMETRY";
+            }
+
             var type = UtilsCore.GetCoreType(map.PropertyType);
 
             if (type == typeof(Guid))

@@ -8,10 +8,6 @@ namespace ORM_1_21_.geo
     public interface IGeoShape
     {
 
-        /// <summary>
-        /// 
-        /// </summary>
-        int Srid { get; set; }
 
         /// <summary>
         /// 

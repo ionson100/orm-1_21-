@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using ORM_1_21_.geo;
 using System.Linq;
+using System.Linq.Expressions;
 using Newtonsoft.Json;
 
 namespace ORM_1_21_
@@ -42,16 +43,57 @@ namespace ORM_1_21_
                     {
                         if (rtp.IsNotUpdateInsert) continue;
 
+
                         void Command(T obj, int ip, IDbCommand dbCommand)
                         {
+                            var o = GetValue.Value[rtp.PropertyName](obj);
                             if (rtp.IsJson)
                             {
-                                dbCommand.AddParameter($"{parName}{par}{ip}", JsonConvert.SerializeObject(GetValue.Value[rtp.PropertyName](obj)));
+                                if (o == null)
+                                {
+                                    dbCommand.AddParameter($"{parName}{par}{ip}", null);
+                                }
+                                else
+                                {
+                                    dbCommand.AddParameter($"{parName}{par}{ip}", JsonConvert.SerializeObject(GetValue.Value[rtp.PropertyName](obj)));
+                                }
+                                
                             }
                             else if (rtp.IsInheritIGeoShape)
                             {
+                                if (o == null)
+                                {
+                                    dbCommand.AddParameter($"{parName}{par}{ip}", null);
+                                }
+                                else
+                                {
+                                    switch (Provider)
+                                    {
+                                        case ORM_1_21_.ProviderName.MsSql:
+                                            throw new NotImplementedException();
+                                            //break;
+                                        case ORM_1_21_.ProviderName.MySql:
+                                        {
+                                            dbCommand.AddParameter($"{parName}{par}{ip}",
+                                                $"{((IGeoShape)o).GeoData}");
+                                            }
+                                            break;
+                                        case ORM_1_21_.ProviderName.PostgreSql:
+                                        {
+                                            dbCommand.AddParameter($"{parName}{par}{ip}",
+                                                $"{((IGeoShape)o).GeoData}");
+                                        }
+                                            break;
+                                        case ORM_1_21_.ProviderName.SqLite:
+                                            throw new NotImplementedException();
+                                            //break;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
+                                    
+                                    
+                                }
                                
-                                dbCommand.AddParameter($"{parName}{par}{ip}", $"SRID={((IGeoShape)GetValue.Value[rtp.PropertyName](obj)).Srid};{((IGeoShape)GetValue.Value[rtp.PropertyName](obj)).GeoData}");
                             }
                             else
                             { 
@@ -101,7 +143,15 @@ namespace ORM_1_21_
                            }
                            else
                            {
-                               dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), r);
+                               if (pra.IsInheritIGeoShape)
+                               {
+                                   dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), ((IGeoShape)r).GeoData.Trim());
+                               }
+                               else
+                               {
+                                   dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), r);
+                               }
+                               
                            }
                            
                        }
@@ -177,6 +227,17 @@ namespace ORM_1_21_
                           {
                               dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),
                                   JsonConvert.SerializeObject(GetValue.Value[pra.PropertyName](obj)));
+                          }else if (pra.IsInheritIGeoShape)
+                          {
+                              var o = GetValue.Value[pra.PropertyName](obj);
+                              if (o == null)
+                              {
+                                  dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)), null);
+                              }
+                              else
+                              {
+                                  dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),((IGeoShape)o).GeoData );
+                              }
                           }
                           else
                           {

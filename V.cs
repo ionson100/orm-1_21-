@@ -81,7 +81,7 @@ namespace ORM_1_21_
             return true;
         }
 
-        public static bool GeoST_Area(object o, int i, bool b)
+        public static bool GeoST_Area(object o)
         {
             return true;
         }

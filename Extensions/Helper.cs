@@ -491,6 +491,7 @@ namespace ORM_1_21_
         /// <returns>IEnumerableTResult</returns>
         public static IEnumerable<TResult> FreeSql<TResult>(this ISession ses, string sql, params object[] param)
         {
+            if(string.IsNullOrWhiteSpace(sql))  throw new ArgumentNullException(nameof(sql));
             var p = new V(sql);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));

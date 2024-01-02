@@ -235,10 +235,7 @@ namespace ORM_1_21_.geo
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public int Srid { get; set; } = 4326;
+        
 
         /// <summary>
         /// 

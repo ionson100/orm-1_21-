@@ -505,6 +505,7 @@ namespace ORM_1_21_.Linq
             catch (Exception ex)
             {
                 _session.Transactionale.isError = true;
+                MySqlLogger.Error(UtilsCore.GetStringSql(com),ex);
                 throw new Exception(ex.Message + Environment.NewLine + com.CommandText, ex);
             }
 

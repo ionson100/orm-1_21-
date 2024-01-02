@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ORM_1_21_.geo
@@ -289,6 +292,142 @@ namespace ORM_1_21_.geo
         public static IGeoShape CreateGeo(GeoType geoType, List<double[]> ds)
         {
             return new GeoObject(geoType, ds);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="geoJson"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
+        public static List<IGeoShape> GetGeometryFromGeoJson(string geoJson)
+        {
+            if (string.IsNullOrWhiteSpace(geoJson)) throw new ArgumentException("param geoJson is empty");
+            if (!geoJson.ToUpper().Contains("GeometryCollection".ToUpper()))
+            {
+                ORM_1_21_.geo.GeoJson json = JsonConvert.DeserializeObject<GeoJson>(geoJson);
+                if (json == null) throw new ArgumentException("geoJson parse error");
+                JArray geo = (JArray)json.geometry.coordinates;
+                string geoText = json.geometry.type.ToUpper();
+                return InnerPaceGeoJson(geoText, geo);
+            }
+            else
+            {
+                GeoJsonCollection json = JsonConvert.DeserializeObject<GeoJsonCollection>(geoJson);
+                if (json == null) throw new ArgumentException("geoJson parse error");
+                List<Geometry> geoList = json.geometries;
+                List<IGeoShape> list = new List<IGeoShape>();
+                foreach (var geometry in geoList)
+                {
+                    string geoText = geometry.type.ToUpper();
+                    JArray geo = (JArray)geometry.coordinates;
+                    list.AddRange(InnerPaceGeoJson(geoText, geo));
+                }
+                return list;
+
+            }
+
+            
+
+        }
+
+        private static List<IGeoShape> InnerPaceGeoJson(string geoText, JArray geo)
+        {
+
+            switch (geoText)
+            {
+                case "POINT":
+                    {
+
+                        double[] t = geo.Value<JArray>().ToObject<double[]>();
+                        {
+
+                            return new List<IGeoShape> { FactoryGeo.CreatePoint(t[0], t[1]) };
+
+                        }
+                    }
+                case "MULTIPOINT":
+                    {
+                        var t = geo.Value<JArray>().ToObject<List<double[]>>();
+                        {
+                            return new List<IGeoShape> { FactoryGeo.CreateGeo(GeoType.MultiPoint, t) };
+
+                        }
+                    }
+                case "LINESTRING":
+                    {
+                        var t = geo.Value<JArray>().ToObject<List<double[]>>();
+                        {
+                            return new List<IGeoShape> { FactoryGeo.CreateGeo(GeoType.LineString, t) };
+
+                        }
+                    }
+
+                case "MULTILINESTRING":
+                    {
+                        var t = geo.Value<JArray>().ToObject<List<List<double[]>>>();
+                        List<IGeoShape> list = new List<IGeoShape>();
+                        foreach (List<double[]> d in t)
+                        {
+                            list.Add(FactoryGeo.CreateGeo(GeoType.LineString, d));
+                        }
+
+                        {
+                            return new List<IGeoShape> { FactoryGeo.CreateMultiLineString(list.ToArray()) };
+
+                        }
+                    }
+
+                case "POLYGON":
+                    {
+                        List<List<double[]>> t = geo.Value<JArray>().ToObject<List<List<double[]>>>();
+                        {
+                            if (t.Count == 1)
+                            {
+                                return new List<IGeoShape> { FactoryGeo.CreateGeo(GeoType.Polygon, t.First()) };
+                            }
+
+                            List<double> list = new List<double>();
+                            foreach (double[] d in t[0])
+                            {
+                                list.Add(d[0]);
+                                list.Add(d[1]);
+                            }
+                            List<double> list2 = new List<double>();
+                            foreach (double[] d in t[1])
+                            {
+                                list2.Add(d[0]);
+                                list2.Add(d[1]);
+                            }
+                            return new List<IGeoShape> { FactoryGeo.CreatePolygonWithHole(list.ToArray(), list2.ToArray()) };
+
+
+                        }
+                    }
+
+                case "MULTIPOLYGON":
+                    {
+                        var t = geo.Value<JArray>().ToObject<List<List<List<double[]>>>>();
+                        List<IGeoShape> list = new List<IGeoShape>();
+                        foreach (List<List<double[]>> list1 in t)
+                        {
+                            foreach (List<double[]> d in t.First())
+                            {
+                                list.Add(FactoryGeo.CreateGeo(GeoType.Polygon, d));
+                            }
+                        }
+
+
+                        {
+
+                            return new List<IGeoShape> { FactoryGeo.CreateMultiPolygon(list.ToArray()) };
+
+                        }
+                    }
+            }
+
+            throw new Exception("Не поддерживается");
         }
 
 

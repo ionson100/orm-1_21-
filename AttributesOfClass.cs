@@ -478,8 +478,17 @@ namespace ORM_1_21_
                          .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
             {
                 if (pra.IsNotUpdateInsert) continue;
-                par.AppendFormat(" {0}.{1} = {3}p{2},", TableAttribute.Value.TableName(Provider),
-                    pra.GetColumnName(Provider), ++i, parName);
+                if (pra.IsInheritIGeoShape)
+                {
+                    par.AppendFormat(" {0}.{1} = ST_GeomFromText({3}p{2}),", TableAttribute.Value.TableName(Provider),
+                        pra.GetColumnName(Provider), ++i, parName);
+                }
+                else
+                {
+                    par.AppendFormat(" {0}.{1} = {3}p{2},", TableAttribute.Value.TableName(Provider),
+                        pra.GetColumnName(Provider), ++i, parName);
+                }
+                
             }
 
             var pk = PrimaryKeyAttribute.Value;
@@ -545,6 +554,9 @@ namespace ORM_1_21_
                 if (pra.IsJson)//todo geo
                 {
                     par.AppendFormat(" {0} = CAST({2}p{1} AS JSON),", pra.GetColumnName(Provider), ++i, parName);
+                }else if (pra.IsInheritIGeoShape)
+                {
+                    par.AppendFormat(" {0} = ST_GeomFromText({2}p{1}),", pra.GetColumnName(Provider), ++i, parName);
                 }
                 else
                 {
@@ -600,6 +612,8 @@ namespace ORM_1_21_
         public static string CreateCommandLimitForMySql(List<OneComposite> listOne, ProviderName providerName)
         {
             Provider = providerName;
+            var geoList = new HashSet<string>(listOne.Where(a => a.Operand == Evolution.ListGeo).Select(s => s.Body.Trim()));
+            var jsonList = new HashSet<string>(listOne.Where(a => a.Operand == Evolution.ListJson).Select(s => s.Body.Trim()));
             var si = SimpleSqlSelect(providerName);
             var sb = new StringBuilder();
             foreach (var oneComposite in listOne.Where(a => a.Operand == Evolution.Update))
@@ -608,20 +622,26 @@ namespace ORM_1_21_
                 var eee = ee.ToList().Split(2);
                 foreach (var s in eee)
                 {
+                    
                     var enumerable = s as string[] ?? s.ToArray();
+                    var col = enumerable.First().Trim();
+                    var par = enumerable.Last().Trim();
+
                     if (enumerable.Any())
                     {
-                        if (providerName == ORM_1_21_.ProviderName.PostgreSql && enumerable.First().StartsWith("(json)"))//todo geo
+                        if (jsonList.Contains(col))
                         {
-                            sb.AppendFormat(" {0} = CAST({1} AS JSON),", enumerable.First().Replace("(json)",string.Empty), enumerable.Last());
-                        }else if (providerName == ORM_1_21_.ProviderName.PostgreSql && enumerable.First().StartsWith("(geo)"))//todo geo
+                            sb.AppendFormat(" {0} = CAST({1} AS JSON),", col,  par);
+                        }
+                        else if (geoList.Contains(col))
                         {
-                            sb.AppendFormat(" {0} = ST_GeomFromText({1}),", enumerable.First().Replace("(geo)", string.Empty), enumerable.Last());
+                            sb.AppendFormat(" {0} = ST_GeomFromText({1}),", col, par);
                         }
                         else
                         {
-                            sb.AppendFormat(" {0} = {1},", enumerable.First(), enumerable.Last());
+                            sb.AppendFormat(" {0} = {1},", col, par);
                         }
+                        
                     }
                     
                     

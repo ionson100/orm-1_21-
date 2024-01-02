@@ -95,11 +95,23 @@ namespace ORM_1_21_
                     {
                         var t = ((NewExpression)ss).Arguments[i].Type;
                         var val = MethodFreeIndex(providerName, t, reader, i);
-                        if (t.GetInterfaces().Contains(typeof(IGeoShape)))
+                        if (UtilsCore.IsGeo(t))
                         {
-                            var o = Activator.CreateInstance(t);
-                            ((IGeoShape)o).GeoData=val.ToString();
-                            d[i]=o;
+                            if (val == null)
+                            {
+                                d[i] = null;
+                            }else if (val is string)
+                            {
+                                var o = new GeoObject();
+                                ((IGeoShape)o).GeoData = val.ToString();
+                                d[i] = o;
+                            }
+                            else
+                            {
+                                d[i] = val;
+                            }
+
+                            
                         }
                         else
                         {
@@ -231,10 +243,9 @@ namespace ORM_1_21_
             }
             var res = reader.GetValue(index);
 
-            if (type.GetInterfaces().Contains(typeof(IGeoShape)))
+            if (UtilsCore.IsGeo(type))
             {
-                var o = Activator.CreateInstance(type);
-                ((IGeoShape)o).GeoData = res.ToString();
+                var o = new GeoObject(res.ToString());
                 return o;
             }
 

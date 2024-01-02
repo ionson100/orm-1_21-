@@ -135,7 +135,22 @@ namespace ORM_1_21_.Linq
 
                 if (PingComposite(Evolution.Select))
                 {
-                    sbb.Append(listOne.First(a => a.Operand == Evolution.Select).Body);
+                    string value = listOne.First(a => a.Operand == Evolution.Select).Body;
+                    var d = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(s => s.Body);
+                    var d2 = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(s => s.Body);
+                    if (d.Any())
+                    {
+                        HashSet<string> hashSet=new HashSet<string>();
+                        foreach (string s in d)
+                        {
+                            if (hashSet.Contains(s) == false)
+                            {
+                                value = value.Replace(s, $"ST_AsText({s})");
+                                hashSet.Add(s);
+                            }
+                        }
+                    }
+                    sbb.Append(value);
                 }
                 else
                 {

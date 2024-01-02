@@ -52,7 +52,9 @@
         SelectJoin,
         SelectNewGroup,
         WhereGeo,
-        FromString
+        FromString,
+        ListGeo,
+        ListJson
     }
 
 }

@@ -109,14 +109,19 @@ namespace ORM_1_21_.Utils
                     else if (map.IsInheritIGeoShape)
                     {
                         var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
-                        IGeoShape shape = (IGeoShape)o;
-                      
-                        string data = $"ST_GeomFromText('{shape.GeoData}',{shape.Srid})";
-                        if (shape.Srid == 0)
+                        if (o == null)
                         {
-                            data = $"ST_GeomFromText('{shape.GeoData}')";
+                            row.Append("null").Append(",");
                         }
-                        row.Append(data).Append(",");
+                        else
+                        {
+                            IGeoShape shape = (IGeoShape)o;
+
+                            string data = $"ST_GeomFromText('{shape.GeoData}')";
+                          
+                            row.Append(data).Append(",");
+                        }
+                      
                     }
                     else
                     {

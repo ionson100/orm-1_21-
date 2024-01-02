@@ -4,11 +4,509 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using ORM_1_21_.geo;
+using Newtonsoft.Json;
+using ORM_1_21_.Extensions;
 
 // ReSharper disable All
 
 namespace TestLibrary
 {
+
+    public class ExeGeo
+    {
+        public static void Run()
+        {
+             RunnerGeoMysq();
+             RunnerGeoPos();
+
+            RunnerJsonPos();
+            RunnerJsonMySql();
+
+
+        }
+
+        public static void RunnerGeoPos()
+        {
+            using (var ses = Configure.GetSession<MyDbPostgresGeo>())
+            {
+                ses.DropTableIfExists<MyGeoTestPos>();
+                ses.TableCreate<MyGeoTestPos>();
+                MyGeoTestPos geoTestMysql = new MyGeoTestPos();
+                geoTestMysql.Name = "1";
+                geoTestMysql.MyGeoObject = FactoryGeo.CreatePoint(20, 30);
+                ses.Insert(geoTestMysql);
+
+                MyGeoTestPos geoTestMysql2 = new MyGeoTestPos();
+                geoTestMysql2.Name = "2";
+                geoTestMysql2.MyGeoObject = null;// FactoryGeo.CreatePoint(20, 30);
+                ses.InsertBulk(new List<MyGeoTestPos> { geoTestMysql2 });
+                
+                var ish = ses.Query<MyGeoTestPos>().Select(a => a.MyGeoObject).ToList();
+                var osh = ses.Query<MyGeoTestPos>().Select(a => new { ass = a.MyGeoObject, name = a.Name }).ToList();
+                
+                var list = ses.Query<MyGeoTestPos>().ToList();
+                var l1 = list.First();
+                l1.MyGeoObject =
+                    FactoryGeo.CreateGeo("LineString(1 1,2 2)");
+                ses.Update(l1);
+                ses.Query<MyGeoTestPos>().Update(a => new Dictionary<object, object>
+                {
+                    { a.MyGeoObject, FactoryGeo.CreatePoint(34, 56) },
+                    {a.Name,"alsk"}
+                });
+                 list = ses.Query<MyGeoTestPos>().ToList();
+                 var sql = $"select {ses.StarSql<MyGeoTestPos>()} from {ses.TableName<MyGeoTestPos>()}";
+                 var free = ses.FreeSql<MyGeoTestPos>(sql);
+
+                 #region MyRegion
+
+                 var pol = FactoryGeo.CreateLineString(new double[] { 1, 1, 2, 2, 3, 4 });
+                  var  str=pol.ST_AsGeoJSON(ses);
+                  var ss=ses.Query<MyGeoTestPos>().GeoST_GeometryType(a => a.MyGeoObject,GeoType.Point).ToList();
+
+                 #endregion
+
+
+                #region WhereIn
+
+                List<TestOn> listOn = new List<TestOn>
+              {
+                new TestOn() { Age = 23, Name = "23",Guid = new Guid("b873c280-62e2-46b2-993c-67444bdb5868"),MyEnum = MyEnum.First,DateTime = new DateTime(2023,12,23)},
+                new TestOn() { Age = 24, Name = "24",Guid = new Guid("b873c280-62e2-46b2-993c-67444bdb5868") },
+                new TestOn() { Age = 25, Name = "25" ,Guid = new Guid("b873c280-62e2-46b2-993c-67444bdb5868")},
+                new TestOn() { Age = null, Name = "none" }
+
+            };
+                ses.InsertBulk(listOn);
+                var resList = ses.Query<TestOn>().
+                    WhereNotIn(a => a.DateTime, new DateTime(2023, 12, 23))
+                    .Where(s => s.Name != null).WhereIn(a => a.Age, 25, 24).ToList();
+
+                #endregion
+
+
+                #region Point
+
+                var gs = FactoryGeo.CreatePoint(75, 30);
+                var gs1 = FactoryGeo.CreatePoint(new GeoPoint { Latitude = 75, Longitude = 30 });
+                var gs2 = FactoryGeo.CreatePoint("POINT(75 30)");
+                List<MyGeoTestPos> list1 = new List<MyGeoTestPos>
+            {
+                new  MyGeoTestPos() { Name = "p1", MyGeoObject = gs },
+                new  MyGeoTestPos() { Name = "p2", MyGeoObject = gs1 },
+                new  MyGeoTestPos() { Name = "p3", MyGeoObject = gs2 }
+            };
+                ses.InsertBulk(list1);
+                var sasList = ses.Query<MyGeoTestPos>().ToList();
+                var pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.Point);
+                byte[] d = pF.MyGeoObject.ST_GeogFromText(ses);
+                var pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
+                var res = FactoryGeo.GetGeometryFromGeoJson(pJson);
+
+
+                #endregion
+
+                #region MultiPoint
+
+                var mp = FactoryGeo.CreateMultiPoint(new GeoPoint { Latitude = 30, Longitude = 40 }, new GeoPoint { Latitude = 31, Longitude = 41 });
+                var mp2 = FactoryGeo.CreateMultiPoint(FactoryGeo.CreatePoint(30, 40), FactoryGeo.CreatePoint(31, 32));
+                var mp3 = FactoryGeo.CreateMultiPoint("MultiPoint ((30 40), (31 32))");
+                list1 = new List<MyGeoTestPos>()
+            {
+                new MyGeoTestPos { Name = "1", MyGeoObject = mp },
+                new MyGeoTestPos { Name = "2", MyGeoObject = mp2 },
+                new MyGeoTestPos { Name = "3", MyGeoObject = mp3 }
+            };
+                ses.InsertBulk(list1);
+                sasList = ses.Query<MyGeoTestPos>().ToList();
+                pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.MultiPoint);
+                d = pF.MyGeoObject.ST_GeogFromText(ses);
+                pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
+                res = FactoryGeo.GetGeometryFromGeoJson(pJson);
+
+
+                #endregion
+
+                #region Polygon
+
+                var p0 = FactoryGeo.CreatePolygon(30, 40, 25, 40, 25, 60, 30, 60, 30, 40);
+                var p1 = FactoryGeo.CreatePolygon("POLYGON((30 40, 25 40, 25 60, 30 60, 30 40))");
+                var p2 = FactoryGeo.CreatePolygon(
+                    new GeoPoint { Latitude = 30, Longitude = 40 },
+                    new GeoPoint { Latitude = 25, Longitude = 40 },
+                    new GeoPoint { Latitude = 25, Longitude = 60 },
+                    new GeoPoint { Latitude = 30, Longitude = 60 },
+                    new GeoPoint { Latitude = 30, Longitude = 40 }
+                    );
+                list1 = new List<MyGeoTestPos>()
+            {
+                new MyGeoTestPos { Name = "1", MyGeoObject = p0 },
+                new MyGeoTestPos { Name = "2", MyGeoObject = p1 },
+                new MyGeoTestPos { Name = "3", MyGeoObject = p2 }
+            };
+                ses.InsertBulk(list1);
+                sasList = ses.Query<MyGeoTestPos>().ToList();
+                pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.Polygon);
+                d = pF.MyGeoObject.ST_GeogFromText(ses);
+                pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
+                res = FactoryGeo.GetGeometryFromGeoJson(pJson);
+
+
+                #endregion
+
+                #region MultiPolygon
+
+                var mp0 = FactoryGeo.CreateMultiPolygon("MULTIPOLYGON(((10 30,30 30,30 10,10 10,10 30)))");
+                var mp1 = FactoryGeo.CreateMultiPolygon(FactoryGeo.CreatePolygon(10, 30, 30, 30, 30, 10, 10, 10, 10, 30));
+                list1 = new List<MyGeoTestPos>()
+            {
+                new MyGeoTestPos { Name = "1", MyGeoObject = mp0 },
+                new MyGeoTestPos { Name = "2", MyGeoObject = mp1 },
+
+            };
+                ses.InsertBulk(list1);
+                sasList = ses.Query<MyGeoTestPos>().ToList();
+                pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.MultiPolygon);
+                d = pF.MyGeoObject.ST_GeogFromText(ses);
+                pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
+                res = FactoryGeo.GetGeometryFromGeoJson(pJson);
+                #endregion
+
+                #region LineString
+
+                var ls = FactoryGeo.CreateLineString(10, 30, 30, 30, 30, 10, 10, 10);
+                var ls1 = FactoryGeo.CreateLineString("LINESTRING (10 30, 30 30, 30 10,  10  10 )");
+                var ls2 = FactoryGeo.CreateLineString(new GeoPoint(10, 30), new GeoPoint(30, 30), new GeoPoint(30, 10), new GeoPoint(10, 10));
+                list1 = new List<MyGeoTestPos>()
+            {
+                new MyGeoTestPos { Name = "1", MyGeoObject = ls },
+                new MyGeoTestPos { Name = "2", MyGeoObject = ls1 },
+                new MyGeoTestPos { Name = "2", MyGeoObject = ls2 },
+
+            };
+                ses.InsertBulk(list1);
+                sasList = ses.Query<MyGeoTestPos>().ToList();
+                pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.LineString);
+                d = pF.MyGeoObject.ST_GeogFromText(ses);
+                pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
+                res = FactoryGeo.GetGeometryFromGeoJson(pJson);
+                #endregion
+
+                #region MultiLineString
+
+                var mls1 = FactoryGeo.CreateMultiLineString("MULTILINESTRING  ( ( 0 0,1 1, 1 2),  (2 3,3 2,5 4) )");
+                var mls2 = FactoryGeo.CreateMultiLineString(FactoryGeo.CreateLineString(0, 0, 1, 1, 1, 2),
+                    FactoryGeo.CreateLineString(2, 3, 3, 2, 5, 4));
+                list1 = new List<MyGeoTestPos>()
+            {
+                new MyGeoTestPos { Name = "1", MyGeoObject = mls1 },
+                new MyGeoTestPos { Name = "2", MyGeoObject = mls2 },
+
+            };
+                ses.InsertBulk(list1);
+                sasList = ses.Query<MyGeoTestPos>().ToList();
+                pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.MultiLineString);
+                d = pF.MyGeoObject.ST_GeogFromText(ses);
+                pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
+                res = FactoryGeo.GetGeometryFromGeoJson(pJson);
+                #endregion
+
+                #region PolygonWithHole
+
+                var ph1 = FactoryGeo.CreatePolygonWithHole(
+                    "POLYGON ( (0 0, 10 0, 10 10, 0 10, 0 0) ,( 1 1, 1 2, 2 2, 2 1, 1 1) )");
+                var ph2 = FactoryGeo.CreatePolygonWithHole(new Double[] { 0, 0, 10, 0, 10, 10, 0, 10, 0, 0 },
+                    new double[] { 1, 1, 1, 2, 2, 2, 2, 1, 1, 1 });
+                var ph3 = FactoryGeo.CreatePolygonWithHole(FactoryGeo.CreatePolygon(0, 0, 10, 0, 10, 10, 0, 10, 0, 0),
+                    FactoryGeo.CreatePolygon(1, 1, 1, 2, 2, 2, 2, 1, 1, 1));
+
+                list1 = new List<MyGeoTestPos>()
+            {
+                new MyGeoTestPos { Name = "1", MyGeoObject = ph1 },
+                new MyGeoTestPos { Name = "2", MyGeoObject = ph2 },
+                new MyGeoTestPos { Name = "2", MyGeoObject = ph3 },
+
+            };
+                ses.InsertBulk(list1);
+                sasList = ses.Query<MyGeoTestPos>().ToList();
+                pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.PolygonWithHole);
+                d = pF.MyGeoObject.ST_GeogFromText(ses);
+                pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
+                res = FactoryGeo.GetGeometryFromGeoJson(pJson);
+
+                #endregion
+
+                #region GeometryCollection
+
+                var col1 = FactoryGeo.CreateGeometryCollection("GEOMETRYCOLLECTION ( POINT(2 3), LINESTRING(2 3, 3 4))");
+                var col2 = FactoryGeo.CreateGeometryCollection(gs, mp, p0, mp0, ls, mls1, ph1);
+
+
+                list1 = new List<MyGeoTestPos>()
+            {new MyGeoTestPos { Name = "2", MyGeoObject = col2 },
+                new MyGeoTestPos { Name = "1", MyGeoObject = col1 },
+
+
+
+            };
+                ses.InsertBulk(list1);
+                sasList = ses.Query<MyGeoTestPos>().ToList();
+                pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.GeometryCollection);
+                d = pF.MyGeoObject.ST_GeogFromText(ses);
+                pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
+                res = FactoryGeo.GetGeometryFromGeoJson(pJson);
+                #endregion
+
+                var ss1 = ses.Query<MyGeoTestPos>().GeoST_GeometryType(a => a.MyGeoObject, GeoType.Point).ToList();
+                ss1 = ses.Query<MyGeoTestPos>().GeoST_GeometryType(a => a.MyGeoObject, GeoType.LineString).ToList();
+                ss1 = ses.Query<MyGeoTestPos>().GeoST_Intersects(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
+                ss1 = ses.Query<MyGeoTestPos>().GeoST_Contains(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
+                ss1 = ses.Query<MyGeoTestPos>().GeoST_Disjoint(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
+                ss1 = ses.Query<MyGeoTestPos>().GeoST_Within(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
+                ss1 = ses.Query<MyGeoTestPos>().GeoST_IsValid(a => a.MyGeoObject).ToList();
+                ss1 = ses.Query<MyGeoTestPos>().GeoST_Contains(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
+
+
+
+            }
+
+        }
+        public static void RunnerGeoMysq()
+        {
+            using (var ses = Configure.GetSession<MyDbMySql>())
+            {
+                ses.DropTableIfExists<MyGeoTestMysql>();
+                ses.TableCreate<MyGeoTestMysql>();
+                MyGeoTestMysql geoTestMysql=new MyGeoTestMysql();
+                geoTestMysql.Name = "1";
+                geoTestMysql.MyGeoObject = FactoryGeo.CreateGeo("MULTIPOINT ( (0 0), (1 2) )");
+                ses.Insert(geoTestMysql);
+                MyGeoTestMysql geoTestMysql2 = new MyGeoTestMysql();
+                geoTestMysql2.Name = "2";
+                geoTestMysql2.MyGeoObject = FactoryGeo.CreatePoint(20, 30);
+                ses.InsertBulk(new List<MyGeoTestMysql>{geoTestMysql2});
+              
+                var ish=ses.Query<MyGeoTestMysql>().Select(a=>a.MyGeoObject).ToList();
+                var osh = ses.Query<MyGeoTestMysql>().Select(a => new { ass=a.MyGeoObject, name=a.Name}).ToList();
+              
+               var list = ses.Query<MyGeoTestMysql>().ToList();
+               var l1 = list.First();
+               l1.MyGeoObject =
+                   FactoryGeo.CreateGeo("LineString(1 1,2 2)");
+               ses.Update(l1);
+              
+               ses.Query<MyGeoTestMysql>().Update(a => new Dictionary<object, object>
+               {
+                   { a.MyGeoObject, FactoryGeo.CreatePoint(34, 56) },
+                   {a.Name,"alsk"}
+               });
+               list = ses.Query<MyGeoTestMysql>().ToList();
+                var sql = $"select {ses.StarSql<MyGeoTestMysql>()} from {ses.TableName<MyGeoTestMysql>()}";
+                var free = ses.FreeSql<MyGeoTestMysql>(sql);
+                #region MyRegion
+
+                var pol = FactoryGeo.CreateLineString(new double[] { 1, 1, 2, 2, 3, 4 });
+                //object s=pol.ST_GeogFromText(ses);
+                //var str = pol.ST_AsGeoJSON(ses);
+                var ss = ses.Query<MyGeoTestMysql>().GeoST_GeometryType(a => a.MyGeoObject, GeoType.Point).ToList();
+                 ss = ses.Query<MyGeoTestMysql>().GeoST_GeometryType(a => a.MyGeoObject, GeoType.LineString).ToList();
+                 ss = ses.Query<MyGeoTestMysql>().GeoST_Intersects(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
+                 ss = ses.Query<MyGeoTestMysql>().GeoST_Contains(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
+                 ss = ses.Query<MyGeoTestMysql>().GeoST_Disjoint(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
+                 ss = ses.Query<MyGeoTestMysql>().GeoST_Within(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
+                 ss = ses.Query<MyGeoTestMysql>().GeoST_IsValid(a => a.MyGeoObject).ToList();
+                 ss = ses.Query<MyGeoTestMysql>().GeoST_Contains(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
+
+
+
+
+                #endregion
+
+
+            }
+
+        }
+
+        public static void RunnerJsonPos()
+        {
+            using (var ses = Configure.GetSession<MyDbPostgres>())
+            {
+                ses.DropTableIfExists<JsonPos>();
+                ses.TableCreate<JsonPos>();
+                JsonPos jsonPos = new JsonPos
+                {
+                    Name = "1'", Ion100 = new Ion100 { Age = 10, Name = "10" }
+                };
+                ses.Insert(jsonPos);
+                JsonPos jsonPos2 = new JsonPos
+                {
+                    Name = "2222'",
+                    Ion100 = new Ion100 { Age = 20, Name = "20" }
+                };
+                ses.InsertBulk(new List<JsonPos> { jsonPos2 });
+                
+                var list=ses.Query<JsonPos>().ToList();
+                var pos = list.First();
+                pos.Name = "123";
+                pos.Ion100 = new Ion100 { Age = 100, Name = "100" };
+                ses.Update(pos);
+
+                var t = new Ion100 { Age = 120, Name = "120" };
+                ses.Query<JsonPos>().Update(a => new Dictionary<object, object>
+                {
+                    { a.Name, "name" },
+                    { a.Ion100, t }
+                });
+                var s = ses.Query<JsonPos>().Select(a =>  a.Ion100).ToList();
+                var sn=ses.Query<JsonPos>().Select(a=>new {a.Ion100,n=a.Name}).ToList();
+                list = ses.Query<JsonPos>().ToList();
+
+                var sql = $"select {ses.StarSql<JsonPos>()} from {ses.TableName<JsonPos>()}";
+                list = ses.FreeSql<JsonPos>(sql).ToList();
+            }
+        }
+
+        public static void RunnerJsonMySql()
+        {
+            using (var ses = Configure.GetSession<MyDbPostgres>())
+            {
+                ses.DropTableIfExists<JsonMySql>();
+                ses.TableCreate<JsonMySql>();
+                JsonMySql jsonPos = new JsonMySql
+                {
+                    Name = "1'",
+                    Ion100 = new Ion100 { Age = 10, Name = "10" }
+                };
+                ses.Insert(jsonPos);
+                JsonMySql jsonPos2 = new JsonMySql
+                {
+                    Name = "2222'",
+                    Ion100 = new Ion100 { Age = 20, Name = "20" }
+                };
+                ses.InsertBulk(new List<JsonMySql> { jsonPos2 });
+
+                var list = ses.Query<JsonMySql>().ToList();
+                var pos = list.First();
+                pos.Name = "123";
+                pos.Ion100 = new Ion100 { Age = 100, Name = "100" };
+                ses.Update(pos);
+
+                var t = new Ion100 { Age = 120, Name = "120" };
+                ses.Query<JsonMySql>().Update(a => new Dictionary<object, object>
+                {
+                    { a.Name, "name" },
+                    { a.Ion100, t }
+                });
+                var s = ses.Query<JsonMySql>().Select(a => a.Ion100).ToList();
+                var sn = ses.Query<JsonMySql>().Select(a => new { a.Ion100, n = a.Name }).ToList();
+                list = ses.Query<JsonMySql>().ToList();
+                var sql = $"select {ses.StarSql<JsonMySql>()} from {ses.TableName<JsonMySql>()}";
+                list = ses.FreeSql<JsonMySql>(sql).ToList();
+            }
+        }
+
+    }
+    [MapTable]
+    public class TestOn
+    {
+        [MapPrimaryKey(Generator.Native)]
+        public int Id { get; set; }
+        [MapColumn("name")]
+        public string Name { get; set; }
+        [MapColumn("age")]
+        public int? Age { get; set; }
+        [MapColumn]
+        public Guid Guid { get; set; }
+        [MapColumn]
+        public MyEnum? MyEnum { get; set; }
+
+        [MapColumn]
+        public DateTime DateTime { get; set; }
+    }
+    class Ion100
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+    }
+
+    [MapUsagePersistent]
+    [MapTable("myjson")]
+    class JsonPos
+    {
+        [MapPrimaryKey("id", Generator.Assigned)]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        [MapIndex]
+        [MapColumn]
+        [MapColumnTypeJson]
+        public Ion100 Ion100 { get; set; }
+
+        [MapColumn]
+        public string Name { get; set; } = "name";
+
+    }
+    [MapUsagePersistent]
+    [MapTable("myjson_my")]
+    class JsonMySql
+    {
+        [MapPrimaryKey("id", Generator.Assigned)]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        //[MapIndex]
+        [MapColumn]
+        [MapColumnTypeJson]
+        public Ion100 Ion100 { get; set; }
+
+        [MapColumn]
+        public string Name { get; set; } = "name";
+
+    }
+
+    [MapUsagePersistent]
+    [MapTable("myjson")]
+    class JsonMysql
+    {
+        [MapPrimaryKey("id", Generator.Assigned)]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        //[MapIndex]
+        [MapColumn]
+        [MapColumnTypeJson]
+        public Ion100 Ion100 { get; set; }
+
+        [MapColumn]
+        public string Name { get; set; } = "name";
+
+    }
+
+    [MapTable("test_geo")]
+    class MyGeoTestPos
+    {
+        [MapPrimaryKey("id", Generator.Assigned)]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        [MapColumn("name")]
+        public string Name { get; set; }
+
+        //[MapColumnType("geometry(Geometry,4326)")]
+        //[MapIndex]
+        [MapColumn("my_geo")]
+        public IGeoShape MyGeoObject { get; set; }
+    }
+
+    [MapTable("test_geo")]
+    class MyGeoTestMysql
+    {
+        [MapPrimaryKey("id", Generator.Assigned)]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        [MapColumn("name")]
+        public string Name { get; set; }
+
+        //[MapColumnType("geometry(Geometry,4326)")]
+        //[MapIndex]
+        
+        [MapColumn("my_geo")]
+        public IGeoShape MyGeoObject { get; set; }
+    }
+
+
     public class Execute
     {
         private static void Running(int i)

@@ -52,7 +52,11 @@ namespace TestPostgres
             //await TestSelector.Run();
             //InsertUpdate.Run();
             //await ExecAdd.Run();
-            //Console.ReadKey();
+            
+            ExeGeo.Run();
+            Console.WriteLine("finish");
+            Console.ReadKey();
+
 
 
 
@@ -61,29 +65,7 @@ namespace TestPostgres
             ISession session = Configure.Session;
             {
 
-                session.DropTableIfExists<Order1>();
-                session.TableCreate<Order1>();
-
-                List<Order1> list = new List<Order1>();
-                list.Add(new Order1());
-                //list.Add(new Order1() { Number = 2 });
-                //list.Add(new Order1() { Number = 3 });
-                //session.InsertBulk(list);
-                if (ProviderNamee == ProviderName.MySql)
-                {
-                    string file = "C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Data\\test\\aassas.csv";
-                    session.CreateCsvFile(list, file, ";");
-                    var res = session.InsertBulkFromFile<Order1>("aassas.csv", ";");
-                    var l = session.Query<Order1>().ToList();
-                }
-                else
-                {
-                    string file = Path.Combine("C:\\aassas.csv1");//Environment.CurrentDirectory,
-                    session.CreateCsvFile(list, file, "\t");
-                    var res = session.InsertBulkFromFile<Order1>(file, "\t");
-                    var l = session.Query<Order1>().ToList();
-                }
-
+               
 
 
 
