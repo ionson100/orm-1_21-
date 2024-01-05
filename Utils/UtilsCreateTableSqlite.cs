@@ -80,6 +80,10 @@ namespace ORM_1_21_.Utils
         private static string GetTypeColumn(MapColumnAttribute map, bool isBlob)
         {
             if (map.TypeString != null) return map.TypeString;
+            if (map.IsJson)
+            {
+                return "JSON";
+            }
 
             var type = UtilsCore.GetCoreType(map.PropertyType);
 

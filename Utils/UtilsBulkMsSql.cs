@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json;
+using ORM_1_21_.geo;
 
 namespace ORM_1_21_.Utils
 {
@@ -163,9 +165,21 @@ namespace ORM_1_21_.Utils
                 foreach (var column in listDal)
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, column.PropertyName, ob);
-                    Type type = AttributesOfClass<T>.PropertyInfoList.Value[column.PropertyName].PropertyType;
-                    string str = rt.GetValue(o, type);
-                    partBuilder.Append(str).Append(", ");
+                    if (column.IsInheritIGeoShape)
+                    {
+                        partBuilder.Append($"geometry::STGeomFromText('{((IGeoShape)o).GeoData}', 0)").Append(", ");
+                    } else if (column.IsJson)
+                    {
+                        partBuilder.Append($"'{JsonConvert.SerializeObject(o)}'").Append(", ");
+                    }
+                    else
+                    {
+                       
+                        Type type = AttributesOfClass<T>.PropertyInfoList.Value[column.PropertyName].PropertyType;
+                        string str = rt.GetValue(o, type);
+                        partBuilder.Append(str).Append(", ");
+                    }
+                   
                 }
 
                 string b = partBuilder.ToString().Trim(' ', ',') + "),";

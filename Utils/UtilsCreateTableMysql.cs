@@ -84,7 +84,7 @@ namespace ORM_1_21_.Utils
                 return isBlob ? "BINARY(16)" : "VARCHAR(36)";
             }
 
-            if (type == typeof(long))//)
+            if (type == typeof(long))
             {
                 return "BIGINT";
             }

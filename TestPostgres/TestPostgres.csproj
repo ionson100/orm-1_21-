@@ -199,6 +199,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="bin\Debug\1.png" />
+    <Content Include="bin\Debug\mod_spatialite.dll" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">

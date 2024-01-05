@@ -450,11 +450,26 @@ namespace ORM_1_21_
                     UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
                         pk.GetColumnName(providerName)));
                 foreach (var a in AttributeDalList.Value)
-                    sb.AppendFormat(" {0}.{1} AS {2},",
-                        TableAttribute.Value.TableName(providerName),
-                        a.GetColumnName(providerName),
-                        UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
-                            a.GetColumnName(providerName)));
+                {
+                    if (a.IsInheritIGeoShape && Provider == ORM_1_21_.ProviderName.MsSql)
+                    {
+                        sb.AppendFormat(" {0}.{1}.STAsText() AS {2},",
+                            TableAttribute.Value.TableName(providerName),
+                            a.GetColumnName(providerName),
+                            UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
+                                a.GetColumnName(providerName)));
+                    }
+                    else
+                    {
+                        sb.AppendFormat(" {0}.{1} AS {2},",
+                            TableAttribute.Value.TableName(providerName),
+                            a.GetColumnName(providerName),
+                            UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
+                                a.GetColumnName(providerName)));
+                    }
+                   
+                }
+                   
             }
 
             sb = new StringBuilder(sb.ToString().Trim(','));
@@ -480,8 +495,17 @@ namespace ORM_1_21_
                 if (pra.IsNotUpdateInsert) continue;
                 if (pra.IsInheritIGeoShape)
                 {
-                    par.AppendFormat(" {0}.{1} = ST_GeomFromText({3}p{2}),", TableAttribute.Value.TableName(Provider),
-                        pra.GetColumnName(Provider), ++i, parName);
+                    if (Provider == ORM_1_21_.ProviderName.MsSql)
+                    {
+                        par.AppendFormat(" {0}.{1} = geometry::STGeomFromText({3}p{2},0),", TableAttribute.Value.TableName(Provider),
+                            pra.GetColumnName(Provider), ++i, parName);
+                    }
+                    else
+                    {
+                        par.AppendFormat(" {0}.{1} = ST_GeomFromText({3}p{2}),", TableAttribute.Value.TableName(Provider),
+                            pra.GetColumnName(Provider), ++i, parName);
+                    }
+                    
                 }
                 else
                 {
@@ -553,7 +577,15 @@ namespace ORM_1_21_
                 if (pra.IsNotUpdateInsert) continue;
                 if (pra.IsJson)//todo geo
                 {
-                    par.AppendFormat(" {0} = CAST({2}p{1} AS JSON),", pra.GetColumnName(Provider), ++i, parName);
+                    if (Provider == ORM_1_21_.ProviderName.SqLite)
+                    {
+                        par.AppendFormat(" {0} = {2}p{1},", pra.GetColumnName(Provider), ++i, parName);
+                    }
+                    else
+                    {
+                        par.AppendFormat(" {0} = CAST({2}p{1} AS JSON),", pra.GetColumnName(Provider), ++i, parName);
+                    }
+                   
                 }else if (pra.IsInheritIGeoShape)
                 {
                     par.AppendFormat(" {0} = ST_GeomFromText({2}p{1}),", pra.GetColumnName(Provider), ++i, parName);
@@ -631,7 +663,15 @@ namespace ORM_1_21_
                     {
                         if (jsonList.Contains(col))
                         {
-                            sb.AppendFormat(" {0} = CAST({1} AS JSON),", col,  par);
+                            if (Provider == ORM_1_21_.ProviderName.SqLite)
+                            {
+                                 sb.AppendFormat(" {0} = {1},", col, par);
+                            }
+                            else
+                            {
+                                sb.AppendFormat(" {0} = CAST({1} AS JSON),", col, par);
+                            }
+                            
                         }
                         else if (geoList.Contains(col))
                         {
@@ -671,18 +711,30 @@ namespace ORM_1_21_
         {
             Provider = providerName;
             var si = SimpleSqlSelect(providerName);
-
-
+            var geoList = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(a => a.Body.Trim());
+            var list = geoList as string[] ?? geoList.ToArray();
             var r = new StringBuilder();
             foreach (var oneComposite in listOne.Where(a => a.Operand == Evolution.Update))
             {
+                
                 var ee = UtilsCore.MySplit(oneComposite.Body);
-                //  var eee = ee.Split(2).ToList();
+               
                 foreach (var s in ee.Split(2))
                 {
                     var enumerable = s as string[] ?? s.ToArray();
                     if (enumerable.ToList().Any())
-                        r.AppendFormat(" {0} = {1},", enumerable.First(), enumerable.Last());
+                    {
+                        if(list.Contains(enumerable.First().Trim()))
+                        {
+                            r.AppendFormat(" {0} = geometry::STGeomFromText({1},0),", enumerable.First(), enumerable.Last());
+                        }
+                        else
+                        {
+                            r.AppendFormat(" {0} = {1},", enumerable.First(), enumerable.Last());
+                        }
+                       
+                    }
+                        
                 }
             }
 
@@ -836,11 +888,27 @@ namespace ORM_1_21_
                     sb.AppendFormat("{0}.{1},", TableAttribute.Value.TableName(Provider), rtp.GetColumnName(Provider));
                 if (rtp.IsJson)
                 {
-                    values.AppendFormat("CAST({0}{1}{2} AS json),", parName, par, ++i);//todo geo
+                    if (Provider == ORM_1_21_.ProviderName.SqLite|| Provider == ORM_1_21_.ProviderName.MsSql)
+                    {
+                        values.AppendFormat("{0}{1}{2},", parName, par, ++i);
+                    }
+                    else
+                    {
+                        values.AppendFormat("CAST({0}{1}{2} AS json),", parName, par, ++i);//todo geo
+                    }
+                    
                 }
                 else if (rtp.IsInheritIGeoShape)
                 {
-                    values.AppendFormat("ST_GeomFromText({0}{1}{2}),", parName, par, ++i);
+                    if (Provider == ORM_1_21_.ProviderName.MsSql)
+                    {
+                        values.AppendFormat("geometry::STGeomFromText({0}{1}{2},0),", parName, par, ++i);
+                    }
+                    else
+                    {
+                        values.AppendFormat("ST_GeomFromText({0}{1}{2}),", parName, par, ++i);
+                    }
+                    
                 }
                 else
                 {

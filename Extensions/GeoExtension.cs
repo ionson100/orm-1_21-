@@ -44,6 +44,7 @@ namespace ORM_1_21_.Extensions
         /// <returns></returns>
         public static string GeoST_Buffer(this ISession session, IGeoShape shape, int radius, string bufferStyleParameters=null)
         {
+           
             Check.NotNull(shape, nameof(shape));
             Check.NotNull(session, nameof(session));
             string adding = string.Empty;
@@ -57,15 +58,24 @@ namespace ORM_1_21_.Extensions
             return (string)p;
         }
 
+
+
+
+
         /// <summary>
         /// Returns a polygon built from the specified linestring and SRID.
         /// </summary>
         /// <param name="session">Current session</param>
         /// <param name="lineString">String LINESTRING as LINESTRING(75.15 29.53,77 29,77.6 29.5, 75.15 29.53)</param>
-        /// <param name="srid">The Spatial Reference System Identifier </param>
+        /// <param name="srid">The Spatial Reference System Identifier, default 4326 </param>
         /// <returns></returns>
         public static string GeoST_Polygon(this ISession session, string lineString, int srid = 4326)
         {
+            ProviderName providerName = session.ProviderName;
+            if (providerName != ProviderName.PostgreSql)
+            {
+                throw new Exception("Only for PostgreSql");
+            }
             Check.NotNull(lineString, nameof(lineString));
             Check.NotNull(session, nameof(session));
             string
@@ -88,6 +98,11 @@ namespace ORM_1_21_.Extensions
         /// <returns> double sqft</returns>
         public static double GeoST_AreaAsSqFt(this ISession session, IGeoShape o,bool useSpheroid = true)
         {
+            ProviderName providerName = session.ProviderName;
+            if (providerName != ProviderName.PostgreSql)
+            {
+                throw new Exception("Only for PostgreSql");
+            }
             Check.NotNull(o, nameof(o));
             Check.NotNull(session, nameof(session));
             string
@@ -114,6 +129,11 @@ namespace ORM_1_21_.Extensions
         /// <returns> double sqm</returns>
         public static double GeoST_AreaAsSqM(this ISession session, IGeoShape o, bool useSpheroid = true)
         {
+            ProviderName providerName = session.ProviderName;
+            if (providerName != ProviderName.PostgreSql)
+            {
+                throw new Exception("Only for PostgreSql");
+            }
             Check.NotNull(o, nameof(o));
             Check.NotNull(session, nameof(session));
             string
@@ -123,6 +143,21 @@ namespace ORM_1_21_.Extensions
                 sql = $" SELECT ST_Area('{o.GeoData}', false)*POWER(0.3048,2);";
             }
 
+            var p = session.ExecuteScalar(sql);
+            return (double)p;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="o"></param>
+        /// <returns></returns>
+        public static double GeoST_Area(this ISession session, IGeoShape o)
+        {
+            
+            Check.NotNull(o, nameof(o));
+            Check.NotNull(session, nameof(session));
+            string sql = $" select ST_Area(ST_GeomFromText('{o.GeoData}'))";
             var p = session.ExecuteScalar(sql);
             return (double)p;
         }
@@ -138,6 +173,11 @@ namespace ORM_1_21_.Extensions
         /// <returns>Result as double (meters)</returns>
         public static double GeoST_Distance(this ISession session, IGeoShape o1, IGeoShape o2)
         {
+            ProviderName providerName = session.ProviderName;
+            if (providerName != ProviderName.PostgreSql)
+            {
+                throw new Exception("Only for PostgreSql");
+            }
             Check.NotNull(o1, nameof(o1));
             Check.NotNull(o2, nameof(o2));
             Check.NotNull(session, nameof(session));
@@ -157,7 +197,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(session, nameof(session));
             Check.NotNull(o, nameof(o));
 
-            var p = session.ExecuteScalar($"SELECT ST_IsSimple('{o.GeoData}');");
+            var p = session.ExecuteScalar($"SELECT ST_IsSimple(ST_GeomFromText('{o.GeoData}'));");
             return (bool)p;
         }
 
@@ -174,7 +214,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(session, nameof(session));
             Check.NotNull(o1, nameof(o1));
             Check.NotNull(o2, nameof(o2));
-            var p = session.ExecuteScalar($"SELECT ST_IsSimple('{o1.GeoData}','{o2.GeoData}');");
+            var p = session.ExecuteScalar($"SELECT ST_Within(ST_GeomFromText('{o1.GeoData}'),ST_GeomFromText('{o2.GeoData}'));");
             return (bool)p;
         }
 
@@ -191,7 +231,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(session, nameof(session));
             Check.NotNull(o1, nameof(o1));
             Check.NotNull(o2, nameof(o2));
-            var p = session.ExecuteScalar($"SELECT ST_Contains('{o1.GeoData}','{o2.GeoData}');");
+            var p = session.ExecuteScalar($"SELECT ST_Contains(ST_GeomFromText('{o1.GeoData}'),ST_GeomFromText('{o2.GeoData}'));");
             return (bool)p;
         }
 
@@ -205,7 +245,7 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(session, nameof(session));
             Check.NotNull(o, nameof(o));
-            var p = session.ExecuteScalar($"SELECT ST_IsValid('{o.GeoData}');");
+            var p = session.ExecuteScalar($"SELECT ST_IsValid(ST_GeomFromText('{o.GeoData}'));");
             return (bool)p;
         }
 

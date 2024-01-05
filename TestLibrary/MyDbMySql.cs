@@ -98,7 +98,8 @@ namespace TestLibrary
             return DbProviderFactory.Value;
       }
   }
-  public class MyDbSqlite : IOtherDataBaseFactory
+    
+    public class MyDbSqlite : IOtherDataBaseFactory
   {
       private static readonly Lazy<DbProviderFactory> DbProviderFactory = 
           new Lazy<DbProviderFactory>(() => System.Data.SQLite.SQLiteFactory.Instance);

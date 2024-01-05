@@ -116,9 +116,17 @@ namespace ORM_1_21_.Utils
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     if (map.IsJson)
                     {
+                        if (_providerName == ProviderName.SqLite)
+                        {
+                            var json = JsonConvert.SerializeObject(o);
+                            row.Append($"'{json}'").Append(",");
+                        }
+                        else
+                        {
+                            var json = JsonConvert.SerializeObject(o);
+                            row.Append($"CAST('{json}' AS JSON)").Append(",");
+                        }
                        
-                        var json = JsonConvert.SerializeObject(o);
-                        row.Append($"CAST('{json}' AS JSON)").Append(",");
 
                     } else if (map.IsInheritIGeoShape)
                     {

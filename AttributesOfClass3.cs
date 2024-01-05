@@ -22,7 +22,16 @@ namespace ORM_1_21_
             {
                 if (baseAttribute.IsInheritIGeoShape)
                 {
-                    sb.Append($"ST_AsText({baseAttribute.GetColumnName(Provider)}) as {baseAttribute.GetColumnName(Provider)}, ");
+                    if (Provider == ORM_1_21_.ProviderName.MsSql)
+                    {
+                        sb.Append($"{baseAttribute.GetColumnName(Provider)}.STAsText() as {baseAttribute.GetColumnName(Provider)}, ");
+                    }
+                    else
+                    {
+                        sb.Append($"ST_AsText({baseAttribute.GetColumnName(Provider)}) as {baseAttribute.GetColumnName(Provider)}, ");
+
+                    }
+                    
                 }
                 else
                 {

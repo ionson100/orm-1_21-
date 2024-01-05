@@ -124,7 +124,7 @@ namespace ORM_1_21_.Linq
             if (ev == Evolution.Update)
                 AddListOne(new OneComposite { Operand = Evolution.Update, Body = StringB.ToString() });
 
-            
+           
             StringB.Length = 0;
         }
 
@@ -3326,7 +3326,19 @@ namespace ORM_1_21_.Linq
         {
             if (_providerName == ProviderName.MsSql)
             {
-                if (PingComposite(Evolution.ElementAt) || PingComposite(Evolution.ElementAtOrDefault))
+                if (UtilsCore.IsGeo(value.GetType()))
+                {
+                    var p1 = ParamName;
+                    StringB.Append(p1);
+                    Param.Add(p1, ((IGeoShape)value).GeoData);
+
+                } else if (UtilsCore.IsJson(value.GetType()))
+                {
+                    var p1 = ParamName;
+                    StringB.Append(p1);
+                    Param.Add(p1, JsonConvert.SerializeObject(value));
+                }
+                else if (PingComposite(Evolution.ElementAt) || PingComposite(Evolution.ElementAtOrDefault))
                 {
                     StringB.Append(uint.Parse(value.ToString()));
                 }

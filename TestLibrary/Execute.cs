@@ -17,12 +17,87 @@ namespace TestLibrary
     {
         public static void Run()
         {
-             RunnerGeoMysq();
-             RunnerGeoPos();
+            //  RunnerGeoMysq();
+            //  RunnerGeoPos();
+            // //
+            // RunnerJsonPos();
+            // RunnerJsonMySql();
+            //
+            // RunnerJsonSqlite();
 
-            RunnerJsonPos();
-            RunnerJsonMySql();
+            //RunnerMsGeo();
+            //RunnerJsomMs();
+            RunnerGeoSqlite();
 
+
+        }
+
+        public static void RunnerGeoSqlite()
+        {
+            using (var ses = Configure.GetSession<MyDbSqlite>())
+            {
+                ses.DropTableIfExists<MyGeoTestSqlie>();
+                ses.TableCreate<MyGeoTestSqlie>();
+                var g = new MyGeoTestSqlie { Name = "as", MyGeoObject = FactoryGeo.CreatePoint(2, 3) };
+                ses.Insert(g);
+
+            }
+        }
+
+        public static void RunnerJsomMs()
+        {
+            using (var ses = Configure.GetSession<MyDbMsSql>())
+            {
+                ses.DropTableIfExists<JsonMs>();
+                ses.TableCreate<JsonMs>();
+                var s = new JsonMs { Name = "1", Ion100 = new Ion100 { Name = "12", Age = 12 } };
+                ses.InsertBulk(new List<JsonMs>{s});
+                var list = ses.Query<JsonMs>().ToList();
+                var g = list.First();
+                g.Ion100 = new Ion100 { Name = "as", Age = 100 };
+                ses.Update(g);
+                list = ses.Query<JsonMs>().ToList();
+                var sd = new Ion100() { Age = 100, Name = "100" };
+                ses.Query<JsonMs>().Update(a => new Dictionary<object, object>
+                {
+                    {a.Ion100,sd}
+                });
+                list = ses.Query<JsonMs>().ToList();
+                var rr=ses.Query<JsonMs>().Select(a=>a.Ion100).ToList();
+                var err = ses.Query<JsonMs>().Select(a => new{a.Ion100,a.Name}).ToList();
+                var sql = $"select {ses.StarSql<JsonMs>()} from {ses.TableName<JsonMs>()}";
+                var sdd = ses.FreeSql<JsonMs>(sql);
+
+            }
+        }
+
+        public static void RunnerMsGeo()
+        {
+            using (var ses = Configure.GetSession<MyDbMsSql>())
+            {
+                ses.DropTableIfExists<MyGeoTestMS>();
+                ses.TableCreate<MyGeoTestMS>();
+                var g = new MyGeoTestMS { Name = "sa", MyGeoObject = FactoryGeo.CreatePoint(34, 45) };
+                //ses.Insert(g);
+                ses.InsertBulk(new List<MyGeoTestMS> { g });
+                var list = ses.Query<MyGeoTestMS>().ToList();
+                g = list.First();
+                g.MyGeoObject = FactoryGeo.CreateGeo("POLYGON ((0 0, 150 0, 150 150, 0 150, 0 0))");
+                ses.Update(g);
+                list = ses.Query<MyGeoTestMS>().ToList();
+                var df = FactoryGeo.CreatePoint(30, 33);
+                ses.Query<MyGeoTestMS>().Update(a => new Dictionary<object, object>
+                {
+                   
+                    { a.MyGeoObject, df },{a.Name,"1111111111"}
+                });
+                var gf = ses.Query<MyGeoTestMS>().Select(a => a.MyGeoObject).ToList();
+                var gvf = ses.Query<MyGeoTestMS>().Select(a => new{a.MyGeoObject,a.Name}).ToList();
+                list = ses.Query<MyGeoTestMS>().ToList();
+                var sql = $" select {ses.StarSql<MyGeoTestMS>()} from {ses.TableName<MyGeoTestMS>()}";
+                var ss = ses.FreeSql<MyGeoTestMS>(sql);
+
+            }
 
         }
 
@@ -310,15 +385,19 @@ namespace TestLibrary
                 //object s=pol.ST_GeogFromText(ses);
                 //var str = pol.ST_AsGeoJSON(ses);
                 var ss = ses.Query<MyGeoTestMysql>().GeoST_GeometryType(a => a.MyGeoObject, GeoType.Point).ToList();
-                 ss = ses.Query<MyGeoTestMysql>().GeoST_GeometryType(a => a.MyGeoObject, GeoType.LineString).ToList();
+                 ss = ses.Query<MyGeoTestMysql>().GeoST_GeometryType(a => a.MyGeoObject, GeoType.Point).ToList();
                  ss = ses.Query<MyGeoTestMysql>().GeoST_Intersects(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
                  ss = ses.Query<MyGeoTestMysql>().GeoST_Contains(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
                  ss = ses.Query<MyGeoTestMysql>().GeoST_Disjoint(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
                  ss = ses.Query<MyGeoTestMysql>().GeoST_Within(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
                  ss = ses.Query<MyGeoTestMysql>().GeoST_IsValid(a => a.MyGeoObject).ToList();
                  ss = ses.Query<MyGeoTestMysql>().GeoST_Contains(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
+                 var ds=ses.GeoST_Area(FactoryGeo.CreateGeo("Polygon((0 0,0 3,3 0,0 0),(1 1,1 2,2 1,1 1))"));
+                 var ssr=ses.GeoST_Buffer(FactoryGeo.CreatePoint(3, 3), 1);
 
-
+                 ss = ses.Query<MyGeoTestMysql>().GeoST_GeometryType(a => a.MyGeoObject, GeoType.Point).ToList();
+                 ss = ses.Query<MyGeoTestMysql>().WhereSql("ST_GeometryType(`test_geo`.`my_geo`) = 'Point'").ToList();
+                 ss = ses.Query<MyGeoTestMysql>().WhereSql("ST_GeometryType(`test_geo`.`my_geo`) = ?11",new SqlParam("?11","Point")).ToList();
 
 
                 #endregion
@@ -406,6 +485,36 @@ namespace TestLibrary
             }
         }
 
+        public static void RunnerJsonSqlite() 
+        {
+            using (var ses = Configure.GetSession<MyDbSqlite>())
+            {
+                ses.DropTableIfExists<JsonSqlie>();
+                ses.TableCreate<JsonSqlie>();
+                JsonSqlie t =new JsonSqlie();
+                t.Ion100 = new Ion100 { Age = 12, Name = "12" };
+                ses.Insert(t);
+                t.Id=Guid.NewGuid();
+                ses.InsertBulk(new List<JsonSqlie>{t});
+                var list = ses.Query<JsonSqlie>().ToList();
+                var t1 = list.First();
+                t.Ion100 = new Ion100 { Age = 23, Name = "23" };
+                ses.Update(t);
+                var sd=ses.Query<JsonSqlie>().Select(a=>a.Ion100).ToList();
+                var sdn = ses.Query<JsonSqlie>().Select(a => new {a.Ion100,a.Name}).ToList();
+                var ass = new Ion100 { Age = 100, Name = "100" };
+                ses.Query<JsonSqlie>().Update(a => new Dictionary<object, object>
+                {
+                    {
+                        a.Ion100, ass
+                    }
+                });
+                list = ses.Query<JsonSqlie>().ToList();
+                var sql = $"select json_extract(\"data\", '$.Age') AS age from {ses.TableName<JsonSqlie>()}";
+                var free = ses.FreeSql<dynamic>(sql);
+            }
+        }
+
     }
     [MapTable]
     public class TestOn
@@ -445,6 +554,24 @@ namespace TestLibrary
         public string Name { get; set; } = "name";
 
     }
+
+
+
+    [MapTable("myjson")]
+    class JsonMs
+    {
+        [MapPrimaryKey("id", Generator.Assigned)]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        //[MapIndex]
+        [MapColumn]
+        [MapColumnTypeJson]
+        public Ion100 Ion100 { get; set; }
+
+        [MapColumn]
+        public string Name { get; set; } = "name";
+
+    }
+
     [MapUsagePersistent]
     [MapTable("myjson_my")]
     class JsonMySql
@@ -461,6 +588,22 @@ namespace TestLibrary
 
     }
 
+    [MapTable("myjson_my")]
+    class JsonSqlie
+    {
+        [MapPrimaryKey("id", Generator.Assigned)]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        //[MapIndex]
+        [MapColumn("data")]
+        [MapColumnTypeJson]
+        [MapColumnType("JSON")]
+        public Ion100 Ion100 { get; set; }
+
+        [MapColumn]
+        public string Name { get; set; } = "name";
+
+    }
+
     [MapUsagePersistent]
     [MapTable("myjson")]
     class JsonMysql
@@ -469,6 +612,7 @@ namespace TestLibrary
         public Guid Id { get; set; } = Guid.NewGuid();
         //[MapIndex]
         [MapColumn]
+       
         [MapColumnTypeJson]
         public Ion100 Ion100 { get; set; }
 
@@ -502,6 +646,37 @@ namespace TestLibrary
         //[MapColumnType("geometry(Geometry,4326)")]
         //[MapIndex]
         
+        [MapColumn("my_geo")]
+        public IGeoShape MyGeoObject { get; set; }
+    }
+
+
+    [MapTable("test_geo")]
+    class MyGeoTestMS
+    {
+        [MapPrimaryKey("id", Generator.Assigned)]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        [MapColumn("name")]
+        public string Name { get; set; }
+
+        //[MapColumnType("geometry(Geometry,4326)")]
+        //[MapIndex]
+
+        [MapColumn("my_geo")]
+        public IGeoShape MyGeoObject { get; set; }
+    }
+
+    [MapTable("test_geo")]
+    class MyGeoTestSqlie
+    {
+        [MapPrimaryKey("id", Generator.Assigned)]
+        public Guid Id { get; set; } = Guid.NewGuid();
+        [MapColumn("name")]
+        public string Name { get; set; }
+
+        //[MapColumnType("geometry(Geometry,4326)")]
+        //[MapIndex]
+
         [MapColumn("my_geo")]
         public IGeoShape MyGeoObject { get; set; }
     }

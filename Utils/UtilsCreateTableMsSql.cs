@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Reflection;
 using System.Text;
 
 namespace ORM_1_21_.Utils
@@ -62,6 +63,15 @@ namespace ORM_1_21_.Utils
         private static string GetTypeMsSQl(BaseAttribute map)
         {
             if (map.TypeString != null) return map.TypeString;
+            if (map.IsInheritIGeoShape)
+            {
+                return "[geometry]";
+            }
+
+            if (map.IsJson)
+            {
+                return "[NVARCHAR] (MAX)";
+            }
             var type = UtilsCore.GetCoreType(map.PropertyType);
             if (type == typeof(long))
             {

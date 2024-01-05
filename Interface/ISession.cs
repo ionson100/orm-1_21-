@@ -407,5 +407,7 @@ namespace ORM_1_21_
         /// <typeparam name="TSource"></typeparam>
         /// <returns></returns>
         string StarSql<TSource>();
+
+      
     }
 }

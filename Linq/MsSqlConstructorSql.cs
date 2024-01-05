@@ -18,6 +18,7 @@ namespace ORM_1_21_.Linq
 
         public string GetStringSql<T>(List<OneComposite> listOne, ProviderName providerName) //, JoinCapital joinCapital
         {
+            
             _listOne = listOne;
             var sqlBody = UtilsCore.CheckAny(listOne);
             if (sqlBody != null)
@@ -34,8 +35,7 @@ namespace ORM_1_21_.Linq
             if (PingComposite(Evolution.Update))
                 return AttributesOfClass<T>.CreateCommandUpdateFreeForMsSql(_listOne, providerName);
 
-            //if (PingComposite(Evolution.FreeSql)) 
-            // return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
+           
             if (PingComposite(Evolution.All))
             {
                 StringBuilder builder = new StringBuilder("SELECT COUNT(*),(SELECT COUNT(*) FROM ");
@@ -94,7 +94,29 @@ namespace ORM_1_21_.Linq
 
                 if (PingComposite(Evolution.Select))
                 {
-                    sbb.Append(listOne.First(a => a.Operand == Evolution.Select).Body);
+                    var geoList = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(a => a.Body.Trim());
+                    var enumerable = geoList as string[] ?? geoList.ToArray();
+                    var val = listOne.First(a => a.Operand == Evolution.Select).Body.Trim();
+                   
+                    if (enumerable.Any() )
+                    {
+                        HashSet<string> hashSet = new HashSet<string>();
+                        foreach (string s in enumerable)
+                        {
+                            if (hashSet.Contains(s) == false)
+                            {
+                               val= val.Replace(s, $"{s}.STAsText()");
+                               hashSet.Add(s);
+                            }
+                        }
+                        sbb.Append(val);
+
+                    }
+                    else
+                    {
+                        sbb.Append(val);
+                    } 
+                    
                 }
                 else
                 {

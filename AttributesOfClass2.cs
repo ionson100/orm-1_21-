@@ -70,8 +70,9 @@ namespace ORM_1_21_
                                     switch (Provider)
                                     {
                                         case ORM_1_21_.ProviderName.MsSql:
-                                            throw new NotImplementedException();
-                                            //break;
+                                            dbCommand.AddParameter($"{parName}{par}{ip}",
+                                                $"{((IGeoShape)o).GeoData}");
+                                        break;
                                         case ORM_1_21_.ProviderName.MySql:
                                         {
                                             dbCommand.AddParameter($"{parName}{par}{ip}",
@@ -85,8 +86,9 @@ namespace ORM_1_21_
                                         }
                                             break;
                                         case ORM_1_21_.ProviderName.SqLite:
-                                            throw new NotImplementedException();
-                                            //break;
+                                            dbCommand.AddParameter($"{parName}{par}{ip}",
+                                                $"{((IGeoShape)o).GeoData}");
+                                        break;
                                         default:
                                             throw new ArgumentOutOfRangeException();
                                     }
@@ -146,6 +148,11 @@ namespace ORM_1_21_
                                if (pra.IsInheritIGeoShape)
                                {
                                    dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), ((IGeoShape)r).GeoData.Trim());
+                               }
+
+                               else if (pra.IsJson)
+                               {
+                                   dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), JsonConvert.SerializeObject(r));
                                }
                                else
                                {
