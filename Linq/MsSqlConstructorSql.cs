@@ -105,8 +105,9 @@ namespace ORM_1_21_.Linq
                         {
                             if (hashSet.Contains(s) == false)
                             {
-                               val= val.Replace(s, $"{s}.STAsText()");
-                               hashSet.Add(s);
+                                val = val.Replace(s, $"{UtilsCore.MsSqlConcatSrid(s)}");
+                                //val= val.Replace(s, $"{s}.STAsText()");
+                                hashSet.Add(s);
                             }
                         }
                         sbb.Append(val);

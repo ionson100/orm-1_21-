@@ -258,8 +258,13 @@ namespace ORM_1_21_
                     UtilsCore.HashSetJsonType.Add(columnAttribute.PropertyType);
                     columnAttribute.IsJson = true;
                 }
+                var o7 = f.GetCustomAttribute<MapGeoSridAttribute>(true);
+                if (o7 != null) columnAttribute.Srid = o7._srid;
 
-                
+
+
+
+
 
 
                 res.Add(columnAttribute);
@@ -453,11 +458,15 @@ namespace ORM_1_21_
                 {
                     if (a.IsInheritIGeoShape && Provider == ORM_1_21_.ProviderName.MsSql)
                     {
-                        sb.AppendFormat(" {0}.{1}.STAsText() AS {2},",
-                            TableAttribute.Value.TableName(providerName),
-                            a.GetColumnName(providerName),
-                            UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
-                                a.GetColumnName(providerName)));
+                        string colName=$"{TableAttribute.Value.TableName(providerName)}.{a.GetColumnName(providerName)}";
+                        string asE = UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
+                            a.GetColumnName(providerName));
+                        sb.Append($"{UtilsCore.MsSqlConcatSrid(colName)} AS {asE}");
+                        // sb.AppendFormat(" {0}.{1}.STAsText() AS {2},",
+                        //     TableAttribute.Value.TableName(providerName),
+                        //     a.GetColumnName(providerName),
+                        //     UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
+                        //         a.GetColumnName(providerName)));
                     }
                     else
                     {
@@ -497,13 +506,13 @@ namespace ORM_1_21_
                 {
                     if (Provider == ORM_1_21_.ProviderName.MsSql)
                     {
-                        par.AppendFormat(" {0}.{1} = geometry::STGeomFromText({3}p{2},0),", TableAttribute.Value.TableName(Provider),
-                            pra.GetColumnName(Provider), ++i, parName);
+                        par.AppendFormat(" {0}.{1} = geometry::STGeomFromText({3}p{2},{4}),", TableAttribute.Value.TableName(Provider),
+                            pra.GetColumnName(Provider), ++i, parName, pra.Srid);
                     }
                     else
                     {
-                        par.AppendFormat(" {0}.{1} = ST_GeomFromText({3}p{2}),", TableAttribute.Value.TableName(Provider),
-                            pra.GetColumnName(Provider), ++i, parName);
+                        par.AppendFormat(" {0}.{1} = ST_GeomFromText({3}p{2},{4}),", TableAttribute.Value.TableName(Provider),
+                            pra.GetColumnName(Provider), ++i, parName,pra.Srid);
                     }
                     
                 }
@@ -588,7 +597,7 @@ namespace ORM_1_21_
                    
                 }else if (pra.IsInheritIGeoShape)
                 {
-                    par.AppendFormat(" {0} = ST_GeomFromText({2}p{1}),", pra.GetColumnName(Provider), ++i, parName);
+                    par.AppendFormat(" {0} = ST_GeomFromText({2}p{1},{3}),", pra.GetColumnName(Provider), ++i, parName,pra.Srid);
                 }
                 else
                 {
@@ -644,7 +653,7 @@ namespace ORM_1_21_
         public static string CreateCommandLimitForMySql(List<OneComposite> listOne, ProviderName providerName)
         {
             Provider = providerName;
-            var geoList = new HashSet<string>(listOne.Where(a => a.Operand == Evolution.ListGeo).Select(s => s.Body.Trim()));
+            var geoList = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(s =>new {s.Body,s.Srid} ).ToArray();
             var jsonList = new HashSet<string>(listOne.Where(a => a.Operand == Evolution.ListJson).Select(s => s.Body.Trim()));
             var si = SimpleSqlSelect(providerName);
             var sb = new StringBuilder();
@@ -658,6 +667,7 @@ namespace ORM_1_21_
                     var enumerable = s as string[] ?? s.ToArray();
                     var col = enumerable.First().Trim();
                     var par = enumerable.Last().Trim();
+                    var geoCol = geoList.SingleOrDefault(a => a.Body.Trim() == col);
 
                     if (enumerable.Any())
                     {
@@ -673,9 +683,9 @@ namespace ORM_1_21_
                             }
                             
                         }
-                        else if (geoList.Contains(col))
+                        else if (geoCol!=null)
                         {
-                            sb.AppendFormat(" {0} = ST_GeomFromText({1}),", col, par);
+                            sb.AppendFormat(" {0} = ST_GeomFromText({1},{2}),", col, par,geoCol.Srid);
                         }
                         else
                         {
@@ -711,8 +721,8 @@ namespace ORM_1_21_
         {
             Provider = providerName;
             var si = SimpleSqlSelect(providerName);
-            var geoList = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(a => a.Body.Trim());
-            var list = geoList as string[] ?? geoList.ToArray();
+            var geoList = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(a =>new {a.Body,a.Srid} ).ToArray();
+            
             var r = new StringBuilder();
             foreach (var oneComposite in listOne.Where(a => a.Operand == Evolution.Update))
             {
@@ -724,9 +734,10 @@ namespace ORM_1_21_
                     var enumerable = s as string[] ?? s.ToArray();
                     if (enumerable.ToList().Any())
                     {
-                        if(list.Contains(enumerable.First().Trim()))
+                        var geo = geoList.SingleOrDefault(a => a.Body.Trim() == enumerable.First().Trim());
+                        if(geo!=null)
                         {
-                            r.AppendFormat(" {0} = geometry::STGeomFromText({1},0),", enumerable.First(), enumerable.Last());
+                            r.AppendFormat(" {0} = geometry::STGeomFromText({1},{2}),", enumerable.First(), enumerable.Last(),geo.Srid);
                         }
                         else
                         {
@@ -830,6 +841,13 @@ namespace ORM_1_21_
             SetValue.Value[e.PropertyName](item, valCore);
         }
 
+        public static int GetSrid(string member,  ProviderName providerName)
+        {
+            Provider = providerName;
+            var t=AttributeDalList.Value.Single(a => a.PropertyName == member);
+            return t.Srid;
+        }
+
         public static string GetNameFieldForQuery(string member, Type type, ProviderName providerName)
         {
             Provider = providerName;
@@ -902,11 +920,11 @@ namespace ORM_1_21_
                 {
                     if (Provider == ORM_1_21_.ProviderName.MsSql)
                     {
-                        values.AppendFormat("geometry::STGeomFromText({0}{1}{2},0),", parName, par, ++i);
+                        values.AppendFormat("geometry::STGeomFromText({0}{1}{2},{3}),", parName, par, ++i, rtp.Srid);
                     }
                     else
                     {
-                        values.AppendFormat("ST_GeomFromText({0}{1}{2}),", parName, par, ++i);
+                        values.AppendFormat("ST_GeomFromText({0}{1}{2}, {3}),", parName, par, ++i,rtp.Srid);
                     }
                     
                 }

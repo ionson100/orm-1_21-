@@ -22,14 +22,9 @@ namespace ORM_1_21_
     public static partial class Helper
     {
         /// <summary>
-        /// 
+        /// The IN operator allows you to specify multiple values in a WHERE clause.
+        ///The IN operator is a shorthand for multiple OR conditions.
         /// </summary>
-        /// <param name="query"></param>
-        /// <param name="selector"></param>
-        /// <param name="o"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TS"></typeparam>
-        /// <returns></returns>
         public static IQueryable<T> WhereIn<T,TS>(this IQueryable<T> query, Expression<Func<T, TS>> selector, params TS[] o)
         {
             Check.NotNull(query, nameof(query));
@@ -48,12 +43,9 @@ namespace ORM_1_21_
 
 
         /// <summary>
-        /// 
+        /// Custom  WHERE clause
         /// </summary>
-        /// <param name="query"></param>
-        /// <param name="sql"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+
         public static IQueryable<T> WhereSql<T>(this IQueryable<T> query,   string sql)
         {
             Check.NotNull(query, nameof(query));
@@ -66,12 +58,8 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// 
+        /// Custom FROM  clause
         /// </summary>
-        /// <param name="query"></param>
-        /// <param name="sql"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         public static IQueryable<T> FromSql<T>(this IQueryable<T> query, string sql)
         {
             Check.NotNull(query, nameof(query));
@@ -86,7 +74,7 @@ namespace ORM_1_21_
         }
 
         /// <summary>
-        /// 
+        /// Custom FROM  clause with parameters sql
         /// </summary>
         /// <param name="query"></param>
         /// <param name="sql"></param>
@@ -111,13 +99,8 @@ namespace ORM_1_21_
 
 
         /// <summary>
-        /// 
+        /// Custom  WHERE clause with parameters sql
         /// </summary>
-        /// <param name="query"></param>
-        /// <param name="sql"></param>
-        /// <param name="sqlParams"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         public static IQueryable<T> WhereSql<T>(this IQueryable<T> query, string sql,params SqlParam[] sqlParams)
         {
 
@@ -133,14 +116,9 @@ namespace ORM_1_21_
 
 
         /// <summary>
-        /// 
+        /// NOT IN operator replaces a set of arguments with the &lt; &gt; or != operator that is combined with the AND operator.
         /// </summary>
-        /// <param name="query"></param>
-        /// <param name="selector"></param>
-        /// <param name="o"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TS"></typeparam>
-        /// <returns></returns>
+
         public static IQueryable<T> WhereNotIn<T, TS>(this IQueryable<T> query, Expression<Func<T, TS>> selector, params TS[] o)
         {
             Check.NotNull(selector, nameof(selector));

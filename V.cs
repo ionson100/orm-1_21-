@@ -51,7 +51,27 @@ namespace ORM_1_21_
         {
             return true;
         }
+
+        public static bool GeoST_Crosses(object s, object d, bool f)
+        {
+            return true;
+        }
+        public static bool GeoST_Equals(object s, object d, bool f)
+        {
+            return true;
+        }
+        public static bool GeoST_Overlaps(object s, object d, bool f)
+        {
+            return true;
+        }
+        public static bool GeoST_Touches(object s, object d, bool f)
+        {
+            return true;
+        }
         
+
+
+
         public static bool GeoST_Intersects(object s, object d, bool f)
         {
             return true;

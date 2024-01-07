@@ -71,23 +71,23 @@ namespace ORM_1_21_
                                     {
                                         case ORM_1_21_.ProviderName.MsSql:
                                             dbCommand.AddParameter($"{parName}{par}{ip}",
-                                                $"{((IGeoShape)o).GeoData}");
+                                                $"{((IGeoShape)o).GeoText}");
                                         break;
                                         case ORM_1_21_.ProviderName.MySql:
                                         {
                                             dbCommand.AddParameter($"{parName}{par}{ip}",
-                                                $"{((IGeoShape)o).GeoData}");
+                                                $"{((IGeoShape)o).GeoText}");
                                             }
                                             break;
                                         case ORM_1_21_.ProviderName.PostgreSql:
                                         {
                                             dbCommand.AddParameter($"{parName}{par}{ip}",
-                                                $"{((IGeoShape)o).GeoData}");
+                                                $"{((IGeoShape)o).GeoText}");
                                         }
                                             break;
                                         case ORM_1_21_.ProviderName.SqLite:
                                             dbCommand.AddParameter($"{parName}{par}{ip}",
-                                                $"{((IGeoShape)o).GeoData}");
+                                                $"{((IGeoShape)o).GeoText}");
                                         break;
                                         default:
                                             throw new ArgumentOutOfRangeException();
@@ -147,7 +147,7 @@ namespace ORM_1_21_
                            {
                                if (pra.IsInheritIGeoShape)
                                {
-                                   dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), ((IGeoShape)r).GeoData.Trim());
+                                   dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), ((IGeoShape)r).GeoText.Trim());
                                }
 
                                else if (pra.IsJson)
@@ -243,7 +243,7 @@ namespace ORM_1_21_
                               }
                               else
                               {
-                                  dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),((IGeoShape)o).GeoData );
+                                  dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),((IGeoShape)o).GeoText);
                               }
                           }
                           else

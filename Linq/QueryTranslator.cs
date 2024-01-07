@@ -184,6 +184,12 @@ namespace ORM_1_21_.Linq
             var ss = AttributesOfClass<T>.GetNameFieldForQuery(member, type, _providerName);
             return ss;
         }
+
+        public int GetSrid(string member)
+        {
+            var ss = AttributesOfClass<T>.GetSrid(member,  _providerName);
+            return ss;
+        }
         private string GetColumnNameSimple(string member, Type type)
         {
             var ss = AttributesOfClass<T>.GetNameSimpleColumnForQuery(member, _providerName);
@@ -1644,6 +1650,7 @@ namespace ORM_1_21_.Linq
                 StringB.Length = 0;
                 return m;
             }
+           
             if (m.Method.Name == "FromStringP")
             {
                 var u = m.Arguments[0] as ConstantExpression;
@@ -1658,7 +1665,7 @@ namespace ORM_1_21_.Linq
                 StringB.Length = 0;
                 return m;
             }
-
+            
             if (m.Method.Name == "WhereString")
             {
                 var t = m.Arguments[0] as ConstantExpression;
@@ -1667,6 +1674,7 @@ namespace ORM_1_21_.Linq
               
                 return m;
             }
+           
             if (m.Method.Name == "WhereStringP")
             {
                 var t = m.Arguments[0] as ConstantExpression;
@@ -1683,6 +1691,7 @@ namespace ORM_1_21_.Linq
 
                 return m;
             }
+           
             if (m.Method.Name == "WhereIn")
             {
 
@@ -1709,9 +1718,14 @@ namespace ORM_1_21_.Linq
                         {
                             StringB.Append((int)o1).Append(", ");
                         }
+                        else if (typeCore == typeof(Guid) || typeCore == typeof(Guid?))
+                        {
+                            StringB.Append($"'{o1}'").Append(", ");
+                        }
                         else
                         {
                             AddParameter(o1);
+                            StringB.Append(", ");
                         }
                     }
                 }
@@ -1720,7 +1734,7 @@ namespace ORM_1_21_.Linq
                 StringB.Clear().Append(str).Append("))");
                 return m;
             }
-
+           
             if (m.Method.Name == "WhereNotIn")
             {
                 StringB.Append("(");
@@ -1746,9 +1760,14 @@ namespace ORM_1_21_.Linq
                         {
                             StringB.Append((int)o1).Append(", ");
                         }
+                        else if (typeCore==typeof(Guid)|| typeCore == typeof(Guid?))
+                        {
+                            StringB.Append($"'{o1}'").Append(", ");
+                        }
                         else
                         {
                             AddParameter(o1);
+                            StringB.Append(", ");
                         }
                     }
                 }
@@ -1758,9 +1777,7 @@ namespace ORM_1_21_.Linq
                 return m;
                 
             }
-
-
-
+           
             if (m.Method.Name == "GeoST_GeometryType")
             {
                 var c = m.Arguments[0] as ConstantExpression;
@@ -1769,6 +1786,8 @@ namespace ORM_1_21_.Linq
                 var c1 = m.Arguments[1] as ConstantExpression;
                 var enumType = c1.Value;
                 GeoType type = (GeoType)enumType;
+
+               
                 string s = "none";
                 switch (type)
                 {
@@ -1777,7 +1796,7 @@ namespace ORM_1_21_.Linq
                     case GeoType.Point:
                     {
                         s = "ST_Point";
-                        if (_providerName == ProviderName.MySql)
+                        if (_providerName == ProviderName.MySql || _providerName == ProviderName.MsSql)
                         {
                             s = "Point";
                         }
@@ -1786,7 +1805,7 @@ namespace ORM_1_21_.Linq
                     case GeoType.LineString:
                     {
                         s = "ST_LineString";
-                        if (_providerName == ProviderName.MySql)
+                        if (_providerName == ProviderName.MySql || _providerName == ProviderName.MsSql)
                         {
                             s = "LineString";
                         }
@@ -1795,7 +1814,7 @@ namespace ORM_1_21_.Linq
                     case GeoType.Polygon:
                     {
                         s = "ST_Polygon";
-                        if (_providerName == ProviderName.MySql)
+                        if (_providerName == ProviderName.MySql || _providerName == ProviderName.MsSql)
                         {
                             s = "Polygon";
                         }
@@ -1804,7 +1823,7 @@ namespace ORM_1_21_.Linq
                     case GeoType.MultiPoint:
                     {
                         s = "ST_MultiPoint";
-                        if (_providerName == ProviderName.MySql)
+                        if (_providerName == ProviderName.MySql || _providerName == ProviderName.MsSql)
                         {
                             s = "MultiPoint";
                         }
@@ -1813,7 +1832,7 @@ namespace ORM_1_21_.Linq
                     case GeoType.MultiLineString:
                     {
                         s = "ST_MultiLineString";
-                        if (_providerName == ProviderName.MySql)
+                        if (_providerName == ProviderName.MySql || _providerName == ProviderName.MsSql)
                         {
                             s = "MultiLineString";
                         }
@@ -1822,7 +1841,7 @@ namespace ORM_1_21_.Linq
                     case GeoType.MultiPolygon:
                     {
                         s = "ST_MultiPolygon";
-                        if (_providerName == ProviderName.MySql)
+                        if (_providerName == ProviderName.MySql || _providerName == ProviderName.MsSql)
                         {
                             s = "MultiPolygon";
                         }
@@ -1831,7 +1850,7 @@ namespace ORM_1_21_.Linq
                     case GeoType.GeometryCollection:
                     {
                         s = "ST_GeometryCollection";
-                        if (_providerName == ProviderName.MySql)
+                        if (_providerName == ProviderName.MySql || _providerName == ProviderName.MsSql)
                         {
                             s = "GeometryCollection";
                         }
@@ -1840,7 +1859,7 @@ namespace ORM_1_21_.Linq
                     case GeoType.CircularString:
                     {
                         s = "ST_CircularString";
-                        if (_providerName == ProviderName.MySql)
+                        if (_providerName == ProviderName.MySql|| _providerName == ProviderName.MsSql)
                         {
                             s = "CircularString";
                         }
@@ -1856,7 +1875,16 @@ namespace ORM_1_21_.Linq
 
                 var o = new OneComposite { Operand = Evolution.Where };
                 StringB.Length = 0;
-                StringB.Append($" ST_GeometryType({nameColumn}) = ");
+                if (_providerName == ProviderName.MsSql)
+                {
+                    
+                    StringB.Append($" {nameColumn}.STGeometryType() = ");
+                }
+                else
+                {
+                    StringB.Append($" ST_GeometryType({nameColumn}) = ");
+                }
+               
                 AddParameter(s);
 
                 o.Body = StringB.ToString();
@@ -1864,7 +1892,7 @@ namespace ORM_1_21_.Linq
                 AddListOne(o);
                 return m;
             }
-
+           
             if (m.Method.Name == "GeoST_Contains")
             {
                 var c = m.Arguments[0] as ConstantExpression;
@@ -1876,30 +1904,43 @@ namespace ORM_1_21_.Linq
                 var c3 = m.Arguments[2] as ConstantExpression;
                 bool actionResult = c3 != null && (bool)c3.Value;
                 var o = new OneComposite { Operand = Evolution.Where };
-                if (_providerName == ProviderName.PostgreSql)
+                switch (_providerName)
                 {
-                    StringB.Length = 0;
-                    StringB.Append($" ST_Contains({nameColumn},");
-                    AddParameter(geoShape.GeoData);
-                    StringB.Append(actionResult ? ")" : ") = false");
-                    o.Body = StringB.ToString();
-                    StringB.Clear();
+                    case ProviderName.MsSql:
+                        StringB.Length = 0;
+                        StringB.Append($" {nameColumn}.STContains(geometry::STGeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid}))=1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.MySql:
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Contains({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.PostgreSql:
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Contains({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid}))" : $", {geoShape.Srid})) = false");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.SqLite:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
-                else
-                {
-                    StringB.Length = 0;
-                    StringB.Append($" ST_Contains({nameColumn},ST_GeomFromText(");
-                    AddParameter(geoShape.GeoData);
-                    StringB.Append(actionResult ? "))" : ")) = false");
-                    o.Body = StringB.ToString();
-                    StringB.Clear();
-                }
+              
                 
                 AddListOne(o);
                 return m;
             }
-
-
+           
             if (m.Method.Name == "GeoST_DWithin")
             {
                 var c = m.Arguments[0] as ConstantExpression;
@@ -1917,27 +1958,21 @@ namespace ORM_1_21_.Linq
                 if (_providerName == ProviderName.PostgreSql)
                 {
                     StringB.Length = 0;
-                    StringB.Append($" ST_DWithin({nameColumn},");
-                    AddParameter($"{geoShape.GeoData}");
-                    StringB.Append(actionResult ? $"::geometry,{dissociation} )" : $"::geometry, {dissociation}) = false");
+                    StringB.Append($" ST_DWithin({nameColumn},ST_GeomFromText(");
+                    AddParameter(geoShape.GeoText);
+                    StringB.Append(actionResult ? $", {geoShape.Srid}),{dissociation} )" : $", {geoShape.Srid}), {dissociation}) = false");
                     o.Body = StringB.ToString();
                     StringB.Clear();
                 }
                 else
                 {
-                    StringB.Length = 0;
-                    StringB.Append($" ST_DWithin({nameColumn},ST_GeomFromText(");
-                    AddParameter(geoShape.GeoData);
-                    StringB.Append(actionResult ? $"),{dissociation} )" : $"), {dissociation}) = false");
-                    o.Body = StringB.ToString();
-                    StringB.Clear();
+                    throw new Exception("Only PostgreSql");
                 }
                 
                 AddListOne(o);
                 return m;
             }
-
-
+           
             if (m.Method.Name == "GeoST_Intersects")
             {
                 var c = m.Arguments[0] as ConstantExpression;
@@ -1950,28 +1985,38 @@ namespace ORM_1_21_.Linq
                 bool actionResult = c3 != null && (bool)c3.Value;
                 var o = new OneComposite { Operand = Evolution.Where };
                 StringB.Length = 0;
-                if (_providerName == ProviderName.PostgreSql)
+                switch (_providerName)
                 {
-                    StringB.Append($" ST_Intersects({nameColumn}::geometry,");
-                    AddParameter(geoShape.GeoData);
-                    StringB.Append(actionResult ? "::geometry)" : "::geometry) = false");
-                    o.Body = StringB.ToString();
-                    StringB.Clear();
+                    case ProviderName.MsSql:
+                        StringB.Append($" {nameColumn}.STIntersects(geometry::STGeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid}))=1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.MySql:
+                        StringB.Append($" ST_Intersects({nameColumn}, ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.PostgreSql:
+                        StringB.Append($" ST_Intersects({nameColumn}::geometry,ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid}))" : $"{geoShape.Srid})) = false");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.SqLite:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
-                else
-                {
-                    StringB.Append($" ST_Intersects({nameColumn}, ST_GeomFromText(");
-                    AddParameter(geoShape.GeoData);
-                    StringB.Append(actionResult ? "))" : ")) = false");
-                    o.Body = StringB.ToString();
-                    StringB.Clear();
-                }
-                
-
                 AddListOne(o);
                 return m;
             }
-
+           
             if (m.Method.Name == "GeoST_Disjoint")
             {
                 var c = m.Arguments[0] as ConstantExpression;
@@ -1983,29 +2028,239 @@ namespace ORM_1_21_.Linq
                 var c3 = m.Arguments[2] as ConstantExpression;
                 bool actionResult = c3 != null && (bool)c3.Value;
                 var o = new OneComposite { Operand = Evolution.Where };
-                if (_providerName == ProviderName.PostgreSql)
+                switch (_providerName)
                 {
-                    StringB.Length = 0;
-                    StringB.Append($" ST_Disjoint({nameColumn}::geometry,");
-                    AddParameter(geoShape.GeoData);
-                    StringB.Append(actionResult ? "::geometry)" : "::geometry) = false");
-                    o.Body = StringB.ToString();
-                    StringB.Clear();
-                }
-                else
-                {
-                    StringB.Length = 0;
-                    StringB.Append($" ST_Disjoint({nameColumn},ST_GeomFromText(");
-                    AddParameter(geoShape.GeoData);
-                    StringB.Append(actionResult ? "))" : ")) = false");
-                    o.Body = StringB.ToString();
-                    StringB.Clear();
+                    case ProviderName.MsSql:
+                        StringB.Length = 0;
+                        StringB.Append($" {nameColumn}.STDisjoint(geometry::STGeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid}))=1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.MySql:
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Disjoint({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.PostgreSql:
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Disjoint({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid}))" : $", {geoShape.Srid})) = false");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.SqLite:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
                
                 AddListOne(o);
                 return m;
             }
+           
+            if (m.Method.Name == "GeoST_Crosses")
+            {
+                var c = m.Arguments[0] as ConstantExpression;
+                var nameColumn = c.Value;
 
+                var c2 = m.Arguments[1] as ConstantExpression;
+                IGeoShape geoShape = (IGeoShape)c2.Value;
+
+                var c3 = m.Arguments[2] as ConstantExpression;
+                bool actionResult = c3 != null && (bool)c3.Value;
+                var o = new OneComposite { Operand = Evolution.Where };
+                switch (_providerName)
+                {
+                    case ProviderName.MsSql:
+                        StringB.Length = 0;
+                        StringB.Append($" {nameColumn}.STCrosses(geometry::STGeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.MySql:
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Crosses({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.PostgreSql:
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Crosses({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid}))" : $", {geoShape.Srid})) = false");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.SqLite:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+               
+
+                AddListOne(o);
+                return m;
+            }
+          
+            if (m.Method.Name == "GeoST_Equals")
+            {
+                var c = m.Arguments[0] as ConstantExpression;
+                var nameColumn = c.Value;
+
+                var c2 = m.Arguments[1] as ConstantExpression;
+                IGeoShape geoShape = (IGeoShape)c2.Value;
+
+                var c3 = m.Arguments[2] as ConstantExpression;
+                bool actionResult = c3 != null && (bool)c3.Value;
+                var o = new OneComposite { Operand = Evolution.Where };
+                switch (_providerName)
+                {
+                    case ProviderName.MsSql:
+                        StringB.Length = 0;
+                        StringB.Append($" {nameColumn}.STEquals(geometry::STGeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.MySql:
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Equals({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.PostgreSql:
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Equals({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid}))" : $", {geoShape.Srid})) = false");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.SqLite:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+               
+                AddListOne(o);
+                return m;
+            }
+          
+            if (m.Method.Name == "GeoST_Overlaps")
+            {
+                var c = m.Arguments[0] as ConstantExpression;
+                var nameColumn = c.Value;
+
+                var c2 = m.Arguments[1] as ConstantExpression;
+                IGeoShape geoShape = (IGeoShape)c2.Value;
+
+                var c3 = m.Arguments[2] as ConstantExpression;
+                bool actionResult = c3 != null && (bool)c3.Value;
+                var o = new OneComposite { Operand = Evolution.Where };
+                switch (_providerName)
+                {
+                    case ProviderName.MsSql:
+                    {
+                        StringB.Length = 0;
+                        StringB.Append($" {nameColumn}.STOverlaps(geometry::STGeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                            break;
+                    }
+                    case ProviderName.MySql:
+                    {
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Overlaps({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                            break;
+                    }
+                    case ProviderName.PostgreSql:
+                    {
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Overlaps({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid}))" : $", {geoShape.Srid})) = false");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                            break;
+                    }
+                    case ProviderName.SqLite:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+
+                AddListOne(o);
+                return m;
+            }
+          
+            if (m.Method.Name == "GeoST_Touches")
+            {
+                var c = m.Arguments[0] as ConstantExpression;
+                var nameColumn = c.Value;
+
+                var c2 = m.Arguments[1] as ConstantExpression;
+                IGeoShape geoShape = (IGeoShape)c2.Value;
+
+                var c3 = m.Arguments[2] as ConstantExpression;
+                bool actionResult = c3 != null && (bool)c3.Value;
+                var o = new OneComposite { Operand = Evolution.Where };
+                switch (_providerName)
+                {
+                    case ProviderName.MsSql:
+                        StringB.Length = 0;
+                        StringB.Append($" {nameColumn}.STTouches(geometry::STGeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.MySql:
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Touches({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.PostgreSql:
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Touches({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid}))" : $", {geoShape.Srid})) = false");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.SqLite:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+             
+
+                AddListOne(o);
+                return m;
+            }
+          
             if (m.Method.Name == "GeoST_IsValid")
             {
                 var c = m.Arguments[0] as ConstantExpression;
@@ -2014,14 +2269,25 @@ namespace ORM_1_21_.Linq
                 bool actionResult = (bool)c1.Value;
 
                 var o = new OneComposite { Operand = Evolution.Where };
-                StringB.Append($"ST_IsValid({nameColumn}) = ");
-                AddParameter(actionResult);
-                o.Body = StringB.ToString();
-                AddListOne(o);
+                if (_providerName == ProviderName.MsSql)
+                {
+                    StringB.Append($"{nameColumn}.STIsValid() = ");
+                    AddParameter(actionResult);
+                    o.Body = StringB.ToString();
+                    AddListOne(o);
+                }
+                else
+                {
+                    StringB.Append($"ST_IsValid({nameColumn}) = ");
+                    AddParameter(actionResult);
+                    o.Body = StringB.ToString();
+                    AddListOne(o);
+                }
+               
                 return m;
 
             }
-
+          
             if (m.Method.Name == "GeoST_Within")
             {
                 var c = m.Arguments[0] as ConstantExpression;
@@ -2033,43 +2299,53 @@ namespace ORM_1_21_.Linq
                 var c3 = m.Arguments[2] as ConstantExpression;
                 bool actionResult = c3 != null && (bool)c3.Value;
                 var o = new OneComposite { Operand = Evolution.Where };
-                if (_providerName == ProviderName.PostgreSql)
+                switch (_providerName)
                 {
-                    StringB.Length = 0;
-                    StringB.Append($" ST_Within({nameColumn}::geometry,");
-                    AddParameter(geoShape.GeoData);
-                    StringB.Append(actionResult ? "::geometry)" : "::geometry) = false");
-                    o.Body = StringB.ToString();
-                    StringB.Clear();
+                    case ProviderName.MsSql:
+                        StringB.Length = 0;
+                        StringB.Append($" {nameColumn}.STWithin(geometry::STGeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.MySql:
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Within({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid})) = 1" : $", {geoShape.Srid})) = 0");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.PostgreSql:
+                        StringB.Length = 0;
+                        StringB.Append($" ST_Within({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.GeoText);
+                        StringB.Append(actionResult ? $", {geoShape.Srid}))" : $", {geoShape.Srid})) = false");
+                        o.Body = StringB.ToString();
+                        StringB.Clear();
+                        break;
+                    case ProviderName.SqLite:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
-                else
-                {
-                    StringB.Length = 0;
-                    StringB.Append($" ST_Within({nameColumn},ST_GeomFromText(");
-                    AddParameter(geoShape.GeoData);
-                    StringB.Append(actionResult ? "))" : ")) = false");
-                    o.Body = StringB.ToString();
-                    StringB.Clear();
-                }
-
                 AddListOne(o);
-
-
                 return m;
             }
-
+          
             if (m.Method.Name == "GeoST_Area")
             {
                 return m;
             }
-
+          
             if (m.Method.Name == "GetData")
             {
                 
                 return m;
 
             }
-
+            
             if (m.Method.DeclaringType == typeof(Queryable))
             {
                 switch (m.Method.Name)
@@ -2808,7 +3084,8 @@ namespace ORM_1_21_.Linq
                     _geoAsName = GetColumnNameSimple(m.Member.Name, m.Expression.Type);
                     if (UtilsCore.IsGeo(m.Type))
                     {
-                        AddListOne(new OneComposite{Operand = Evolution.ListGeo,Body = nameColumn});
+                        var srid = GetSrid(m.Member.Name);
+                        AddListOne(new OneComposite{Operand = Evolution.ListGeo,Body = nameColumn,Srid = srid});
                     }
 
                     if (UtilsCore.IsJson(m.Type))
@@ -3330,7 +3607,7 @@ namespace ORM_1_21_.Linq
                 {
                     var p1 = ParamName;
                     StringB.Append(p1);
-                    Param.Add(p1, ((IGeoShape)value).GeoData);
+                    Param.Add(p1, ((IGeoShape)value).GeoText);
 
                 } else if (UtilsCore.IsJson(value.GetType()))
                 {
@@ -3362,7 +3639,7 @@ namespace ORM_1_21_.Linq
                 var p1 = ParamName;
 
                 StringB.Append(p1);
-                Param.Add(p1, ((IGeoShape)value).GeoData);
+                Param.Add(p1, ((IGeoShape)value).GeoText);
             }
             else
             {

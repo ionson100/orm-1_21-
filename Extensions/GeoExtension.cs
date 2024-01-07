@@ -2,13 +2,8 @@
 using ORM_1_21_.Linq;
 using ORM_1_21_.Utils;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using static System.Collections.Specialized.BitVector32;
 
 namespace ORM_1_21_.Extensions
 {
@@ -24,7 +19,7 @@ namespace ORM_1_21_.Extensions
         /// For points and lines negative distances always return empty results.
         /// </summary>
         /// <param name="session">Current session</param>
-        /// <param name="shape">Center shape</param>
+        /// <param name="shape">Center geo object shape</param>
         /// <param name="radius">
         /// A negative distance may shrink a polygon completely, in which case POLYGON EMPTY is returned.
         /// For points and lines negative distances always return empty results.
@@ -47,43 +42,37 @@ namespace ORM_1_21_.Extensions
            
             Check.NotNull(shape, nameof(shape));
             Check.NotNull(session, nameof(session));
-            string adding = string.Empty;
-            if(!string.IsNullOrEmpty(bufferStyleParameters))
-            {
-                adding = $", '{bufferStyleParameters}'";
-            }
-            string sql = $"SELECT ST_AsText(ST_Buffer(ST_GeomFromText('{shape.GeoData}'),{radius} {adding}));";
-
-            var p = session.ExecuteScalar(sql);
-            return (string)p;
-        }
-
-
-
-
-
-        /// <summary>
-        /// Returns a polygon built from the specified linestring and SRID.
-        /// </summary>
-        /// <param name="session">Current session</param>
-        /// <param name="lineString">String LINESTRING as LINESTRING(75.15 29.53,77 29,77.6 29.5, 75.15 29.53)</param>
-        /// <param name="srid">The Spatial Reference System Identifier, default 4326 </param>
-        /// <returns></returns>
-        public static string GeoST_Polygon(this ISession session, string lineString, int srid = 4326)
-        {
             ProviderName providerName = session.ProviderName;
-            if (providerName != ProviderName.PostgreSql)
+            string sql = string.Empty;
+            if (providerName == ProviderName.PostgreSql)
             {
-                throw new Exception("Only for PostgreSql");
+                string adding = string.Empty;
+                if (!string.IsNullOrEmpty(bufferStyleParameters))
+                {
+                    adding = $", '{bufferStyleParameters}'";
+                } 
+                sql = $"SELECT ST_AsText(ST_Buffer(ST_GeomFromText('{shape.GeoText}',{shape.Srid}),{radius} {adding}));";
             }
-            Check.NotNull(lineString, nameof(lineString));
-            Check.NotNull(session, nameof(session));
-            string
-                sql = $" SELECT ST_AsText(ST_Polygon(ST_GeomFromText('{lineString}'), {srid}));";
-            
+            else if (providerName == ProviderName.MySql)
+            {
+                
+                sql = $"SELECT ST_AsText(ST_Buffer(ST_GeomFromText('{shape.GeoText}',{shape.Srid}),{radius}));";
+            }
+            else if (providerName == ProviderName.MsSql)
+            {
+                sql = $"SELECT (geometry::STGeomFromText('{shape.GeoText}',{shape.Srid}).STBuffer({radius})).STAsText();";
+            }
+
+
             var p = session.ExecuteScalar(sql);
             return (string)p;
         }
+
+
+
+
+
+       
 
         /// <summary>
         /// Returns the area of the geometry if it is a Polygon or MultiPolygon.
@@ -106,10 +95,10 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(o, nameof(o));
             Check.NotNull(session, nameof(session));
             string
-                sql = $" SELECT ST_Area('{o.GeoData}');";
+                sql = $" SELECT ST_Area('{o.GeoText}');";
             if (useSpheroid == false)
             {
-                sql = $" SELECT ST_Area('{o.GeoData}', false);";
+                sql = $" SELECT ST_Area('{o.GeoText}', false);";
             }
 
             var p = session.ExecuteScalar(sql);
@@ -137,27 +126,33 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(o, nameof(o));
             Check.NotNull(session, nameof(session));
             string
-                sql = $" SELECT ST_Area('{o.GeoData}')*POWER(0.3048,2);";
+                sql = $" SELECT ST_Area('{o.GeoText}')*POWER(0.3048,2);";
             if (useSpheroid == false)
             {
-                sql = $" SELECT ST_Area('{o.GeoData}', false)*POWER(0.3048,2);";
+                sql = $" SELECT ST_Area('{o.GeoText}', false)*POWER(0.3048,2);";
             }
 
             var p = session.ExecuteScalar(sql);
             return (double)p;
         }
         /// <summary>
-        /// 
+        /// Returns the area of a polygonal geometry.
+        /// For geometry types a 2D Cartesian (planar) area is computed, with units specified by the SRID.
         /// </summary>
-        /// <param name="session"></param>
-        /// <param name="o"></param>
+        /// <param name="session">Current session</param>
+        /// <param name="o">Geo object</param>
         /// <returns></returns>
         public static double GeoST_Area(this ISession session, IGeoShape o)
         {
             
             Check.NotNull(o, nameof(o));
             Check.NotNull(session, nameof(session));
-            string sql = $" select ST_Area(ST_GeomFromText('{o.GeoData}'))";
+            ProviderName providerName = session.ProviderName;
+            string sql = $" select ST_Area(ST_GeomFromText('{o.GeoText}',{o.Srid}))";
+            if (providerName == ProviderName.MsSql)
+            {
+                sql = $" select (geometry::STGeomFromText('{o.GeoText}',{o.Srid})).STArea()";
+            }
             var p = session.ExecuteScalar(sql);
             return (double)p;
         }
@@ -165,7 +160,7 @@ namespace ORM_1_21_.Extensions
 
 
         /// <summary>
-        /// Пример геометрии - единицы измерения в метрах (SRID: 3857, как указано выше, но с поправкой на cos(lat) для учета искажений
+        /// For geometry types returns the minimum 2D Cartesian (planar) distance between two geometries, in projected units (spatial ref units).
         /// </summary>
         /// <param name="session">Current session</param>
         /// <param name="o1">Object IGeoShape</param>
@@ -181,25 +176,12 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(o1, nameof(o1));
             Check.NotNull(o2, nameof(o2));
             Check.NotNull(session, nameof(session));
-            var p = session.ExecuteScalar($"SELECT ST_Distance( ST_Transform ('SRID=4326;{o1.GeoData}'::geometry, 3857), " +
-                                          $"ST_Transform('SRID=4326;{o2.GeoData}'::geometry, 3857)) * cosd(42.3521) ;");
+            var p = session.ExecuteScalar($"SELECT ST_Distance( ST_Transform ('SRID=4326;{o1.GeoText}'::geometry, 3857), " +
+                                          $"ST_Transform('SRID=4326;{o2.GeoText}'::geometry, 3857)) * cosd(42.3521) ;");
             return (double)p;
         }
 
-        /// <summary>
-        /// Определяет, является ли фигура простой
-        /// </summary>
-        /// <param name="session">Current session</param>
-        /// <param name="o">Object IGeoShape</param>
-        /// <returns>Bool result</returns>
-        public static bool GeoST_IsSimple(this ISession session, IGeoShape o)
-        {
-            Check.NotNull(session, nameof(session));
-            Check.NotNull(o, nameof(o));
-
-            var p = session.ExecuteScalar($"SELECT ST_IsSimple(ST_GeomFromText('{o.GeoData}'));");
-            return (bool)p;
-        }
+        
 
         /// <summary>
         /// Returns TRUE if geometry A is within geometry B. A is within B if and only if all points of A lie inside (i.e. in the interior or boundary of) B (or equivalently, no points of A lie in the exterior of B), and the interiors of A and B have at least one point in common.
@@ -214,7 +196,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(session, nameof(session));
             Check.NotNull(o1, nameof(o1));
             Check.NotNull(o2, nameof(o2));
-            var p = session.ExecuteScalar($"SELECT ST_Within(ST_GeomFromText('{o1.GeoData}'),ST_GeomFromText('{o2.GeoData}'));");
+            var p = session.ExecuteScalar($"SELECT ST_Within(ST_GeomFromText('{o1.GeoText}'),ST_GeomFromText('{o2.GeoText}'));");
             return (bool)p;
         }
 
@@ -231,7 +213,7 @@ namespace ORM_1_21_.Extensions
             Check.NotNull(session, nameof(session));
             Check.NotNull(o1, nameof(o1));
             Check.NotNull(o2, nameof(o2));
-            var p = session.ExecuteScalar($"SELECT ST_Contains(ST_GeomFromText('{o1.GeoData}'),ST_GeomFromText('{o2.GeoData}'));");
+            var p = session.ExecuteScalar($"SELECT ST_Contains(ST_GeomFromText('{o1.GeoText}'),ST_GeomFromText('{o2.GeoText}'));");
             return (bool)p;
         }
 
@@ -245,7 +227,17 @@ namespace ORM_1_21_.Extensions
         {
             Check.NotNull(session, nameof(session));
             Check.NotNull(o, nameof(o));
-            var p = session.ExecuteScalar($"SELECT ST_IsValid(ST_GeomFromText('{o.GeoData}'));");
+            ProviderName providerName = session.ProviderName;
+            string sql = $"SELECT ST_IsValid(ST_GeomFromText('{o.GeoText}',{o.Srid}));";
+            if (providerName == ProviderName.MsSql)
+            {
+                 sql = $"SELECT (geometry::STGeomFromText('{o.GeoText}',{o.Srid})).STIsValid();";
+            }
+            var p = session.ExecuteScalar(sql);
+            if (providerName == ProviderName.MySql)
+            {
+                return p.ToString()=="1";
+            }
             return (bool)p;
         }
 
@@ -260,7 +252,7 @@ namespace ORM_1_21_.Extensions
         /// <param name="geoObj">geometry B</param>
         /// <param name="actionResult">Comparison result as sql where</param>
         /// <typeparam name="T">The type of the elements of the input sequences</typeparam>
-        public static IQueryable<T> GeoST_Within<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape geoObj,bool actionResult=true)
+        public static IQueryable<T> GeoWhereST_Within<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape geoObj,bool actionResult=true)
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(selector, nameof(selector));
@@ -285,7 +277,7 @@ namespace ORM_1_21_.Extensions
         /// <param name="geoObj">geometry B</param>
         /// <param name="actionResult">Comparison result as sql where</param>
         /// <typeparam name="T">The type of the elements of the input sequences</typeparam>
-        public static IQueryable<T> GeoST_Contains<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape geoObj, bool actionResult = true)
+        public static IQueryable<T> GeoWhereST_Contains<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape geoObj, bool actionResult = true)
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(selector, nameof(selector));
@@ -310,7 +302,7 @@ namespace ORM_1_21_.Extensions
         /// <param name="actionResult"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static IQueryable<T> GeoST_Intersects<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape geoObj, bool actionResult = true)
+        public static IQueryable<T> GeoWhereST_Intersects<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape geoObj, bool actionResult = true)
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(selector, nameof(selector));
@@ -337,7 +329,7 @@ namespace ORM_1_21_.Extensions
         /// <param name="actionResult"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static IQueryable<T> GeoST_Disjoint<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape geoObj, bool actionResult = true)
+        public static IQueryable<T> GeoWhereST_Disjoint<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape geoObj, bool actionResult = true)
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(selector, nameof(selector));
@@ -353,16 +345,129 @@ namespace ORM_1_21_.Extensions
             return query.Where(lambada);
         }
 
+        /// <summary>
+        /// Compares two geometry objects and returns true if their intersection
+        /// "spatially crosses"; that is, the geometries have some, but not all interior points in common.
+        /// The intersection of the interiors of the geometries must be non-empty and must have dimension less than the maximum dimension of the two input geometries,
+        /// and the intersection of the two geometries must not equal either geometry.
+        /// Otherwise, it returns false. The crosses relation is symmetric and irreflexive.
+        /// </summary>
+        /// <param name="query">Current IQueryable</param>
+        /// <param name="selector">Property object as IGeoShape</param>
+        /// <param name="geoObj">Object for comparison</param>
+        /// <param name="actionResult">Result of the comparison (default true)</param>
+        /// <typeparam name="T">Table Entity Type</typeparam>
+        /// <returns>bool</returns>
+        public static IQueryable<T> GeoWhereST_Crosses<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape geoObj, bool actionResult = true)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(selector, nameof(selector));
+            Check.NotNull(geoObj, nameof(geoObj));
+            var provider = (DbQueryProvider<T>)query.Provider;
+            ProviderName providerName = provider.Sessione.ProviderName;
+            var geo = Expression.Constant(geoObj);
+            var nameColumnE = GetNameColumnCore(selector, providerName);
+            var isNotE = Expression.Constant(actionResult);
+            var selectorParameters = selector.Parameters;
+            Expression check = Expression.Call(null, typeof(V).GetMethod("GeoST_Crosses"), nameColumnE, geo, isNotE);
+            var lambada = Expression.Lambda<Func<T, bool>>(check, selectorParameters);
+            return query.Where(lambada);
+        }
+
+        /// <summary>
+        /// Returns true if the given geometries are "topologically equal".
+        /// Use this for a 'better' answer than '='. Topological equality means that the geometries have the same dimension,
+        /// and their point-sets occupy the same space.
+        /// This means that the order of vertices may be different in topologically equal geometries.
+        /// To verify the order of points is consistent use ST_OrderingEquals
+        /// (it must be noted ST_OrderingEquals is a little more stringent than simply verifying order of points are the same).
+        /// </summary>
+        /// <param name="query">Current IQueryable</param>
+        /// <param name="selector">Property object as IGeoShape</param>
+        /// <param name="geoObj">Object for comparison</param>
+        /// <param name="actionResult">Result of the comparison (default true)</param>
+        /// <typeparam name="T">Table Entity Type</typeparam>
+        /// <returns>bool</returns>
+        public static IQueryable<T> GeoWhereST_Equals<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape geoObj, bool actionResult = true)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(selector, nameof(selector));
+            Check.NotNull(geoObj, nameof(geoObj));
+            var provider = (DbQueryProvider<T>)query.Provider;
+            ProviderName providerName = provider.Sessione.ProviderName;
+            var geo = Expression.Constant(geoObj);
+            var nameColumnE = GetNameColumnCore(selector, providerName);
+            var isNotE = Expression.Constant(actionResult);
+            var selectorParameters = selector.Parameters;
+            Expression check = Expression.Call(null, typeof(V).GetMethod("GeoST_Equals"), nameColumnE, geo, isNotE);
+            var lambada = Expression.Lambda<Func<T, bool>>(check, selectorParameters);
+            return query.Where(lambada);
+        }
+
+        /// <summary>
+        /// Returns TRUE if geometry A and B "spatially overlap". Two geometries overlap if they have the same dimension, their interiors intersect in that dimension.
+        /// and each has at least one point inside the other (or equivalently, neither one covers the other).
+        /// The overlaps relation is symmetric and irreflexive.
+        /// </summary>
+        /// <param name="query">Current IQueryable</param>
+        /// <param name="selector">Property object as IGeoShape</param>
+        /// <param name="geoObj">Object for comparison</param>
+        /// <param name="actionResult">Result of the comparison (default true)</param>
+        /// <typeparam name="T">Table Entity Type</typeparam>
+        /// <returns>bool</returns>
+        public static IQueryable<T> GeoWhereST_Overlaps<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape geoObj, bool actionResult = true)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(selector, nameof(selector));
+            Check.NotNull(geoObj, nameof(geoObj));
+            var provider = (DbQueryProvider<T>)query.Provider;
+            ProviderName providerName = provider.Sessione.ProviderName;
+            var geo = Expression.Constant(geoObj);
+            var nameColumnE = GetNameColumnCore(selector, providerName);
+            var isNotE = Expression.Constant(actionResult);
+            var selectorParameters = selector.Parameters;
+            Expression check = Expression.Call(null, typeof(V).GetMethod("GeoST_Overlaps"), nameColumnE, geo, isNotE);
+            var lambada = Expression.Lambda<Func<T, bool>>(check, selectorParameters);
+            return query.Where(lambada);
+        }
+
+        /// <summary>
+        /// Returns TRUE if A and B intersect, but their interiors do not intersect.
+        /// Equivalently, A and B have at least one point in common, and the common points lie in at least one boundary.
+        /// For Point/Point inputs the relationship is always FALSE, since points do not have a boundary.
+        /// </summary>
+        /// <param name="query">Current IQueryable</param>
+        /// <param name="selector">Property object as IGeoShape</param>
+        /// <param name="geoObj">Object for comparison</param>
+        /// <param name="actionResult">Result of the comparison (default true)</param>
+        /// <typeparam name="T">Table Entity Type</typeparam>
+        /// <returns>bool</returns>
+        public static IQueryable<T> GeoWhereST_Touches<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape geoObj, bool actionResult = true)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(selector, nameof(selector));
+            Check.NotNull(geoObj, nameof(geoObj));
+            var provider = (DbQueryProvider<T>)query.Provider;
+            ProviderName providerName = provider.Sessione.ProviderName;
+            var geo = Expression.Constant(geoObj);
+            var nameColumnE = GetNameColumnCore(selector, providerName);
+            var isNotE = Expression.Constant(actionResult);
+            var selectorParameters = selector.Parameters;
+            Expression check = Expression.Call(null, typeof(V).GetMethod("GeoST_Touches"), nameColumnE, geo, isNotE);
+            var lambada = Expression.Lambda<Func<T, bool>>(check, selectorParameters);
+            return query.Where(lambada);
+        }
+
 
         /// <summary>
         /// Test if an ST_Geometry value is well formed.
         /// </summary>
-        /// <param name="query">Query provider</param>
-        /// <param name="selector">geometry</param>
-        /// <param name="actionResult">Comparison result as sql where</param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public static IQueryable<T> GeoST_IsValid<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector,  bool actionResult = true)
+        /// <param name="query">Current IQueryable</param>
+        /// <param name="selector">Property object as IGeoShape</param>
+        /// <param name="actionResult">Result of the comparison (default true)</param>
+        /// <typeparam name="T">Table Entity Type</typeparam>
+        /// <returns>bool</returns>
+        public static IQueryable<T> GeoWhereST_IsValid<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector,  bool actionResult = true)
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(selector, nameof(selector));
@@ -377,37 +482,22 @@ namespace ORM_1_21_.Extensions
             return query.Where(lambada);
         }
 
-       // /// <summary>
-       // /// 
-       // /// </summary>
-       // /// <param name="query"></param>
-       // /// <param name="selector"></param>
-       // /// <typeparam name="T"></typeparam>
-       // /// <returns>boolean</returns>
-       // public static IQueryable<T> GeoST_Area<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector)
-       // {
-       //     var provider = (DbQueryProvider<T>)query.Provider;
-       //     ProviderName providerName = provider.Sessione.ProviderName;
-       //     var nameColumnE = GetNameColumnCore(selector, providerName);
-       //    var selectorParameters = selector.Parameters;
-       //     Expression check = Expression.Call(null, typeof(V).GetMethod("GeoST_Area"), nameColumnE);
-       //     var lambada = Expression.Lambda<Func<T, bool>>(check, selectorParameters);
-       //     return query.Where(lambada);
-       // }
+
 
 
         /// <summary>
-        /// 
+        /// Returns givenned type to geometries
         /// </summary>
-        /// <param name="query"></param>
-        /// <param name="selector"></param>
-        /// <param name="type"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public static IQueryable<T> GeoST_GeometryType<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector,GeoType type)
+        /// <param name="query">Current IQueryable</param>
+        /// <param name="selector">Property object as IGeoShape</param>
+        /// <param name="type">Enum GeoType</param>
+        /// <typeparam name="T">Table Entity Type</typeparam>
+        /// <returns>bool</returns>
+        public static IQueryable<T> GeoWhereST_GeometryType<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector,GeoType type)
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(selector, nameof(selector));
+           
           
             var provider = (DbQueryProvider<T>)query.Provider;
             ProviderName providerName = provider.Sessione.ProviderName;
@@ -435,7 +525,7 @@ namespace ORM_1_21_.Extensions
         /// <param name="actionResult"> Default true</param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static IQueryable<T> GeoST_DWithin<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape shape, int distance, bool actionResult = true)
+        public static IQueryable<T> GeoWhereST_DWithin<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, IGeoShape shape, int distance, bool actionResult = true)
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(selector, nameof(selector));
@@ -461,48 +551,49 @@ namespace ORM_1_21_.Extensions
         /// <param name="shape"></param>
         /// <param name="session"></param>
         /// <returns></returns>
-        public static double ST_Length(this IGeoShape shape ,ISession session=null)
+        public static double ST_Length(this IGeoShape shape ,ISession session)
         {
             Check.NotNull(session, nameof(session));
             Check.NotNull(shape, nameof(shape));
             ProviderName providerName = session.ProviderName;
-            if (providerName != ProviderName.PostgreSql)
+            if (providerName == ProviderName.MsSql)
             {
-                throw new Exception("Only for PostgreSql");
+                var res0 = session.ExecuteScalar($" SELECT (geometry::STGeomFromText({session.SymbolParam}1,{shape.Srid})).STLength();", shape.GeoText);
+                return (double)res0;
             }
-            var res=session.ExecuteScalar($" SELECT ST_Length(ST_GeomFromText(@1));",shape.GeoData);
+            var res=session.ExecuteScalar($" SELECT ST_Length(ST_GeomFromText({session.SymbolParam}1,{shape.Srid}));",shape.GeoText);
             return (double)res;
         }
 
         /// <summary>
-        /// 
+        /// Returns the OGC Well-Known Text (WKT) representation of the geography.
         /// </summary>
-        /// <param name="shape"></param>
-        /// <returns></returns>
+        /// <param name="shape">Geo Object</param>
+        /// <returns>string</returns>
         public static string ST_AsText(this IGeoShape shape)
         {
             Check.NotNull(shape, nameof(shape));
            
-            return shape.GeoData;
+            return shape.GeoText;
         }
 
         /// <summary>
-        /// Returns a geometry as a GeoJSON "geometry".
+        /// Returns a geometry as a GeoJSON "geometry". Only for Postgres or Mysql
         /// </summary>
-        /// <param name="shape"></param>
-        /// <param name="session"></param>
-        /// <returns></returns>
+        /// <param name="shape">Geo object</param>
+        /// <param name="session">ISession orm</param>
+        /// <returns>GeoJson as string</returns>
         public static string ST_AsGeoJSON(this IGeoShape shape,ISession session)
         {
             Check.NotNull(shape, nameof(shape));
             Check.NotNull(session, nameof(session));
             ProviderName providerName = session.ProviderName;
-            if (providerName != ProviderName.PostgreSql)
+            if (providerName == ProviderName.MsSql)
             {
-                throw new Exception("Only for PostgreSql");
+                throw new Exception("Only for Postgres or Mysql");
             }
            
-            return  (string)session.ExecuteScalar($"SELECT ST_AsGeoJSON(@1);", shape.GeoData);
+            return  (string)session.ExecuteScalar($"SELECT ST_AsGeoJSON(ST_GeomFromText({session.SymbolParam}1,{shape.Srid}));", shape.GeoText);
 
         }
 
@@ -520,25 +611,38 @@ namespace ORM_1_21_.Extensions
             ProviderName providerName = session.ProviderName;
             if (providerName != ProviderName.PostgreSql)
             {
-                throw new Exception("Only for PostgreSql");
+                throw new Exception("Only for Postgres");
             }
-            return (double)session.ExecuteScalar($"SELECT ST_Perimeter(@1);", shape.GeoData);
+            return (double)session.ExecuteScalar($"SELECT ST_Perimeter(ST_GeomFromText({session.SymbolParam}1,{shape.Srid}));", shape.GeoText);
         }
+       
 
         /// <summary>
-        /// Returns a geography object from the well-known text representation. SRID 4326 is assumed if unspecified.
+        /// Returns a geography object as byte[], from the well-known text representation. SRID 4326 is assumed if unspecified.
         /// </summary>
         /// <returns></returns>
-        public static byte[] ST_GeogFromText(this IGeoShape shape, ISession session)
+        public static byte[] ST_GeoToByteArray(this IGeoShape shape, ISession session)
         {
             Check.NotNull(shape, nameof(shape));
             Check.NotNull(session, nameof(session));
             ProviderName providerName = session.ProviderName;
-            if (providerName != ProviderName.PostgreSql)
+            switch (providerName)
             {
-                throw new Exception("Only for PostgreSql");
+                case ProviderName.MsSql:
+                    return session.ExecuteScalar($"select geometry::STGeomFromText({session.SymbolParam}1,{shape.Srid}).STAsBinary()", shape.GeoText) as byte[];
+                  
+                case ProviderName.MySql:
+                    return session.ExecuteScalar($"SELECT HEX(ST_GeomFromText({session.SymbolParam}1,{shape.Srid})) ", shape.GeoText) as byte[];
+                case ProviderName.PostgreSql:
+                    return session.ExecuteScalar($"SELECT ST_GeomFromText(@1,{shape.Srid})::bytea ", shape.GeoText) as byte[];
+                case ProviderName.SqLite:
+                    throw new Exception("Not support geo object");
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            return session.ExecuteScalar($"SELECT ST_GeogFromText(@1)::bytea ", shape.GeoData) as byte[];
+            
+           
+            
          
         }
        
@@ -568,6 +672,8 @@ namespace ORM_1_21_.Extensions
             var nameTable = GetTableName<T>(providerName);
             return Expression.Constant($"{nameTable}.{nameColumn}");
         }
+
+        
         private static string GetColumnNameSimple<T>(string member, Type type, ProviderName providerName)
         {
             var ss = AttributesOfClass<T>.GetNameSimpleColumnForQuery(member,providerName);

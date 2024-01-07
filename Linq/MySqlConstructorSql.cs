@@ -137,7 +137,7 @@ namespace ORM_1_21_.Linq
                 {
                     string value = listOne.First(a => a.Operand == Evolution.Select).Body;
                     var d = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(s => s.Body);
-                    var d2 = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(s => s.Body);
+                    
                     if (d.Any())
                     {
                         HashSet<string> hashSet=new HashSet<string>();
@@ -145,8 +145,17 @@ namespace ORM_1_21_.Linq
                         {
                             if (hashSet.Contains(s) == false)
                             {
-                                value = value.Replace(s, $"ST_AsText({s})");
-                                hashSet.Add(s);
+                                if (providerName == ProviderName.PostgreSql)
+                                {
+                                    value = value.Replace(s, $"ST_AsEWKT({s})");
+                                    hashSet.Add(s);
+                                }else if (providerName == ProviderName.MySql)
+                                {
+                                    value = value.Replace(s, UtilsCore.MysqlConcatSrid(s));
+                                    hashSet.Add(s);
+                                }
+
+
                             }
                         }
                     }
@@ -192,8 +201,25 @@ namespace ORM_1_21_.Linq
                             {
                                 if (i.IsInheritIGeoShape)
                                 {
-                                    sbb.Append(
-                                        $" ST_AsText({AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}) as {i.GetColumnName(_providerName)}, ");
+                                    if (providerName == ProviderName.PostgreSql)
+                                    {
+                                        sbb.Append(
+                                            $" ST_AsEWKT({AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}) as {i.GetColumnName(_providerName)}, ");
+                                    }
+                                    else if (providerName == ProviderName.MySql)
+                                    {
+                                        sbb.Append(UtilsCore.MysqlConcatSrid(
+                                            $"{AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}"));
+                                        sbb.Append($" as {i.GetColumnName(_providerName)}, ");
+                                       
+
+                                    }
+                                    else
+                                    {
+                                        sbb.Append(
+                                            $" ST_AsText({AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}) as {i.GetColumnName(_providerName)}, ");
+                                    }
+                                    
                                    
                                 }
                                 else

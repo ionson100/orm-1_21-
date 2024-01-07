@@ -117,7 +117,7 @@ namespace ORM_1_21_.Utils
                         {
                             IGeoShape shape = (IGeoShape)o;
 
-                            string data = $"ST_GeomFromText('{shape.GeoData}')";
+                            string data = $"ST_GeomFromText('{shape.GeoText}', {map.Srid})";
                           
                             row.Append(data).Append(",");
                         }

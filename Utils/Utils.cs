@@ -22,6 +22,16 @@ namespace ORM_1_21_.Utils
         internal const string Bungalo = "____";
 
         public static HashSet<Type> HashSetJsonType=new HashSet<Type>();
+
+        public static string MysqlConcatSrid(string column)
+        {
+            return $" CONCAT('SRID=',ST_SRID({column}),';',ST_AsText({column}))";
+        }
+
+        public static string MsSqlConcatSrid(string column)
+        {
+            return $" CONCAT('SRID=',{column}.STSrid,';',{column}.STAsText())";
+        }
        
 
         public static bool IsJson(Type type)

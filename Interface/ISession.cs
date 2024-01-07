@@ -101,7 +101,7 @@ namespace ORM_1_21_
         /// <summary>
         ///     Drop table if exists
         /// </summary>
-        int DropTableIfExists<TSource>() where TSource : class;
+        int DropTableIfExists<TSource>();
 
         /// <summary>
         ///     Checking if a table exists in database

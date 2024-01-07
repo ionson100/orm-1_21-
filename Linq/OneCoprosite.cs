@@ -19,6 +19,8 @@ namespace ORM_1_21_.Linq
             get => _body;
             set => _body = value.TrimEnd(',');
         }
+
+        public int Srid { get; set; } = -1;
         public Delegate ExpressionDelegate { get; set; }
     }
 

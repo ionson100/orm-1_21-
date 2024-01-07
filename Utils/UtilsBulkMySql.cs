@@ -64,8 +64,8 @@ namespace ORM_1_21_.Utils
                 {
                     if (map.IsInheritIGeoShape)
                     {
-                        var geoJson = ((IGeoShape)ob).GeoData;
-                        row.Append($"ST_GeomFromText('{geoJson}')").Append(";");
+                        var geoJson = ((IGeoShape)ob).GeoText;
+                        row.Append($"ST_GeomFromText('{geoJson}', {map.Srid})").Append(";");
                     }
                     else
                     {
@@ -130,8 +130,8 @@ namespace ORM_1_21_.Utils
 
                     } else if (map.IsInheritIGeoShape)
                     {
-                        var geoJson = ((IGeoShape)o).GeoData;
-                        row.Append($"ST_GeomFromText('{geoJson}')").Append(", ");
+                        var geoJson = ((IGeoShape)o).GeoText;
+                        row.Append($"ST_GeomFromText('{geoJson}', {map.Srid})").Append(", ");
                     }
                     else
                     {

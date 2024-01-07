@@ -52,7 +52,7 @@ namespace ORM_1_21_.geo
                     throw new ArgumentOutOfRangeException();
             }
 
-            coordinates = shape.ArrayCoordinate;
+            coordinates = shape.ArrayCoordinates;
         }
         /// <summary>
         /// 

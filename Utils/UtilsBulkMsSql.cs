@@ -167,7 +167,7 @@ namespace ORM_1_21_.Utils
                     var o = AttributesOfClass<T>.GetValueE(_providerName, column.PropertyName, ob);
                     if (column.IsInheritIGeoShape)
                     {
-                        partBuilder.Append($"geometry::STGeomFromText('{((IGeoShape)o).GeoData}', 0)").Append(", ");
+                        partBuilder.Append($"geometry::STGeomFromText('{((IGeoShape)o).GeoText}', {column.Srid})").Append(", ");
                     } else if (column.IsJson)
                     {
                         partBuilder.Append($"'{JsonConvert.SerializeObject(o)}'").Append(", ");

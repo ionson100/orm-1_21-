@@ -103,7 +103,7 @@ namespace ORM_1_21_
                             }else if (val is string)
                             {
                                 var o = new GeoObject();
-                                ((IGeoShape)o).GeoData = val.ToString();
+                                ((IGeoShape)o).GeoText = val.ToString();
                                 d[i] = o;
                             }
                             else

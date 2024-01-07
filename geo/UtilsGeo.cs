@@ -19,7 +19,7 @@ namespace ORM_1_21_.geo
                 {
                     str = str.Replace("POINT", "").Replace(")", "").Replace("(", "");
                     var s = str.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                    list.Add(new GeoPoint { Latitude = double.Parse(s[0], CultureInfo.InvariantCulture), Longitude = double.Parse(s[1], CultureInfo.InvariantCulture) });
+                    list.Add(new GeoPoint { X = double.Parse(s[0], CultureInfo.InvariantCulture), Y = double.Parse(s[1], CultureInfo.InvariantCulture) });
                     break;
                 }
 
@@ -32,8 +32,8 @@ namespace ORM_1_21_.geo
                         var ss = s1.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                         list.Add(new GeoPoint
                         {
-                            Latitude = double.Parse(ss[0], CultureInfo.InvariantCulture),
-                            Longitude = double.Parse(ss[1], CultureInfo.InvariantCulture)
+                            X = double.Parse(ss[0], CultureInfo.InvariantCulture),
+                            Y = double.Parse(ss[1], CultureInfo.InvariantCulture)
                         });
                     }
                     break;
@@ -48,8 +48,8 @@ namespace ORM_1_21_.geo
                         var ss = s1.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                         list.Add(new GeoPoint
                         {
-                            Latitude = double.Parse(ss[0], CultureInfo.InvariantCulture),
-                            Longitude = double.Parse(ss[1], CultureInfo.InvariantCulture)
+                            X = double.Parse(ss[0], CultureInfo.InvariantCulture),
+                            Y = double.Parse(ss[1], CultureInfo.InvariantCulture)
                         });
                     }
                     break;
@@ -69,7 +69,7 @@ namespace ORM_1_21_.geo
                             {
                                 string[] ds = s.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                                 var sp = new GeoPoint
-                                    { Latitude = double.Parse(ds[0]), Longitude = double.Parse(ds[1]) };
+                                    { X = double.Parse(ds[0]), Y = double.Parse(ds[1]) };
                                 list.Add(sp);
                                 geoShapes.Add(new GeoObject(GeoType.Point,sp));
                             }
@@ -95,8 +95,8 @@ namespace ORM_1_21_.geo
                         var ss = s1.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                         list.Add(new GeoPoint
                         {
-                            Latitude = double.Parse(ss[0], CultureInfo.InvariantCulture),
-                            Longitude = double.Parse(ss[1], CultureInfo.InvariantCulture)
+                            X = double.Parse(ss[0], CultureInfo.InvariantCulture),
+                            Y = double.Parse(ss[1], CultureInfo.InvariantCulture)
                         });
                     }
                     break;
@@ -173,34 +173,15 @@ namespace ORM_1_21_.geo
 
                 case GeoType.GeometryCollection:
                 {
-                    int s = str.IndexOf('(')+1;
-                    int f = str.LastIndexOf(')');
-                    int l = str.Length;
-                    int d = f-s;
-                    str = str.Substring(s,d);
-
+                    
                    
-                        Regex regex = new Regex(@"POLYGON\(([^)]+)\)\)|POINT\(([^)]+)\)|LINESTRING\(([^)]+)\)|GEOMETRYCOLLECTION\(([^)]+)\)\)|MULTIPOINT\(\((.+?)\)\)|MULTIPOLYGON\(\((.+?)\)\)\)|MULTILINESTRING\(\((.+?)\)\)");
-                    MatchCollection matches = regex.Matches(str);
-                    if (matches.Count > 0)
+                    foreach (var s1 in FactoryGeo.ParseGeoCollection(str))
                     {
-                        foreach (Match match in matches)
-                        {
-                            var rr = match.Value;
-                            geoShapes.Add(new GeoObject(rr));
-
-                        }
-
-                    }
-                    else
-                    {
-                        throw new Exception("Совпадений не найдено");
+                        geoShapes.Add(new GeoObject(s1));
                     }
 
-                        //POLYGON\(([^)]+)\)\)|POINT\(([^)]+)\)|LINESTRING\(([^)]+)\)|GEOMETRYCOLLECTION\(([^)]+)\)\)|MULTIPOINT\(\((.+?)\)\)
-                        //POLYGON\(([^)]+)\)\)|POINT\(([^)]+)\)|LINESTRING\(([^)]+)\)|GEOMETRYCOLLECTION\(([^)]+)\)\)|MULTIPOINT\(\((.+?)\)\)|MULTIPOLYGON\(\((.+?)\)\)\)|MULTILINESTRING\(\((.+?)\)\)
-                        var sas = str;
                     break;
+                   
                 }
 
                 default:

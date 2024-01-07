@@ -57,6 +57,8 @@ namespace ORM_1_21_
 
         internal bool IsJson { get; set; }
 
+        internal int Srid { get; set; } = 4326;
+
         internal string TypeString { get; set; }
 
         internal string PropertyName { get; set; }
