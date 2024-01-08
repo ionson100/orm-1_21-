@@ -170,7 +170,15 @@ namespace ORM_1_21_.Utils
                         partBuilder.Append($"geometry::STGeomFromText('{((IGeoShape)o).GeoText}', {column.Srid})").Append(", ");
                     } else if (column.IsJson)
                     {
-                        partBuilder.Append($"'{JsonConvert.SerializeObject(o)}'").Append(", ");
+                        if (o is string)
+                        {
+                            partBuilder.Append($"'{o}'").Append(", ");
+                        }
+                        else
+                        {
+                            partBuilder.Append($"'{JsonConvert.SerializeObject(o)}'").Append(", ");
+                        }
+                        
                     }
                     else
                     {

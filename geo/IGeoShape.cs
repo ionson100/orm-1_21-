@@ -11,8 +11,6 @@ namespace ORM_1_21_.geo
         /// <summary>
         /// Quickly set value Spatial Reference System Identifier
         /// </summary>
-        /// <param name="srid"></param>
-        /// <returns></returns>
         IGeoShape SetSrid(int srid);
         /// <summary>
         /// Spatial Reference System Identifier
@@ -38,7 +36,7 @@ namespace ORM_1_21_.geo
         List<GeoPoint> ListGeoPoints { get; }
 
         /// <summary>
-        /// Return Full GeoJson when property value
+        /// Return Full GeoJson when property value. For empty objects, return null
         /// </summary>
         object GetGeoJson(object properties = null);
 

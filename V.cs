@@ -100,6 +100,11 @@ namespace ORM_1_21_
         {
             return true;
         }
+        public static bool GeoST_IsEmpty(object e, bool f)
+        {
+            return true;
+        }
+        
 
         public static bool GeoST_Area(object o)
         {

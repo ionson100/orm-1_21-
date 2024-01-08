@@ -183,6 +183,10 @@ namespace ORM_1_21_.geo
                     break;
                    
                 }
+                case GeoType.Empty:
+                {
+                    break;
+                }
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);

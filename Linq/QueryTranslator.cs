@@ -1780,6 +1780,10 @@ namespace ORM_1_21_.Linq
            
             if (m.Method.Name == "GeoST_GeometryType")
             {
+                if (_providerName == ProviderName.SqLite)
+                {
+                    throw new Exception("The database SqLite does not support geographical objects");
+                }
                 var c = m.Arguments[0] as ConstantExpression;
                 var nameColumn = c.Value;
 
@@ -1931,7 +1935,8 @@ namespace ORM_1_21_.Linq
                         StringB.Clear();
                         break;
                     case ProviderName.SqLite:
-                        break;
+                        throw new Exception("The database SqLite does not support geographical objects");
+                       
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -2009,7 +2014,7 @@ namespace ORM_1_21_.Linq
                         StringB.Clear();
                         break;
                     case ProviderName.SqLite:
-                        break;
+                        throw new Exception("The database SqLite does not support geographical objects");
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -2055,7 +2060,7 @@ namespace ORM_1_21_.Linq
                         StringB.Clear();
                         break;
                     case ProviderName.SqLite:
-                        break;
+                        throw new Exception("The database SqLite does not support geographical objects");
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -2102,7 +2107,7 @@ namespace ORM_1_21_.Linq
                         StringB.Clear();
                         break;
                     case ProviderName.SqLite:
-                        break;
+                        throw new Exception("The database SqLite does not support geographical objects");
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -2150,7 +2155,7 @@ namespace ORM_1_21_.Linq
                         StringB.Clear();
                         break;
                     case ProviderName.SqLite:
-                        break;
+                        throw new Exception("The database SqLite does not support geographical objects");
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -2203,7 +2208,7 @@ namespace ORM_1_21_.Linq
                             break;
                     }
                     case ProviderName.SqLite:
-                        break;
+                        throw new Exception("The database SqLite does not support geographical objects");
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -2251,7 +2256,7 @@ namespace ORM_1_21_.Linq
                         StringB.Clear();
                         break;
                     case ProviderName.SqLite:
-                        break;
+                        throw new Exception("The database SqLite does not support geographical objects");
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -2269,25 +2274,73 @@ namespace ORM_1_21_.Linq
                 bool actionResult = (bool)c1.Value;
 
                 var o = new OneComposite { Operand = Evolution.Where };
-                if (_providerName == ProviderName.MsSql)
+               
+                switch (_providerName)
                 {
-                    StringB.Append($"{nameColumn}.STIsValid() = ");
-                    AddParameter(actionResult);
-                    o.Body = StringB.ToString();
-                    AddListOne(o);
-                }
-                else
-                {
-                    StringB.Append($"ST_IsValid({nameColumn}) = ");
-                    AddParameter(actionResult);
-                    o.Body = StringB.ToString();
-                    AddListOne(o);
+                    case ProviderName.MsSql:
+                        StringB.Append($"{nameColumn}.STIsValid() = ");
+                        StringB.Append(actionResult ? $" 1" : $"0");
+                        o.Body = StringB.ToString();
+                        AddListOne(o);
+                        break;
+                    case ProviderName.MySql:
+                        StringB.Append($"ST_IsValid({nameColumn}) = ");
+                        StringB.Append(actionResult ? $" 1" : $"0");
+                        o.Body = StringB.ToString();
+                        AddListOne(o);
+                        break;
+                    case ProviderName.PostgreSql:
+                        StringB.Append($"ST_IsValid({nameColumn}) = ");
+                         StringB.Append(actionResult ? $" true " : $" false ");
+                        o.Body = StringB.ToString();
+                        AddListOne(o);
+                        break;
+                    case ProviderName.SqLite:
+                        throw new Exception("The database SqLite does not support geographical objects");
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
                
                 return m;
-
             }
-          
+
+            if (m.Method.Name == "GeoST_IsEmpty")
+            {
+                var c = m.Arguments[0] as ConstantExpression;
+                var nameColumn = c.Value;
+                var c1 = m.Arguments[1] as ConstantExpression;
+                bool actionResult = (bool)c1.Value;
+
+                var o = new OneComposite { Operand = Evolution.Where };
+                switch (_providerName)
+                {
+                    case ProviderName.MsSql:
+                        StringB.Append($"{nameColumn}.STIsEmpty() = ");
+                        StringB.Append(actionResult ? $" 1" : $"0");
+                        o.Body = StringB.ToString();
+                        AddListOne(o);
+                        break;
+                    case ProviderName.MySql:
+                        StringB.Append($"ST_IsEmpty({nameColumn}) = ");
+                        StringB.Append(actionResult ? $" 1" : $"0");
+                        o.Body = StringB.ToString();
+                        AddListOne(o);
+                        break;
+                    case ProviderName.PostgreSql:
+                        StringB.Append($"ST_IsEmpty({nameColumn}) = ");
+                        StringB.Append(actionResult ? $" true " : $" false ");
+                        o.Body = StringB.ToString();
+                        AddListOne(o);
+                        break;
+                    case ProviderName.SqLite:
+                        throw new Exception("The database SqLite does not support geographical objects");
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                
+                return m;
+            }
+
             if (m.Method.Name == "GeoST_Within")
             {
                 var c = m.Arguments[0] as ConstantExpression;
@@ -2326,7 +2379,7 @@ namespace ORM_1_21_.Linq
                         StringB.Clear();
                         break;
                     case ProviderName.SqLite:
-                        break;
+                        throw new Exception("The database SqLite does not support geographical objects");
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -3601,6 +3654,13 @@ namespace ORM_1_21_.Linq
 
         private void AddParameter(object value)
         {
+            if (value is string)
+            {
+                var p1 = ParamName;
+                StringB.Append(p1);
+                Param.Add(p1, value);
+                return;
+            }
             if (_providerName == ProviderName.MsSql)
             {
                 if (UtilsCore.IsGeo(value.GetType()))
@@ -3618,6 +3678,12 @@ namespace ORM_1_21_.Linq
                 else if (PingComposite(Evolution.ElementAt) || PingComposite(Evolution.ElementAtOrDefault))
                 {
                     StringB.Append(uint.Parse(value.ToString()));
+                }
+                else if (UtilsCore.IsAnonymousType(value.GetType()))
+                {
+                    var p1 = ParamName;
+                    StringB.Append(p1);
+                    Param.Add(p1, JsonConvert.SerializeObject(value));
                 }
                 else
                 {
@@ -3640,6 +3706,12 @@ namespace ORM_1_21_.Linq
 
                 StringB.Append(p1);
                 Param.Add(p1, ((IGeoShape)value).GeoText);
+            }
+            else if (UtilsCore.IsAnonymousType(value.GetType()))
+            {
+                var p1 = ParamName;
+                StringB.Append(p1);
+                Param.Add(p1, JsonConvert.SerializeObject(value));
             }
             else
             {

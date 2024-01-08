@@ -118,8 +118,16 @@ namespace ORM_1_21_.Utils
                     {
                         if (_providerName == ProviderName.SqLite)
                         {
-                            var json = JsonConvert.SerializeObject(o);
-                            row.Append($"'{json}'").Append(",");
+                            if (o is string)
+                            {
+                                row.Append($"'{o}'").Append(",");
+                            }
+                            else
+                            {
+                                var json = JsonConvert.SerializeObject(o);
+                                row.Append($"'{json}'").Append(",");
+                            }
+                            
                         }
                         else
                         {

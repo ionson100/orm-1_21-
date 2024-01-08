@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using System.Globalization;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -10,6 +11,7 @@ namespace ORM_1_21_
     /// </summary>
     public sealed partial class Configure
     {
+
         internal static DbProviderFactory CurFactory;
         //internal static bool UsageCache;
 
@@ -27,6 +29,7 @@ namespace ORM_1_21_
         /// <param name="provider">Base connection provider</param>
         public Configure(string connectionString, ProviderName provider) : this(connectionString, provider, null)
         {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
         }
 
 
@@ -103,6 +106,7 @@ namespace ORM_1_21_
         /// <param name="isSearchGac"> true:Search data provider in storage GAC, default - false</param>
         public Configure(string connectionString, ProviderName provider, string logFileName, bool isSearchGac = false)
         {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
             _configure = this;
             CurFactory = null;
             ConnectionString = connectionString;

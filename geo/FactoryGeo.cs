@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ORM_1_21_.Utils;
+
 
 namespace ORM_1_21_.geo
 {
@@ -20,17 +22,19 @@ namespace ORM_1_21_.geo
         /// <param name="x">Coordinate x</param>
         /// <param name="y">Coordinate y</param>
         /// <returns>Geo Object Point</returns>
-        public static IGeoShape CreatePoint(double x, double y)
+        public static IGeoShape Point(double x, double y)
         {
             return new GeoObject(x, y);
         }
+
         /// <summary>
         /// Create geo object Point
         /// </summary>
         /// <param name="point">Template point</param>
         /// <returns>Geo Object Point</returns>
-        public static IGeoShape CreatePoint(GeoPoint point)
+        public static IGeoShape Point(GeoPoint point)
         {
+            Check.NotNull(point, nameof(point));
             return new GeoObject(point);
         }
         /// <summary>
@@ -38,8 +42,9 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="str">String the OGC Well-Known Text (WKT) representation of the geometry</param>
         /// <returns>Geo Object Point</returns>
-        public static IGeoShape CreatePoint(string str)
+        public static IGeoShape Point(string str)
         {
+            ValidateString(str);
             return new GeoObject(str);
         }
 
@@ -49,7 +54,6 @@ namespace ORM_1_21_.geo
 
         #endregion
 
-
         #region MultiPoint 
 
         /// <summary>
@@ -57,7 +61,7 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="d">array double values</param>
         /// <returns>Geo Object MultiPoint</returns>
-        public static IGeoShape CreateMultiPoint(params double[] d)
+        public static IGeoShape MultiPoint(params double[] d)
         {
             return new GeoObject(GeoType.MultiPoint, d);
         }
@@ -67,8 +71,9 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="str">String the OGC Well-Known Text (WKT) representation of the geometry</param>
         /// <returns>Geo Object MultiPoint</returns>
-        public static IGeoShape CreateMultiPoint(string str)
+        public static IGeoShape MultiPoint(string str)
         {
+            ValidateString(str);
             return new GeoObject(str);
         }
 
@@ -77,23 +82,22 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="p">Array template points</param>
         /// <returns>Geo Object MultiPoint</returns>
-        public static IGeoShape CreateMultiPoint(params GeoPoint[] p)
+        public static IGeoShape MultiPoint(params GeoPoint[] p)
         {
             return new GeoObject(GeoType.MultiPoint, p);
         }
         /// <summary>
         /// Create geo object MultiPoint
         /// </summary>
-        /// <param name="p">Array Geo Objects</param>
+        /// <param name="shapes">Array Geo Objects</param>
         /// <returns>Geo Object MultiPoint</returns>
-        public static IGeoShape CreateMultiPoint(params IGeoShape[] p)
+        public static IGeoShape MultiPoint(params IGeoShape[] shapes)
         {
-            return new GeoObject(GeoType.MultiPoint, p);
+            ValidateArrayIGeoShape(shapes, nameof(shapes),GeoType.Point);
+            return new GeoObject(GeoType.MultiPoint, shapes);
         }
 
         #endregion
-
-
 
         #region Polygon
 
@@ -102,7 +106,7 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="d">Array double values</param>
         /// <returns>Geo Object Polygon</returns>
-        public static IGeoShape CreatePolygon(params double[] d)
+        public static IGeoShape Polygon(params double[] d)
         {
             return new GeoObject(GeoType.Polygon, d);
         }
@@ -111,8 +115,9 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="str">String the OGC Well-Known Text (WKT) representation of the geometry</param>
         /// <returns>Geo Object Polygon</returns>
-        public static IGeoShape CreatePolygon(string str)
+        public static IGeoShape Polygon(string str)
         {
+            ValidateString(str);
             return new GeoObject(str);
         }
 
@@ -121,7 +126,7 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="p">Array template points</param>
         /// <returns>Geo Object Polygon</returns>
-        public static IGeoShape CreatePolygon(params GeoPoint[] p)
+        public static IGeoShape Polygon(params GeoPoint[] p)
         {
             return new GeoObject(GeoType.Polygon, p);
         }
@@ -136,23 +141,24 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="str">String the OGC Well-Known Text (WKT) representation of the geometry</param>
         /// <returns>Geo object MultiPolygon</returns>
-        public static IGeoShape CreateMultiPolygon(string str)
+        public static IGeoShape MultiPolygon(string str)
         {
+            ValidateString(str);
             return new GeoObject(str);
         }
 
         /// <summary>
         /// Create geo object MultiPolygon
         /// </summary>
-        /// <param name="shape">Array geo objects</param>
+        /// <param name="shapes">Array geo objects</param>
         /// <returns>Geo object MultiPolygon</returns>
-        public static IGeoShape CreateMultiPolygon(params IGeoShape[] shape)
+        public static IGeoShape MultiPolygon(params IGeoShape[] shapes)
         {
-            return new GeoObject(GeoType.MultiPolygon, shape);
+            ValidateArrayIGeoShape(shapes, nameof(shapes), GeoType.Polygon);
+            return new GeoObject(GeoType.MultiPolygon, shapes);
         }
 
         #endregion
-
 
         #region LineString
 
@@ -161,7 +167,7 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="d">Array double values</param>
         /// <returns>Geo object LineString</returns>
-        public static IGeoShape CreateLineString(params double[] d)
+        public static IGeoShape LineString(params double[] d)
         {
             return new GeoObject(GeoType.LineString, d);
         }
@@ -171,8 +177,9 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="str">String the OGC Well-Known Text (WKT) representation of the geometry</param>
         /// <returns>Geo object LineString</returns>
-        public static IGeoShape CreateLineString(string str)
+        public static IGeoShape LineString(string str)
         {
+            ValidateString(str);
             return new GeoObject(str);
         }
 
@@ -181,7 +188,7 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="p">Array template points</param>
         /// <returns>Geo object LineString</returns>
-        public static IGeoShape CreateLineString(params GeoPoint[] p)
+        public static IGeoShape LineString(params GeoPoint[] p)
         {
             return new GeoObject(GeoType.LineString,p);
         }
@@ -195,8 +202,9 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="str">String the OGC Well-Known Text (WKT) representation of the geometry</param>
         /// <returns>Geo object MultiLineString</returns>
-        public static IGeoShape CreateMultiLineString(string str)
+        public static IGeoShape MultiLineString(string str)
         {
+            ValidateString(str);
             return new GeoObject(str);
         }
 
@@ -205,8 +213,9 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="shapes">Array geo objects</param>
         /// <returns>Geo object MultiLineString</returns>
-        public static IGeoShape CreateMultiLineString(params IGeoShape[] shapes)
+        public static IGeoShape MultiLineString(params IGeoShape[] shapes)
         {
+            ValidateArrayIGeoShape(shapes, nameof(shapes), GeoType.LineString);
             return new GeoObject(GeoType.MultiLineString,shapes);
         }
 
@@ -219,30 +228,51 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="str">String the OGC Well-Known Text (WKT) representation of the geometry</param>
         /// <returns>Geo object PolygonWithHole</returns>
-        public static IGeoShape CreatePolygonWithHole(string str)
+        public static IGeoShape PolygonWithHole(string str)
         {
+            ValidateString(str);
             return new GeoObject(str);
         }
-        /// <summary>
-        /// Create geo object PolygonWithHole
-        /// </summary>
-        /// <param name="shape1">Object Parent</param>
-        /// <param name="shape2">Object Hole</param>
-        /// <returns>Geo object PolygonWithHole</returns>
-        public static IGeoShape CreatePolygonWithHole(IGeoShape shape1,IGeoShape shape2)
-        {
-            return GeoObject.CreateGeoPolygonWithHole(shape1, shape2);
-        }
+       
+
 
         /// <summary>
         /// Create geo object PolygonWithHole
         /// </summary>
-        /// <param name="d1">Array double values paren object</param>
-        /// <param name="d2">Array double values hole object</param>
-        /// <returns>Geo object PolygonWithHole</returns>
-        public static IGeoShape CreatePolygonWithHole(double[] d1, double[] d2)
+        /// <param name="p">Object Parent</param>
+        /// <param name="holes">Objects Hole</param>
+        /// <returns></returns>
+        public static IGeoShape PolygonWithHole(IGeoShape p, params IGeoShape[] holes)
         {
-            return GeoObject.CreateGeoPolygonWithHole(d1, d2);
+            if (p.GeoType != GeoType.Polygon) throw new ArgumentException("Params p is not type Polygon");
+            ValidateArrayIGeoShape(holes, nameof(holes), GeoType.Polygon);
+            return GeoObject.CreateGeoPolygonWithHole(p, holes);
+        }
+
+
+        /// <summary>
+        /// Create geo object PolygonWithHole
+        /// </summary>
+        /// <param name="p">Array double values paren object</param>
+        /// <param name="holes">Array double values hole objects</param>
+        /// <returns></returns>
+        public static IGeoShape PolygonWithHole(double[] p, params double[][] holes)
+        {
+            List<double[]> list = new List<double[]>(p.Length+1) { p };
+            list.AddRange(holes);
+
+            return GeoObject.CreateGeoPolygonWithHole(list.ToArray());
+        }
+
+        private static void ValidateArrayIGeoShape(IGeoShape[] par,string paramName, GeoType type)
+        {
+            foreach (IGeoShape geoShape in par)
+            {
+                if (geoShape.GeoType != type)
+                {
+                    throw new ArgumentException($"Invalid object type for parameter{paramName}");
+                }
+            }
         }
 
         #endregion
@@ -264,28 +294,40 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="str">String the OGC Well-Known Text (WKT) representation of the geometry</param>
         /// <returns>Geo object GeometryCollection</returns>
-        public static IGeoShape CreateGeometryCollection(string str)
-        {
-            return new GeoObject(str);
-        }
-
-        #endregion
-
-
-
-        /// <summary>
-        /// Create geo object any type
-        /// </summary>
-        /// <param name="str">String the OGC Well-Known Text (WKT) representation of the geometry</param>
-        /// <returns>Пeo object</returns>
-        public static IGeoShape CreateGeo(string str)
+        public static IGeoShape GeometryCollection(string str)
         {
             ValidateString(str);
             return new GeoObject(str);
         }
 
         /// <summary>
-        /// Create geo object 
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static IGeoShape Empty(GeoType type)
+        {
+            if (type == GeoType.Empty) throw new ArgumentException($"Type:{type} cannot be used");
+            return new GeoObject($"{type} empty".ToUpper());
+        }
+
+        #endregion
+
+
+        /// <summary>
+        /// Create geo object any type from text
+        /// </summary>
+        /// <param name="str">String the OGC Well-Known Text (WKT) representation of the geometry</param>
+        /// <returns>Пeo object</returns>
+        public static IGeoShape CreateGeo(string str)
+        {
+           
+            ValidateString(str);
+            return new GeoObject(str);
+        }
+
+        /// <summary>
+        /// Create geo object
         /// </summary>
         /// <param name="geoType">Type geo object</param>
         /// <param name="ds">List arrays double values (array size=2 as coordinate point (x,y)</param>
@@ -338,28 +380,23 @@ namespace ORM_1_21_.geo
             {
                 case "POINT":
                     {
-
                         double[] t = geo.Value<JArray>().ToObject<double[]>();
                         {
-
-                            return new List<IGeoShape> { FactoryGeo.CreatePoint(t[0], t[1]) };
-
+                            return new List<IGeoShape> { Point(t[0], t[1]) };
                         }
                     }
                 case "MULTIPOINT":
                     {
                         var t = geo.Value<JArray>().ToObject<List<double[]>>();
                         {
-                            return new List<IGeoShape> { FactoryGeo.CreateGeo(GeoType.MultiPoint, t) };
-
+                            return new List<IGeoShape> { CreateGeo(GeoType.MultiPoint, t) };
                         }
                     }
                 case "LINESTRING":
                     {
                         var t = geo.Value<JArray>().ToObject<List<double[]>>();
                         {
-                            return new List<IGeoShape> { FactoryGeo.CreateGeo(GeoType.LineString, t) };
-
+                            return new List<IGeoShape> { CreateGeo(GeoType.LineString, t) };
                         }
                     }
 
@@ -369,11 +406,11 @@ namespace ORM_1_21_.geo
                         List<IGeoShape> list = new List<IGeoShape>();
                         foreach (List<double[]> d in t)
                         {
-                            list.Add(FactoryGeo.CreateGeo(GeoType.LineString, d));
+                            list.Add(CreateGeo(GeoType.LineString, d));
                         }
 
                         {
-                            return new List<IGeoShape> { FactoryGeo.CreateMultiLineString(list.ToArray()) };
+                            return new List<IGeoShape> { MultiLineString(list.ToArray()) };
 
                         }
                     }
@@ -384,24 +421,15 @@ namespace ORM_1_21_.geo
                         {
                             if (t.Count == 1)
                             {
-                                return new List<IGeoShape> { FactoryGeo.CreateGeo(GeoType.Polygon, t.First()) };
+                                return new List<IGeoShape> { CreateGeo(GeoType.Polygon, t.First()) };
                             }
 
-                            List<double> list = new List<double>();
-                            foreach (double[] d in t[0])
+                            List<IGeoShape> listE = new List<IGeoShape>();
+                            foreach (var t1 in t)
                             {
-                                list.Add(d[0]);
-                                list.Add(d[1]);
+                                listE.Add(CreateGeo(GeoType.Polygon, t1));
                             }
-                            List<double> list2 = new List<double>();
-                            foreach (double[] d in t[1])
-                            {
-                                list2.Add(d[0]);
-                                list2.Add(d[1]);
-                            }
-                            return new List<IGeoShape> { FactoryGeo.CreatePolygonWithHole(list.ToArray(), list2.ToArray()) };
-
-
+                            return listE;
                         }
                     }
 
@@ -413,15 +441,11 @@ namespace ORM_1_21_.geo
                         {
                             foreach (List<double[]> d in t.First())
                             {
-                                list.Add(FactoryGeo.CreateGeo(GeoType.Polygon, d));
+                                list.Add(CreateGeo(GeoType.Polygon, d));
                             }
                         }
-
-
                         {
-
-                            return new List<IGeoShape> { FactoryGeo.CreateMultiPolygon(list.ToArray()) };
-
+                            return new List<IGeoShape> { MultiPolygon(list.ToArray()) };
                         }
                     }
             }
@@ -480,9 +504,6 @@ namespace ORM_1_21_.geo
 
             if (col != 0) throw new Exception($"String not correct: {str}");
         }
-
-
-
 
     }
 }

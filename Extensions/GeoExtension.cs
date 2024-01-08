@@ -482,6 +482,29 @@ namespace ORM_1_21_.Extensions
             return query.Where(lambada);
         }
 
+        /// <summary>
+        /// Filters empty geometries
+        /// </summary>
+        /// <param name="query">Current IQueryable</param>
+        /// <param name="selector">Property object as IGeoShape</param>
+        /// <param name="actionResult">Result of the comparison (default true)</param>
+        /// <typeparam name="T">Table Entity Type</typeparam>
+        /// <returns>bool</returns>
+        public static IQueryable<T> GeoWhereST_IsEmpty<T>(this IQueryable<T> query, Expression<Func<T, IGeoShape>> selector, bool actionResult = true)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(selector, nameof(selector));
+
+            var provider = (DbQueryProvider<T>)query.Provider;
+            ProviderName providerName = provider.Sessione.ProviderName;
+            var nameColumnE = GetNameColumnCore(selector, providerName);
+            var isNotE = Expression.Constant(actionResult);
+            var selectorParameters = selector.Parameters;
+            Expression check = Expression.Call(null, typeof(V).GetMethod("GeoST_IsEmpty"), nameColumnE, isNotE);
+            var lambada = Expression.Lambda<Func<T, bool>>(check, selectorParameters);
+            return query.Where(lambada);
+        }
+
 
 
 

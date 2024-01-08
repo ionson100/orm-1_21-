@@ -55,7 +55,15 @@ namespace ORM_1_21_
                                 }
                                 else
                                 {
-                                    dbCommand.AddParameter($"{parName}{par}{ip}", JsonConvert.SerializeObject(GetValue.Value[rtp.PropertyName](obj)));
+                                    if (o is string)
+                                    {
+                                        dbCommand.AddParameter($"{parName}{par}{ip}", o);
+                                    }
+                                    else
+                                    {
+                                        dbCommand.AddParameter($"{parName}{par}{ip}", JsonConvert.SerializeObject(o));
+                                    }
+                                    
                                 }
                                 
                             }
@@ -99,7 +107,7 @@ namespace ORM_1_21_
                             }
                             else
                             { 
-                                dbCommand.AddParameter($"{parName}{par}{ip}",GetValue.Value[rtp.PropertyName](obj));
+                                dbCommand.AddParameter($"{parName}{par}{ip}",o);
                             }
                            
                         }

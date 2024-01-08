@@ -12,11 +12,6 @@ namespace ORM_1_21_.geo
     {
         private string _innerStringGeo;
         private List<IGeoShape> _multiGeoShapes = new List<IGeoShape>();
-
-        public GeoObject()
-        {
-        }
-
         public GeoObject(string obj)
         {
             var t = obj.IndexOf(';');
@@ -26,31 +21,31 @@ namespace ORM_1_21_.geo
                 Srid = int.Parse(s);
                 obj=obj.Substring(t+1);
             }
-            else
-            {
-
-            }
+           
             GeoText = obj;
         }
-
-       
         public GeoObject(GeoType geoType, double[] points)
         {
             if (geoType == GeoType.PolygonWithHole) throw new Exception("It is forbidden to create a polygon with a hole");
             SetGeoTypePoints(geoType, points);
         }
-
-       
-        public static GeoObject CreateGeoPolygonWithHole(double[] p1, double[] p2)
+        
+        public static GeoObject CreateGeoPolygonWithHole(params double[][] p2)
         {
-            return new GeoObject(GeoType.PolygonWithHole,  new GeoObject(GeoType.Polygon, p1), new GeoObject(GeoType.Polygon, p2) );
+            List<GeoObject> list = new List<GeoObject>();
+             foreach (double[] doubles in p2)
+            {
+                list.Add(new GeoObject(GeoType.Polygon, doubles));
+            }
+            return new GeoObject(GeoType.PolygonWithHole, list.ToArray());
         }
         
-        public static GeoObject CreateGeoPolygonWithHole(IGeoShape p1, IGeoShape p2)
+        public static GeoObject CreateGeoPolygonWithHole(IGeoShape p1,params IGeoShape[] p2)
         {
-            return new GeoObject(GeoType.PolygonWithHole,  p1, p2 );
+            List<IGeoShape> list=new List<IGeoShape> { p1 };
+            list.AddRange(p2);
+            return new GeoObject(GeoType.PolygonWithHole, list.ToArray());
         }
-
         
         public GeoObject(GeoType geoType, params IGeoShape[] geoShapes)
         {
@@ -59,38 +54,29 @@ namespace ORM_1_21_.geo
 
             if (geoType == GeoType.PolygonWithHole)
             {
-                if (geoShapes.Length != 2)
+                if (geoShapes.Length == 0|| geoShapes.Length == 1)
                 {
-                    throw new ArgumentException("A polygon with a hole must consist of two geometries");
+                    throw new ArgumentException("A polygon with a hole must consist min of two geometries");
                 }
-
                 _multiGeoShapes = new List<IGeoShape>(geoShapes);
                 StringBuilder builderP = new StringBuilder("POLYGON(");
                 builderP.Append("(");
-                foreach (GeoPoint point in geoShapes[0].ListGeoPoints)
+                foreach (var geoShape in geoShapes)
                 {
-                    builderP.Append($"{point.X} {point.Y}, ");
+                    foreach (GeoPoint point in geoShape.ListGeoPoints)
+                    {
+                        builderP.Append($"{point.X.ToString("G")} {point.Y:G}, ");
+                    }
+                    builderP = new StringBuilder(builderP.ToString().Trim(' ', ',')).Append("), (");
                 }
-
-                builderP = new StringBuilder(builderP.ToString().Trim(' ', ',')).Append("), (");
-                foreach (GeoPoint point in geoShapes[1].ListGeoPoints)
-                {
-                    builderP.Append($"{point.X} {point.Y}, ");
-                }
-
-                _innerStringGeo = builderP.ToString().Trim(' ', ',') + "))";
-
-
-
+                _innerStringGeo = builderP.ToString().Trim('(',' ', ',') + ")";
                 return;
             }
 
 
             _multiGeoShapes = new List<IGeoShape>(geoShapes);
             StringBuilder builder = new StringBuilder($"{type}(");
-
-
-
+            
             if (geoType == GeoType.GeometryCollection)
             {
                 foreach (IGeoShape geoShape in geoShapes)
@@ -103,14 +89,6 @@ namespace ORM_1_21_.geo
             }
             foreach (IGeoShape geoShape in geoShapes)
             {
-                if (geoShape.GeoType != this.GeoType)
-                {
-                    //throw new Exception($"Не совпадение типов для {this.GeoType}");
-
-                }
-
-
-
                 Regex regex = new Regex(@"\((.*)\)");
                 MatchCollection matches = regex.Matches(geoShape.GeoText);
                 if (matches.Count > 0)
@@ -121,17 +99,12 @@ namespace ORM_1_21_.geo
                         if (this.GeoType == GeoType.MultiPolygon)
                         {
                             builder.Append($"(({rr})), ");
-
                         }
                         else
                         {
                             builder.Append($"({rr}), ");
                         }
-
-
-
                     }
-
                 }
                 else
                 {
@@ -143,20 +116,17 @@ namespace ORM_1_21_.geo
 
         }
 
-       
         public GeoObject(GeoPoint geoPoint)
         {
             ListGeoPoints = new List<GeoPoint> { geoPoint };
             SetGeoTypePoints(GeoType.Point, new[] { geoPoint.X, geoPoint.Y });
         }
-
-      
+        
         public GeoObject(double latitude, double longitude)
         {
             ListGeoPoints = new List<GeoPoint> { new GeoPoint { X = latitude, Y = longitude } };
             SetGeoTypePoints(GeoType.Point, new[] { latitude, longitude });
         }
-
        
         public GeoObject(GeoType geoType, List<double[]> points)
         {
@@ -182,7 +152,7 @@ namespace ORM_1_21_.geo
             }
 
         }
-
+      
         public GeoObject(GeoType geoType, params GeoPoint[] points)
         {
             if (geoType == GeoType.PolygonWithHole) throw new Exception("It is forbidden to create a polygon with a hole");
@@ -199,8 +169,7 @@ namespace ORM_1_21_.geo
 
             SetGeoTypePoints(geoType, l);
         }
-
-
+      
         public IGeoShape SetSrid(int srid)
         {
             Srid = srid;
@@ -218,6 +187,12 @@ namespace ORM_1_21_.geo
             {
                 _innerStringGeo = value;
                 var str = value.ToUpper().Trim();
+                if (str.EndsWith("EMPTY"))
+                {
+                    GeoType = GeoType.Empty;
+                    ListGeoPoints = UtilsGeo.GetListPoint(GeoType, str, _multiGeoShapes);
+                    return;
+                }
                 if (str.StartsWith("POLYGON"))
                 {
                     Regex regex = new Regex(@"\(([^)]+)\)");
@@ -229,7 +204,7 @@ namespace ORM_1_21_.geo
                         return;
                     }
 
-                    if (matches.Count == 2)
+                    if (matches.Count >1)
                     {
                         GeoType = GeoType.PolygonWithHole;
                         ListGeoPoints = UtilsGeo.GetListPoint(GeoType, str, _multiGeoShapes);
@@ -375,9 +350,9 @@ namespace ORM_1_21_.geo
 
         public List<GeoPoint> ListGeoPoints { get; set; } = new List<GeoPoint>();
 
-
         public object GetGeoJson(object properties = null)
         {
+            if(GeoType==GeoType.None||GeoType==GeoType.Empty) return null;
             if (GeoType == GeoType.GeometryCollection)
             {
                 return new GeoJsonCollection(this, properties);
@@ -399,7 +374,8 @@ namespace ORM_1_21_.geo
                 {
                     case GeoType.None:
                         throw new ArgumentOutOfRangeException();
-
+                    case GeoType.Empty:
+                        return Array.Empty<double>();
                     case GeoType.Point:
                         return new[] { ListGeoPoints[0].X, ListGeoPoints[0].Y };
                     case GeoType.LineString:
@@ -463,44 +439,27 @@ namespace ORM_1_21_.geo
                         }
                     case GeoType.PolygonWithHole:
                         {
-                            var sp = new object[2];
-                            sp[0] = ((object[])_multiGeoShapes[0].ArrayCoordinates)[0];
-                            sp[1] = ((object[])_multiGeoShapes[1].ArrayCoordinates)[0];
-
+                            var sp = new object[_multiGeoShapes.Count];
+                            for (var i = 0; i < _multiGeoShapes.Count; i++)
+                            {
+                                sp[i] = ((object[])_multiGeoShapes[i].ArrayCoordinates)[0];
+                            }
+                           
                             return sp;
                         }
                     case GeoType.GeometryCollection:
-                        {
-                            var sp = new object[1];
-
-                            return sp;
-                        }
+                    {
+                        throw new Exception("geometry GeometryCollection not supported");
+                    }
 
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new Exception($"geometry {GeoType} not supported");
                 }
 
             }
             set => throw new NotImplementedException();
         }
 
-
-        public void SetGeoTypePoints(GeoType type, GeoPoint point)
-        {
-            if (type == GeoType.None) throw new ArgumentException("type not is none");
-            if (point == null) throw new ArgumentException("point is empty");
-            GeoType = type;
-            switch (type)
-            {
-
-                case GeoType.Point:
-                    _innerStringGeo = $"POINT({point.X.ToString(CultureInfo.InvariantCulture)} {point.Y.ToString(CultureInfo.InvariantCulture)})";
-                    break;
-
-
-            }
-        }
-
-
+       
     }
 }

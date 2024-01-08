@@ -52,7 +52,12 @@ namespace ORM_1_21_.geo
         /// <summary>
         /// 
         /// </summary>
-        PolygonWithHole
+        PolygonWithHole,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        Empty
 
 
     }

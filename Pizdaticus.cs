@@ -102,8 +102,8 @@ namespace ORM_1_21_
                                 d[i] = null;
                             }else if (val is string)
                             {
-                                var o = new GeoObject();
-                                ((IGeoShape)o).GeoText = val.ToString();
+                                var o = new GeoObject(val.ToString());
+                                //((IGeoShape)o).GeoText = ;
                                 d[i] = o;
                             }
                             else
