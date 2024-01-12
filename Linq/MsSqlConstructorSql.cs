@@ -39,7 +39,7 @@ namespace ORM_1_21_.Linq
             if (PingComposite(Evolution.All))
             {
                 StringBuilder builder = new StringBuilder("SELECT COUNT(*),(SELECT COUNT(*) FROM ");
-                builder.Append(AttributesOfClass<T>.TableName(providerName)).Append(" ");
+                builder.Append(AttributesOfClass<T>.TableName(providerName)).Append(' ');
                 var f = _listOne.First(a => a.Operand == Evolution.All).Body;
                 bool addAll = false;
                 if (string.IsNullOrWhiteSpace(f) == false)
@@ -105,7 +105,7 @@ namespace ORM_1_21_.Linq
                         {
                             if (hashSet.Contains(s) == false)
                             {
-                                val = val.Replace(s, $"{UtilsCore.MsSqlConcatSrid(s)}");
+                                val = val.Replace(s, $" {UtilsCore.SqlConcat(s, providerName)} ");
                                 //val= val.Replace(s, $"{s}.STAsText()");
                                 hashSet.Add(s);
                             }
@@ -160,7 +160,7 @@ namespace ORM_1_21_.Linq
             }
 
             sbb.Append(AttributesOfClass<T>.SimpleSqlSelect(providerName).Substring(
-                AttributesOfClass<T>.SimpleSqlSelect(providerName).IndexOf("FROM", StringComparison.Ordinal)));
+                AttributesOfClass<T>.SimpleSqlSelect(providerName).IndexOf(" FROM ", StringComparison.Ordinal)));
 
             var ss = listOne.Where(a => a.Operand == Evolution.Where);
             foreach (var i in ss)

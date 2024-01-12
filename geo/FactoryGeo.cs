@@ -505,5 +505,7 @@ namespace ORM_1_21_.geo
             if (col != 0) throw new Exception($"String not correct: {str}");
         }
 
+        
+
     }
 }

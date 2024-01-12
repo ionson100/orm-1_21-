@@ -30,7 +30,7 @@ namespace ORM_1_21_
                     case ProviderName.SqLite:
                         return $"\"{_columnName}\"";
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{providerName}");
                 }
           
            

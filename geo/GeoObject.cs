@@ -1,19 +1,27 @@
-﻿using System;
+﻿using ORM_1_21_.Utils;
+using System;
 using System.Collections.Generic;
 
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using static System.Collections.Specialized.BitVector32;
 
 namespace ORM_1_21_.geo
 {
-    
-      class GeoObject : IGeoShape
+    class GeoException:Exception
+    {
+        
+    }
+
+    partial class GeoObject : IGeoShape
     {
         private string _innerStringGeo;
         private List<IGeoShape> _multiGeoShapes = new List<IGeoShape>();
         public GeoObject(string obj)
         {
+            if (string.IsNullOrWhiteSpace(obj)||obj.Trim()=="SRID=;")throw new GeoException();
+          
             var t = obj.IndexOf(';');
             if (obj.Trim().ToUpper().StartsWith("SRID")&&t>0)
             {
@@ -21,7 +29,8 @@ namespace ORM_1_21_.geo
                 Srid = int.Parse(s);
                 obj=obj.Substring(t+1);
             }
-           
+            if(string.IsNullOrWhiteSpace(obj)) throw new GeoException();
+
             GeoText = obj;
         }
         public GeoObject(GeoType geoType, double[] points)
@@ -60,12 +69,12 @@ namespace ORM_1_21_.geo
                 }
                 _multiGeoShapes = new List<IGeoShape>(geoShapes);
                 StringBuilder builderP = new StringBuilder("POLYGON(");
-                builderP.Append("(");
+                builderP.Append('(');
                 foreach (var geoShape in geoShapes)
                 {
                     foreach (GeoPoint point in geoShape.ListGeoPoints)
                     {
-                        builderP.Append($"{point.X.ToString("G")} {point.Y:G}, ");
+                        builderP.Append($"{point.X} {point.Y}, ");
                     }
                     builderP = new StringBuilder(builderP.ToString().Trim(' ', ',')).Append("), (");
                 }
@@ -81,7 +90,7 @@ namespace ORM_1_21_.geo
             {
                 foreach (IGeoShape geoShape in geoShapes)
                 {
-                    builder.Append(geoShape.GeoText).Append(", ");
+                    builder.Append(geoShape.StAsText()).Append(", ");
                 }
                 _innerStringGeo = builder.ToString().TrimEnd(',', ' ') + ")";
                 return;
@@ -90,7 +99,7 @@ namespace ORM_1_21_.geo
             foreach (IGeoShape geoShape in geoShapes)
             {
                 Regex regex = new Regex(@"\((.*)\)");
-                MatchCollection matches = regex.Matches(geoShape.GeoText);
+                MatchCollection matches = regex.Matches(geoShape.StAsText());
                 if (matches.Count > 0)
                 {
                     foreach (Match match in matches)
@@ -179,6 +188,11 @@ namespace ORM_1_21_.geo
         public int Srid { get; set; } = 4326;
 
         public GeoType GeoType { get; set; }
+
+        private string GetNameGeoType(ProviderName providerName)
+        {
+            return null;
+        }
 
         public string GeoText
         {
@@ -348,6 +362,12 @@ namespace ORM_1_21_.geo
             }
         }
 
+       
+        public string StAsText()
+        {
+            return _innerStringGeo;
+        }
+
         public List<GeoPoint> ListGeoPoints { get; set; } = new List<GeoPoint>();
 
         public object GetGeoJson(object properties = null)
@@ -366,6 +386,8 @@ namespace ORM_1_21_.geo
             set => _multiGeoShapes = value;
         }
 
+       
+
         public object ArrayCoordinates
         {
             get
@@ -373,7 +395,7 @@ namespace ORM_1_21_.geo
                 switch (GeoType)
                 {
                     case GeoType.None:
-                        throw new ArgumentOutOfRangeException();
+                        throw new Exception("GeoType is None");
                     case GeoType.Empty:
                         return Array.Empty<double>();
                     case GeoType.Point:
@@ -394,7 +416,7 @@ namespace ORM_1_21_.geo
                             var s = new object[_multiGeoShapes.Count];
                             for (int i = 0; i < _multiGeoShapes.Count; i++)
                             {
-                                s[i] = _multiGeoShapes[i].ArrayCoordinates;
+                                s[i] = ((GeoObject)_multiGeoShapes[i]).ArrayCoordinates;
                             }
 
                             return s;
@@ -405,7 +427,7 @@ namespace ORM_1_21_.geo
                             var s = new object[_multiGeoShapes.Count];
                             for (int i = 0; i < _multiGeoShapes.Count; i++)
                             {
-                                s[i] = _multiGeoShapes[i].ArrayCoordinates;
+                                s[i] = ((GeoObject)_multiGeoShapes[i]).ArrayCoordinates;
                             }
 
                             return s;
@@ -417,7 +439,7 @@ namespace ORM_1_21_.geo
                             var s = new object[_multiGeoShapes.Count];
                             for (int i = 0; i < _multiGeoShapes.Count; i++)
                             {
-                                s[i] = _multiGeoShapes[i].ArrayCoordinates;
+                                s[i] =((GeoObject) _multiGeoShapes[i]).ArrayCoordinates;
                             }
 
                             return s;
@@ -442,7 +464,7 @@ namespace ORM_1_21_.geo
                             var sp = new object[_multiGeoShapes.Count];
                             for (var i = 0; i < _multiGeoShapes.Count; i++)
                             {
-                                sp[i] = ((object[])_multiGeoShapes[i].ArrayCoordinates)[0];
+                                sp[i] = ((object[])((GeoObject)_multiGeoShapes[i]).ArrayCoordinates)[0];
                             }
                            
                             return sp;
@@ -461,5 +483,245 @@ namespace ORM_1_21_.geo
         }
 
        
+    }
+
+    partial class GeoObject : IGeoShape
+    {
+
+        public string StGeometryType(ISession session)
+        {
+            Check.NotNull(session, nameof(session));
+            ProviderName providerName = session.ProviderName;
+            string sql = null;
+            switch (providerName)
+            {
+                case ProviderName.MsSql:
+                    sql = $" select (geometry::STGeomFromText({session.SymbolParam}1, {session.SymbolParam}2)).STGeometryType()";
+                    break;
+                case ProviderName.MySql:
+                    sql = $" select ST_GeometryType(ST_GeomFromText({session.SymbolParam}1, {session.SymbolParam}2))";
+                    break;
+                case ProviderName.PostgreSql:
+                    sql = $" select ST_GeometryType(ST_GeomFromText({session.SymbolParam}1, {session.SymbolParam}2))";
+                    break;
+                case ProviderName.SqLite:
+                    UtilsCore.ErrorAlert();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{providerName}");
+            }
+
+           return (string)session.ExecuteScalar(sql, this.StAsText(),this.StSrid());
+        }
+
+        public double? StArea(ISession session)
+        {
+            Check.NotNull(session, nameof(session));
+            ProviderName providerName = session.ProviderName;
+            string sql = null;
+            switch (providerName)
+            {
+                case ProviderName.MsSql:
+                    sql = $" select (geometry::STGeomFromText({session.SymbolParam}1, {session.SymbolParam}2)).STArea()";
+                    break;
+                case ProviderName.MySql:
+                    sql = $" select ST_Area(ST_GeomFromText({session.SymbolParam}1, {session.SymbolParam}2))";
+                    break;
+                case ProviderName.PostgreSql:
+                    sql = $" select ST_Area(ST_GeomFromText({session.SymbolParam}1, {session.SymbolParam}2))";
+                    break;
+                case ProviderName.SqLite:
+                    UtilsCore.ErrorAlert();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{providerName}");
+            }
+
+            return (double?)session.ExecuteScalar(sql, this.StAsText(), this.StSrid());
+        }
+
+        public bool? StWithin(IGeoShape shape, ISession session)
+        {
+            Check.NotNull(session, nameof(session));
+            ProviderName providerName = session.ProviderName;
+            string sql = null;
+            switch (providerName)
+            {
+                case ProviderName.MsSql:
+                {
+                    var cur = $"geometry::STGeomFromText({session.SymbolParam}1, {session.SymbolParam}2)";
+                    var par = $"geometry::STGeomFromText({session.SymbolParam}3, {session.SymbolParam}4)";
+                    sql = $" select ({cur}).STWithin({par})";
+                    break;
+                }
+                   
+                case ProviderName.MySql:
+                {
+                    var cur = $"ST_GeomFromText({session.SymbolParam}1, {session.SymbolParam}2)";
+                    var par = $"ST_GeomFromText({session.SymbolParam}3, {session.SymbolParam}4)";
+                    sql = $" select ST_Within({cur}, {par})";
+                    break;
+                }
+                case ProviderName.PostgreSql:
+                {
+                    var cur = $"ST_GeomFromText({session.SymbolParam}1,  {session.SymbolParam}2)";
+                    var par = $"ST_GeomFromText({session.SymbolParam}3,  {session.SymbolParam}4)";
+                    sql = $" select ST_Within({cur}, {par})";
+                    break;
+                }
+                case ProviderName.SqLite:
+                    UtilsCore.ErrorAlert();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{providerName}");
+            }
+
+            return (bool?)session.ExecuteScalar(sql, this.StAsText(), this.StSrid(),shape.StAsText(),shape.StSrid());
+        }
+
+        public byte[] StAsBinary()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IGeoShape StBoundary()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IGeoShape StBuffer(float distance)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IGeoShape StCentroid()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool? StContains(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool? StCrosses(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IGeoShape StDifference(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int? StDimension()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool? StDisjoint(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public float? StDistance(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IGeoShape StEndPoint()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IGeoShape StEnvelope()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool? StEquals(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool? StIntersects(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool? StOverlaps(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool? StOverlapsContra(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int? StSrid()
+        {
+            return Srid;
+        }
+
+        public IGeoShape StStartPoint()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool? StWithinContra(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IGeoShape StSymDifference(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool? StTouches(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int? StNumGeometries()
+        {
+            throw new NotImplementedException();
+        }
+
+        public int? StNumInteriorRing()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool? StIsSimple()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool? StIsValid()
+        {
+            throw new NotImplementedException();
+        }
+
+        public double? StLength()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool? StIsClosed()
+        {
+            throw new NotImplementedException();
+        }
+
+        public int? StNumPoints()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IGeoShape StUnion(IGeoShape shape)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

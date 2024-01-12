@@ -18,6 +18,14 @@ namespace ORM_1_21_.Utils
             return value;
         }
 
+        public static void AsTwoValue(double[] values,string name=null)
+        {
+            if (values.Length != 2)
+            {
+                throw new Exception($"The array: {name} must consist of two values X and Y");
+            }
+        }
+
 
         public static string NotEmpty(string value, string parameterName, Action action = null)
         {

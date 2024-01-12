@@ -48,7 +48,7 @@ namespace ORM_1_21_
             var list = new List<BaseAttribute>();
             AttributeDalList.Value.ToList().ForEach(a => list.Add(a));
             list.Add(PrimaryKeyAttribute.Value);
-            return list.Any()
+            return list.Count>0
                 ? list.Select(a => new { a.PropertyName, ColumnName = a.GetColumnName(Provider) })
                     .ToDictionary(s => s.PropertyName, d => d.ColumnName)
                 : null;
@@ -109,7 +109,7 @@ namespace ORM_1_21_
                     var list = new Dictionary<string, Action<T, object>>();
 
                     var pr = typeof(T).GetProperties()
-                        .Where(a => a.GetCustomAttributes(typeof(BaseAttribute), true).Any());
+                        .Where(a => a.GetCustomAttributes(typeof(BaseAttribute), true).Length>0);
 
 
                     foreach (var propertyInfo in pr)
@@ -158,7 +158,7 @@ namespace ORM_1_21_
 
 
         private static readonly Lazy<bool> IsReceiverFreeSql = new Lazy<bool>(
-            () => typeof(T).GetCustomAttributes(typeof(MapReceiverFreeSqlAttribute), true).Any(),
+            () => typeof(T).GetCustomAttributes(typeof(MapReceiverFreeSqlAttribute), true).Length>0,
             LazyThreadSafetyMode.PublicationOnly);
 
         static AttributesOfClass()
@@ -354,9 +354,13 @@ namespace ORM_1_21_
             //{
             //     SetValueFreeSql.Value[name](t, o);
             //}
-            if (SetValueFreeSql.Value.ContainsKey(name))
+            //if (SetValueFreeSql.Value.ContainsKey(name))
+            //{
+            //    SetValueFreeSql.Value[name](t, o);
+            //}
+            if (SetValueFreeSql.Value.TryGetValue(name, out Action<T, object> value))
             {
-                SetValueFreeSql.Value[name](t, o);
+                value(t, o);
             }
 
 
@@ -461,7 +465,7 @@ namespace ORM_1_21_
                         string colName=$"{TableAttribute.Value.TableName(providerName)}.{a.GetColumnName(providerName)}";
                         string asE = UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
                             a.GetColumnName(providerName));
-                        sb.Append($"{UtilsCore.MsSqlConcatSrid(colName)} AS {asE}");
+                        sb.Append($"{UtilsCore.SqlConcat(colName,providerName)} AS {asE}");
                         // sb.AppendFormat(" {0}.{1}.STAsText() AS {2},",
                         //     TableAttribute.Value.TableName(providerName),
                         //     a.GetColumnName(providerName),
@@ -560,7 +564,7 @@ namespace ORM_1_21_
                     dynamic d = command.Parameters;
                     d.AddWithValue(nameParam, o.Value);
                 }
-                command.CommandText = builder.Append(";").ToString();
+                command.CommandText = builder.Append(';').ToString();
             }
             else
             {
@@ -642,7 +646,7 @@ namespace ORM_1_21_
                     dynamic d = command.Parameters;
                     d.AddWithValue(nameParam, o.Value);
                 }
-                command.CommandText = builder.Append(";").ToString();
+                command.CommandText = builder.Append(';').ToString();
             }
             else
             {
@@ -669,7 +673,7 @@ namespace ORM_1_21_
                     var par = enumerable.Last().Trim();
                     var geoCol = geoList.SingleOrDefault(a => a.Body.Trim() == col);
 
-                    if (enumerable.Any())
+                    if (enumerable.Length>0)
                     {
                         if (jsonList.Contains(col))
                         {
@@ -732,7 +736,7 @@ namespace ORM_1_21_
                 foreach (var s in ee.Split(2))
                 {
                     var enumerable = s as string[] ?? s.ToArray();
-                    if (enumerable.ToList().Any())
+                    if (enumerable.Length>0)
                     {
                         var geo = geoList.SingleOrDefault(a => a.Body.Trim() == enumerable.First().Trim());
                         if(geo!=null)
@@ -848,7 +852,7 @@ namespace ORM_1_21_
             return t.Srid;
         }
 
-        public static string GetNameFieldForQuery(string member, Type type, ProviderName providerName)
+        public static string GetNameFieldForQuery(string member,  ProviderName providerName)
         {
             Provider = providerName;
             return TableAttribute.Value.TableName(providerName) + "." + ColumnName.Value[member];
@@ -965,10 +969,10 @@ namespace ORM_1_21_
                             break;
                         }
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{Provider}");
                 }
 
-            sb.Append(";");
+            sb.Append(';');
 
             return sb.ToString();
         }

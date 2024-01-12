@@ -1,13 +1,12 @@
-﻿using ORM_1_21_;
+﻿using Newtonsoft.Json;
+using ORM_1_21_;
+using ORM_1_21_.Extensions;
+using ORM_1_21_.geo;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_.geo;
-using Newtonsoft.Json;
-using ORM_1_21_.Extensions;
 
 // ReSharper disable All
 
@@ -18,20 +17,111 @@ namespace TestLibrary
     {
         public static void Run()
         {
-           
-
-           TestJson<JPos, MyDbPostgresGeo>(ProviderName.PostgreSql);
-           TestJson<JMy, MyDbMySql>(ProviderName.MySql);
-           TestJson<JMs, MyDbMsSql>(ProviderName.MsSql);
-           TestJson<JSqlite, MyDbSqlite>(ProviderName.SqLite);
 
 
-            TestGeo<GeoPos, MyDbPostgresGeo>(ProviderName.PostgreSql);
-            TestGeo<GeoMs, MyDbMsSql>(ProviderName.MsSql);
-            TestGeo<GeoMy, MyDbMySql>(ProviderName.MySql);
+            //TestJson<JPos, MyDbPostgresGeo>(ProviderName.PostgreSql);
+            //TestJson<JMy, MyDbMySql>(ProviderName.MySql);
+            //TestJson<JMs, MyDbMsSql>(ProviderName.MsSql);
+            //TestJson<JSqlite, MyDbSqlite>(ProviderName.SqLite);
+
+
+            //  TestGeo<GeoPos, MyDbPostgresGeo>(ProviderName.PostgreSql);
+            //  TestGeo<GeoMs, MyDbMsSql>(ProviderName.MsSql);
+            //  TestGeo<GeoMy, MyDbMySql>(ProviderName.MySql);
+
+            TestGeoExtension<GeoPos, MyDbPostgresGeo>(ProviderName.PostgreSql);
+            TestGeoExtension<GeoMs, MyDbMsSql>(ProviderName.MsSql);
+            TestGeoExtension<GeoMy, MyDbMySql>(ProviderName.MySql);
 
 
 
+
+        }
+        public static void TestGeoExtension<T, TD>(ProviderName providerName) where TD : IOtherDataBaseFactory, new() where T : GeoBase, new()
+        {
+            Console.WriteLine($"************************ Test geo extension {providerName}*************************");
+            using (var ses = Configure.GetSession<TD>())
+            {
+                ses.DropTableIfExists<T>();
+                ses.TableCreate<T>();
+
+                #region StGeometryType
+
+                {
+                    var geo = FactoryGeo.CreateGeo("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))");
+                    var str = geo.StGeometryType(ses);
+                    Execute.Log(1, str == GeoType.Polygon.GetTypeName(providerName), str);
+                    ses.Insert(new T { MyGeoObject = geo });
+                }
+
+                {
+                    var geo = FactoryGeo.Empty(GeoType.GeometryCollection);
+                    var str = geo.StGeometryType(ses);
+                    Execute.Log(2, str == GeoType.GeometryCollection.GetTypeName(providerName), str);
+                    ses.Insert(new T { MyGeoObject = geo });
+                }
+                ses.Insert(new T() { MyGeoObject = null });
+                {
+                    var list = ses.Query<T>().Select(a => a.MyGeoObject.StGeometryType(null)).ToList();
+                    Execute.Log(3, list.Count == 3, JsonConvert.SerializeObject(list));
+                }
+                {
+                    var list = ses.Query<T>().Select(a => a.MyGeoObject).ToList();
+                    list = ses.Query<T>().Where(a=>a.MyGeoObject!=null).Select(a => a.MyGeoObject).ToList();
+                    var tt = ses.Query<T>().Where(s => s.MyGeoObject != null).Select(a => new { name = a.MyGeoObject.StGeometryType(null) }).ToList();
+
+                }
+                {
+                    var list = ses.Query<T>().Where(s=>s.MyGeoObject!=null).Select(a => new { name = a.MyGeoObject.StGeometryType(null) }).ToList();
+                    Execute.Log(4, list.Count == 2);
+                }
+                {
+                    var sql = $"select {ses.StarSql<T>()} from {ses.TableName<T>()}";
+                    var list = ses.FreeSql<T>(sql).ToList();
+                    Execute.Log(5, list.Count == 3);
+                }
+
+                #endregion
+
+                #region StArea
+
+                { 
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("POLYGON((743238 2967416,743238 2967450,743265 2967450,743265.625 2967416,743238 2967416))").SetSrid(2249);
+                    var res = geo.StArea(ses);//928.625
+                    Execute.Log(6, res== 928.625d, "StArea");
+                }
+
+                #region StWithin
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("POLYGON((1 1, 1 2, 2 2, 2 1, 1 1))");
+                    var res=geo.StWithin(FactoryGeo.CreateGeo("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"), ses);
+
+                }
+                
+
+                //POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0)
+
+
+
+                #endregion
+
+
+
+
+                #endregion
+
+
+
+                // Log(2, res.Count == 1)
+
+
+
+
+
+            }
         }
 
         public static void TestGeo<T, TD>(ProviderName providerName) where TD : IOtherDataBaseFactory, new() where T : GeoBase, new()
@@ -44,27 +134,83 @@ namespace TestLibrary
                 T d = new T
                 {
                     Name = "1",
-                    MyGeoObject = FactoryGeo.Point(20, 23)
+                    MyGeoObject = FactoryGeo.CreateGeo("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))")
                 };
                 ses.Insert(d);
                 T d2 = new T
                 {
                     Name = "1",
-                    MyGeoObject = FactoryGeo.Point(20, 23)
+                    MyGeoObject = FactoryGeo.CreateGeo("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))")
                 };
 
                 var e1 = FactoryGeo.Empty(GeoType.Point);
 
 
-                var er0=FactoryGeo.CreateGeo("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (1 1, 1 2, 2 2, 2 1, 1 1), (1 1.5, 1 3, 2 2, 2 1, 1 1))");
+                var er0 = FactoryGeo.CreateGeo("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (1 1, 1 2, 2 2, 2 1, 1 1), (1 1.5, 1 3, 2 2, 2 1, 1 1))");
                 var phw3 = FactoryGeo.PolygonWithHole(FactoryGeo.Polygon(0, 0, 10, 0, 10, 10, 0, 10, 0, 0),
-                    FactoryGeo.Polygon(1, 1, 1, 2, 2, 2, 2, 1, 1, 1),FactoryGeo.Polygon(1 ,1.5, 1, 3, 2 ,2, 2 ,1, 1 ,1));
-                var ass =JsonConvert.SerializeObject(phw3.GetGeoJson());
-                 var rt=FactoryGeo.GetGeometryFromGeoJson(ass);
+                    FactoryGeo.Polygon(1, 1, 1, 2, 2, 2, 2, 1, 1, 1), FactoryGeo.Polygon(1, 1.5, 1, 3, 2, 2, 2, 1, 1, 1));
+                var ass = JsonConvert.SerializeObject(phw3.GetGeoJson());
+                var rt = FactoryGeo.GetGeometryFromGeoJson(ass);
 
-                 var ph22 = FactoryGeo.PolygonWithHole(new Double[] { 0, 0, 10, 0, 10, 10, 0, 10, 0, 0 },
-                     new double[] { 1, 1, 1, 2, 2, 2, 2, 1, 1, 1 },new double[]{ 1, 1.5, 1, 3, 2 ,2, 2, 1, 1, 1 });
+                var ph22 = FactoryGeo.PolygonWithHole(new Double[] { 0, 0, 10, 0, 10, 10, 0, 10, 0, 0 },
+                    new double[] { 1, 1, 1, 2, 2, 2, 2, 1, 1, 1 }, new double[] { 1, 1.5, 1, 3, 2, 2, 2, 1, 1, 1 });
                 ses.InsertBulk(new List<T> { d2 });
+                ses.Insert(new T() { MyGeoObject = null });
+                var asas = ses.Query<T>().ToList();
+                var фы = ses.StarSql<T>();
+                var eee = ses.Query<T>().Where(a => a.MyGeoObject.StGeometryType(null) == "ST_Point" && a.Name != null).ToList();
+                var o3 = FactoryGeo.CreateGeo("POINT(0 0)");
+                var tt = ses.Query<T>().Where(a => a.MyGeoObject.StTouches(o3) == null).ToList();
+                try
+                {
+                    var geoShape = FactoryGeo.Point(3, 3);
+                    var ooT = ses.Query<T>().Select(a => new
+                    {
+                        p1 = a.MyGeoObject.StAsText(),
+                        h = a.MyGeoObject.StArea(null),
+                        b = a.MyGeoObject.StAsBinary(),
+                        buf = a.MyGeoObject.StBuffer(1),
+                        cen = a.MyGeoObject.StCentroid(),
+                        contains = a.MyGeoObject.StContains(geoShape),
+                        crosses = a.MyGeoObject.StCrosses(geoShape),
+                        difference = a.MyGeoObject.StDifference(geoShape),
+                        dimension = a.MyGeoObject.StDimension(),
+                        disjoint = a.MyGeoObject.StDisjoint(geoShape),
+                        distace = a.MyGeoObject.StDistance(FactoryGeo.Empty(GeoType.GeometryCollection)),
+                        endPoint = a.MyGeoObject.StEndPoint(),
+                        envelope = a.MyGeoObject.StEnvelope(),
+                        eguals = a.MyGeoObject.StEquals(FactoryGeo.CreateGeo("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))")),
+                        intercept = a.MyGeoObject.StIntersects(FactoryGeo.Point(1, 1)),
+                        ovarlap = a.MyGeoObject.StOverlaps(FactoryGeo.Point(1, 1)),
+                        ovarlapContra = a.MyGeoObject.StOverlapsContra(FactoryGeo.Point(1, 1)),
+                        srid = a.MyGeoObject.StSrid(),
+                        startPoint = a.MyGeoObject.StStartPoint(),
+                        within = a.MyGeoObject.StWithin(FactoryGeo.Point(0, 0),null),
+                        withinContra = a.MyGeoObject.StWithinContra(FactoryGeo.Point(2, 4)),
+                        sumDif = a.MyGeoObject.StSymDifference(FactoryGeo.CreateGeo("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))")),
+                        Touches = a.MyGeoObject.StTouches(FactoryGeo.Point(0, 0)),
+                        NumGeometries = a.MyGeoObject.StNumGeometries(),
+                        NumInteriorRing = a.MyGeoObject.StNumInteriorRing(),
+                        IsSimple = a.MyGeoObject.StIsSimple(),
+                        isSimple = a.MyGeoObject.StIsSimple(),
+                        StNumPoints = a.MyGeoObject.StNumPoints(),
+                        StUnion = a.MyGeoObject.StUnion(FactoryGeo.CreateGeo("POLYGON ((0 0, 1.3444 0, 1 1, 0 1, 0 0))")),
+                        //StIsClosed=a.MyGeoObject.StIsClosed(),
+                        //Length=a.MyGeoObject.StLength(),
+                        //b2 = a.MyGeoObject.StBoundary()
+
+                    }).ToList();
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($" {providerName} {e.Message}");
+                    throw;
+                }
+
+
+                var sas = FactoryGeo.Point(1, 2);
+                var oo = ses.Query<T>().Where(a => a.MyGeoObject.StWithin(sas,null) == true).ToList();
                 var list = ses.Query<T>().ToList();
 
                 var ish = ses.Query<T>().Select(a => a.MyGeoObject).ToList();
@@ -249,9 +395,9 @@ namespace TestLibrary
 
                 var col1 = FactoryGeo.GeometryCollection(
                     "GEOMETRYCOLLECTION (MULTIPOLYGON (((10 30, 30 30, 30 10, 10 10, 10 30))), POINT (2 3), LINESTRING (2 3, 3 4), POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0)), POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (1 1, 1 2, 2 2, 2 1, 1 1)))");
-                var r=col1.GetGeoJson();
-                var reoJson=JsonConvert.SerializeObject(r);
-                var rd =FactoryGeo.GetGeometryFromGeoJson(reoJson);
+                var r = col1.GetGeoJson();
+                var reoJson = JsonConvert.SerializeObject(r);
+                var rd = FactoryGeo.GetGeometryFromGeoJson(reoJson);
                 var g1 = FactoryGeo.Point(2, 4);
                 var g2 = FactoryGeo.MultiPoint(new GeoPoint(4, 6), new GeoPoint(6, 7));
                 var g3 = FactoryGeo.LineString(new double[] { 3, 5, 7, 8, 10, 14 });
@@ -268,7 +414,7 @@ namespace TestLibrary
                 var listGeo = FactoryGeo.GetGeometryFromGeoJson(gs21);
 
 
-                
+
 
                 list1 = new List<T>()
                 {
@@ -285,34 +431,8 @@ namespace TestLibrary
 
 
 
-                var ss1 = ses.Query<T>().GeoWhereST_GeometryType(a => a.MyGeoObject, GeoType.Point).ToList();
-                ss1 = ses.Query<T>().GeoWhereST_GeometryType(a => a.MyGeoObject, GeoType.LineString).ToList();
-                ss1 = ses.Query<T>().GeoWhereST_Intersects(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)"))
-                    .ToList();
-                ss1 = ses.Query<T>().GeoWhereST_GeometryType(s => s.MyGeoObject, GeoType.Polygon)
-                    .GeoWhereST_Contains(a => a.MyGeoObject, FactoryGeo.CreateGeo("POINT(1 2)")).ToList();
-                ss1 = ses.Query<T>().GeoWhereST_GeometryType(s => s.MyGeoObject, GeoType.Polygon)
-                    .GeoWhereST_Disjoint(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
-                ss1 = ses.Query<T>().GeoWhereST_Within(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)"))
-                    .ToList();
-                ss1 = ses.Query<T>().GeoWhereST_IsValid(a => a.MyGeoObject).ToList();
-                ss1 = ses.Query<T>().GeoWhereST_GeometryType(s => s.MyGeoObject, GeoType.Polygon)
-                    .GeoWhereST_Crosses(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
-                ss1 = ses.Query<T>().GeoWhereST_Equals(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)"))
-                    .ToList();
-                ss1 = ses.Query<T>().GeoWhereST_GeometryType(s => s.MyGeoObject, GeoType.Polygon)
-                    .GeoWhereST_Overlaps(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
-                ss1 = ses.Query<T>().GeoWhereST_GeometryType(s => s.MyGeoObject, GeoType.Polygon)
-                    .GeoWhereST_Touches(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)")).ToList();
 
-                if (providerName == ProviderName.PostgreSql)
-                {
-                    ss1 = ses.Query<T>().GeoWhereST_GeometryType(s => s.MyGeoObject, GeoType.Polygon)
-                        .GeoWhereST_DWithin(a => a.MyGeoObject, FactoryGeo.CreateGeo("LineString(1 1,2 2)"),300).ToList();
 
-                }
-
-           
 
                 object resO = ses.GeoST_Buffer(FactoryGeo.Point(2, 2), 1);
                 resO = ses.GeoST_Area(FactoryGeo.CreateGeo("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"));
@@ -326,17 +446,17 @@ namespace TestLibrary
                 if (providerName == ProviderName.PostgreSql || providerName == ProviderName.MySql)
                 {
                     resO = FactoryGeo.CreateGeo("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))").ST_AsGeoJSON(ses);
-                   
-                    if(providerName == ProviderName.PostgreSql)
-                      resO = FactoryGeo.CreateGeo("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))").ST_Perimeter(ses);
+
+                    if (providerName == ProviderName.PostgreSql)
+                        resO = FactoryGeo.CreateGeo("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))").ST_Perimeter(ses);
 
 
                 }
 
-                resO = FactoryGeo.CreateGeo("LineString(1 1,2 2,3 3)").SetSrid(0).ST_Length(ses);
+
 
                 resO = ses.Query<T>().WhereIn(a => a.Name, "1", "2").ToList();
-                resO= ses.Query<T>().WhereNotIn(a => a.Name, "1", "2").ToList();
+                resO = ses.Query<T>().WhereNotIn(a => a.Name, "1", "2").ToList();
 
                 resO = ses.Query<T>().WhereNotIn(a => a.Id, list1.First().Id).ToList();
                 resO = ses.Query<T>().WhereIn(a => a.Id, list1.First().Id).ToList();
@@ -346,10 +466,9 @@ namespace TestLibrary
                 te.MyGeoObject.GetGeoJson();
                 ses.Insert(te);
                 ses.Insert(new T
-                    { Name = "1", MyGeoObject = FactoryGeo.CreateGeo("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))") });
+                { Name = "1", MyGeoObject = FactoryGeo.CreateGeo("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))") });
                 list = ses.Query<T>().ToList();
-                list = ses.Query<T>().GeoWhereST_IsValid(a=>a.MyGeoObject).ToList();
-                list = ses.Query<T>().GeoWhereST_IsEmpty(a => a.MyGeoObject,false).ToList();
+               
 
                 //ses.TruncateTable<T>();
                 //
@@ -396,7 +515,7 @@ namespace TestLibrary
                 T jsonPos2 = new T
                 {
                     Name = "2222'",
-                    Ion100 = new  { Age = 20, Name = "20" }
+                    Ion100 = new { Age = 20, Name = "20" }
                 };
                 ses.InsertBulk(new List<T> { jsonPos2 });
 
@@ -405,7 +524,7 @@ namespace TestLibrary
                 pos.Name = "123";
                 pos.Ion100 = new Ion100 { Age = 100, Name = "100" };
                 ses.Update(pos);
-                pos.Ion100 = new { name = "asas" ,Age=100};
+                pos.Ion100 = new { name = "asas", Age = 100 };
                 ses.Update(pos);
 
                 var t = new Ion100 { Age = 120, Name = "120" };
@@ -426,13 +545,13 @@ namespace TestLibrary
                 var sql = $"select {ses.StarSql<T>()} from {ses.TableName<T>()}";
                 list = ses.FreeSql<T>(sql).ToList();
                 ses.TruncateTable<T>();
-                ses.Insert(new T() { Name = "2", Ion100 = new  { Age = 100, Name = "100" } });
-                ses.Insert(new T(){Name = "2",Ion100 = new Ion100{Age = 100,Name = "100"}});
+                ses.Insert(new T() { Name = "2", Ion100 = new { Age = 100, Name = "100" } });
+                ses.Insert(new T() { Name = "2", Ion100 = new Ion100 { Age = 100, Name = "100" } });
                 ses.Insert(new T() { Name = "2", Ion100 = new Ion100 { Age = 200, Name = "200" } });
                 list = ses.FreeSql<T>(sql).ToList();
                 if (providerName == ProviderName.MsSql)
                 {
-                    var o = ses.Query<T>().WhereSql("JSON_VALUE(ion100, '$.Age') = 100").Select(a=>a.Ion100).ToList();
+                    var o = ses.Query<T>().WhereSql("JSON_VALUE(ion100, '$.Age') = 100").Select(a => a.Ion100).ToList();
                 }
                 if (providerName == ProviderName.PostgreSql)
                 {
@@ -441,10 +560,10 @@ namespace TestLibrary
             }
         }
 
-        
-       
 
-      
+
+
+
 
     }
     [MapTable("mygeo")] class GeoPos : GeoBase { }
@@ -457,10 +576,10 @@ namespace TestLibrary
         [MapColumn("name")] public string Name { get; set; }
 
         [MapColumn("my_geo")]
-        [MapDefaultValue(" NOT NULL ")]
+        //[MapDefaultValue(" NOT NULL ")]
         public IGeoShape MyGeoObject { get; set; } = FactoryGeo.Empty(GeoType.GeometryCollection);
     }
-    [MapTable("myjson")] class JPos:JsonBase { }
+    [MapTable("myjson")] class JPos : JsonBase { }
     [MapTable("myjson")] class JMy : JsonBase { }
     [MapTable("myjson")] class JMs : JsonBase { }
     [MapTable("myjson")] class JSqlite : JsonBase { }
@@ -480,7 +599,7 @@ namespace TestLibrary
 
 
 
-   
+
 
     public class Ion100
     {
@@ -488,16 +607,16 @@ namespace TestLibrary
         public int Age { get; set; }
     }
 
-    
 
 
 
-    
-
-  
 
 
-   
+
+
+
+
+
 
 
     public class Execute
@@ -1021,7 +1140,6 @@ namespace TestLibrary
                 Console.WriteLine(
                     $"{Environment.NewLine}/*-------------------------test serialize-----------------------------*/{Environment.NewLine}");
                 session.TruncateTable<T>();
-                string str = "7''\"#$@@''";
                 list22.Clear();
                 list22.Add(new T { });
                 session.InsertBulk(list22);
@@ -1617,7 +1735,7 @@ namespace TestLibrary
             r = session.IsPersistent(ts);
             Execute.Log(6, r == true);
             tt = new T() { Age = 100 };
-            res =session.Save(tt);
+            res = session.Save(tt);
             r = session.IsPersistent(ts);
             Execute.Log(7, r == true && res == 1);
             tt = session.Get<T>(tt.Id);
@@ -1627,24 +1745,24 @@ namespace TestLibrary
             Execute.Log(8, r == true && res == 1);
             tt = session.Get<T>(tt.Id);
             r = session.IsPersistent(tt);
-            Execute.Log(9, tt.Name=="100"&&r==true);
+            Execute.Log(9, tt.Name == "100" && r == true);
             tt = await session.Query<T>().SingleAsync(a => a.Name == "100");
             r = session.IsPersistent(tt);
-            Execute.Log(10, tt.Name == "100"&&r==true);
+            Execute.Log(10, tt.Name == "100" && r == true);
             var ee = session.Query<T>().Where(a => a.Age > 3 && a.Name == "100").OrderBy(ws => ws.Age)
                 .CastCore<MyClassBase>().Count();
-            Execute.Log(11, ee==1);
-            var sres=await session.Query<T>().Where(a => a.Age > 3 && a.Name == "100").OrderBy(ws => ws.Age)
+            Execute.Log(11, ee == 1);
+            var sres = await session.Query<T>().Where(a => a.Age > 3 && a.Name == "100").OrderBy(ws => ws.Age)
                 .CastCoreAsync<MyClassBase>();
             ee = sres.Count();
             Execute.Log(12, ee == 1);
             session.TruncateTable<T>();
             var to = new T();
-            var si=session.Insert(to);
-            Execute.Log(13, si==1); 
+            var si = session.Insert(to);
+            Execute.Log(13, si == 1);
             si = session.Delete(to);
             Execute.Log(14, si == 1);
-            
+
             si = session.Insert(to);
             Execute.Log(15, si == 1);
             si = await session.DeleteAsync(to);
@@ -1652,7 +1770,7 @@ namespace TestLibrary
 
             var count = session.Query<T>().Count();
 
-            Execute.Log(17, count==0);
+            Execute.Log(17, count == 0);
 
 
 

@@ -47,11 +47,11 @@ namespace ORM_1_21_.Utils
             if (isAddPk)
             {
                 rowHead.Append(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnNameRaw())
-                    .Append(";");
+                    .Append(';');
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
             {
-                rowHead.Append(map.GetColumnNameRaw()).Append(";");
+                rowHead.Append(map.GetColumnNameRaw()).Append(';');
             }
 
             builder.Append(rowHead.ToString().Substring(0, rowHead.ToString().LastIndexOf(';')))
@@ -63,11 +63,11 @@ namespace ORM_1_21_.Utils
                 if (isAddPk)
                 {
                     row.Append(AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, ob))
-                        .Append(";");
+                        .Append(';');
                 }
                 foreach (var keyValuePair in AttributesOfClass<T>.PropertyInfoList.Value)
                 {
-                    row.Append(AttributesOfClass<T>.GetValueE(_providerName, keyValuePair.Value.Name, ob)).Append(";");
+                    row.Append(AttributesOfClass<T>.GetValueE(_providerName, keyValuePair.Value.Name, ob)).Append(';');
                 }
 
                 string s = row.ToString().Substring(0, row.ToString().LastIndexOf(",", StringComparison.Ordinal)) + "\n";
@@ -83,11 +83,11 @@ namespace ORM_1_21_.Utils
             bool isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator == Generator.Assigned;
             StringBuilder builder = new StringBuilder("INSERT INTO");
             builder.Append(AttributesOfClass<T>.TableName(_providerName));
-            builder.Append("(");
+            builder.Append('(');
             StringBuilder headBuilder = new StringBuilder();
             if (isAddPk)
             {
-                headBuilder.Append(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName)).Append(",");
+                headBuilder.Append(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName)).Append(',');
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
             {
@@ -95,7 +95,7 @@ namespace ORM_1_21_.Utils
                 {
                     continue;
                 }
-                headBuilder.Append(map.GetColumnName(_providerName)).Append(",");
+                headBuilder.Append(map.GetColumnName(_providerName)).Append(',');
             }
 
             builder.Append(headBuilder.ToString().Substring(0, headBuilder.ToString().LastIndexOf(',')));
@@ -108,7 +108,7 @@ namespace ORM_1_21_.Utils
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
-                    row.Append(new UtilsBulkMySql(_providerName).GetValue(o, type)).Append(",");
+                    row.Append(new UtilsBulkMySql(_providerName).GetValue(o, type)).Append(',');
                 }
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                 {
@@ -119,7 +119,7 @@ namespace ORM_1_21_.Utils
                         continue;
                     }
                     string str = new UtilsBulkMySql(_providerName).GetValue(o, type);
-                    row.Append(str).Append(",");
+                    row.Append(str).Append(',');
                 }
                 builder.AppendLine(row.ToString().Substring(0, row.ToString().LastIndexOf(',')));
                 builder.AppendLine("UNION ALL");
@@ -148,13 +148,13 @@ namespace ORM_1_21_.Utils
                 partBuilder.Append(mapColumnAttribute.GetColumnName(_providerName)).Append(", ");
             }
 
-            builder.Append(partBuilder.ToString().Trim(' ', ',')).Append(")");
+            builder.Append(partBuilder.ToString().Trim(' ', ',')).Append(')');
             builder.AppendLine(" VALUES ");
 
             var rt = new UtilsBulkMySql(_providerName);
             foreach (T ob in list)
             {  partBuilder.Clear();
-                partBuilder.Append("(");
+                partBuilder.Append('(');
                 if (isAddPk)
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, pk.PropertyName, ob);
@@ -167,7 +167,7 @@ namespace ORM_1_21_.Utils
                     var o = AttributesOfClass<T>.GetValueE(_providerName, column.PropertyName, ob);
                     if (column.IsInheritIGeoShape)
                     {
-                        partBuilder.Append($"geometry::STGeomFromText('{((IGeoShape)o).GeoText}', {column.Srid})").Append(", ");
+                        partBuilder.Append($"geometry::STGeomFromText('{((IGeoShape)o).StAsText()}', {column.Srid})").Append(", ");
                     } else if (column.IsJson)
                     {
                         if (o is string)

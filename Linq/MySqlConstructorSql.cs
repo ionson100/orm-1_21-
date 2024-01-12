@@ -51,7 +51,7 @@ namespace ORM_1_21_.Linq
             if (PingComposite(Evolution.All))
             {
                 StringBuilder builder = new StringBuilder("SELECT COUNT(*),(SELECT COUNT(*) FROM ");
-                builder.Append(AttributesOfClass<T>.TableName(providerName)).Append(" ");
+                builder.Append(AttributesOfClass<T>.TableName(providerName)).Append(' ');
                 var f = _listOne.First(a => a.Operand == Evolution.All).Body;
                 bool addAll = false;
                 if (string.IsNullOrWhiteSpace(f) == false)
@@ -138,27 +138,27 @@ namespace ORM_1_21_.Linq
                     string value = listOne.First(a => a.Operand == Evolution.Select).Body;
                     var d = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(s => s.Body);
                     
-                    if (d.Any())
-                    {
-                        HashSet<string> hashSet=new HashSet<string>();
-                        foreach (string s in d)
-                        {
-                            if (hashSet.Contains(s) == false)
-                            {
-                                if (providerName == ProviderName.PostgreSql)
-                                {
-                                    value = value.Replace(s, $"ST_AsEWKT({s})");
-                                    hashSet.Add(s);
-                                }else if (providerName == ProviderName.MySql)
-                                {
-                                    value = value.Replace(s, UtilsCore.MysqlConcatSrid(s));
-                                    hashSet.Add(s);
-                                }
-
-
-                            }
-                        }
-                    }
+                    //if (d.Any())
+                    //{
+                    //    HashSet<string> hashSet=new HashSet<string>();
+                    //    foreach (string s in d)
+                    //    {
+                    //        if (hashSet.Contains(s) == false)
+                    //        {
+                    //            if (providerName == ProviderName.PostgreSql)
+                    //            {
+                    //                value = value.Replace(s, $"ST_AsEWKT({s})");
+                    //                hashSet.Add(s);
+                    //            }else if (providerName == ProviderName.MySql)
+                    //            {
+                    //                value = value.Replace(s, UtilsCore.MysqlConcatSrid(s));
+                    //                hashSet.Add(s);
+                    //            }
+                    //
+                    //
+                    //        }
+                    //    }
+                    //}
                     sbb.Append(value);
                 }
                 else
@@ -185,8 +185,8 @@ namespace ORM_1_21_.Linq
                     {
                         if (PingComposite(Evolution.SelectJoin) && PingComposite(Evolution.Count) == false)
                         {
-                            sbb.Append(" ").Append(_listOne.Single(a => a.Operand == Evolution.SelectJoin).Body)
-                                .Append(" ");
+                            sbb.Append(' ').Append(_listOne.Single(a => a.Operand == Evolution.SelectJoin).Body)
+                                .Append(' ');
                         }
                         else if (!PingComposite(Evolution.Count))
                         {
@@ -208,8 +208,8 @@ namespace ORM_1_21_.Linq
                                     }
                                     else if (providerName == ProviderName.MySql)
                                     {
-                                        sbb.Append(UtilsCore.MysqlConcatSrid(
-                                            $"{AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}"));
+                                        sbb.Append(UtilsCore.SqlConcat(
+                                            $"{AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}",_providerName));
                                         sbb.Append($" as {i.GetColumnName(_providerName)}, ");
                                        
 
@@ -254,7 +254,7 @@ namespace ORM_1_21_.Linq
             }
 
            
-            sbb.Append(AttributesOfClass<T>.TableName(providerName)).Append(" ");
+            sbb.Append(AttributesOfClass<T>.TableName(providerName)).Append(' ');
             //if (PingComposite(Evolution.Join))
             //{
             //    sbb.Append(_listOne.Single(a => a.Operand == Evolution.Join).Body).Append(" ");
@@ -344,11 +344,11 @@ namespace ORM_1_21_.Linq
                 {
                     if (_providerName == ProviderName.PostgreSql)
                     {
-                        sbb.Append(" OFFSET ").Append(isk).Append(" ");
+                        sbb.Append(" OFFSET ").Append(isk).Append(' ');
                     }
                     else
                     {
-                        sbb.Append($" LIMIT {int.MaxValue} OFFSET {isk} ").Append(" ");
+                        sbb.Append($" LIMIT {int.MaxValue} OFFSET {isk} ").Append(' ');
                     }
 
                 }

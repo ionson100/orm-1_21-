@@ -34,7 +34,6 @@ namespace ORM_1_21_.Utils
 
             builder.Append(rowHead.ToString().Substring(0, rowHead.ToString().LastIndexOf(fieldterminator, StringComparison.Ordinal)) + "\n");
 
-            var ssd = new UtilsBulkMySql(_providerName);
             foreach (var ob in list)
             {
                 var row = new StringBuilder();
@@ -77,19 +76,7 @@ namespace ORM_1_21_.Utils
 
             type = UtilsCore.GetCoreType(type);
 
-            //if (type == typeof(byte[]))
-            //    switch (_providerName)
-            //    {
-            //        case ProviderName.MsSql:
-            //        case ProviderName.MySql:
-            //            return "0x" + BitConverter.ToString((byte[])o).Replace("-", "");
-            //        case ProviderName.PostgreSql:
-            //            return "decode('" + BitConverter.ToString((byte[])o).Replace("-", "") + "', 'hex')";
-            //        case ProviderName.SqLite:
-            //            return "x'" + BitConverter.ToString((byte[])o).Replace("-", "") + "'";
-            //        default:
-            //            throw new ArgumentOutOfRangeException();
-            //    }
+           
 
             if (type == typeof(Guid) && _isBlob)
             {
@@ -124,8 +111,8 @@ namespace ORM_1_21_.Utils
 
             if (type == typeof(byte[]))
             {
-                string result = System.Text.Encoding.Default.GetString((byte[])o);
-                //return Convert.ToBase64String((byte[])o);
+                string result = Encoding.Default.GetString((byte[])o);
+                
                 return result;
             }
 
@@ -175,7 +162,7 @@ namespace ORM_1_21_.Utils
                 case ProviderName.SqLite:
                     return $"'{o.ToString().Replace("'", "''")}'";
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
             }
         }
     }

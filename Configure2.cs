@@ -13,7 +13,7 @@ namespace ORM_1_21_
         /// <param name="provider">Provider database</param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public string SymbolParam(ProviderName provider)
+        public static string SymbolParam(ProviderName provider)
         {
             switch (provider)
             {
@@ -26,7 +26,7 @@ namespace ORM_1_21_
                 case ProviderName.SqLite:
                     return "@";
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{provider}");
             }
         }
 

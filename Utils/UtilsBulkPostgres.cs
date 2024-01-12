@@ -76,11 +76,11 @@ namespace ORM_1_21_.Utils
 
             var rowHead = new StringBuilder();
             if (isAddPk)
-                rowHead.Append($"\"{UtilsCore.ClearTrim(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))}\"").Append(",");
+                rowHead.Append($"\"{UtilsCore.ClearTrim(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))}\"").Append(',');
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
             {
                 //if ( map.PropertyType == typeof(byte[])) continue;
-                rowHead.Append($"\"{UtilsCore.ClearTrim(map.GetColumnName(_providerName))}\"").Append(",");
+                rowHead.Append($"\"{UtilsCore.ClearTrim(map.GetColumnName(_providerName))}\"").Append(',');
             }
 
             builder.Append(rowHead.ToString()
@@ -94,7 +94,7 @@ namespace ORM_1_21_.Utils
                     var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList
                         .Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
-                    row.Append(rt.GetValue(o, type)).Append(",");
+                    row.Append(rt.GetValue(o, type)).Append(',');
                 }
 
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
@@ -105,12 +105,12 @@ namespace ORM_1_21_.Utils
                         if (o is string)
                         {
                             
-                            row.Append($"CAST('{o}' AS JSON)").Append(",");
+                            row.Append($"CAST('{o}' AS JSON)").Append(',');
                         }
                         else
                         {
                             var json = JsonConvert.SerializeObject(o);
-                            row.Append($"CAST('{json}' AS JSON)").Append(",");
+                            row.Append($"CAST('{json}' AS JSON)").Append(',');
                         }
                         
 
@@ -120,15 +120,15 @@ namespace ORM_1_21_.Utils
                         var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                         if (o == null)
                         {
-                            row.Append("null").Append(",");
+                            row.Append("null").Append(',');
                         }
                         else
                         {
                             IGeoShape shape = (IGeoShape)o;
 
-                            string data = $"ST_GeomFromText('{shape.GeoText}', {map.Srid})";
+                            string data = $"ST_GeomFromText('{shape.StAsText()}', {map.Srid})";
                           
-                            row.Append(data).Append(",");
+                            row.Append(data).Append(',');
                         }
                       
                     }
@@ -137,7 +137,7 @@ namespace ORM_1_21_.Utils
                         var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                         var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
                         var str = new UtilsBulkMySql(_providerName).GetValue(o, type);
-                        row.Append(str).Append(",");
+                        row.Append(str).Append(',');
                     }
                     
                 }

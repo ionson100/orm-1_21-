@@ -245,8 +245,16 @@ namespace ORM_1_21_
 
             if (UtilsCore.IsGeo(type))
             {
-                var o = new GeoObject(res.ToString());
-                return o;
+                try
+                {
+                    var o = new GeoObject(res.ToString());
+                    return o;
+                }
+                catch (GeoException)
+                {
+                    return null;
+                }
+               
             }
 
             if (UtilsCore.IsJson(type))

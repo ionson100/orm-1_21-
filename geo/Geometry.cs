@@ -1,4 +1,5 @@
 ﻿using System;
+// ReSharper disable All
 
 namespace ORM_1_21_.geo
 {
@@ -23,7 +24,7 @@ namespace ORM_1_21_.geo
             switch (shape.GeoType)
             {
                 case GeoType.None:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentException("GeoType is None");
                 case GeoType.Point:
                     type = "Point";
                     break;
@@ -49,10 +50,10 @@ namespace ORM_1_21_.geo
                     type = "Polygon";
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Geometry type not used:{shape.GeoType}");
             }
 
-            coordinates = shape.ArrayCoordinates;
+            coordinates =((GeoObject) shape).ArrayCoordinates;
         }
         /// <summary>
         /// 

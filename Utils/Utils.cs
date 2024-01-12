@@ -6,7 +6,6 @@ using System.Data.Common;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -21,16 +20,39 @@ namespace ORM_1_21_.Utils
     {
         internal const string Bungalo = "____";
 
+       
+        public static void ErrorAlert()
+        {
+            throw new Exception("in Sqlite database, spatial operations are not implemented");
+        }
+
         public static HashSet<Type> HashSetJsonType=new HashSet<Type>();
+
+        public static string SqlConcat(string column, ProviderName provider)
+        {
+            switch (provider)
+            {
+                case ProviderName.MsSql:
+                    return $" ISNULL(CONCAT('SRID=',{column}.STSrid,';',{column}.STAsText()),NULL)";
+                case ProviderName.MySql:
+                    return $" IFNULL(CONCAT('SRID=',ST_SRID({column}),';',ST_AsText({column})),NULL)";
+                case ProviderName.PostgreSql:
+                    return $" coalesce(CONCAT('SRID=',ST_SRID({column}),';',ST_AsText({column})),null)";
+                case ProviderName.SqLite:
+                    return $" IFNULL(CONCAT('SRID=',ST_SRID({column}),';',ST_AsText({column})),NULL)";
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(provider), provider, null);
+            }
+        }
 
         public static string MysqlConcatSrid(string column)
         {
-            return $" CONCAT('SRID=',ST_SRID({column}),';',ST_AsText({column}))";
+            return $" IFNULL(CONCAT('SRID=',ST_SRID({column}),';',ST_AsText({column})),NULL)";
         }
 
         public static string MsSqlConcatSrid(string column)
         {
-            return $" CONCAT('SRID=',{column}.STSrid,';',{column}.STAsText())";
+            return $" ISNULL(CONCAT('SRID=',{column}.STSrid,';',{column}.STAsText()),NULL)";
         }
        
 
@@ -189,7 +211,7 @@ namespace ORM_1_21_.Utils
                 case ProviderName.SqLite:
                     return "@";
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{providerName}");
             }
         }
 
@@ -235,7 +257,7 @@ namespace ORM_1_21_.Utils
         }
 
 
-        private static readonly Dictionary<Type, Func<object, object>> convertorPkDictionary =
+        private static readonly Dictionary<Type, Func<object, object>> ConvertorPkDictionary =
             new Dictionary<Type, Func<object, object>>
             {
                 {typeof(string),val=>val.ToString()},
@@ -253,9 +275,11 @@ namespace ORM_1_21_.Utils
 
         internal static object ConverterPrimaryKeyType(Type type, object o)
         {
-            if(convertorPkDictionary.ContainsKey(type))
-                return convertorPkDictionary[type].Invoke(o);
-          
+            //if(convertorPkDictionary.ContainsKey(type))
+            //   return convertorPkDictionary[type].Invoke(o);
+            if (ConvertorPkDictionary.TryGetValue(type, out Func<object, object> value))
+                return value.Invoke(o);
+
             throw new Exception($"Can't find type to convert primary key {type} {o}");
         }
 
@@ -492,11 +516,7 @@ namespace ORM_1_21_.Utils
             TypeDescriptor.AddAttributes(obj, new PersistentAttribute());
         }
 
-        private static string GetTableName<T>()
-        {
-            var ss = AttributesOfClass<T>.TableName(ProviderName.PostgreSql);
-            return ss;
-        }
+      
     }
 
 }

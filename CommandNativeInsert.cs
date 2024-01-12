@@ -37,7 +37,7 @@ namespace ORM_1_21_
             {
                 var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, t);
                 Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
-                builder.Append(GetValue(o, type)).Append(",");
+                builder.Append(GetValue(o, type)).Append(',');
 
             }
 
@@ -47,7 +47,7 @@ namespace ORM_1_21_
                 var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
                 if ( type == typeof(byte[])) continue;
                 var str = GetValue(o, type);
-                builder.Append(str).Append(",");
+                builder.Append(str).Append(',');
             }
             return builder.ToString().Trim(',') + ");";
 

@@ -41,9 +41,9 @@ namespace ORM_1_21_.Utils
             var rowHead = new StringBuilder();
             if (isAddPk)
                 rowHead.Append(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
-                    .Append(";");
+                    .Append(';');
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
-                rowHead.Append(map.GetColumnName(_providerName)).Append(";");
+                rowHead.Append(map.GetColumnName(_providerName)).Append(';');
 
             builder.Append(rowHead.ToString().Substring(0, rowHead.ToString().LastIndexOf(';')))
                 .Append(Environment.NewLine);
@@ -57,22 +57,22 @@ namespace ORM_1_21_.Utils
                         AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList
                         .Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
-                    row.Append(GetValue(o, type)).Append(";");
+                    row.Append(GetValue(o, type)).Append(';');
                 }
 
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
                 {
                     if (map.IsInheritIGeoShape)
                     {
-                        var geoJson = ((IGeoShape)ob).GeoText;
-                        row.Append($"ST_GeomFromText('{geoJson}', {map.Srid})").Append(";");
+                        var geoJson = ((IGeoShape)ob).StAsText();
+                        row.Append($"ST_GeomFromText('{geoJson}', {map.Srid})").Append(';');
                     }
                     else
                     {
                         var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                         var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
                         var str = GetValue(o, type);
-                        row.Append(str).Append(";");
+                        row.Append(str).Append(';');
                     }
                     
                 }
@@ -93,9 +93,9 @@ namespace ORM_1_21_.Utils
             var rowHead = new StringBuilder();
             if (isAddPk)
                 rowHead.Append(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName))
-                    .Append(",");
+                    .Append(',');
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
-                rowHead.Append(map.GetColumnName(_providerName)).Append(",");
+                rowHead.Append(map.GetColumnName(_providerName)).Append(',');
 
             builder.Append(rowHead.ToString()
                 .Substring(0, rowHead.ToString().LastIndexOf(",", StringComparison.Ordinal))).Append(") VALUES");
@@ -108,7 +108,7 @@ namespace ORM_1_21_.Utils
                         AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, ob);
                     var type = AttributesOfClass<T>.PropertyInfoList
                         .Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
-                    row.Append(GetValue(o, type, isBlob)).Append(",");
+                    row.Append(GetValue(o, type, isBlob)).Append(',');
                 }
 
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
@@ -120,32 +120,32 @@ namespace ORM_1_21_.Utils
                         {
                             if (o is string)
                             {
-                                row.Append($"'{o}'").Append(",");
+                                row.Append($"'{o}'").Append(',');
                             }
                             else
                             {
                                 var json = JsonConvert.SerializeObject(o);
-                                row.Append($"'{json}'").Append(",");
+                                row.Append($"'{json}'").Append(',');
                             }
                             
                         }
                         else
                         {
                             var json = JsonConvert.SerializeObject(o);
-                            row.Append($"CAST('{json}' AS JSON)").Append(",");
+                            row.Append($"CAST('{json}' AS JSON)").Append(',');
                         }
                        
 
                     } else if (map.IsInheritIGeoShape)
                     {
-                        var geoJson = ((IGeoShape)o).GeoText;
+                        var geoJson = ((IGeoShape)o).StAsText();
                         row.Append($"ST_GeomFromText('{geoJson}', {map.Srid})").Append(", ");
                     }
                     else
                     {
                         var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
                         var str = GetValue(o, type, isBlob);
-                        row.Append(str).Append(",");
+                        row.Append(str).Append(',');
                     }
                    
                     
@@ -175,7 +175,7 @@ namespace ORM_1_21_.Utils
                     case ProviderName.SqLite:
                         return "x'" + BitConverter.ToString((byte[])o).Replace("-", "") + "'";
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
                 }
 
             if (type == typeof(Guid) && isBlob)
@@ -233,7 +233,7 @@ namespace ORM_1_21_.Utils
                 case ProviderName.SqLite:
                     return $"'{o.ToString().Replace("'", "''")}'";
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
             }
         }
 

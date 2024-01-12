@@ -25,7 +25,7 @@ namespace ORM_1_21_
                 {
                     if (Provider == ORM_1_21_.ProviderName.MsSql)
                     {
-                        sb.Append($"{UtilsCore.MsSqlConcatSrid(baseAttribute.GetColumnName(Provider))} as {baseAttribute.GetColumnName(Provider)}, ");
+                        sb.Append($"{UtilsCore.SqlConcat(baseAttribute.GetColumnName(Provider),Provider)} as {baseAttribute.GetColumnName(Provider)}, ");
                         //sb.Append($"{baseAttribute.GetColumnName(Provider)}.STAsText() as {baseAttribute.GetColumnName(Provider)}, ");
                     }
                     else if (Provider == ORM_1_21_.ProviderName.PostgreSql)
@@ -34,7 +34,7 @@ namespace ORM_1_21_
                     }
                     else if (Provider == ORM_1_21_.ProviderName.MySql)
                     {
-                        sb.Append(UtilsCore.MysqlConcatSrid(baseAttribute.GetColumnName(Provider)));
+                        sb.Append(UtilsCore.SqlConcat(baseAttribute.GetColumnName(Provider),Provider));
                         sb.Append($" as {baseAttribute.GetColumnName(Provider)}, ");
                     }
                     else

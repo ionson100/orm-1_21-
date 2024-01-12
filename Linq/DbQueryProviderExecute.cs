@@ -73,7 +73,7 @@ namespace ORM_1_21_.Linq
                 com.Parameters.Add(pr);
             }
 
-            if (_paramFree.Any())
+            if (_paramFree.Count>0)
             {
                 UtilsCore.AddParam(com, _providerName, _paramFree.ToArray());
             }
@@ -402,7 +402,7 @@ namespace ORM_1_21_.Linq
                     dataReader = com.ExecuteReader();
                     var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                     var enumerable = r as T[] ?? r.ToArray();
-                    if (enumerable.Any())
+                    if (enumerable.Length>0)
                     {
                         var res = enumerable.First();
                         return res;
@@ -416,10 +416,10 @@ namespace ORM_1_21_.Linq
                     var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                     var enumerable = r as T[] ?? r.ToArray();
 
-                    if (enumerable.Any())
-                    {
-                        return enumerable.First();
-                    }
+                   // if (enumerable.Length>0)
+                   // {
+                   //     return enumerable.First();
+                   // }
                     return enumerable.FirstOrDefault();
                 }
 

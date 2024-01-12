@@ -215,7 +215,7 @@ namespace ORM_1_21_
                             break;
                         }
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{MyProviderName}");
                 }
             }
             catch (Exception ex)
@@ -260,7 +260,7 @@ namespace ORM_1_21_
                             break;
                         }
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{MyProviderName}");
                 }
             }
             catch (Exception ex)
@@ -469,7 +469,7 @@ namespace ORM_1_21_
 
 
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{MyProviderName}");
             }
 
 
@@ -531,7 +531,7 @@ namespace ORM_1_21_
                         return 0;
 
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{MyProviderName}");
                 }
 
                 OpenConnectAndTransaction(com);
@@ -571,7 +571,7 @@ namespace ORM_1_21_
                     com.CommandText = new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable, IsBlobGuid);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{MyProviderName}");
             }
 
             try
@@ -622,7 +622,7 @@ namespace ORM_1_21_
                     com.CommandText = new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable, IsBlobGuid);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{MyProviderName}");
             }
 
             try
@@ -677,7 +677,7 @@ namespace ORM_1_21_
                     com.CommandText = UtilsBulkMySql.InsertFile<TSource>(fileCsv, fieldterminator, MyProviderName);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{MyProviderName}");
             }
 
             try
@@ -897,7 +897,7 @@ namespace ORM_1_21_
                     case ProviderName.SqLite:
                         throw new Exception("Not implemented");
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{MyProviderName}");
                 }
             }
             catch (Exception)
@@ -974,7 +974,7 @@ namespace ORM_1_21_
                     case ProviderName.SqLite:
                         return new UtilsBulkMySql(ProviderName.SqLite).GetSql(enumerable, IsBlobGuid);
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{MyProviderName}");
                 }
             }
             catch (Exception)

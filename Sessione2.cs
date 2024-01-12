@@ -221,7 +221,7 @@ namespace ORM_1_21_
                     case ProviderName.SqLite:
                         return "@";
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{MyProviderName}");
                 }
             }
         }
@@ -241,7 +241,7 @@ namespace ORM_1_21_
                     case ProviderName.SqLite:
                         return 30;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{MyProviderName}");
                 }
             }
         }
@@ -393,12 +393,12 @@ namespace ORM_1_21_
             InnerWriteLogFile($"WriteLogFile: {message}");
         }
 
-        private void InnerWriteLogFile(string message)
+        private static void InnerWriteLogFile(string message)
         {
             MySqlLogger.Info(message);
         }
 
-        private void InnerWriteLogFile(IDbCommand command)
+        private static void InnerWriteLogFile(IDbCommand command)
         {
             MySqlLogger.Info(UtilsCore.GetStringSql(command));
 

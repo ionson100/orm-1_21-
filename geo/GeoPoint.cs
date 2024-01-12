@@ -1,4 +1,6 @@
-﻿namespace ORM_1_21_.geo
+﻿using ORM_1_21_.Utils;
+
+namespace ORM_1_21_.geo
 {
     /// <summary>
     /// Template point
@@ -19,6 +21,16 @@
         {
             X=x;Y=y;
         }
+
+        /// <summary>
+        /// ctor.
+        /// </summary>
+        /// <param name="d"></param>
+        public GeoPoint(double[] d)
+        {
+            Check.AsTwoValue(d,nameof(d));
+            X = d[0]; Y = d[1];
+        }
         /// <summary>
         /// coordinate x
         /// </summary>
@@ -27,5 +39,13 @@
         /// coordinate y
         /// </summary>
         public double Y { get; set; }
+
+        /// <summary>
+        /// Get doubles Array as new[] { X, Y };
+        /// </summary>
+        public double[] GeDoubles()
+        {
+            return new[] { X, Y };
+        }
     }
 }

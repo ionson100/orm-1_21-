@@ -9,6 +9,7 @@ using ORM_1_21_.geo;
 using System.Linq;
 using System.Linq.Expressions;
 using Newtonsoft.Json;
+using ORM_1_21_.Extensions;
 
 namespace ORM_1_21_
 {
@@ -79,26 +80,26 @@ namespace ORM_1_21_
                                     {
                                         case ORM_1_21_.ProviderName.MsSql:
                                             dbCommand.AddParameter($"{parName}{par}{ip}",
-                                                $"{((IGeoShape)o).GeoText}");
+                                                $"{((IGeoShape)o).StAsText()}");
                                         break;
                                         case ORM_1_21_.ProviderName.MySql:
                                         {
                                             dbCommand.AddParameter($"{parName}{par}{ip}",
-                                                $"{((IGeoShape)o).GeoText}");
+                                                $"{((IGeoShape)o).StAsText()}");
                                             }
                                             break;
                                         case ORM_1_21_.ProviderName.PostgreSql:
                                         {
                                             dbCommand.AddParameter($"{parName}{par}{ip}",
-                                                $"{((IGeoShape)o).GeoText}");
+                                                $"{((IGeoShape)o).StAsText()}");
                                         }
                                             break;
                                         case ORM_1_21_.ProviderName.SqLite:
                                             dbCommand.AddParameter($"{parName}{par}{ip}",
-                                                $"{((IGeoShape)o).GeoText}");
+                                                $"{((IGeoShape)o).StAsText()}");
                                         break;
                                         default:
-                                            throw new ArgumentOutOfRangeException();
+                                            throw new ArgumentOutOfRangeException($"Database type is not defined:{Provider}");
                                     }
                                     
                                     
@@ -155,7 +156,7 @@ namespace ORM_1_21_
                            {
                                if (pra.IsInheritIGeoShape)
                                {
-                                   dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), ((IGeoShape)r).GeoText.Trim());
+                                   dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), ((IGeoShape)r).StAsText().Trim());
                                }
 
                                else if (pra.IsJson)
@@ -202,7 +203,7 @@ namespace ORM_1_21_
                     dynamic d = command.Parameters;
                     d.AddWithValue(nameParam, o.Value);
                 }
-                command.CommandText = builder.Append(";").ToString();
+                command.CommandText = builder.Append(';').ToString();
             }
             else
             {
@@ -251,7 +252,7 @@ namespace ORM_1_21_
                               }
                               else
                               {
-                                  dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),((IGeoShape)o).GeoText);
+                                  dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),((IGeoShape)o).StAsText());
                               }
                           }
                           else
@@ -291,7 +292,7 @@ namespace ORM_1_21_
                     dynamic d = command.Parameters;
                     d.AddWithValue(nameParam, o.Value);
                 }
-                command.CommandText = builder.Append(";").ToString();
+                command.CommandText = builder.Append(';').ToString();
             }
             else
             {
