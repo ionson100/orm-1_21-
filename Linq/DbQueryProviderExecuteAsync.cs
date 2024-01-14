@@ -67,6 +67,10 @@ namespace ORM_1_21_.Linq
                 pr.Value = p.Value;
                 com.Parameters.Add(pr);
             }
+            if (_paramFreeSqlParams.Count > 0)
+            {
+                UtilsCore.AddParamsSqlParam(com, _paramFreeSqlParams);
+            }
 
             if (_paramFree.Any())
             {

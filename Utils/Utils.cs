@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -338,7 +339,14 @@ namespace ORM_1_21_.Utils
             return list.ToArray();
         }
 
-
+        public static void AddParamsSqlParam(IDbCommand com, List<SqlParam> list)
+        {
+            foreach (SqlParam sqlParam in list)
+            {
+                dynamic d = com.Parameters;
+                d.AddWithValue(sqlParam.Name, sqlParam.Value ?? DBNull.Value);
+            }
+        }
 
         public static void AddParam(IDbCommand com, ProviderName providerName, object[] param)
         {

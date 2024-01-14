@@ -22,6 +22,7 @@ namespace ORM_1_21_.Linq
     internal partial class DbQueryProvider<T> : QueryProvider, ISqlComposite, ICloneSession
     {
         private readonly List<object> _paramFree = new List<object>();
+        private readonly List<SqlParam> _paramFreeSqlParams = new List<SqlParam>();
         private readonly List<ParameterStoredPr> _paramFreeStoredPr = new List<ParameterStoredPr>();
         private readonly Dictionary<string, object> _parOut = new Dictionary<string, object>();
         private readonly Session _session;
@@ -102,6 +103,10 @@ namespace ORM_1_21_.Linq
         {
             return _paramFree;
         }
+        public List<SqlParam> GetParamFreeSqlParams()
+        {
+            return _paramFreeSqlParams;
+        }
 
         public List<OneComposite> ListOuterOneComposites { get; set; } = new List<OneComposite>();
 
@@ -109,7 +114,28 @@ namespace ORM_1_21_.Linq
         {
             if (param != null && param.Length > 0)
             {
-                _paramFree.AddRange(param);
+                foreach (object o in param)
+                {
+                    if (o is SqlParam t)
+                    {
+                        _paramFreeSqlParams.Add(t);
+                    }
+                    else
+                    {
+                        _paramFree.Add(o);
+                    }
+                }
+
+            }
+            var res = Execute<TS>(expression);
+            return (TS)res;
+        }
+
+        public TS ExecuteExtensionSqlParam<TS>(Expression expression, params SqlParam[] param)
+        {
+            if (param != null && param.Length > 0)
+            {
+                _paramFreeSqlParams.AddRange(param);
             }
             var res = Execute<TS>(expression);
             return (TS)res;

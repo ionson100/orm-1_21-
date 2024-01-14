@@ -45,8 +45,332 @@ namespace TestLibrary
                 ses.DropTableIfExists<T>();
                 ses.TableCreate<T>();
 
+                #region StUnion
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("point(1 2)").SetSrid(0);
+                    var geo2 = FactoryGeo.CreateGeo("point(1 4)");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StUnion(geo2, ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StUnion(geo2, null)).ToList();
+                    var sas2 = ses.Query<T>().Select(a => a.MyGeoObject.StUnion(geo2, null).StAsText()).ToList();
+                }
+
+                #endregion
+
+
+                #region StDifference
+
+                {
+
+                    if (providerName == ProviderName.MySql || providerName == ProviderName.MsSql)
+                    {
+                        ses.TruncateTable<T>();
+                        var p = FactoryGeo.Polygon("Point(1 1)");
+                        var geo = FactoryGeo.CreateGeo("Point(2 2)");
+                        var ee = geo.StDifference(p, ses);
+                        ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                        ses.Insert(new T { Name = "p", MyGeoObject = null });
+                        var sas = ses.Query<T>().Select(a =>
+                            a.MyGeoObject.StDifference(p, null).StAsText()).ToList();
+                    }
+                    else
+                    {
+                        ses.TruncateTable<T>();
+                        var p = FactoryGeo.Polygon("LINESTRING(50 100, 50 200)");
+                        var geo = FactoryGeo.CreateGeo("LINESTRING(50 50, 50 150)");
+                        var ee = geo.StDifference(p, ses);
+                        ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                        ses.Insert(new T { Name = "p", MyGeoObject = null });
+                        var sas = ses.Query<T>().Select(a =>
+                            a.MyGeoObject.StDifference(p, null).StAsText()).ToList();
+                    }
+
+
+
+
+
+                }
+
+
+                #endregion
+
+                #region StDimension
+
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("LINESTRING(77.29 29.07,77.42 29.26,77.27 29.31,77.29 29.07)");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING(77.29 29.07,77.42 29.26,77.27 29.31)");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo2 });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StDimension(ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StDimension(null)).ToList();
+                }
+
+                #endregion
+
+
+
+                #region StCentroid
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("MULTIPOINT ( -1 0, -1 2, -1 3, -1 4, -1 7, 0 1, 0 3, 1 1, 2 0, 6 0, 7 8, 9 8, 10 6 )").SetSrid(0);
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING(77.29 29.07,77.42 29.26,77.27 29.31)").SetSrid(0);
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo2 });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StCentroid(ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StCentroid(null)).ToList();
+                    if (providerName != ProviderName.MySql)
+                    {
+                        var saws = ses.Query<T>().Select(a => new
+                        {
+                            s = a.MyGeoObject.StCentroid(null).StAsText(),
+                            b = a.MyGeoObject.StSrid()
+                        }).ToList();
+                    }
+                    
+                }
+
+                #endregion
+
+                #region StStartPoint
+
+                {
+                    
+                        ses.TruncateTable<T>();
+                        var geo = FactoryGeo.CreateGeo("LINESTRING(77.29 29.07,77.42 29.26,77.27 29.31,77.29 29.07)");
+                        var geo2 = FactoryGeo.CreateGeo("LINESTRING(77.29 29.07,77.42 29.26,77.27 29.31)");
+                        ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                        ses.Insert(new T { Name = "p", MyGeoObject = geo2 });
+                        ses.Insert(new T { Name = "p", MyGeoObject = null });
+                        var o = geo.StStartPoint(ses);
+                        var sas = ses.Query<T>().Select(a => a.MyGeoObject.StStartPoint(null).StAsText()).ToList();
+                    
+                  
+                }
+
+                #endregion
+
+                #region StBoundary
+
+                {
+                    if (providerName != ProviderName.MySql)
+                    {
+                        ses.TruncateTable<T>();
+                        var geo = FactoryGeo.CreateGeo("LINESTRING(90 76,50 60, 70 80, 77 90)").SetSrid(0);
+                        ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                        ses.Insert(new T { Name = "p", MyGeoObject = null });
+                        var sas = ses.Query<T>().Select(a => a.MyGeoObject.StAsText().Substring(0, 7)).ToList();
+                        var res = ses.Query<T>().Select(a => a.MyGeoObject.StBoundary(null)).ToList();
+                    }
+                   
+
+                }
+
+
+                #endregion
+
+                #region StBuffer
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("point(1 2)").SetSrid(0);
+                    var geo2 = FactoryGeo.CreateGeo("point(1 4)");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StBuffer(12, ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StBuffer(12, null)).ToList();
+                }
+
+                #endregion
+
+                #region StSymDifference
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("point(1 2)").SetSrid(0);
+                    var geo2 = FactoryGeo.CreateGeo("point(1 4)");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StSymDifference(geo2, ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StSymDifference(geo2, null)).ToList();
+                }
+
+                #endregion
+
+
+                #region StEnvelope
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("point(1 2)").SetSrid(0);
+                    var geo2 = FactoryGeo.CreateGeo("point(1 4)");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo2 });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StEnvelope(ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StEnvelope(null)).ToList();
+                }
+
+                #endregion
+
+              
+
+                #region StEndPoint
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("LINESTRING(77.29 29.07,77.42 29.26,77.27 29.31,77.29 29.07)");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING(77.29 29.07,77.42 29.26,77.27 29.31)");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo2 });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StEndPoint(ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StEndPoint(null)).ToList();
+                }
+
+                #endregion
+
+           
+
+              
+
+                #region StAsBinary
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("LINESTRING(77.29 29.07,77.42 29.26,77.27 29.31,77.29 29.07)");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING(77.29 29.07,77.42 29.26,77.27 29.31)");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo2 });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StAsBinary(ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StAsBinary(null)).ToList();
+
+                }
+
+
+                #endregion
+
+                #region StNumPoints
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("LINESTRING(77.29 29.07,77.42 29.26,77.27 29.31,77.29 29.07)");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING(77.29 29.07,77.42 29.26,77.27 29.31)");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo2 });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StNumPoints(ses);
+                    var sas = ses.Query<T>().Where(a => a.MyGeoObject.StNumPoints(null)==4).ToList();
+
+                }
+
+                #endregion
+
+                #region StIsClosed
+
+                {
+                    ses.TruncateTable<T>();
+                    if (providerName == ProviderName.PostgreSql || providerName == ProviderName.MsSql)
+                    {
+                        ses.TruncateTable<T>();
+                        var geo = FactoryGeo.CreateGeo("POINT(0 0)");
+                        var geo2 = FactoryGeo.CreateGeo("POINT(0 0)");
+                        ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                        ses.Insert(new T { Name = "p", MyGeoObject = geo2 });
+                        ses.Insert(new T { Name = "p", MyGeoObject = null });
+                        var o = geo.StIsClosed(ses);
+                        var sas = ses.Query<T>().Select(a => a.MyGeoObject.StIsClosed(null)).ToList();
+                    }
+                    else
+                    {
+                        ses.TruncateTable<T>();
+                        var geo = FactoryGeo.CreateGeo("LineString(1 1,2 2,3 3,1 1)").SetSrid(0);
+                        var geo2 = FactoryGeo.CreateGeo("LineString(1 1,2 2,3 3,1 1)");
+                        ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                        ses.Insert(new T { Name = "p", MyGeoObject = geo2 });
+                        ses.Insert(new T { Name = "p", MyGeoObject = null });
+                        var o = geo.StIsClosed(ses);
+                        var sas = ses.Query<T>().Select(a => a.MyGeoObject.StIsClosed(null)).ToList();
+                    }
+                   
+                }
+
+                #endregion
+
+                #region StLength
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("LINESTRING(-72.1260 42.45, -72.1240 42.45666, -72.123 42.1546)").SetSrid(26986);
+                    
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StLength(ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StLength(null)).ToList();
+                }
+
+                #endregion
+
+                #region StIsValid
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("LINESTRING(0 0, 1 1)");
+                    var geo2 = FactoryGeo.CreateGeo("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo2 });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StIsValid(ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StIsValid(null)).ToList();
+                }
+
+                #endregion
+
+                #region StIsSimple
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (1 1, 1 2, 2 2, 2 1, 1 1))");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING ( 2 0, 0 2 )");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StIsSimple(ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StIsSimple(null)).ToList();
+
+                }
+
+                #endregion
+
+                #region StNumInteriorRing
+
+                {
+                    ses.TruncateTable<T>();
+
+
+                    var geo = FactoryGeo.CreateGeo("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (1 1, 1 2, 2 2, 2 1, 1 1))");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING ( 2 0, 0 2 )");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StNumInteriorRing( ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StNumInteriorRing( null)).ToList();
+                }
+
+                #endregion
+
                 #region StGeometryType
 
+                ses.TruncateTable<T>();
                 {
                     var geo = FactoryGeo.CreateGeo("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))");
                     var str = geo.StGeometryType(ses);
@@ -91,6 +415,7 @@ namespace TestLibrary
                     var res = geo.StArea(ses);//928.625
                     Execute.Log(6, res== 928.625d, "StArea");
                 }
+                #endregion
 
                 #region StWithin
 
@@ -101,17 +426,199 @@ namespace TestLibrary
 
                 }
                 
+                #endregion
 
-                //POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0)
+                #region StWithinContra
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("POINT(-10 -10)");
+                    var res = geo.StWithin(FactoryGeo.CreateGeo("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"), ses);
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    geo = FactoryGeo.CreateGeo("POINT(1 1)");
+                    ses.Insert(new T { Name = "p1", MyGeoObject = geo });
+
+
+                    var oo = ses.Query<T>().Where(a =>
+                            a.MyGeoObject.StWithin(FactoryGeo.CreateGeo("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"),
+                                null)==false)
+                        .ToList();
+                   
+
+                }
+
+                #endregion
+
+                #region StContains
+
+                {
+                    ses.TruncateTable<T>();
+                    var geo = FactoryGeo.CreateGeo("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+
+
+                    var res=geo.StContains(FactoryGeo.Point(1, 1), ses);
+                     Execute.Log(6, res == true, "StContains");
+                     res = geo.StContains(FactoryGeo.Point(-10, -10), ses);
+                     Execute.Log(7, res == false, "StContains");
+                     var o = ses.Query<T>().Where(a => a.MyGeoObject.StContains(FactoryGeo.Point(1, 1), null) == true)
+                         .ToList();
+                     Execute.Log(8, o.Count==1, "StContains");
+                     o = ses.Query<T>().Where(a => a.MyGeoObject.StContains(FactoryGeo.Point(-1, -1), null)==true)
+                         .ToList();
+                     Execute.Log(9, o.Count == 0, "StContains");
+
+                }
 
 
 
                 #endregion
 
+                #region StNumGeometries
 
+                {
+                    ses.TruncateTable<T>();
+
+
+                    var geo = FactoryGeo.CreateGeo("GEOMETRYCOLLECTION(MULTIPOINT((-2 3),(-2 2)),LINESTRING(5 5 ,10 10),POLYGON((-7 4.2,-7.1 5,-7.1 4.3,-7 4.2)))");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING ( 2 0, 0 2 )");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StNumGeometries( ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StNumGeometries( null)).ToList();
+                }
+
+                #endregion
+
+                #region StTouches
+
+                {
+                    ses.TruncateTable<T>();
+
+
+                    var geo = FactoryGeo.CreateGeo("POINT(0 0)");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING ( 2 0, 0 2 )");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StTouches(geo2, ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StTouches(geo2, null)).ToList();
+                }
+
+                #endregion
+
+                #region StOverlaps
+
+                {
+                    ses.TruncateTable<T>();
+
+
+                    var geo = FactoryGeo.CreateGeo("POINT(0 0)");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING ( 2 0, 0 2 )");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StOverlaps(geo2, ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StOverlaps(geo2, null)).ToList();
+                }
+
+                #endregion
+
+                #region StEquals
+
+                {
+                    ses.TruncateTable<T>();
+
+
+                    var geo = FactoryGeo.CreateGeo("POINT(0 0)");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING ( 2 0, 0 2 )");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StEquals(geo2, ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StEquals(geo2, null)).ToList();
+                }
+
+                #endregion
+
+                #region StCrosses
+
+                {
+                    ses.TruncateTable<T>();
+
+
+                    var geo = FactoryGeo.CreateGeo("POINT(0 0)");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING ( 2 0, 0 2 )");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StCrosses(geo2, ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StCrosses(geo2, null)).ToList();
+                }
+
+                #endregion
+
+                #region StDisjoint
+
+                {
+                    ses.TruncateTable<T>();
+
+
+                    var geo = FactoryGeo.CreateGeo("POINT(0 0)");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING ( 2 0, 0 2 )");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StDisjoint(geo2, ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StDisjoint(geo2, null)).ToList();
+                }
+               
+
+                #endregion
+
+                #region StIntersects
+
+                {
+                    ses.TruncateTable<T>();
+
+
+                    var geo = FactoryGeo.CreateGeo("LINESTRING(-43.23456 72.4567,-43.23456 72.4568)");
+                    var geo2 = FactoryGeo.CreateGeo("POINT(-43.23456 72.4567772)");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o = geo.StIntersects(geo2, ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StIntersects(geo2, null)).ToList();
+                }
 
 
                 #endregion
+              
+
+
+
+                #region StDistance
+
+                {
+                    ses.TruncateTable<T>();
+
+
+                    var geo = FactoryGeo.CreateGeo("POINT(-72.1235 42.3521)");
+                    var geo2 = FactoryGeo.CreateGeo("LINESTRING(-72.1260 42.45, -72.123 42.1546)");
+                    ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                    ses.Insert(new T { Name = "p", MyGeoObject = null });
+                    var o=geo.StDistance(geo2,ses);
+                    var sas = ses.Query<T>().Select(a => a.MyGeoObject.StDistance(geo2,null)).ToList();
+                   
+                }
+               
+
+
+                #endregion
+
+                
+
+              
+
+
+
+
+
 
 
 
@@ -160,7 +667,7 @@ namespace TestLibrary
                 var фы = ses.StarSql<T>();
                 var eee = ses.Query<T>().Where(a => a.MyGeoObject.StGeometryType(null) == "ST_Point" && a.Name != null).ToList();
                 var o3 = FactoryGeo.CreateGeo("POINT(0 0)");
-                var tt = ses.Query<T>().Where(a => a.MyGeoObject.StTouches(o3) == null).ToList();
+                var tt = ses.Query<T>().Where(a => a.MyGeoObject.StTouches(o3,null) == null).ToList();
                 try
                 {
                     var geoShape = FactoryGeo.Point(3, 3);
@@ -168,33 +675,33 @@ namespace TestLibrary
                     {
                         p1 = a.MyGeoObject.StAsText(),
                         h = a.MyGeoObject.StArea(null),
-                        b = a.MyGeoObject.StAsBinary(),
-                        buf = a.MyGeoObject.StBuffer(1),
-                        cen = a.MyGeoObject.StCentroid(),
-                        contains = a.MyGeoObject.StContains(geoShape),
-                        crosses = a.MyGeoObject.StCrosses(geoShape),
-                        difference = a.MyGeoObject.StDifference(geoShape),
-                        dimension = a.MyGeoObject.StDimension(),
-                        disjoint = a.MyGeoObject.StDisjoint(geoShape),
-                        distace = a.MyGeoObject.StDistance(FactoryGeo.Empty(GeoType.GeometryCollection)),
-                        endPoint = a.MyGeoObject.StEndPoint(),
-                        envelope = a.MyGeoObject.StEnvelope(),
-                        eguals = a.MyGeoObject.StEquals(FactoryGeo.CreateGeo("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))")),
-                        intercept = a.MyGeoObject.StIntersects(FactoryGeo.Point(1, 1)),
-                        ovarlap = a.MyGeoObject.StOverlaps(FactoryGeo.Point(1, 1)),
-                        ovarlapContra = a.MyGeoObject.StOverlapsContra(FactoryGeo.Point(1, 1)),
+                        b = a.MyGeoObject.StAsBinary(null),
+                        buf = a.MyGeoObject.StBuffer(1,null),
+                        cen = a.MyGeoObject.StCentroid(null),
+                        contains = a.MyGeoObject.StContains(geoShape,null),
+                        crosses = a.MyGeoObject.StCrosses(geoShape,null),
+                        difference = a.MyGeoObject.StDifference(geoShape,null),
+                        dimension = a.MyGeoObject.StDimension(null),
+                        disjoint = a.MyGeoObject.StDisjoint(geoShape,null),
+                        distace = a.MyGeoObject.StDistance(FactoryGeo.Empty(GeoType.GeometryCollection),null),
+                        endPoint = a.MyGeoObject.StEndPoint(null),
+                        envelope = a.MyGeoObject.StEnvelope(null),
+                        eguals = a.MyGeoObject.StEquals(FactoryGeo.CreateGeo("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))"),null),
+                        intercept = a.MyGeoObject.StIntersects(FactoryGeo.Point(1, 1),null),
+                        ovarlap = a.MyGeoObject.StOverlaps(FactoryGeo.Point(1, 1),null),
+                        
                         srid = a.MyGeoObject.StSrid(),
-                        startPoint = a.MyGeoObject.StStartPoint(),
+                        startPoint = a.MyGeoObject.StStartPoint(null),
                         within = a.MyGeoObject.StWithin(FactoryGeo.Point(0, 0),null),
-                        withinContra = a.MyGeoObject.StWithinContra(FactoryGeo.Point(2, 4)),
-                        sumDif = a.MyGeoObject.StSymDifference(FactoryGeo.CreateGeo("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))")),
-                        Touches = a.MyGeoObject.StTouches(FactoryGeo.Point(0, 0)),
-                        NumGeometries = a.MyGeoObject.StNumGeometries(),
-                        NumInteriorRing = a.MyGeoObject.StNumInteriorRing(),
-                        IsSimple = a.MyGeoObject.StIsSimple(),
-                        isSimple = a.MyGeoObject.StIsSimple(),
-                        StNumPoints = a.MyGeoObject.StNumPoints(),
-                        StUnion = a.MyGeoObject.StUnion(FactoryGeo.CreateGeo("POLYGON ((0 0, 1.3444 0, 1 1, 0 1, 0 0))")),
+                       
+                        sumDif = a.MyGeoObject.StSymDifference(FactoryGeo.CreateGeo("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))"),null),
+                        Touches = a.MyGeoObject.StTouches(FactoryGeo.Point(0, 0),null),
+                        NumGeometries = a.MyGeoObject.StNumGeometries(null),
+                        NumInteriorRing = a.MyGeoObject.StNumInteriorRing(null),
+                        IsSimple = a.MyGeoObject.StIsSimple(null),
+                       
+                        StNumPoints = a.MyGeoObject.StNumPoints(null),
+                        StUnion = a.MyGeoObject.StUnion(FactoryGeo.CreateGeo("POLYGON ((0 0, 1.3444 0, 1 1, 0 1, 0 0))"),null),
                         //StIsClosed=a.MyGeoObject.StIsClosed(),
                         //Length=a.MyGeoObject.StLength(),
                         //b2 = a.MyGeoObject.StBoundary()
@@ -245,7 +752,7 @@ namespace TestLibrary
                 ses.InsertBulk(list1);
                 var sasList = ses.Query<T>().ToList();
                 var pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.Point);
-                byte[] dfBytes = pF.MyGeoObject.ST_GeoToByteArray(ses);
+               
                 var pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(),
                     Newtonsoft.Json.Formatting.Indented);
                 var res = FactoryGeo.GetGeometryFromGeoJson(pJson);
@@ -267,7 +774,7 @@ namespace TestLibrary
                 ses.InsertBulk(list1);
                 sasList = ses.Query<T>().Where(a => a.MyGeoObject != null).ToList();
                 pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.MultiPoint);
-                dfBytes = pF.MyGeoObject.ST_GeoToByteArray(ses);
+              
                 pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
                 res = FactoryGeo.GetGeometryFromGeoJson(pJson);
 
@@ -297,7 +804,7 @@ namespace TestLibrary
 
 
 
-                dfBytes = pF.MyGeoObject.ST_GeoToByteArray(ses);
+               
                 pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
                 res = FactoryGeo.GetGeometryFromGeoJson(pJson);
 
@@ -318,7 +825,7 @@ namespace TestLibrary
                 ses.InsertBulk(list1);
                 sasList = ses.Query<T>().Where(dd => dd.MyGeoObject != null).ToList();
                 pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.MultiPolygon);
-                dfBytes = pF.MyGeoObject.ST_GeoToByteArray(ses);
+             
                 pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
                 res = FactoryGeo.GetGeometryFromGeoJson(pJson);
 
@@ -340,7 +847,7 @@ namespace TestLibrary
                 ses.InsertBulk(list1);
                 sasList = ses.Query<T>().Where(dd => dd.MyGeoObject != null).ToList();
                 pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.LineString);
-                dfBytes = pF.MyGeoObject.ST_GeoToByteArray(ses);
+            
                 pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
                 res = FactoryGeo.GetGeometryFromGeoJson(pJson);
 
@@ -360,7 +867,7 @@ namespace TestLibrary
                 ses.InsertBulk(list1);
                 sasList = ses.Query<T>().Where(dd => dd.MyGeoObject != null).ToList();
                 pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.MultiLineString);
-                dfBytes = pF.MyGeoObject.ST_GeoToByteArray(ses);
+               
                 pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
                 res = FactoryGeo.GetGeometryFromGeoJson(pJson);
 
@@ -385,7 +892,7 @@ namespace TestLibrary
                 ses.InsertBulk(list1);
                 sasList = ses.Query<T>().Where(dd => dd.MyGeoObject != null).ToList();
                 pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.PolygonWithHole);
-                dfBytes = pF.MyGeoObject.ST_GeoToByteArray(ses);
+              
                 pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
                 res = FactoryGeo.GetGeometryFromGeoJson(pJson);
 
@@ -424,42 +931,10 @@ namespace TestLibrary
                 ses.InsertBulk(list1);
                 sasList = ses.Query<T>().Where(dd => dd.MyGeoObject != null).ToList();
                 pF = sasList.FirstOrDefault(s => s.MyGeoObject.GeoType == GeoType.GeometryCollection);
-                dfBytes = pF.MyGeoObject.ST_GeoToByteArray(ses);
+              
                 pJson = JsonConvert.SerializeObject(pF.MyGeoObject.GetGeoJson(), Newtonsoft.Json.Formatting.Indented);
                 //res = FactoryGeo.GetGeometryFromGeoJson(pJson);
 
-
-
-
-
-
-
-                object resO = ses.GeoST_Buffer(FactoryGeo.Point(2, 2), 1);
-                resO = ses.GeoST_Area(FactoryGeo.CreateGeo("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"));
-                resO = ses.GeoST_IsValid(FactoryGeo.CreateGeo("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"));
-                if (providerName == ProviderName.PostgreSql)
-                {
-                    resO = ses.GeoST_AreaAsSqM(FactoryGeo.CreateGeo("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"));
-                    resO = ses.GeoST_AreaAsSqFt(FactoryGeo.CreateGeo("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"));
-                }
-
-                if (providerName == ProviderName.PostgreSql || providerName == ProviderName.MySql)
-                {
-                    resO = FactoryGeo.CreateGeo("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))").ST_AsGeoJSON(ses);
-
-                    if (providerName == ProviderName.PostgreSql)
-                        resO = FactoryGeo.CreateGeo("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))").ST_Perimeter(ses);
-
-
-                }
-
-
-
-                resO = ses.Query<T>().WhereIn(a => a.Name, "1", "2").ToList();
-                resO = ses.Query<T>().WhereNotIn(a => a.Name, "1", "2").ToList();
-
-                resO = ses.Query<T>().WhereNotIn(a => a.Id, list1.First().Id).ToList();
-                resO = ses.Query<T>().WhereIn(a => a.Id, list1.First().Id).ToList();
                 list = ses.Query<T>().ToList();
                 ses.TruncateTable<T>();
                 var te = new T();

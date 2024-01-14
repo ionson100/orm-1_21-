@@ -7,7 +7,7 @@ using ORM_1_21_.Utils;
 
 namespace ORM_1_21_.Linq
 {
-    internal sealed partial class QueryTranslator<T> : ExpressionVisitor, ITranslate
+    internal sealed partial class QueryTranslator<T>
     {
         private static readonly HashSet<string> HashSetMethods = new HashSet<string>
         {
@@ -22,8 +22,8 @@ namespace ORM_1_21_.Linq
                 throw new Exception(
                     $"The {m.Method.Name} method cannot be used in an expression tree to build an sql query");
             }
-            var mem = m.Object as MemberExpression;
-            if (mem == null)
+
+            if (!(m.Object is MemberExpression mem))
             {
                 return false;
 
@@ -33,23 +33,8 @@ namespace ORM_1_21_.Linq
             if (m.Method.Name == "StGeometryType")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($" {nameColumn}.STGeometryType()");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_GeometryType({nameColumn})");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_GeometryType({nameColumn})");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
+                ExecuteSimple(nameColumn, "StGeometryType");
+               
                 return true;
 
             }
@@ -57,23 +42,8 @@ namespace ORM_1_21_.Linq
             if (m.Method.Name == "StAsText")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($"{nameColumn}.STAsText()");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_AsText({nameColumn})");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_AsText({nameColumn})");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
+                ExecuteSimple(nameColumn, "StAsText");
+              
 
                 return true;
 
@@ -82,23 +52,8 @@ namespace ORM_1_21_.Linq
             if (m.Method.Name == "StArea")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($" {nameColumn}.STArea()");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_Area({nameColumn})");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_Area({nameColumn})");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
+                ExecuteSimple(nameColumn, "StArea");
+                
 
                 return true;
             }
@@ -135,49 +90,19 @@ namespace ORM_1_21_.Linq
                 return true;
             }
 
+           
+
             if (m.Method.Name == "StAsBinary")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($" {nameColumn}.STAsBinary()");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_AsBinary({nameColumn})");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_AsBinary({nameColumn})");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
+                ExecuteSimple(nameColumn, "StAsBinary");
                 return true;
             }
 
             if (m.Method.Name == "StBoundary")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';',({nameColumn}.STBoundary()).STAsText()) ");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_Boundary({nameColumn}))) ");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_Boundary({nameColumn}))) ");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
+                ExecuteMethodIGeoShapeNoParam(nameColumn, "StBoundary");
                 return true;
             }
 
@@ -215,25 +140,9 @@ namespace ORM_1_21_.Linq
             if (m.Method.Name == "StCentroid")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';',({nameColumn}.STCentroid()).STAsText()) ");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_Centroid(ST_GeomFromText(ST_AsText({nameColumn}))))) ");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_Centroid({nameColumn}))) ");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
-
+                ExecuteMethodIGeoShapeNoParam(nameColumn, "StCentroid");
                 return true;
+
             }
 
             if (m.Method.Name == "StContains")
@@ -309,56 +218,14 @@ namespace ORM_1_21_.Linq
                 CheckArgument(m);
                 string nameColumn = GetColumnName(mem.Member.Name);
                 var geoShape = (IGeoShape)Expression.Lambda<Func<object>>(m.Arguments[0]).Compile()();
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';', ({nameColumn}.STDifference(geometry::STGeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($",{geoShape.StSrid()})).STAsText()))");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_Difference({nameColumn},ST_GeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($", {geoShape.StSrid()}))))");
-                        break;
-                    case ProviderName.PostgreSql:
-
-                        StringB.Append($" CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_Difference({nameColumn},ST_GeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($", {geoShape.StSrid()}))))");
-
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-
-                }
+                ExecuteMethodIGeoShapeParamGeo(nameColumn, "StDifference", geoShape);
                 return true;
             }
 
             if (m.Method.Name == "StDimension")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($" {nameColumn}.STDimension()");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_Dimension({nameColumn})");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_Dimension({nameColumn})");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
-
+                ExecuteSimple(nameColumn, "StDimension");
                 return true;
 
             }
@@ -435,48 +302,14 @@ namespace ORM_1_21_.Linq
             if (m.Method.Name == "StEndPoint")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';',({nameColumn}.STEndPoint()).STAsText()) ");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_EndPoint(ST_GeomFromText(ST_AsText({nameColumn}))))) ");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_EndPoint({nameColumn}))) ");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
-
+                ExecuteMethodIGeoShapeNoParam(nameColumn, "StEndPoint");
                 return true;
             }
 
             if (m.Method.Name == "StEnvelope")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';',({nameColumn}.STEnvelope()).STAsText()) ");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_Envelope(ST_GeomFromText(ST_AsText({nameColumn}))))) ");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_Envelope({nameColumn}))) ");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
-
+                ExecuteMethodIGeoShapeNoParam(nameColumn, "StEnvelope");
                 return true;
 
             }
@@ -584,59 +417,29 @@ namespace ORM_1_21_.Linq
                 return true;
             }
 
-            if (m.Method.Name == "StOverlapsContra")
-            {
-                CheckArgument(m);
-                string nameColumn = GetColumnName(mem.Member.Name);
-                var geoShape = (IGeoShape)Expression.Lambda<Func<object>>(m.Arguments[0]).Compile()();
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append("(geometry::STGeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($", {geoShape.StSrid()})).STOverlaps({nameColumn})");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append("ST_Overlaps(ST_GeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($", {geoShape.StSrid()}),{nameColumn})");
-                        break;
-                    case ProviderName.PostgreSql:
-
-                        StringB.Append("ST_Overlaps(ST_GeomFromText("); 
-                        AddParameter(geoShape.StAsText());
-                         StringB.Append($", {geoShape.StSrid()}),{nameColumn})");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-
-                }
-                return true;
-            }
+          
 
             if (m.Method.Name == "StSrid")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($" {nameColumn}.STSrid as srid ");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_Srid({nameColumn}) ");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_Srid({nameColumn}) ");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
+                ExecuteSimple(nameColumn, "StSrid");
+               //switch (_providerName)
+               //{
+               //    case ProviderName.MsSql:
+               //        StringB.Append($" {nameColumn}.STSrid as srid ");
+               //        break;
+               //    case ProviderName.MySql:
+               //        StringB.Append($" ST_Srid({nameColumn}) ");
+               //        break;
+               //    case ProviderName.PostgreSql:
+               //        StringB.Append($" ST_Srid({nameColumn}) ");
+               //        break;
+               //    case ProviderName.SqLite:
+               //        UtilsCore.ErrorAlert();
+               //        break;
+               //    default:
+               //        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+               //}
 
                 return true;
             }
@@ -644,91 +447,19 @@ namespace ORM_1_21_.Linq
             if (m.Method.Name == "StStartPoint")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';',({nameColumn}.STStartPoint()).STAsText()) ");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_StartPoint(ST_GeomFromText(ST_AsText({nameColumn}))))) ");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_StartPoint({nameColumn}))) ");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
-
+                ExecuteMethodIGeoShapeNoParam(nameColumn, "StStartPoint");
                 return true;
             }
 
-            if (m.Method.Name == "StWithinContra")
-            {
-                CheckArgument(m);
-                string nameColumn = GetColumnName(mem.Member.Name);
-                var geoShape = (IGeoShape)Expression.Lambda<Func<object>>(m.Arguments[0]).Compile()();
-
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($" {nameColumn}.STWithin(geometry::STGeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($", {geoShape.StSrid()}))");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_Within(ST_GeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($", {geoShape.StSrid()}), {nameColumn})");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_Within(ST_GeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($", {geoShape.StSrid()}), {nameColumn})");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
-                return true;
-
-            }
+          
 
             if (m.Method.Name == "StSymDifference")
             {
                 CheckArgument(m);
                 string nameColumn = GetColumnName(mem.Member.Name);
                 var geoShape = (IGeoShape)Expression.Lambda<Func<object>>(m.Arguments[0]).Compile()();
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';', ({nameColumn}.STSymDifference(geometry::STGeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($",{geoShape.StSrid()})).STAsText()))");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_SymDifference({nameColumn},ST_GeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($", {geoShape.StSrid()}))))");
-                        break;
-                    case ProviderName.PostgreSql:
-
-                        StringB.Append($" CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_SymDifference({nameColumn},ST_GeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($", {geoShape.StSrid()}))))");
-
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-
-                }
+                ExecuteMethodIGeoShapeParamGeo(nameColumn, "StSymDifference", geoShape);
+              
                 return true;
             }
 
@@ -767,119 +498,61 @@ namespace ORM_1_21_.Linq
             if (m.Method.Name == "StNumGeometries")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($" {nameColumn}.STNumGeometries() ");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_NumGeometries({nameColumn}) ");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_NumGeometries({nameColumn}) ");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
-
+                ExecuteSimple(nameColumn, "StNumGeometries");
+              
                 return true;
             }
 
             if (m.Method.Name == "StNumInteriorRing")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($" {nameColumn}.STNumInteriorRing() ");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_NumInteriorRing({nameColumn}) ");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_NumInteriorRing({nameColumn}) ");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
-
+                ExecuteSimple(nameColumn, "StNumInteriorRing");
+               
                 return true;
             }
 
             if (m.Method.Name == "StIsSimple")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($" {nameColumn}.STIsSimple() ");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_IsSimple({nameColumn}) ");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_IsSimple({nameColumn}) ");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
+                ExecuteSimple(nameColumn, "StIsSimple");
+                return true;
+            }
 
+            if (m.Method.Name == "StIsValid")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteSimple(nameColumn, "StIsValid");
                 return true;
             }
 
             if (m.Method.Name == "StLength")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($" {nameColumn}.STLength() ");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_Length({nameColumn}) ");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_Length({nameColumn}) ");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
-
+                ExecuteSimple(nameColumn, "StLength");
                 return true;
             }
 
             if (m.Method.Name == "StIsClosed")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($" {nameColumn}.STIsClosed() ");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_IsClosed(ST_GeomFromText(ST_AsText({nameColumn}))) ");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_IsClosed({nameColumn}) ");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
+                ExecuteSimple(nameColumn, "StIsClosed");
+                // switch (_providerName)
+                // {
+                //     case ProviderName.MsSql:
+                //         StringB.Append($" {nameColumn}.STIsClosed() ");
+                //         break;
+                //     case ProviderName.MySql:
+                //         StringB.Append($" ST_IsClosed(ST_GeomFromText(ST_AsText({nameColumn}))) ");
+                //         break;
+                //     case ProviderName.PostgreSql:
+                //         StringB.Append($" ST_IsClosed({nameColumn}) ");
+                //         break;
+                //     case ProviderName.SqLite:
+                //         UtilsCore.ErrorAlert();
+                //         break;
+                //     default:
+                //         throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+                // }
 
                 return true;
             }
@@ -887,23 +560,24 @@ namespace ORM_1_21_.Linq
             if (m.Method.Name == "StNumPoints")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($" {nameColumn}.STNumPoints() ");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" ST_NumPoints(ST_GeomFromText(ST_AsText({nameColumn}))) ");
-                        break;
-                    case ProviderName.PostgreSql:
-                        StringB.Append($" ST_NumPoints({nameColumn}) ");
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                }
+                ExecuteSimple(nameColumn, "StNumPoints");
+                // switch (_providerName)
+                // {
+                //     case ProviderName.MsSql:
+                //         StringB.Append($" {nameColumn}.STNumPoints() ");
+                //         break;
+                //     case ProviderName.MySql:
+                //         StringB.Append($" ST_NumPoints(ST_GeomFromText(ST_AsText({nameColumn}))) ");
+                //         break;
+                //     case ProviderName.PostgreSql:
+                //         StringB.Append($" ST_NumPoints({nameColumn}) ");
+                //         break;
+                //     case ProviderName.SqLite:
+                //         UtilsCore.ErrorAlert();
+                //         break;
+                //     default:
+                //         throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+                // }
 
                 return true;
             }
@@ -913,32 +587,8 @@ namespace ORM_1_21_.Linq
                 CheckArgument(m);
                 string nameColumn = GetColumnName(mem.Member.Name);
                 var geoShape = (IGeoShape)Expression.Lambda<Func<object>>(m.Arguments[0]).Compile()();
-                switch (_providerName)
-                {
-                    case ProviderName.MsSql:
-                        StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';', ({nameColumn}.STUnion(geometry::STGeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($",{geoShape.StSrid()})).STAsText()))");
-                        break;
-                    case ProviderName.MySql:
-                        StringB.Append($" CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_Union({nameColumn},ST_GeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($", {geoShape.StSrid()}))))");
-                        break;
-                    case ProviderName.PostgreSql:
-
-                        StringB.Append($" CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText(ST_Union({nameColumn},ST_GeomFromText(");
-                        AddParameter(geoShape.StAsText());
-                        StringB.Append($", {geoShape.StSrid()}))))");
-
-                        break;
-                    case ProviderName.SqLite:
-                        UtilsCore.ErrorAlert();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-
-                }
+                ExecuteMethodIGeoShapeParamGeo(nameColumn, "StUnion", geoShape);
+               
                 return true;
             }
 
@@ -959,8 +609,309 @@ namespace ORM_1_21_.Linq
             }
         }
 
-       
+        void AddSimpleSql(string methodName,string nameColumn)
+        {
+            
+            switch (_providerName)
+            {
+                case ProviderName.MsSql:
+                    if (methodName == "STSrid")
+                    {
+                        StringB.Append($"{nameColumn}.STSrid");
+                    }
+                    else
+                    {
+                        StringB.Append($"{nameColumn}.{methodName}()");
+                    }
+                    
+                    break;
+                case ProviderName.MySql:
+                    StringB.Append($"{methodName}({nameColumn})");
+                    break;
+                case ProviderName.PostgreSql:
+                    StringB.Append($"{methodName}({nameColumn})");
+                    break;
+                case ProviderName.SqLite:
+                    UtilsCore.ErrorAlert();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+            }
+        }
+
+        void ExecuteMethodIGeoShapeNoParam(string nameColumn,string methodName)
+        {
+            var s = _currentMethodSelect;
+            var w = _currentMethodWhere;
+            methodName= GetNameMethod(methodName, _providerName);
+
+            if (s != null)
+            {
+                if (_currentMethodType != null && _currentMethodType != typeof(IGeoShape))
+                {
+                    AddSimpleSql(methodName, nameColumn);
+
+                }
+                else
+                {
+                    switch (_providerName)
+                    {
+                        case ProviderName.MsSql:
+                            if (methodName == "STSrid")
+                            {
+                                StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';',({nameColumn}.STSrid).STAsText()) ");
+                            }
+                            else
+                            {
+                                StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';',({nameColumn}.{methodName}()).STAsText()) ");
+                            }
+                            
+                            break;
+                        case ProviderName.MySql:
+                            StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText({methodName}(ST_GeomFromText(ST_AsText({nameColumn}))))) ");
+                            break;
+                        case ProviderName.PostgreSql:
+                            StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText({methodName}({nameColumn}))) ");
+                            break;
+                        case ProviderName.SqLite:
+                            UtilsCore.ErrorAlert();
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+                    }
+                }
+
+            }
+            else if (w != null)
+            {
+                AddSimpleSql(methodName, nameColumn);
+            }
+            else
+            {
+                throw new Exception("Смотри сюда");
+            }
+        }
+
+        void ExecuteMethodIGeoShapeParamGeo(string nameColumn, string methodName ,IGeoShape geoShape)
+        {
+            var s = _currentMethodSelect;
+            var w = _currentMethodWhere;
+            methodName = GetNameMethod(methodName, _providerName);
+
+
+
+            if (s != null)
+            {
+                if (_currentMethodType != null && _currentMethodType != typeof(IGeoShape))
+                {
+                    switch (_providerName)
+                    {
+                        case ProviderName.MsSql:
+
+                            StringB.Append($"{nameColumn}.{methodName}(geometry::STGeomFromText(");
+                            AddParameter(geoShape.StAsText());
+                            StringB.Append($",{geoShape.StSrid()}))");
+                            break;
+                        case ProviderName.MySql:
+                            StringB.Append($"{methodName}({nameColumn},ST_GeomFromText(");
+                            AddParameter(geoShape.StAsText());
+                            StringB.Append($", {geoShape.StSrid()}))");
+                            break;
+                        case ProviderName.PostgreSql:
+                            StringB.Append($"{methodName}({nameColumn},ST_GeomFromText(");
+                            AddParameter(geoShape.StAsText());
+                            StringB.Append($", {geoShape.StSrid()}))");
+                            break;
+                        case ProviderName.SqLite:
+                            UtilsCore.ErrorAlert();
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+                    }
+
+                }
+                else
+                {
+                    switch (_providerName)
+                    {
+                        case ProviderName.MsSql:
+                            StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';', ({nameColumn}.{methodName}(geometry::STGeomFromText(");
+                            AddParameter(geoShape.StAsText());
+                            StringB.Append($",{geoShape.StSrid()})).STAsText()))");
+                            break;
+                        case ProviderName.MySql:
+                            StringB.Append($" CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText({methodName}({nameColumn},ST_GeomFromText(");
+                            AddParameter(geoShape.StAsText());
+                            StringB.Append($", {geoShape.StSrid()}))))");
+                            break;
+                        case ProviderName.PostgreSql:
+
+                            StringB.Append($" CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText({methodName}({nameColumn},ST_GeomFromText(");
+                            AddParameter(geoShape.StAsText());
+                            StringB.Append($", {geoShape.StSrid()}))))");
+
+                            break;
+                        case ProviderName.SqLite:
+                            UtilsCore.ErrorAlert();
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+
+                    }
+                }
+
+            }
+            else if (w != null)
+            {
+                switch (_providerName)
+                {
+                    case ProviderName.MsSql:
+
+                        StringB.Append($"{nameColumn}.{methodName}(geometry::STGeomFromText(");
+                        AddParameter(geoShape.StAsText());
+                        StringB.Append($",{geoShape.StSrid()}))");
+                        break;
+                    case ProviderName.MySql:
+                        StringB.Append($"{methodName}({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.StAsText());
+                        StringB.Append($", {geoShape.StSrid()}))");
+                        break;
+                    case ProviderName.PostgreSql:
+                        StringB.Append($"{methodName}({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.StAsText());
+                        StringB.Append($", {geoShape.StSrid()}))");
+                        break;
+                    case ProviderName.SqLite:
+                        UtilsCore.ErrorAlert();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+                }
+            }
+            else
+            {
+                throw new Exception("Смотри сюда");
+            }
+
+
+
+        }
+
+        void ExecuteSimple(string nameColumn, string methodName)
+        {
+            methodName = GetNameMethod(methodName, _providerName);
+            switch (_providerName)
+            {
+                case ProviderName.MsSql:
+                    if (methodName == "STSrid")
+                    {
+                        StringB.Append($" {nameColumn}.STSrid");
+                    }
+                    else
+                    {
+                        StringB.Append($" {nameColumn}.{methodName}()");
+                    }
+                   
+                    break;
+                case ProviderName.MySql:
+                    StringB.Append($" {methodName}(ST_GeomFromText(ST_AsText({nameColumn})))");
+                    break;
+                case ProviderName.PostgreSql:
+                    StringB.Append($" {methodName}({nameColumn})");
+                    break;
+                case ProviderName.SqLite:
+                    UtilsCore.ErrorAlert();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+            }
+        }
+
+
 
     }
     
+
+    internal sealed partial class QueryTranslator<T>
+    {
+        private static readonly HashSet<string> NameAllowed = new HashSet<string> { "StAsBinary", "StAsText", "StSrid", "StLength" };
+        bool GeoMethodCallExpression2(MethodCallExpression m)
+        {
+            
+            if (HashSetMethods.Contains(m.Method.Name))
+            {
+                throw new Exception(
+                    $"The {m.Method.Name} method cannot be used in an expression tree to build an sql query");
+            }
+
+            if (NameAllowed.Contains(m.Method.Name))
+            {
+                var name=GetNameMethod(m.Method.Name, _providerName);
+                {
+                    switch (_providerName)
+                    {
+                        case ProviderName.MsSql:
+                            break;
+                        case ProviderName.MySql:
+                            StringB.Append($"({name}(");
+                            break;
+                        case ProviderName.PostgreSql:
+                            StringB.Append($"({name}(");
+                            break;
+                        case ProviderName.SqLite:
+                            break;
+
+                    }
+                    Visit(m.Object);
+                    switch (_providerName)
+                    {
+                        case ProviderName.MsSql:
+                            if (name == "STSrid")
+                            {
+                                StringB.Append($".{name}");
+                            }
+                            else
+                            {
+                                StringB.Append($".{name}()");
+                            }
+                            
+                            break;
+                        case ProviderName.MySql:
+                            StringB.Append("))");
+                            break;
+                        case ProviderName.PostgreSql:
+                            StringB.Append("))");
+                            break;
+                        case ProviderName.SqLite:
+                            break;
+                    }
+                }
+                return true;
+            }
+
+            return false;
+          
+        }
+        public static string GetNameMethod(string name, ProviderName providerName)
+        {
+            string n1 = name.Substring(0, 2);
+            string n2 = name.Substring(2);
+            switch (providerName)
+            {
+                case ProviderName.MsSql:
+                    return $"{n1.ToUpper()}{n2}";
+                case ProviderName.MySql:
+                    return $"{n1.ToUpper()}_{n2}";
+
+                case ProviderName.PostgreSql:
+                    return $"{n1.ToUpper()}_{n2}";
+                case ProviderName.SqLite:
+                    throw new Exception("12-23");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(providerName), providerName, null);
+            }
+        }
+    }
+
+
 }

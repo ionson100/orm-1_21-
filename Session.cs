@@ -706,9 +706,13 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteScalar"));
             var provider = new DbQueryProvider<object>(this);
+           
             return provider.ExecuteExtension<object>(callExpr, param);
 
+
         }
+
+       
 
         Task<object> ISession.ExecuteScalarAsync(string sql, object[] param, CancellationToken cancellationToken)
         {

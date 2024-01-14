@@ -182,6 +182,8 @@ namespace ORM_1_21_
         /// <returns></returns>
         object ExecuteScalar(string sql, params object[] param);
 
+        
+
 
         /// <summary>
         ///     Returns the first element of the request
