@@ -1,6 +1,7 @@
 ﻿using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ORM_1_21_.Linq;
 using Newtonsoft.Json.Linq;
@@ -80,7 +81,8 @@ namespace ORM_1_21_.geo
 
         public IGeoShape StBuffer(float distance, ISession session)
         {
-            return ExecuteGetGeoObjectBuffer<IGeoShape>("StBuffer", distance, session);
+            //return ExecuteGetGeoObjectBuffer<IGeoShape>("StBuffer", distance, session);
+            return ExecuteGetGeoObjectBufferE<IGeoShape>("StBuffer",  session,distance);
         }
 
         public IGeoShape StCentroid(ISession session)
@@ -200,6 +202,17 @@ namespace ORM_1_21_.geo
         {
             return ExecuteNoneGeo<int?>("StNumPoints", session);
         }
+
+        public double? StPerimeter(ISession session)
+        {
+            return ExecuteNoneGeo<double?>("StPerimeter", session);
+        }
+
+        public IGeoShape StTranslate(float deltaX, float deltaY, ISession session)
+        {
+            return ExecuteGetGeoObjectBufferE<IGeoShape>("StTranslate", session, deltaX, deltaY);
+        }
+
 
         public IGeoShape StUnion(IGeoShape shape, ISession session)
         {
@@ -415,6 +428,73 @@ namespace ORM_1_21_.geo
                     break;
                 case ProviderName.PostgreSql:
                     sql = $"{name}(ST_GeomFromText({p}1, {srid}),{par})";
+                    sql = $" select CONCAT('SRID={srid}',';',ST_AsText({sql}))";
+                    break;
+                case ProviderName.SqLite:
+                    UtilsCore.ErrorAlert();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{providerName}");
+            }
+
+            var res = (string)session.ExecuteScalar(sql, new SqlParam($"{p}1", this.StAsText()));
+            if (typeof(T) == typeof(IGeoShape))
+            {
+                var str = UtilsCore.Convertor(res, typeof(string));
+                if (str == null)
+                {
+                    return default;
+                }
+
+                try
+                {
+                    return (T)FactoryGeo.CreateGeo(res);
+                }
+                catch (GeoException)
+                {
+                    return default;
+                }
+            }
+            else
+            {
+                var str = UtilsCore.Convertor(res, typeof(T));
+                return (T)str;
+            }
+
+
+        }
+
+        T ExecuteGetGeoObjectBufferE<T>(string name, ISession session,params object[] par ) where T : IGeoShape
+        {
+            for (var i = 0; i < par.Length; i++)
+            {
+                if (par[i] == null) throw new Exception("Parameters can not be empty");
+                if (par[i] is string)
+                {
+                    par[i] = $"'{par[i]}'";
+                }
+            }
+            string paramCore=String.Join(",",par);
+           
+            Check.NotNull(session, nameof(session));
+            Check.NotEmpty(name, nameof(name));
+            ProviderName providerName = session.ProviderName;
+            string sql = null;
+            string p = session.SymbolParam;
+            name = QueryTranslator<object>.GetNameMethod(name, providerName);
+            var srid = this.StSrid();
+            switch (providerName)
+            {
+                case ProviderName.MsSql:
+                    sql = $"geometry::STGeomFromText({p}1, {srid}).{name}({paramCore})";
+                    sql = $" select CONCAT('SRID={srid}',';',{sql}.STAsText())";
+                    break;
+                case ProviderName.MySql:
+                    sql = $"{name}(ST_GeomFromText({p}1, {srid}),{paramCore})";
+                    sql = $" select CONCAT('SRID={srid}',';',ST_AsText({sql}))";
+                    break;
+                case ProviderName.PostgreSql:
+                    sql = $"{name}(ST_GeomFromText({p}1, {srid}),{paramCore})";
                     sql = $" select CONCAT('SRID={srid}',';',ST_AsText({sql}))";
                     break;
                 case ProviderName.SqLite:

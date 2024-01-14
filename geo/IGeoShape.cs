@@ -291,9 +291,37 @@ namespace ORM_1_21_.geo
         /// <param name="session">Open session orm</param>
         int? StNumPoints(ISession session);
 
-       
+        /// <summary>
+        /// Returns the 2D perimeter of the geometry/geography if it is a ST_Surface, ST_MultiSurface (Polygon, MultiPolygon). 0 is returned for non-areal geometries.
+        /// For linear geometries use ST_Length. For geometry types, units for perimeter measures are specified by the spatial reference system of the geometry.
+        /// </summary>
+        /// <param name="session">Open session orm</param>
+        double? StPerimeter(ISession session);
 
-        
+        /// <summary>
+        /// Returns a new geometry whose coordinates are translated delta x,delta y.
+        /// Units are based on the units defined in spatial reference (SRID) for this geometry.
+        /// </summary>
+        /// <param name="deltaX">Coordinate x</param>
+        /// <param name="deltaY">Coordinate y</param>
+        /// <param name="session"></param>
+        /// <returns></returns>
+        IGeoShape StTranslate(float deltaX, float deltaY,ISession session);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -45,6 +45,54 @@ namespace TestLibrary
                 ses.DropTableIfExists<T>();
                 ses.TableCreate<T>();
 
+                #region StTranslate
+
+                {
+                    if (providerName == ProviderName.PostgreSql )
+                    {
+                        ses.TruncateTable<T>();
+                        var geo = FactoryGeo.CreateGeo("POINT(-71.01 42.37)").SetSrid(0);
+                        var geo2 = FactoryGeo.CreateGeo("LINESTRING(-71.01 42.37,-71.11 42.38)").SetSrid(0);
+                        ses.Insert(new T { Name = "p", MyGeoObject = geo });
+                        ses.Insert(new T { Name = "p", MyGeoObject = geo2 });
+
+                        ses.Insert(new T { Name = "p", MyGeoObject = null });
+                        var o = geo.StTranslate(1.4f,0.8f, ses);
+                        var sas = ses.Query<T>().Select(a => a.MyGeoObject.StTranslate(1,0, null)).ToList();
+                        var sas2 = ses.Query<T>().Select(a => a.MyGeoObject.StTranslate(1,0, null).StAsText()).ToList();
+                    }
+
+                }
+
+                #endregion
+                #region StPerimeter
+
+                {
+                    if (providerName == ProviderName.PostgreSql)
+                    {
+                        ses.TruncateTable<T>();
+                        var geo = FactoryGeo.CreateGeo("POLYGON((743238 2967416,743238 2967450,743265 2967450,\r\n743265.625 2967416,743238 2967416))").SetSrid(2249);
+                        var geo2 = FactoryGeo.CreateGeo("MULTIPOLYGON(((763104.471273676 2949418.44119003," +
+                                                        "763104.477769673 2949418.42538203," +
+                                                        "763104.189609677 2949418.22343004,763104.471273676 2949418.44119003))," +
+                                                        "((763104.471273676 2949418.44119003,763095.804579742 2949436.33850239," +
+                                                        "763086.132105649 2949451.46730207,763078.452329651 2949462.11549407," +
+                                                        "763075.354136904 2949466.17407812,763064.362142565 2949477.64291974," +
+                                                        "763059.953961626 2949481.28983009,762994.637609571 2949532.04103014," +
+                                                        "762990.568508415 2949535.06640477,762986.710889563 2949539.61421415," +
+                                                        "763117.237897679 2949709.50493431,763235.236617789 2949617.95619822," +
+                                                        "763287.718121842 2949562.20592617,763111.553321674 2949423.91664605,\r\n763104.471273676 2949418.44119003)))").SetSrid(2249);
+                        ses.Insert(new T { Name = "p", MyGeoObject = geo });
+
+                        ses.Insert(new T { Name = "p", MyGeoObject = null });
+                        var o = geo.StPerimeter(ses);
+                        var sas = ses.Query<T>().Select(a => a.MyGeoObject.StPerimeter(null)).ToList();
+                    }
+                    
+                }
+
+                #endregion
+
                 #region StUnion
 
                 {
@@ -188,6 +236,7 @@ namespace TestLibrary
                     ses.Insert(new T { Name = "p", MyGeoObject = null });
                     var o = geo.StBuffer(12, ses);
                     var sas = ses.Query<T>().Select(a => a.MyGeoObject.StBuffer(12, null)).ToList();
+                    var sas2 = ses.Query<T>().Select(a => a.MyGeoObject.StBuffer(12, null).StAsText()).ToList();
                 }
 
                 #endregion
