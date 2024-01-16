@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace ORM_1_21_
 {
@@ -29,6 +30,19 @@ namespace ORM_1_21_
         public static bool WhereString( string sql)
         {
             return true;
+        }
+       
+
+        public static IQueryable<T> SelectSqlP<T>(string sql, params SqlParam[] sqlParams)
+        {
+            var sqlE = Expression.Constant(sql);
+            var sqlParamsE = Expression.Constant(sqlParams);
+            return new EnumerableQuery<T>(Expression.ArrayIndex(sqlE,sqlParamsE));
+        }
+        public static IQueryable<T> SelectSql<T>(string sql)
+        {
+            var sqlE = Expression.Constant(sql);
+            return new EnumerableQuery<T>(Expression.ArrayIndex(sqlE));
         }
 
         public static IQueryable<T> FromString<T>(string sql, IQueryable<T> queryable)

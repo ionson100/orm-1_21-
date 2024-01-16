@@ -1,8 +1,9 @@
 ﻿using ORM_1_21_.geo;
+using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using ORM_1_21_.Utils;
+using System.Reflection;
 
 
 namespace ORM_1_21_.Linq
@@ -28,13 +29,13 @@ namespace ORM_1_21_.Linq
                 return false;
 
             }
-            
+
 
             if (m.Method.Name == "StGeometryType")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
                 ExecuteSimple(nameColumn, "StGeometryType");
-               
+
                 return true;
 
             }
@@ -43,7 +44,7 @@ namespace ORM_1_21_.Linq
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
                 ExecuteSimple(nameColumn, "StAsText");
-              
+
 
                 return true;
 
@@ -53,7 +54,7 @@ namespace ORM_1_21_.Linq
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
                 ExecuteSimple(nameColumn, "StArea");
-                
+
 
                 return true;
             }
@@ -62,8 +63,8 @@ namespace ORM_1_21_.Linq
             {
                 CheckArgument(m);
                 string nameColumn = GetColumnName(mem.Member.Name);
-                var geoShape = (IGeoShape) Expression.Lambda<Func<object>>(m.Arguments[0]).Compile()();
-               
+                var geoShape = (IGeoShape)Expression.Lambda<Func<object>>(m.Arguments[0]).Compile()();
+
                 switch (_providerName)
                 {
                     case ProviderName.MsSql:
@@ -90,7 +91,7 @@ namespace ORM_1_21_.Linq
                 return true;
             }
 
-           
+
 
             if (m.Method.Name == "StAsBinary")
             {
@@ -106,7 +107,7 @@ namespace ORM_1_21_.Linq
                 return true;
             }
 
-           
+
 
             if (m.Method.Name == "StBuffer")
             {
@@ -154,11 +155,11 @@ namespace ORM_1_21_.Linq
                         StringB.Append($", {geoShape.StSrid()}))");
                         break;
                     case ProviderName.PostgreSql:
-                       
+
                         StringB.Append($" ST_Contains({nameColumn},ST_GeomFromText(");
                         AddParameter(geoShape.StAsText());
                         StringB.Append($", {geoShape.StSrid()}))");
-                        
+
                         break;
                     case ProviderName.SqLite:
                         UtilsCore.ErrorAlert();
@@ -408,29 +409,12 @@ namespace ORM_1_21_.Linq
                 return true;
             }
 
-          
+
 
             if (m.Method.Name == "StSrid")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
                 ExecuteSimple(nameColumn, "StSrid");
-               //switch (_providerName)
-               //{
-               //    case ProviderName.MsSql:
-               //        StringB.Append($" {nameColumn}.STSrid as srid ");
-               //        break;
-               //    case ProviderName.MySql:
-               //        StringB.Append($" ST_Srid({nameColumn}) ");
-               //        break;
-               //    case ProviderName.PostgreSql:
-               //        StringB.Append($" ST_Srid({nameColumn}) ");
-               //        break;
-               //    case ProviderName.SqLite:
-               //        UtilsCore.ErrorAlert();
-               //        break;
-               //    default:
-               //        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-               //}
 
                 return true;
             }
@@ -442,7 +426,7 @@ namespace ORM_1_21_.Linq
                 return true;
             }
 
-          
+
 
             if (m.Method.Name == "StSymDifference")
             {
@@ -450,7 +434,7 @@ namespace ORM_1_21_.Linq
                 string nameColumn = GetColumnName(mem.Member.Name);
                 var geoShape = (IGeoShape)Expression.Lambda<Func<object>>(m.Arguments[0]).Compile()();
                 ExecuteMethodIGeoShapeParamGeo(nameColumn, "StSymDifference", geoShape);
-              
+
                 return true;
             }
 
@@ -490,7 +474,7 @@ namespace ORM_1_21_.Linq
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
                 ExecuteSimple(nameColumn, "StNumGeometries");
-              
+
                 return true;
             }
 
@@ -498,7 +482,7 @@ namespace ORM_1_21_.Linq
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
                 ExecuteSimple(nameColumn, "StNumInteriorRing");
-               
+
                 return true;
             }
 
@@ -527,23 +511,7 @@ namespace ORM_1_21_.Linq
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
                 ExecuteSimple(nameColumn, "StIsClosed");
-                // switch (_providerName)
-                // {
-                //     case ProviderName.MsSql:
-                //         StringB.Append($" {nameColumn}.STIsClosed() ");
-                //         break;
-                //     case ProviderName.MySql:
-                //         StringB.Append($" ST_IsClosed(ST_GeomFromText(ST_AsText({nameColumn}))) ");
-                //         break;
-                //     case ProviderName.PostgreSql:
-                //         StringB.Append($" ST_IsClosed({nameColumn}) ");
-                //         break;
-                //     case ProviderName.SqLite:
-                //         UtilsCore.ErrorAlert();
-                //         break;
-                //     default:
-                //         throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                // }
+
 
                 return true;
             }
@@ -552,23 +520,7 @@ namespace ORM_1_21_.Linq
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
                 ExecuteSimple(nameColumn, "StNumPoints");
-                // switch (_providerName)
-                // {
-                //     case ProviderName.MsSql:
-                //         StringB.Append($" {nameColumn}.STNumPoints() ");
-                //         break;
-                //     case ProviderName.MySql:
-                //         StringB.Append($" ST_NumPoints(ST_GeomFromText(ST_AsText({nameColumn}))) ");
-                //         break;
-                //     case ProviderName.PostgreSql:
-                //         StringB.Append($" ST_NumPoints({nameColumn}) ");
-                //         break;
-                //     case ProviderName.SqLite:
-                //         UtilsCore.ErrorAlert();
-                //         break;
-                //     default:
-                //         throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
-                // }
+
 
                 return true;
             }
@@ -585,8 +537,99 @@ namespace ORM_1_21_.Linq
                 string nameColumn = GetColumnName(mem.Member.Name);
                 var geoShape = (IGeoShape)Expression.Lambda<Func<object>>(m.Arguments[0]).Compile()();
                 ExecuteMethodIGeoShapeParamGeo(nameColumn, "StUnion", geoShape);
-               
+
                 return true;
+            }
+
+            if (m.Method.Name == "StConvexHull")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteMethodIGeoShapeNoParam(nameColumn, "StConvexHull");
+            }
+
+            if (m.Method.Name == "StCollect")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                var geoShape = (IGeoShape[])Expression.Lambda<Func<object>>(m.Arguments[0]).Compile().Invoke();
+                ExecuteMethodIGeoShapeParamGeoCollection(nameColumn, "StCollect", geoShape);
+            }
+
+            if (m.Method.Name == "StPointN")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteMethodIGeoShapeParam(nameColumn, "StPointN", m.Arguments[0]);
+
+                return true;
+            }
+
+            if (m.Method.Name == "StPointOnSurface")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteMethodIGeoShapeNoParam(nameColumn, "StPointOnSurface");
+            }
+
+            if (m.Method.Name == "StInteriorRingN")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteMethodIGeoShapeParam(nameColumn, "StInteriorRingN", m.Arguments[0]);
+            }
+
+            if (m.Method.Name == "StX")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteSimple(nameColumn, "StX");
+            }
+            if (m.Method.Name == "StY")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteSimple(nameColumn, "StY");
+            }
+
+            if (m.Method.Name == "StTransform")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteMethodIGeoShapeParam(nameColumn, "StTransform", m.Arguments[0]);
+            }
+
+            if (m.Method.Name == "StSetSRID")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteMethodIGeoShapeParam(nameColumn, "StSetSRID", m.Arguments[0]);
+            }
+
+            if (m.Method.Name == "StAsLatLonText")
+            {
+                if (_providerName != ProviderName.PostgreSql)
+                {
+                    throw new Exception("Only for Postgres");
+                }
+                string nameColumn = GetColumnName(mem.Member.Name);
+                if (m.Arguments[0] is ConstantExpression t)
+                {
+                    if (t.Value == null)
+                    {
+                        StringB.Append($" ST_AsLatLonText({nameColumn})");
+                    }
+                    else
+                    {
+                        StringB.Append($" ST_AsLatLonText({nameColumn}, ");
+                        Visit(m.Arguments[0]);
+                        StringB.Append(")");
+                    }
+                }
+                else
+                {
+                    StringB.Append($" ST_AsLatLonText({nameColumn}, ");
+                    Visit(m.Arguments[0]);
+                    StringB.Append(")");
+                }
+               
+            }
+
+            if (m.Method.Name == "StReverse")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteMethodIGeoShapeNoParam(nameColumn, "StReverse");
             }
 
 
@@ -606,9 +649,9 @@ namespace ORM_1_21_.Linq
             }
         }
 
-        void AddSimpleSql(string methodName,string nameColumn)
+        void AddSimpleSql(string methodName, string nameColumn)
         {
-            
+
             switch (_providerName)
             {
                 case ProviderName.MsSql:
@@ -620,7 +663,7 @@ namespace ORM_1_21_.Linq
                     {
                         StringB.Append($"{nameColumn}.{methodName}()");
                     }
-                    
+
                     break;
                 case ProviderName.MySql:
                     StringB.Append($"{methodName}({nameColumn})");
@@ -636,11 +679,11 @@ namespace ORM_1_21_.Linq
             }
         }
 
-        void ExecuteMethodIGeoShapeNoParam(string nameColumn,string methodName)
+        void ExecuteMethodIGeoShapeNoParam(string nameColumn, string methodName)
         {
             var s = _currentMethodSelect;
             var w = _currentMethodWhere;
-            methodName= GetNameMethod(methodName, _providerName);
+            methodName = GetNameMethod(methodName, _providerName);
 
             if (s != null)
             {
@@ -662,7 +705,7 @@ namespace ORM_1_21_.Linq
                             {
                                 StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';',({nameColumn}.{methodName}()).STAsText()) ");
                             }
-                            
+
                             break;
                         case ProviderName.MySql:
                             StringB.Append($"CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText({methodName}(ST_GeomFromText(ST_AsText({nameColumn}))))) ");
@@ -689,7 +732,7 @@ namespace ORM_1_21_.Linq
             }
         }
 
-        void ExecuteMethodIGeoShapeParam(string nameColumn, string methodName,params Expression[] param)
+        void ExecuteMethodIGeoShapeParam(string nameColumn, string methodName, params Expression[] param)
         {
             var s = _currentMethodSelect;
             var w = _currentMethodWhere;
@@ -702,9 +745,11 @@ namespace ORM_1_21_.Linq
                     switch (_providerName)
                     {
                         case ProviderName.MsSql:
+
                             StringB.Append($"{nameColumn}.{methodName}(");
                             NewFunction();
                             StringB.Append(")");
+
                             break;
                         case ProviderName.MySql:
                             StringB.Append($"{methodName}({nameColumn}, ");
@@ -729,12 +774,10 @@ namespace ORM_1_21_.Linq
                     switch (_providerName)
                     {
                         case ProviderName.MsSql:
-                           
+
                             StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';',({nameColumn}.{methodName}(");
                             NewFunction();
-                            
                             StringB.Append(")).STAsText())");
-                           
 
                             break;
                         case ProviderName.MySql:
@@ -761,9 +804,11 @@ namespace ORM_1_21_.Linq
                 switch (_providerName)
                 {
                     case ProviderName.MsSql:
+
                         StringB.Append($"{nameColumn}.{methodName}(");
                         NewFunction();
                         StringB.Append(")");
+
                         break;
                     case ProviderName.MySql:
                         StringB.Append($"{methodName}({nameColumn}, ");
@@ -800,7 +845,7 @@ namespace ORM_1_21_.Linq
             }
         }
 
-        void ExecuteMethodIGeoShapeParamGeo(string nameColumn, string methodName ,IGeoShape geoShape)
+        void ExecuteMethodIGeoShapeParamGeo(string nameColumn, string methodName, IGeoShape geoShape)
         {
             var s = _currentMethodSelect;
             var w = _currentMethodWhere;
@@ -915,11 +960,19 @@ namespace ORM_1_21_.Linq
                     {
                         StringB.Append($" {nameColumn}.STSrid");
                     }
+                    else if (methodName == "STX")
+                    {
+                        StringB.Append($" {nameColumn}.STX");
+                    }
+                    else if (methodName == "STY")
+                    {
+                        StringB.Append($" {nameColumn}.STY");
+                    }
                     else
                     {
                         StringB.Append($" {nameColumn}.{methodName}()");
                     }
-                   
+
                     break;
                 case ProviderName.MySql:
                     StringB.Append($" {methodName}(ST_GeomFromText(ST_AsText({nameColumn})))");
@@ -966,15 +1019,134 @@ namespace ORM_1_21_.Linq
 
 
 
+
+
+
+        void ExecuteMethodIGeoShapeParamGeoCollection(string nameColumn, string methodName, params IGeoShape[] geoShape)
+        {
+            void Simple()
+            {
+                switch (_providerName)
+                {
+                    case ProviderName.MsSql:
+                        StringB.Append($"{nameColumn}.{methodName}(");
+                        FuncMsSql();
+                        StringB.Append($")");
+                        break;
+                    case ProviderName.MySql:
+                        StringB.Append($"{methodName}({nameColumn},");
+                        FuncPostgres();
+                        StringB.Append($")");
+                        break;
+                    case ProviderName.PostgreSql:
+                        StringB.Append($"{methodName}({nameColumn},");
+                        FuncPostgres();
+                        StringB.Append($")");
+                        break;
+                    case ProviderName.SqLite:
+                        UtilsCore.ErrorAlert();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+                }
+            }
+
+            void FuncPostgres()
+            {
+                for (var i = 0; i < geoShape.Length; i++)
+                {
+                    StringB.Append("ST_GeomFromText(");
+                    AddParameter(geoShape[i].StAsText());
+                    StringB.Append(", ");
+                    StringB.Append($"{geoShape[i].StSrid()})");
+                    if (i != geoShape.Length - 1)
+                    {
+                        StringB.Append(" , ");
+                    }
+                }
+            }
+            void FuncMsSql()
+            {
+                for (var i = 0; i < geoShape.Length; i++)
+                {
+                    StringB.Append("geometry::STGeomFromText(");
+                    AddParameter(geoShape[i].StAsText());
+                    StringB.Append(", ");
+                    StringB.Append($"{geoShape[i].StSrid()})");
+                    if (i != geoShape.Length - 1)
+                    {
+                        StringB.Append(" , ");
+                    }
+                }
+            }
+
+            var s = _currentMethodSelect;
+            var w = _currentMethodWhere;
+            methodName = GetNameMethod(methodName, _providerName);
+
+
+
+            if (s != null)
+            {
+                if (_currentMethodType != null && _currentMethodType != typeof(IGeoShape))
+                {
+                    Simple();
+                }
+                else
+                {
+                    switch (_providerName)
+                    {
+                        case ProviderName.MsSql:
+                            StringB.Append($"CONCAT('SRID=',{nameColumn}.STSrid,';', ({nameColumn}.{methodName}(");
+                            FuncMsSql();
+                            StringB.Append($")))");
+                            break;
+                        case ProviderName.MySql:
+                            StringB.Append($" CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText({methodName}({nameColumn},");
+                            FuncPostgres();
+                            StringB.Append($")))");
+                            break;
+                        case ProviderName.PostgreSql:
+
+                            StringB.Append($" CONCAT('SRID=',ST_Srid({nameColumn}),';',ST_AsText({methodName}({nameColumn},");
+                            FuncPostgres();
+                            StringB.Append($")))");
+
+                            break;
+                        case ProviderName.SqLite:
+                            UtilsCore.ErrorAlert();
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+
+                    }
+                }
+
+            }
+            else if (w != null)
+            {
+                Simple();
+            }
+            else
+            {
+                throw new Exception("Смотри сюда");
+            }
+
+
+
+        }
+
+
+
     }
-    
+
 
     internal sealed partial class QueryTranslator<T>
     {
         private static readonly HashSet<string> NameAllowed = new HashSet<string> { "StAsBinary", "StAsText", "StSrid", "StLength" };
         bool GeoMethodCallExpression2(MethodCallExpression m)
         {
-            
+
             if (HashSetMethods.Contains(m.Method.Name))
             {
                 throw new Exception(
@@ -983,7 +1155,7 @@ namespace ORM_1_21_.Linq
 
             if (NameAllowed.Contains(m.Method.Name))
             {
-                var name=GetNameMethod(m.Method.Name, _providerName);
+                var name = GetNameMethod(m.Method.Name, _providerName);
                 {
                     switch (_providerName)
                     {
@@ -1011,7 +1183,7 @@ namespace ORM_1_21_.Linq
                             {
                                 StringB.Append($".{name}()");
                             }
-                            
+
                             break;
                         case ProviderName.MySql:
                             StringB.Append("))");
@@ -1027,7 +1199,7 @@ namespace ORM_1_21_.Linq
             }
 
             return false;
-          
+
         }
         public static string GetNameMethod(string name, ProviderName providerName)
         {

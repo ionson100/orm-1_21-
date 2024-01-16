@@ -43,9 +43,57 @@ namespace ORM_1_21_
 
 
         /// <summary>
+        /// Custom  Select clause
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="sql">Raw query string</param>
+        /// <typeparam name="TR">Return Queryable type</typeparam>
+        /// <returns></returns>
+        public static IQueryable<TR> SelectSql<TR>(this IQueryable query, string sql)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(sql, nameof(sql));
+            var t = Expression.Parameter(query.GetType());
+            var sqlE = Expression.Constant(sql);
+          
+
+           
+            var queryE = Expression.Constant(query);
+            var mi = typeof(V).GetMethod("SelectSql");
+            var miConstructed = mi.MakeGenericMethod(typeof(TR));
+            Expression check = Expression.Call(null, miConstructed, sqlE);
+            return query.Provider.CreateQuery<TR>(check);
+        }
+
+       
+
+        /// <summary>
+        /// Custom  Select clause
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="sql">Raw query string</param>
+        /// <param name="sqlParams">Params query string</param>
+        /// <typeparam name="TR">Return Queryable type</typeparam>
+        /// <returns></returns>
+        public static IQueryable<TR> SelectSql<TR>(this IQueryable query, string sql, params SqlParam[] sqlParams)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(sql, nameof(sql));
+            Check.NotNull(sqlParams, nameof(sqlParams));
+            var t = Expression.Parameter(query.GetType());
+            var sqlE = Expression.Constant(sql);
+            var sqlParamsE = Expression.Constant(sqlParams);
+            var mi = typeof(V).GetMethod("SelectSqlP");
+            var miConstructed = mi.MakeGenericMethod(typeof(TR));
+            Expression check = Expression.Call(null, miConstructed, sqlE, sqlParamsE);
+            return query.Provider.CreateQuery<TR>(check);
+        }
+
+    
+
+        /// <summary>
         /// Custom  WHERE clause
         /// </summary>
-
         public static IQueryable<T> WhereSql<T>(this IQueryable<T> query,   string sql)
         {
             Check.NotNull(query, nameof(query));

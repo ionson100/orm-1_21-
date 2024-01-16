@@ -12,7 +12,7 @@ namespace TestLibrary
         {
             InnerRun<OrderPostgres, MyDbPostgres>();
             InnerRun<OrderMysql, MyDbMySql>();
-            //InnerRun<OrderMsSql, MyDbMsSql>();
+            InnerRun<OrderMsSql, MyDbMsSql>();
             InnerRun<OrderSqlite, MyDbSqlite>();
 
 

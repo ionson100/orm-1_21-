@@ -101,5 +101,8 @@ namespace ORM_1_21_.Linq
         {
             return typeof(T);
         }
+
+
+       
     }
 }

@@ -13,7 +13,7 @@ namespace TestLibrary
 
             await InnerRun<MyClassPostgres, MyDbPostgres>();
             await InnerRun<MyClassMysql, MyDbMySql>();
-            //await InnerRun<MyClassMsSql, MyDbMsSql>();
+            await InnerRun<MyClassMsSql, MyDbMsSql>();
             await InnerRun<MyClassSqlite, MyDbSqlite>();
         }
 

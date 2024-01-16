@@ -206,7 +206,17 @@ namespace ORM_1_21_.Utils
                 return o.ToString().Replace(",", ".");
 
             if (type == typeof(DateTime))
-                return $"'{(DateTime)o:yyyy-MM-dd HH:mm:ss.fff}'";
+            {
+                if (_providerName == ProviderName.MsSql)
+                {
+                    return $"'{(DateTime)o:yyyyMMdd HH: mm: ss}'";
+                }
+                else
+                {
+                    return $"'{(DateTime)o:yyyy-MM-dd HH:mm:ss.fff}'";
+                }
+            }
+               
 
             if (type.IsEnum) return Convert.ToInt32(o).ToString();
 

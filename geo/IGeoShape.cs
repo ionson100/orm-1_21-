@@ -44,29 +44,24 @@ namespace ORM_1_21_.geo
         /// EG postgres: 'ST_LineString', 'ST_Polygon','ST_MultiPolygon'
         /// EG mysql ms sql: 'LineString', 'Polygon','MultiPolygon'
         /// </summary>
-        /// <param name="session">Open session Orm</param>
-        /// <returns>String</returns>
-        string StGeometryType(ISession session);
+        string StGeometryType();
 
         /// <summary>
         /// Returns the area of a polygonal geometry. For geometry types a 2D Cartesian (planar) area is computed, with units specified by the SRID
         /// </summary>
-        /// <param name="session">Session Orm</param>
-        double? StArea(ISession session);
+        double? StArea();
 
         /// <summary>
         /// Returns TRUE if current geometry  is within geometry B. current geometry is within B if and only if all points of current geometry lie inside (i.e. in the interior or boundary of) B
         /// (or equivalently, no points of current geometry lie in the exterior of B), and the interiors of current geometry and B have at least one point in common.
         /// </summary>
         /// <param name="shape">Geometry B</param>
-        /// <param name="session">Open session Orm</param>
-        bool? StWithin(IGeoShape  shape,ISession session);
+        bool? StWithin(IGeoShape  shape);
 
         /// <summary>
         /// Returns the OGC/ISO Well-Known Binary (WKB) representation of the geometry.
         /// </summary>
-        /// <param name="session">Open session Orm</param>
-        byte[] StAsBinary(ISession session);
+        byte[] StAsBinary();
 
 
 
@@ -84,16 +79,14 @@ namespace ORM_1_21_.geo
         /// Because the result of this function is a closure, and hence topologically closed, the resulting boundary
         /// can be represented using representational geometry primitives as discussed in the OGC SPEC, section 3.12.2.
         /// </summary>
-        /// <param name="session">Open session Orm</param>
-        IGeoShape StBoundary(ISession session);
+        IGeoShape StBoundary();
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="distance"></param>
-        /// <param name="session"></param>
         /// <returns></returns>
-        IGeoShape StBuffer(float distance, ISession session);
+        IGeoShape StBuffer(float distance);
 
         /// <summary>
         /// Computes a point which is the geometric center of mass of a geometry.
@@ -103,47 +96,40 @@ namespace ORM_1_21_.geo
         /// If an empty geometry is supplied, an empty GEOMETRYCOLLECTION is returned. If NULL is supplied, NULL is returned.
         /// If CIRCULARSTRING or COMPOUNDCURVE are supplied, they are converted to linestring with CurveToLine first, then same than for LINESTRING
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        IGeoShape StCentroid(ISession session);
+        IGeoShape StCentroid();
 
         /// <summary>
         /// Returns the last point of a LINESTRING or CIRCULARLINESTRING geometry as a POINT. Returns NULL if the input is not a LINESTRING or CIRCULARLINESTRING.
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        IGeoShape StEndPoint(ISession session);
+        IGeoShape StEndPoint();
 
         /// <summary>
         /// Returns the minimum axis-aligned bounding rectangle of the instance.
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        IGeoShape StEnvelope(ISession session);
+        IGeoShape StEnvelope();
 
         /// <summary>
         /// Returns the first point of a LINESTRING or CIRCULARLINESTRING geometry as a POINT. Returns NULL if the input is not a LINESTRING or CIRCULARLINESTRING.
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        IGeoShape StStartPoint(ISession session);
+        IGeoShape StStartPoint();
 
         /// <summary>
         /// Returns an object that represents all points that are either in one geometry instance or another geometry instance, but not those points that lie in both instances.
         /// </summary>
         /// <param name="shape">Other geo object</param>
-        /// <param name="session">Open session orm</param>
-        IGeoShape StSymDifference(IGeoShape shape, ISession session);
+        IGeoShape StSymDifference(IGeoShape shape);
 
         /// <summary>
         /// Returns an object that represents the union of a geometry instance with another geometry instance.
         /// </summary>
         /// <param name="shape">Other geo object</param>
-        /// <param name="session">Open session orm</param>
-        IGeoShape StUnion(IGeoShape shape, ISession session);
+        IGeoShape StUnion(IGeoShape shape);
 
         /// <summary>
         /// Returns TRUE if current geometry  contains geometry B. 
         /// </summary>
         /// <param name="shape">Geometry B</param>
-        /// <param name="session">Open session orm</param>
-        bool? StContains(IGeoShape shape, ISession session);
+        bool? StContains(IGeoShape shape);
 
         /// <summary>
         /// Compares two geometry objects and returns true if their intersection "spatially crosses"; that is, the geometries have some, but not all interior points in common.
@@ -152,8 +138,7 @@ namespace ORM_1_21_.geo
         /// The crosses relation is symmetric and irreflexive.
         /// </summary>
         /// <param name="shape">Other geo object</param>
-        /// <param name="session">Open session Orm</param>
-        bool? StCrosses(IGeoShape shape, ISession session);
+        bool? StCrosses(IGeoShape shape);
 
         /// <summary>
         /// Returns a geometry representing the part of geometry A that does not intersect geometry B.
@@ -162,30 +147,24 @@ namespace ORM_1_21_.geo
         /// Where geometry A - current geo object, geometry B other geo object.
         /// </summary>
         /// <param name="shape">Other geo object</param>
-        /// <param name="session">Open session Orm</param>
-        /// <returns></returns>
-        IGeoShape StDifference(IGeoShape shape,ISession  session);
+        IGeoShape StDifference(IGeoShape shape);
 
         /// <summary>
         /// Return the topological dimension of this Geometry object, which must be less than or equal to the coordinate dimension
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        int? StDimension(ISession session);
+        int? StDimension();
 
         /// <summary>
         /// Returns true if two geometries are disjoint. Geometries are disjoint if they have no point in common.
         /// </summary>
         /// <param name="shape">Other geo object</param>
-        /// <param name="session">Open session orm</param>
-        bool? StDisjoint(IGeoShape shape, ISession session);
+        bool? StDisjoint(IGeoShape shape);
 
         /// <summary>
         /// For geometry types returns the minimum 2D Cartesian (planar) distance between two geometries, in projected units (spatial ref units).
         /// </summary>
         /// <param name="shape">Other geo object</param>
-        /// <param name="session">Open session Orm</param>
-        /// <returns></returns>
-        double? StDistance(IGeoShape shape, ISession session);
+        double? StDistance(IGeoShape shape);
 
       
 
@@ -198,8 +177,7 @@ namespace ORM_1_21_.geo
         /// To verify the order of points is consistent use ST_OrderingEquals (it must be noted ST_OrderingEquals is a little more stringent than simply verifying order of points are the same).
         /// </summary>
         /// <param name="shape">Other geo object</param>
-        /// <param name="session">Open session orm</param>
-        bool? StEquals(IGeoShape shape, ISession session);
+        bool? StEquals(IGeoShape shape);
 
 
         /// <summary>
@@ -207,8 +185,7 @@ namespace ORM_1_21_.geo
         ///For geography, a distance tolerance of 0.00001 meters is used (so points that are very close are considered to intersect).
         /// </summary>
         /// <param name="shape">Other geo object</param>
-        /// <param name="session">Open session Orm</param>
-        bool? StIntersects(IGeoShape shape, ISession session);
+        bool? StIntersects(IGeoShape shape);
 
         /// <summary>
         /// Returns TRUE if geometry A and B "spatially overlap".
@@ -218,8 +195,7 @@ namespace ORM_1_21_.geo
         /// Where geometry A - current geo object, geometry B - other geo object
         /// </summary>
         /// <param name="shape">Other geo object</param>
-        /// <param name="session">Open session Orm</param>
-        bool? StOverlaps(IGeoShape shape, ISession session);
+        bool? StOverlaps(IGeoShape shape);
 
         
 
@@ -238,37 +214,32 @@ namespace ORM_1_21_.geo
         /// Where A - current geo object, B - other geo object
         /// </summary>
         /// <param name="shape">Other geo object</param>
-        /// <param name="session">Open session orm</param>
-        /// <returns></returns>
-        bool? StTouches(IGeoShape shape, ISession session);
+        bool? StTouches(IGeoShape shape);
 
 
         /// <summary>
         /// Returns the number of elements in a geometry collection (GEOMETRYCOLLECTION or MULTI*). For non-empty atomic geometries returns 1. For empty geometries returns 0.
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        int? StNumGeometries( ISession session);
+        int? StNumGeometries();
 
         /// <summary>
         /// Return the number of interior rings of a polygon geometry. Return NULL if the geometry is not a polygon.
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        int? StNumInteriorRing(ISession session);
+        int? StNumInteriorRing();
 
 
         /// <summary>
         /// Returns true if this Geometry has no anomalous geometric points, such as self-intersection or self-tangency.
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        bool? StIsSimple(ISession session);
+      
+        bool? StIsSimple();
 
 
         /// <summary>
         /// Tests if an current geometry  is well-formed and valid in 2D according to the OGC rules.
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        /// <returns></returns>
-        bool? StIsValid(ISession session);
+       
+        bool? StIsValid();
 
 
         /// <summary>
@@ -276,27 +247,24 @@ namespace ORM_1_21_.geo
         /// For areal geometries 0 is returned; use ST_Perimeter instead.
         /// The units of length is determined by the spatial reference system of the geometry.
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        double? StLength(ISession  session);
+      
+        double? StLength();
 
         /// <summary>
         /// Returns TRUE if the LINESTRING's start and end points are coincident. For Polyhedral Surfaces, reports if the surface is areal (open) or volumetric (closed).
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        bool? StIsClosed(ISession  session);
+        bool? StIsClosed();
 
         /// <summary>
         /// Return the number of points in an LineString or CircularString value.
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        int? StNumPoints(ISession session);
+        int? StNumPoints();
 
         /// <summary>
         /// Returns the 2D perimeter of the geometry/geography if it is a ST_Surface, ST_MultiSurface (Polygon, MultiPolygon). 0 is returned for non-areal geometries.
         /// For linear geometries use ST_Length. For geometry types, units for perimeter measures are specified by the spatial reference system of the geometry.
         /// </summary>
-        /// <param name="session">Open session orm</param>
-        double? StPerimeter(ISession session);
+        double? StPerimeter();
 
         /// <summary>
         /// Returns a new geometry whose coordinates are translated delta x,delta y.
@@ -304,9 +272,91 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="deltaX">Coordinate x</param>
         /// <param name="deltaY">Coordinate y</param>
+        IGeoShape StTranslate(float deltaX, float deltaY);
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="session"></param>
         /// <returns></returns>
-        IGeoShape StTranslate(float deltaX, float deltaY,ISession session);
+        IGeoShape SetSession(ISession session);
+
+
+        /// <summary>
+        /// Computes the convex hull of a geometry. The convex hull is the smallest convex geometry that encloses all geometries in the input.
+        /// </summary>
+        IGeoShape StConvexHull();
+
+        /// <summary>
+        /// Collects geometries into a geometry collection. The result is either a Multi* or a GeometryCollection,
+        /// depending on whether the input geometries have the same or different types (homogeneous or heterogeneous).
+        /// The input geometries are left unchanged within the collection.
+        /// </summary>
+        /// <param name="shapes"></param>
+        /// <returns></returns>
+        IGeoShape StCollect(params IGeoShape[] shapes);
+
+
+
+        /// <summary>
+        /// Return the Nth point in a single linestring or circular linestring in the geometry.
+        /// Negative values are counted backwards from the end of the LineString, so that -1 is the last point. Returns NULL if there is no linestring in the geometry.
+        /// </summary>
+        /// <param name="n">Number point</param>
+        IGeoShape StPointN(int n);
+
+        /// <summary>
+        /// Returns a POINT which is guaranteed to lie in the interior of a surface (POLYGON, MULTIPOLYGON, and CURVED POLYGON).
+        /// In PostGIS this function also works on line and point geometries.
+        /// </summary>
+        /// <returns></returns>
+        IGeoShape StPointOnSurface();
+
+        /// <summary>
+        /// Returns the Nth interior ring (hole) of a POLYGON geometry as a LINESTRING. The index starts at 1.
+        /// Returns NULL if the geometry is not a polygon or the index is out of range.
+        /// </summary>
+        /// <returns></returns>
+        IGeoShape StInteriorRingN(int n);
+
+        /// <summary>
+        /// Return the X coordinate of the point, or NULL if not available. Input must be a point.
+        /// </summary>
+        /// <returns></returns>
+        double? StX();
+
+        /// <summary>
+        /// Return the Y coordinate of the point, or NULL if not available. Input must be a point.
+        /// </summary>
+        /// <returns></returns>
+        double? StY();
+
+        /// <summary>
+        /// Returns a new geometry with its coordinates transformed to a different spatial reference system.
+        /// </summary>
+        /// <param name="srid">Spatial reference system</param>
+        IGeoShape StTransform(int srid);
+
+        /// <summary>
+        /// Sets the SRID on a geometry to a particular integer value.
+        /// </summary>
+        /// <param name="srid">Spatial reference system</param>
+        // ReSharper disable once InconsistentNaming
+        IGeoShape StSetSRID(int srid);
+
+        /// <summary>
+        /// Returns the Degrees, Minutes, Seconds representation of the point.
+        /// </summary>
+        /// <param name="format">The text parameter is a format string containing the format for the resulting text, similar to a date format string
+        /// as 'D°M''S.SSS"C'</param>
+        /// <returns></returns>
+        string StAsLatLonText(string format="");
+
+        /// <summary>
+        /// Reverse points current geometry
+        /// </summary>
+        /// <returns></returns>
+        IGeoShape StReverse();
 
 
 

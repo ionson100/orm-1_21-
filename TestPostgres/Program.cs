@@ -12,6 +12,10 @@ namespace TestPostgres
 {
     internal class Program
     {
+        static string Test()
+        {
+            return "number";
+        }
         private static ProviderName ProviderNamee = ORM_1_21_.ProviderName.SqLite;
 
         static async Task Main(string[] args)
@@ -39,19 +43,19 @@ namespace TestPostgres
             //  Execute.RunThread();
             //  //Console.ReadKey();
             //  Console.ReadKey();
-           // Execute.TotalTest();
-           // Execute.TestNativeInsert();
-           // Execute.TestAssignetInsert();
-           // Execute2.TestTimeStamp();
-           // await Execute3.TotalTestAsync();
-           // await ExecuteLinqAll.Run();
-           // ExecutePrimaryKey.Run();
-           // await ExecuteFree.Run();
-           // await ExecuteSp.Run();
-           // TestCapacity.Run();
-           // await TestSelector.Run();
-           // InsertUpdate.Run();
-           // await ExecAdd.Run();
+            //Execute.TotalTest();
+            //Execute.TestNativeInsert();
+            //Execute.TestAssignetInsert();
+            //Execute2.TestTimeStamp();
+            //await Execute3.TotalTestAsync();
+            //await ExecuteLinqAll.Run();
+            //ExecutePrimaryKey.Run();
+            //await ExecuteFree.Run();
+            //await ExecuteSp.Run();
+            //TestCapacity.Run();
+            //await TestSelector.Run();
+            //InsertUpdate.Run();
+            //await ExecAdd.Run();
             
             ExeGeo.Run();
             Console.WriteLine("finish");
@@ -64,14 +68,17 @@ namespace TestPostgres
 
             ISession session = Configure.Session;
             {
+                var tt = new { s = "number" };
+                var ee = session.Query<Order1>().SelectSql<int>("number").ToList();
+                var e2e = session.Query<Order1>().SelectSql<int>("number", new SqlParam("@1", "23")).ToList();
 
-               
 
 
 
             }
 
         }
+
 
         [MapTable("Order")]
         public class Order1

@@ -1529,7 +1529,30 @@ namespace ORM_1_21_.Linq
                 StringB.Length = 0;
                 return m;
             }
-            
+
+            if (m.Method.Name == "SelectSql")
+            {
+                var sas = m.Arguments[0] as ConstantExpression;
+                var o = new OneComposite { Operand = Evolution.Select, Body = sas.Value.ToString() };
+                AddListOne(o);
+
+                return m;
+            }
+
+            if (m.Method.Name == "SelectSqlP")
+            {
+                var sql =  m.Arguments[0] as ConstantExpression;
+                var param = m.Arguments[1] as ConstantExpression;
+                var o = new OneComposite { Operand = Evolution.Select, Body = sql.Value.ToString() };
+                AddListOne(o);
+                var pv = (SqlParam[])param.Value;
+                foreach (SqlParam p in pv)
+                {
+                    Param.Add(p.Name, p.Value);
+                }
+                return m;
+            }
+
             if (m.Method.Name == "WhereString")
             {
                 var t = m.Arguments[0] as ConstantExpression;
@@ -2140,6 +2163,8 @@ namespace ORM_1_21_.Linq
                 {
                     return m;
                 }
+
+           
 
                
 

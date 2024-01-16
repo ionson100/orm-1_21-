@@ -9,7 +9,7 @@ namespace TestLibrary
         public static void TestTimeStamp()
         {
             TestTimeStampPostgresql();
-            //TestTimeStampMsSql();
+            TestTimeStampMsSql();
             TestTimeStampMySql();
             TestTimeStampSqlie();
         }
