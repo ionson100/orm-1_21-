@@ -12,12 +12,12 @@ namespace ORM_1_21_.Linq
     {
         private static readonly HashSet<string> HashSetMethods = new HashSet<string>
         {
-            "SetSrid","ListGeoPoints","GetGeoJson",
+            "SetSrid","ListGeoPoints","GetGeoJson,StGeometryTypeAsync","StAreaAsync"
         };
 
         bool GeoMethodCallExpression(MethodCallExpression m)
         {
-
+            if (CurrentEvolution == Evolution.Update) return false;
             if (HashSetMethods.Contains(m.Method.Name))
             {
                 throw new Exception(
@@ -409,8 +409,6 @@ namespace ORM_1_21_.Linq
                 return true;
             }
 
-
-
             if (m.Method.Name == "StSrid")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
@@ -425,8 +423,6 @@ namespace ORM_1_21_.Linq
                 ExecuteMethodIGeoShapeNoParam(nameColumn, "StStartPoint");
                 return true;
             }
-
-
 
             if (m.Method.Name == "StSymDifference")
             {
@@ -579,6 +575,7 @@ namespace ORM_1_21_.Linq
                 string nameColumn = GetColumnName(mem.Member.Name);
                 ExecuteSimple(nameColumn, "StX");
             }
+
             if (m.Method.Name == "StY")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
@@ -630,6 +627,24 @@ namespace ORM_1_21_.Linq
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
                 ExecuteMethodIGeoShapeNoParam(nameColumn, "StReverse");
+            }
+
+            if (m.Method.Name == "StIsValidReason")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteSimple(nameColumn, "StIsValidReason");
+            }
+
+            if (m.Method.Name == "StMakeValid")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteMethodIGeoShapeNoParam(nameColumn, "StMakeValid");
+            }
+
+            if (m.Method.Name == "StAsGeoJson")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteSimple(nameColumn, "StAsGeoJSON");
             }
 
 
@@ -1146,7 +1161,7 @@ namespace ORM_1_21_.Linq
         private static readonly HashSet<string> NameAllowed = new HashSet<string> { "StAsBinary", "StAsText", "StSrid", "StLength" };
         bool GeoMethodCallExpression2(MethodCallExpression m)
         {
-
+            if (CurrentEvolution == Evolution.Update) return false;
             if (HashSetMethods.Contains(m.Method.Name))
             {
                 throw new Exception(

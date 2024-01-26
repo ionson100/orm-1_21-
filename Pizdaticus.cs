@@ -30,7 +30,7 @@ namespace ORM_1_21_
             { typeof(float), (a,p, index) => a.GetFloat(index)},
             { typeof(Guid), (a,p, index) => a.GetGuid(index)},
             { typeof(byte[]), (a,p, index) => a.GetValue(index)},
-            { typeof(object), (a,p, index) => a.GetValue(index)},
+            //{ typeof(object), (a,p, index) => a.GetValue(index)},
             {typeof(Char), (a, p, index) =>
             {
                 if (p == ProviderName.MsSql)
@@ -82,7 +82,7 @@ namespace ORM_1_21_
         }
 
 
-        public static List<T> GetListAnonymousObj<T>(IDataReader reader, object ss, ProviderName providerName)
+        public static List<T> GetListAnonymousObj<T,TCore>(IDataReader reader, object ss, ProviderName providerName)
         {
             try
             {
@@ -94,29 +94,29 @@ namespace ORM_1_21_
                     for (var i = 0; i < reader.FieldCount; i++)
                     {
                         var t = ((NewExpression)ss).Arguments[i].Type;
-                        var val = MethodFreeIndex(providerName, t, reader, i);
-                        if (UtilsCore.IsGeo(t))
-                        {
-                            if (val == null)
-                            {
-                                d[i] = null;
-                            }else if (val is string)
-                            {
-                                var o = new GeoObject(val.ToString());
-                                //((IGeoShape)o).GeoText = ;
-                                d[i] = o;
-                            }
-                            else
-                            {
-                                d[i] = val;
-                            }
-
-                            
-                        }
-                        else
-                        {
-                            d[i] = val;
-                        }
+                        var val = MethodFreeIndexAnonymous<T,TCore>(providerName, t, reader, i);
+                        //if (UtilsCore.IsGeo(t))
+                        //{
+                        //    if (val == null)
+                        //    {
+                        //        d[i] = null;
+                        //    }else if (val is string)
+                        //    {
+                        //        var o = new GeoObject(val.ToString());
+                        //        //((IGeoShape)o).GeoText = ;
+                        //        d[i] = o;
+                        //    }
+                        //    else
+                        //    {
+                        //        d[i] = val;
+                        //    }
+                        //
+                        //    
+                        //}
+                        //else
+                        //{
+                        //    d[i] = val;
+                        //}
 
                     }
 
@@ -132,7 +132,7 @@ namespace ORM_1_21_
             }
         }
 
-        public static void GetListAnonymousObjDistinct(IDataReader reader, object ss, IList list,
+        public static void GetListAnonymousObjDistinct<T>(IDataReader reader, object ss, IList list,
             ProviderName providerName)
         {
             try
@@ -144,7 +144,7 @@ namespace ORM_1_21_
                     for (var i = 0; i < reader.FieldCount; i++)
                     {
                         var t = ((NewExpression)ss).Arguments[i].Type;
-                        var val = MethodFreeIndex(providerName, t, reader, i);
+                        var val = MethodFreeIndex<T>(providerName, t, reader, i);
                         d[i] = val;
                     }
 
@@ -224,11 +224,13 @@ namespace ORM_1_21_
             return default;
         }
 
-        public static object MethodFreeIndex(ProviderName providerName, Type type, IDataReader reader, int index)
+        public static object MethodFreeIndex<T>(ProviderName providerName, Type type, IDataReader reader, int index)
         {
             if (reader.IsDBNull(index)) return null;
             type = UtilsCore.GetCoreType(type);
+            var res = reader.GetValue(index);
 
+            
             if (TypeStorage.ContainsKey(type))
             {
                 return TypeStorage[type].Invoke(reader, providerName, index);
@@ -241,7 +243,20 @@ namespace ORM_1_21_
                 var o = reader.GetValue(index);
                 return Enum.Parse(type, Convert.ToInt32(o).ToString());
             }
-            var res = reader.GetValue(index);
+            string name = reader.GetName(index);
+            if (AttributesOfClass<T>.IsJsonName(name))
+            { 
+                var t = AttributesOfClass<T>.IsJsonTypeName(name);
+                switch (t)
+                {
+                    case TypeReturning.AsObject:
+                        return JsonConvert.DeserializeObject(res.ToString(), type);
+                    case TypeReturning.AsString:
+                        return res;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
 
             if (UtilsCore.IsGeo(type))
             {
@@ -256,14 +271,88 @@ namespace ORM_1_21_
                 }
                
             }
-
-            if (UtilsCore.IsJson(type))
-            {
-                return JsonConvert.DeserializeObject(res.ToString(), type);
-            }
-
-            
             return res;
         }
+
+        public static object MethodFreeIndexAnonymous<T,TC>(ProviderName providerName, Type type, IDataReader reader, int index)
+        {
+            if (reader.IsDBNull(index)) return null;
+            type = UtilsCore.GetCoreType(type);
+            var res = reader.GetValue(index);
+
+
+            if (TypeStorage.ContainsKey(type))
+            {
+                return TypeStorage[type].Invoke(reader, providerName, index);
+            }
+
+
+
+            if (type.BaseType == typeof(Enum))
+            {
+                var o = reader.GetValue(index);
+                return Enum.Parse(type, Convert.ToInt32(o).ToString());
+            }
+            string name = reader.GetName(index);
+            if (AttributesOfClass<TC>.IsJsonName(name))
+            {
+                var t = AttributesOfClass<TC>.IsJsonTypeName(name);
+                switch (t)
+                {
+                    case TypeReturning.AsObject:
+                        return JsonConvert.DeserializeObject(res.ToString(), type);
+                    case TypeReturning.AsString:
+                        return res;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            if (UtilsCore.IsGeo(type))
+            {
+                try
+                {
+                    var o = new GeoObject(res.ToString());
+                    return o;
+                }
+                catch (GeoException)
+                {
+                    return null;
+                }
+
+            }
+            return res;
+        }
+
+        public static object MethodFreeIndexSpotRider(ProviderName providerName, Type type, IDataReader reader, int index)
+        {
+            if (reader.IsDBNull(index)) return null;
+            type = UtilsCore.GetCoreType(type);
+            var res = reader.GetValue(index);
+
+
+            if (TypeStorage.ContainsKey(type))
+            {
+                return TypeStorage[type].Invoke(reader, providerName, index);
+            }
+
+
+
+            if (type.BaseType == typeof(Enum))
+            {
+                var o = reader.GetValue(index);
+                return Enum.Parse(type, Convert.ToInt32(o).ToString());
+            }
+
+
+            
+
+
+
+
+            return res;
+        }
+
+      
     }
 }

@@ -6,9 +6,80 @@ using System.Linq.Expressions;
 
 namespace ORM_1_21_.Linq
 {
- 
+
     internal abstract class ExpressionVisitor
     {
+
+        public Expression VisitUpdateBinary(Expression exp)
+        {
+            if (exp == null)
+                return null;
+            switch (exp.NodeType)
+            {
+                case ExpressionType.Negate:
+                case ExpressionType.NegateChecked:
+                case ExpressionType.Not:
+                case ExpressionType.Convert:
+                case ExpressionType.ConvertChecked:
+                case ExpressionType.ArrayLength:
+                case ExpressionType.Quote:
+                case ExpressionType.TypeAs:
+                    return VisitUnaryUpdate((UnaryExpression)exp);
+                case ExpressionType.Add:
+                case ExpressionType.AddChecked:
+                case ExpressionType.Subtract:
+                case ExpressionType.SubtractChecked:
+                case ExpressionType.Multiply:
+                case ExpressionType.MultiplyChecked:
+                case ExpressionType.Divide:
+                case ExpressionType.Modulo:
+                case ExpressionType.And:
+                case ExpressionType.AndAlso:
+                case ExpressionType.Or:
+                case ExpressionType.OrElse:
+                case ExpressionType.LessThan:
+                case ExpressionType.LessThanOrEqual:
+                case ExpressionType.GreaterThan:
+                case ExpressionType.GreaterThanOrEqual:
+                case ExpressionType.Equal:
+                case ExpressionType.NotEqual:
+                case ExpressionType.Coalesce:
+                case ExpressionType.ArrayIndex:
+                case ExpressionType.RightShift:
+                case ExpressionType.LeftShift:
+                case ExpressionType.ExclusiveOr:
+                    return VisitBinaryUpdate((BinaryExpression)exp);
+                case ExpressionType.TypeIs:
+                    return VisitTypeIs((TypeBinaryExpression)exp);
+                case ExpressionType.Conditional:
+                    return VisitConditional((ConditionalExpression)exp);
+                case ExpressionType.Constant:
+                    return VisitConstantUpdate((ConstantExpression)exp);
+                case ExpressionType.Parameter:
+                    return VisitParameter((ParameterExpression)exp);
+                case ExpressionType.MemberAccess:
+                    return VisitMemberAccessUpdate((MemberExpression)exp);
+                case ExpressionType.Call:
+                    return VisitMethodCallUpdate((MethodCallExpression)exp);
+                case ExpressionType.Lambda:
+                    return VisitLambda((LambdaExpression)exp);
+                case ExpressionType.New:
+                    return VisitNew((NewExpression)exp);
+                case ExpressionType.NewArrayInit:
+                case ExpressionType.NewArrayBounds:
+                    return VisitNewArray((NewArrayExpression)exp);
+                case ExpressionType.Invoke:
+                    return VisitInvocation((InvocationExpression)exp);
+                case ExpressionType.MemberInit:
+                    return VisitMemberInit((MemberInitExpression)exp);
+                case ExpressionType.ListInit:
+                    return VisitListInit((ListInitExpression)exp);
+                default:
+                    throw new Exception(
+                      string.Format(CultureInfo.CurrentCulture, "Unhandled expression type: '{0}'", exp.NodeType));
+            }
+        }
+
         public Expression Visit(Expression exp)
         {
             if (exp == null)
@@ -112,6 +183,13 @@ namespace ORM_1_21_.Linq
             var operand = Visit(unaryExpression.Operand);
             return operand != unaryExpression.Operand ? Expression.MakeUnary(unaryExpression.NodeType, operand, unaryExpression.Type, unaryExpression.Method) : unaryExpression;
         }
+
+
+        protected virtual Expression VisitUnaryUpdate(UnaryExpression unaryExpression)
+        {
+            var operand = Visit(unaryExpression.Operand);
+            return operand != unaryExpression.Operand ? Expression.MakeUnary(unaryExpression.NodeType, operand, unaryExpression.Type, unaryExpression.Method) : unaryExpression;
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -133,6 +211,22 @@ namespace ORM_1_21_.Linq
             return binaryExpression;
         }
 
+        protected virtual Expression VisitBinaryUpdate(BinaryExpression binaryExpression)
+        {
+            var left = VisitUpdateBinary(binaryExpression.Left);
+            var right = VisitUpdateBinary(binaryExpression.Right);
+            var conversion = Visit(binaryExpression.Conversion);
+            if (left != binaryExpression.Left || right != binaryExpression.Right || conversion != binaryExpression.Conversion)
+            {
+                if (binaryExpression.NodeType == ExpressionType.Coalesce)
+                    return Expression.Coalesce(
+                        left, right, conversion as LambdaExpression);
+                return Expression.MakeBinary(
+                    binaryExpression.NodeType, left, right, binaryExpression.IsLiftedToNull, binaryExpression.Method);
+            }
+            return binaryExpression;
+        }
+
         private Expression VisitTypeIs(TypeBinaryExpression binaryExpression)
         {
             var expr = Visit(binaryExpression.Expression);
@@ -144,6 +238,11 @@ namespace ORM_1_21_.Linq
         /// <param name="constantExpression"></param>
         /// <returns></returns>
         protected virtual Expression VisitConstant(ConstantExpression constantExpression)
+        {
+            return constantExpression;
+        }
+
+        protected virtual Expression VisitConstantUpdate(ConstantExpression constantExpression)
         {
             return constantExpression;
         }
@@ -174,7 +273,24 @@ namespace ORM_1_21_.Linq
             var exp = Visit(memberExpression.Expression);
             return exp != memberExpression.Expression ? Expression.MakeMemberAccess(exp, memberExpression.Member) : memberExpression;
         }
-        
+
+        protected virtual Expression VisitMemberAccessUpdate(MemberExpression memberExpression)
+        {
+            var exp = Visit(memberExpression.Expression);
+            return exp != memberExpression.Expression ? Expression.MakeMemberAccess(exp, memberExpression.Member) : memberExpression;
+        }
+
+        protected virtual Expression VisitMethodCallUpdate(MethodCallExpression methodCallExpression)
+        {
+            var obj = Visit(methodCallExpression.Object);
+            IEnumerable<Expression> args = VisitExpressionList(methodCallExpression.Arguments);
+            if (obj != methodCallExpression.Object || args != methodCallExpression.Arguments)
+            {
+                return Expression.Call(obj, methodCallExpression.Method, args);
+            }
+            return methodCallExpression;
+        }
+
         protected virtual Expression VisitMethodCall(MethodCallExpression methodCallExpression)
         {
             var obj = Visit(methodCallExpression.Object);
@@ -264,13 +380,12 @@ namespace ORM_1_21_.Linq
             return original;
         }
 
-        private IEnumerable<ElementInit>
-          VisitElementInitializerList(ReadOnlyCollection<ElementInit> original)
+        private IEnumerable<ElementInit> VisitElementInitializerList(ReadOnlyCollection<ElementInit> original)
         {
             List<ElementInit> list = null;
             for (int i = 0, n = original.Count; i < n; i++)
             {
-                
+
                 var init = VisitElementInitializer(original[i]);
                 if (list != null)
                 {
@@ -314,7 +429,7 @@ namespace ORM_1_21_.Linq
 
         private Expression VisitMemberInit(MemberInitExpression init)
         {
-            
+
             var n = VisitNew(init.NewExpression);
             var bindings = VisitBindingList(init.Bindings);
             if (n != init.NewExpression || bindings != init.Bindings)
@@ -326,7 +441,7 @@ namespace ORM_1_21_.Linq
 
         private Expression VisitListInit(ListInitExpression init)
         {
-            
+
             var n = VisitNew(init.NewExpression);
             var initializer =
               VisitElementInitializerList(init.Initializers);

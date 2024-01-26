@@ -276,7 +276,7 @@ namespace ORM_1_21_.Linq
                             var par = new List<object>();
                             for (var i = 0; i < count; i++)
                             {
-                                var val = Pizdaticus.MethodFreeIndex(_providerName, list[i], dataReader, i);
+                                var val = Pizdaticus.MethodFreeIndex<T>(_providerName, list[i], dataReader, i);
                                 par.Add(val);
                             }
                             var e = ci.Invoke(par.ToArray());
@@ -312,7 +312,7 @@ namespace ORM_1_21_.Linq
                             var par = new List<object>();
                             for (var i = 0; i < count; i++)
                             {
-                                var val = Pizdaticus.MethodFreeIndex(_providerName, ci.GetParameters()[i].ParameterType,
+                                var val = Pizdaticus.MethodFreeIndex<T>(_providerName, ci.GetParameters()[i].ParameterType,
                                     dataReader, i);
                                 par.Add(val);
                             }
@@ -327,7 +327,7 @@ namespace ORM_1_21_.Linq
                              typeof(TS).GetInterface("IEnumerable") != null || typeof(TS).IsGenericTypeDefinition)
                     {
                         while (dataReader.Read())
-                            resDis.Add((TS)Pizdaticus.MethodFreeIndex(_providerName, typeof(TS), dataReader, 0));
+                            resDis.Add((TS)Pizdaticus.MethodFreeIndex<T>(_providerName, typeof(TS), dataReader, 0));
                     }
                     else
                     {
@@ -405,7 +405,7 @@ namespace ORM_1_21_.Linq
                         dataReader = await com.ExecuteReaderAsync();
                         while (dataReader.Read())
                         {
-                            lees.Add(Pizdaticus.MethodFreeIndex(_providerName, typeof(TS), dataReader, 0));
+                            lees.Add(Pizdaticus.MethodFreeIndex<T>(_providerName, typeof(TS), dataReader, 0));
                         }
 
 
@@ -422,7 +422,7 @@ namespace ORM_1_21_.Linq
                         dataReader = await com.ExecuteReaderAsync();
                         while (dataReader.Read())
                         {
-                            lees.Add((TS)Pizdaticus.MethodFreeIndex(_providerName, typeof(TS), dataReader, 0));
+                            lees.Add((TS)Pizdaticus.MethodFreeIndex<T>(_providerName, typeof(TS), dataReader, 0));
                         }
                         var devastatingly1 = Pizdaticus.SingleData(listCore, lees, out var active1);
                         var res = !active1 ? (object)lees : devastatingly1;
@@ -472,7 +472,7 @@ namespace ORM_1_21_.Linq
                     if (PingCompositeE(Evolution.SelectNew, listCore))
                     {
                         var ss = listCore.Single(a => a.Operand == Evolution.SelectNew).NewConstructor;
-                        Pizdaticus.GetListAnonymousObjDistinct(dataReader, ss, resT, _providerName);
+                        Pizdaticus.GetListAnonymousObjDistinct<T>(dataReader, ss, resT, _providerName);
 
                         tk.SetResult(resT);
                         return await tk.Task;
@@ -483,7 +483,7 @@ namespace ORM_1_21_.Linq
                         var resDis = resT;
                         while (dataReader.Read())
                         {
-                            var val = Pizdaticus.MethodFreeIndex(_providerName, sas.TypeReturn, dataReader, 0);
+                            var val = Pizdaticus.MethodFreeIndex<T>(_providerName, sas.TypeReturn, dataReader, 0);
                             resDis.Add(val);
                         }
 
@@ -505,7 +505,7 @@ namespace ORM_1_21_.Linq
                         var ttType = typeof(TS).GenericTypeArguments[0];
                         if (UtilsCore.IsAnonymousType(ttType))
                         {
-                            var lRes = Pizdaticus.GetListAnonymousObj<object>(dataReader, ss, _providerName);
+                            var lRes = Pizdaticus.GetListAnonymousObj<object,T>(dataReader, ss, _providerName);
                             var listNativeInvoke = DbHelp.CastList(lRes);
 
                             var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
@@ -523,7 +523,7 @@ namespace ORM_1_21_.Linq
                     {
                         if (UtilsCore.IsAnonymousType(typeof(TS)))
                         {
-                            var lRes = Pizdaticus.GetListAnonymousObj<TS>(dataReader, ss, _providerName);
+                            var lRes = Pizdaticus.GetListAnonymousObj<TS,T>(dataReader, ss, _providerName);
                             var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
 
                             var res = !isaActive1 ? (object)lRes : dataSing1;

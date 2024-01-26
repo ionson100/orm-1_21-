@@ -22,6 +22,33 @@ namespace ORM_1_21_
     {
         internal static readonly object LockO = new object();
 
+        public static Dictionary<Type, TypeReturning> JsonTypeReturning = new Dictionary<Type, TypeReturning>();
+        public static Dictionary<string, TypeReturning> JsonTypeReturningName = new Dictionary<string, TypeReturning>();
+
+
+        public static TypeReturning? IsJsonTypeName(string name)
+        {
+            if (JsonTypeReturningName.ContainsKey(name))
+            {
+                return JsonTypeReturningName[name];
+            }
+
+            return null;
+
+        }
+
+        public static bool IsJsonName(string name)
+        {
+            var res=JsonTypeReturningName.ContainsKey(name);
+            return res;
+        }
+
+
+        public static bool IsJson(Type type)
+        {
+            return JsonTypeReturning.ContainsKey(type);
+        }
+
         public static Lazy<bool> IsUsageActivatorInner = new Lazy<bool>(() =>
         {
             var t = typeof(T).GetCustomAttribute(typeof(MapUsageActivatorAttribute), false);
@@ -52,6 +79,12 @@ namespace ORM_1_21_
                 ? list.Select(a => new { a.PropertyName, ColumnName = a.GetColumnName(Provider) })
                     .ToDictionary(s => s.PropertyName, d => d.ColumnName)
                 : null;
+        }, LazyThreadSafetyMode.PublicationOnly);
+
+        private static readonly Lazy<Dictionary<string, bool>> ColumnIsJson = new Lazy<Dictionary<string, bool>>(() =>
+        {  Dictionary<string,bool> resDictionary=new Dictionary<string,bool>();
+            AttributeDalList.Value.ToList().ForEach(a => { resDictionary.Add(a.PropertyName, a.IsJson); });
+             return resDictionary;
         }, LazyThreadSafetyMode.PublicationOnly);
 
 
@@ -255,18 +288,28 @@ namespace ORM_1_21_
 
                 if (o6 != null)
                 {
-                    UtilsCore.HashSetJsonType.Add(columnAttribute.PropertyType);
+                    
+                    
                     columnAttribute.IsJson = true;
+                    columnAttribute.TypeReturning = o6.Returning;
+                    if (columnAttribute.PropertyType == typeof(string))
+                    {
+                        throw new Exception(
+                            $"Propery: {columnAttribute.PropertyName} type: {typeof(T)} сannot be a string type, perhaps you wanted to use the Object type");
+                    }
+                    if (columnAttribute.PropertyType != typeof(Object)&& columnAttribute.TypeReturning==TypeReturning.AsString)
+                    {
+                        throw new Exception(
+                            $"I can't return an object of type {columnAttribute.PropertyType} as a string." +
+                            $"for property: {columnAttribute.PropertyName}, type: {typeof(T)}");
+                    }
+                    JsonTypeReturning.Add(columnAttribute.PropertyType, columnAttribute.TypeReturning);
+                    JsonTypeReturningName.Add(columnAttribute.GetColumnNameRaw(),columnAttribute.TypeReturning);
+                    JsonTypeReturningName.Add(columnAttribute.PropertyName, columnAttribute.TypeReturning);
+                    //UtilsCore.JsonTypeReturning.Add(columnAttribute.PropertyType,columnAttribute.TypeReturning);
+                    //UtilsCore.HashSetJsonType.Add(columnAttribute.PropertyType);
+
                 }
-                var o7 = f.GetCustomAttribute<MapGeoSridAttribute>(true);
-                if (o7 != null) columnAttribute.Srid = o7._srid;
-
-
-
-
-
-
-
                 res.Add(columnAttribute);
             }
 
@@ -465,7 +508,7 @@ namespace ORM_1_21_
                         string colName=$"{TableAttribute.Value.TableName(providerName)}.{a.GetColumnName(providerName)}";
                         string asE = UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
                             a.GetColumnName(providerName));
-                        sb.Append($"{UtilsCore.SqlConcat(colName,providerName)} AS {asE}");
+                        sb.Append($"{UtilsCore.SqlConcat(colName,providerName)} AS {asE},");
                         // sb.AppendFormat(" {0}.{1}.STAsText() AS {2},",
                         //     TableAttribute.Value.TableName(providerName),
                         //     a.GetColumnName(providerName),
@@ -511,12 +554,12 @@ namespace ORM_1_21_
                     if (Provider == ORM_1_21_.ProviderName.MsSql)
                     {
                         par.AppendFormat(" {0}.{1} = geometry::STGeomFromText({3}p{2},{4}),", TableAttribute.Value.TableName(Provider),
-                            pra.GetColumnName(Provider), ++i, parName, pra.Srid);
+                            pra.GetColumnName(Provider), ++i, parName, $"{parName}srid{i}");
                     }
                     else
                     {
                         par.AppendFormat(" {0}.{1} = ST_GeomFromText({3}p{2},{4}),", TableAttribute.Value.TableName(Provider),
-                            pra.GetColumnName(Provider), ++i, parName,pra.Srid);
+                            pra.GetColumnName(Provider), ++i, parName, $"{parName}srid{i}");
                     }
                     
                 }
@@ -601,7 +644,7 @@ namespace ORM_1_21_
                    
                 }else if (pra.IsInheritIGeoShape)
                 {
-                    par.AppendFormat(" {0} = ST_GeomFromText({2}p{1},{3}),", pra.GetColumnName(Provider), ++i, parName,pra.Srid);
+                    par.AppendFormat(" {0} = ST_GeomFromText({2}p{1},{3}),", pra.GetColumnName(Provider), ++i, parName,$"{parName}srid{i}");
                 }
                 else
                 {
@@ -618,89 +661,52 @@ namespace ORM_1_21_
             return allSql.Append(sb).ToString();
         }
 
-        public static void CreateUpdateCommandPostgres(IDbCommand command, T item, ProviderName providerName,
-          params AppenderWhere[] whereObjects)
-        {
-            Provider = providerName;
-            var sql = TemplateUpdatePostgres.Value;
-            var parName = UtilsCore.PrefParam(providerName);
-            var i = 0;
-
-            foreach (var pra in AttributeDalList.Value
-                         .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
-            {
-                if (pra.IsNotUpdateInsert) continue;
-                command.AddParameter(string.Format("{1}p{0}", ++i, parName), GetValue.Value[pra.PropertyName](item));
-            }
-
-            var pk = PrimaryKeyAttribute.Value;
-            command.AddParameter(string.Format("{1}p{0}", ++i, parName), GetValue.Value[pk.PropertyName](item));
-
-            if (whereObjects != null && whereObjects.Length > 0)
-            {
-                StringBuilder builder = new StringBuilder(sql);
-                foreach (var o in whereObjects)
-                {
-                    var nameParam = $"{parName}p{++i}";
-                    builder.Append($" AND {o.ColumnName} = {nameParam}");
-                    dynamic d = command.Parameters;
-                    d.AddWithValue(nameParam, o.Value);
-                }
-                command.CommandText = builder.Append(';').ToString();
-            }
-            else
-            {
-                command.CommandText = sql + ";";
-            }
-        }
+       // public static void CreateUpdateCommandPostgres(IDbCommand command, T item, ProviderName providerName,
+       //   params AppenderWhere[] whereObjects)
+       // {
+       //     Provider = providerName;
+       //     var sql = TemplateUpdatePostgres.Value;
+       //     var parName = UtilsCore.PrefParam(providerName);
+       //     var i = 0;
+       //
+       //     foreach (var pra in AttributeDalList.Value
+       //                  .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
+       //     {
+       //         if (pra.IsNotUpdateInsert) continue;
+       //         command.AddParameter(string.Format("{1}p{0}", ++i, parName), GetValue.Value[pra.PropertyName](item));
+       //     }
+       //
+       //     var pk = PrimaryKeyAttribute.Value;
+       //     command.AddParameter(string.Format("{1}p{0}", ++i, parName), GetValue.Value[pk.PropertyName](item));
+       //
+       //     if (whereObjects != null && whereObjects.Length > 0)
+       //     {
+       //         StringBuilder builder = new StringBuilder(sql);
+       //         foreach (var o in whereObjects)
+       //         {
+       //             var nameParam = $"{parName}p{++i}";
+       //             builder.Append($" AND {o.ColumnName} = {nameParam}");
+       //             dynamic d = command.Parameters;
+       //             d.AddWithValue(nameParam, o.Value);
+       //         }
+       //         command.CommandText = builder.Append(';').ToString();
+       //     }
+       //     else
+       //     {
+       //         command.CommandText = sql + ";";
+       //     }
+       // }
 
         public static string CreateCommandLimitForMySql(List<OneComposite> listOne, ProviderName providerName)
         {
             Provider = providerName;
-            var geoList = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(s =>new {s.Body,s.Srid} ).ToArray();
-            var jsonList = new HashSet<string>(listOne.Where(a => a.Operand == Evolution.ListJson).Select(s => s.Body.Trim()));
+           
             var si = SimpleSqlSelect(providerName);
             var sb = new StringBuilder();
             foreach (var oneComposite in listOne.Where(a => a.Operand == Evolution.Update))
             {
-                var ee = UtilsCore.MySplit(oneComposite.Body); // .Trim().Trim(' ',',').Split(',');
-                var eee = ee.ToList().Split(2);
-                foreach (var s in eee)
-                {
-                    
-                    var enumerable = s as string[] ?? s.ToArray();
-                    var col = enumerable.First().Trim();
-                    var par = enumerable.Last().Trim();
-                    var geoCol = geoList.SingleOrDefault(a => a.Body.Trim() == col);
-
-                    if (enumerable.Length>0)
-                    {
-                        if (jsonList.Contains(col))
-                        {
-                            if (Provider == ORM_1_21_.ProviderName.SqLite)
-                            {
-                                 sb.AppendFormat(" {0} = {1},", col, par);
-                            }
-                            else
-                            {
-                                sb.AppendFormat(" {0} = CAST({1} AS JSON),", col, par);
-                            }
-                            
-                        }
-                        else if (geoCol!=null)
-                        {
-                            sb.AppendFormat(" {0} = ST_GeomFromText({1},{2}),", col, par,geoCol.Srid);
-                        }
-                        else
-                        {
-                            sb.AppendFormat(" {0} = {1},", col, par);
-                        }
-                        
-                    }
-                    
-                    
-                    //sb.AppendFormat(" {0} = {1},", enumerable.First(), enumerable.Last());
-                }
+                sb.Append($" {oneComposite.Body} ");
+                
             }
 
             var where = new StringBuilder();
@@ -725,32 +731,12 @@ namespace ORM_1_21_
         {
             Provider = providerName;
             var si = SimpleSqlSelect(providerName);
-            var geoList = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(a =>new {a.Body,a.Srid} ).ToArray();
+           
             
             var r = new StringBuilder();
             foreach (var oneComposite in listOne.Where(a => a.Operand == Evolution.Update))
             {
-                
-                var ee = UtilsCore.MySplit(oneComposite.Body);
-               
-                foreach (var s in ee.Split(2))
-                {
-                    var enumerable = s as string[] ?? s.ToArray();
-                    if (enumerable.Length>0)
-                    {
-                        var geo = geoList.SingleOrDefault(a => a.Body.Trim() == enumerable.First().Trim());
-                        if(geo!=null)
-                        {
-                            r.AppendFormat(" {0} = geometry::STGeomFromText({1},{2}),", enumerable.First(), enumerable.Last(),geo.Srid);
-                        }
-                        else
-                        {
-                            r.AppendFormat(" {0} = {1},", enumerable.First(), enumerable.Last());
-                        }
-                       
-                    }
-                        
-                }
+                r.Append($" {oneComposite.Body} ");
             }
 
             var where = new StringBuilder();
@@ -845,17 +831,18 @@ namespace ORM_1_21_
             SetValue.Value[e.PropertyName](item, valCore);
         }
 
-        public static int GetSrid(string member,  ProviderName providerName)
-        {
-            Provider = providerName;
-            var t=AttributeDalList.Value.Single(a => a.PropertyName == member);
-            return t.Srid;
-        }
+       
 
         public static string GetNameFieldForQuery(string member,  ProviderName providerName)
         {
             Provider = providerName;
             return TableAttribute.Value.TableName(providerName) + "." + ColumnName.Value[member];
+        }
+
+        public static bool GetIsJson(string member, ProviderName providerName)
+        {
+            Provider = providerName;
+            return ColumnIsJson.Value.ContainsKey(member);
         }
 
         public static string GetNameSimpleColumnForQuery(string member, ProviderName providerName)
@@ -924,11 +911,11 @@ namespace ORM_1_21_
                 {
                     if (Provider == ORM_1_21_.ProviderName.MsSql)
                     {
-                        values.AppendFormat("geometry::STGeomFromText({0}{1}{2},{3}),", parName, par, ++i, rtp.Srid);
+                        values.AppendFormat("geometry::STGeomFromText({0}{1}{2},{3}),", parName, par, ++i, $"{parName}srid{i}");
                     }
                     else
                     {
-                        values.AppendFormat("ST_GeomFromText({0}{1}{2}, {3}),", parName, par, ++i,rtp.Srid);
+                        values.AppendFormat("ST_GeomFromText({0}{1}{2}, {3}),", parName, par, ++i, $"{parName}srid{i}");
                     }
                     
                 }

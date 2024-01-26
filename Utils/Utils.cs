@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ORM_1_21_.geo;
+using ORM_1_21_.Linq;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -6,14 +8,12 @@ using System.Data.Common;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using ORM_1_21_.geo;
-using ORM_1_21_.Linq;
 
 namespace ORM_1_21_.Utils
 {
@@ -21,13 +21,15 @@ namespace ORM_1_21_.Utils
     {
         internal const string Bungalo = "____";
 
-       
+
         public static void ErrorAlert()
         {
             throw new Exception("in Sqlite database, spatial operations are not implemented");
         }
 
-        public static HashSet<Type> HashSetJsonType=new HashSet<Type>();
+       
+
+        //public static HashSet<Type> HashSetJsonType = new HashSet<Type>();
 
         public static string SqlConcat(string column, ProviderName provider)
         {
@@ -46,24 +48,10 @@ namespace ORM_1_21_.Utils
             }
         }
 
-        public static string MysqlConcatSrid(string column)
-        {
-            return $" IFNULL(CONCAT('SRID=',ST_SRID({column}),';',ST_AsText({column})),NULL)";
-        }
-
-        public static string MsSqlConcatSrid(string column)
-        {
-            return $" ISNULL(CONCAT('SRID=',{column}.STSrid,';',{column}.STAsText()),NULL)";
-        }
        
-
-        public static bool IsJson(Type type)
-        {
-            return HashSetJsonType.Contains(type);
-        }
         public static bool IsGeo(Type type)
         {
-            if(type==typeof(IGeoShape)||type==typeof(GeoObject)) 
+            if (type == typeof(IGeoShape) || type == typeof(GeoObject))
                 return true;
             return false;
         }
@@ -96,7 +84,7 @@ namespace ORM_1_21_.Utils
 
 
 
-       
+
         public static void SpotRiderFree<T>(this IDataReader reader, ProviderName providerName, T d)
         {
             AttributesOfClass<T>.SpotRiderFree(reader, providerName, d);
@@ -172,6 +160,64 @@ namespace ORM_1_21_.Utils
             if (Hlam.Contains(typeof(T))) return false;
             if (typeof(T).IsGenericType) return false;
             return AttributesOfClass<T>.IsReceiverFreeSqlInner;
+        }
+        private static readonly Dictionary<Type, Func<NewExpression, object>> ConvertorPkDictionaryX =
+         new Dictionary<Type, Func<NewExpression, object>>
+         {
+                {typeof(uint),val=>Expression.Lambda<Func<uint>>(val).Compile()()},
+               {typeof(ulong),val=>Expression.Lambda<Func<ulong>>(val).Compile()()},
+               {typeof(ushort),val=>Expression.Lambda<Func<ushort>>(val).Compile()()},
+               {typeof(bool),val=>Expression.Lambda<Func<bool>>(val).Compile()()},
+               {typeof(byte),val=>Expression.Lambda<Func<byte>>(val).Compile()()},
+               {typeof(char),val=>Expression.Lambda<Func<char>>(val).Compile()()},
+               {typeof(DateTime),val=>Expression.Lambda<Func<DateTime>>(val).Compile()()},
+               {typeof(decimal),val=>Expression.Lambda<Func<decimal>>(val).Compile()()},
+               {typeof(double),val=>Expression.Lambda<Func<double>>(val).Compile()()},
+               {typeof(short),val=>Expression.Lambda<Func<short>>(val).Compile()()},
+               {typeof(int),val=>Expression.Lambda<Func<int>>(val).Compile()()},
+               {typeof(long),val=>Expression.Lambda<Func<long>>(val).Compile()()},
+               {typeof(sbyte),val=>Expression.Lambda<Func<sbyte>>(val).Compile()()},
+               {typeof(float),val=>Expression.Lambda<Func<float>>(val).Compile()()},
+               {typeof(string),val=>Expression.Lambda<Func<string>>(val).Compile()()},
+               {typeof(uint?),val=>Expression.Lambda<Func<uint?>>(val).Compile()()},
+              {typeof(ulong?),val=>Expression.Lambda<Func<ulong?>>(val).Compile()()},
+              {typeof(ushort?),val=>Expression.Lambda<Func<ushort ?>>(val).Compile()()},
+              {typeof(bool?),val=>Expression.Lambda<Func<bool?>>(val).Compile()()},
+              {typeof(byte?),val=>Expression.Lambda<Func<byte ?>>(val).Compile()()},
+              {typeof(char?),val=>Expression.Lambda<Func<char?>>(val).Compile()()},
+              {typeof(DateTime?),val=>Expression.Lambda<Func<DateTime?>>(val).Compile()()},
+              {typeof(decimal?),val=>Expression.Lambda<Func<decimal ?>>(val).Compile()()},
+              {typeof(double?),val=>Expression.Lambda<Func<double?>>(val).Compile()()},
+              {typeof(short?),val=>Expression.Lambda<Func<short ?>>(val).Compile()()},
+              {typeof(int?),val=>Expression.Lambda<Func<int?>>(val).Compile()()},
+              {typeof(long?),val=>Expression.Lambda<Func<long ?>>(val).Compile()()},
+              {typeof(sbyte?),val=>Expression.Lambda<Func<sbyte?>>(val).Compile()()},
+              {typeof(float?),val=>Expression.Lambda<Func<float ?>>(val).Compile()()},
+              {typeof(Guid?),val=>Expression.Lambda<Func<Guid ?>>(val).Compile()()},
+              {typeof(Guid),val=>Expression.Lambda<Func<Guid>>(val).Compile()()},
+              {typeof(Enum),val=>Expression.Lambda<Func<Enum>>(val).Compile()()},
+              {typeof(byte[]),val=>Expression.Lambda<Func<byte[]>>(val).Compile()()}
+
+
+
+
+         };
+
+        public static object CompileNewExpression(NewExpression expression)
+        {
+            if (ConvertorPkDictionaryX.TryGetValue(expression.Type, out Func<NewExpression, object> value))
+                return value.Invoke(expression);
+            throw new Exception("I can't find the type to compile, call the developer");
+        }
+
+        public static bool IsCompile(Type type)
+        {
+            return Hlam.Contains(type);
+        }
+        public static bool IsCompileExpression(NewExpression expression, out object val)
+        {
+            val = CompileNewExpression(expression);
+            return true;
         }
 
         public static bool IsValid<T>()
@@ -284,7 +330,7 @@ namespace ORM_1_21_.Utils
             throw new Exception($"Can't find type to convert primary key {type} {o}");
         }
 
-       
+
 
 
         public static string ClearTrim(string tableName)
@@ -417,15 +463,15 @@ namespace ORM_1_21_.Utils
             switch (type.ToLower().Trim())
             {
                 case "blob":
-                {
-                    if (isPk) return "Guid";
-                    return "byte[]";
-                }
+                    {
+                        if (isPk) return "Guid";
+                        return "byte[]";
+                    }
                 case "text":
-                {
-                    if (isPk) return "Guid";
-                    return "string";
-                }
+                    {
+                        if (isPk) return "Guid";
+                        return "string";
+                    }
                 case "integer": return "int";
                 case "real": return "Int16";
                 case "numeric": return "decimal";
@@ -480,7 +526,7 @@ namespace ORM_1_21_.Utils
                     return ob is string ? new Guid(ob.ToString()) : guid;
 
                 } },
-               
+
             };
         internal static object Convertor(object ob, Type type)
         {
@@ -501,7 +547,7 @@ namespace ORM_1_21_.Utils
             {
                 var message = string.Format(CultureInfo.CurrentCulture, "Can't convert type {0} as {1}",
                     ob.GetType().FullName, type);
-                throw new Exception(message,e);
+                throw new Exception(message, e);
             }
         }
 
@@ -524,7 +570,7 @@ namespace ORM_1_21_.Utils
             TypeDescriptor.AddAttributes(obj, new PersistentAttribute());
         }
 
-      
+
     }
 
 }

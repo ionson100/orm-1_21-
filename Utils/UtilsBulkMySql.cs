@@ -64,8 +64,17 @@ namespace ORM_1_21_.Utils
                 {
                     if (map.IsInheritIGeoShape)
                     {
-                        var geoJson = ((IGeoShape)ob).StAsText();
-                        row.Append($"ST_GeomFromText('{geoJson}', {map.Srid})").Append(';');
+                        if (ob == null)
+                        {
+                            row.Append($"null").Append(';');
+                        }
+                        else
+                        {
+                            var geoJson = ((IGeoShape)ob).StAsText();
+                            var geoSrid = ((IGeoShape)ob).StSrid();
+                            row.Append($"ST_GeomFromText('{geoJson}', {geoSrid})").Append(';');
+                        }
+                        
                     }
                     else
                     {
@@ -138,8 +147,17 @@ namespace ORM_1_21_.Utils
 
                     } else if (map.IsInheritIGeoShape)
                     {
-                        var geoJson = ((IGeoShape)o).StAsText();
-                        row.Append($"ST_GeomFromText('{geoJson}', {map.Srid})").Append(", ");
+                        if (o == null)
+                        {
+                            row.Append($"null").Append(", ");
+                        }
+                        else
+                        {
+                            var geoJson = ((IGeoShape)o).StAsText();
+                            var geoSrid = ((IGeoShape)o).StSrid();
+                            row.Append($"ST_GeomFromText('{geoJson}', {geoSrid})").Append(", ");
+                        }
+                        
                     }
                     else
                     {

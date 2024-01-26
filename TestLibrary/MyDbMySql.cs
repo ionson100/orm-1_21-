@@ -11,7 +11,7 @@ namespace TestLibrary
         public const string Sqlite = "Data Source=mydb.db;Version=3;BinaryGUID=true;";//
         public const string Mysql = "Server=localhost;Database=test;Uid=root;Pwd=12345;";//OldGuids=true;
         public const string Postgesql =
-            "Server=localhost;Port=5432;Database=testorm;User Id=postgres;Password=ion100312873;";
+            "Server=localhost;Port=5432;Database=testorm;User Id=postgres;Password=postgres;";
         //public static string MsSql =
         //    $"Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=" +
         //    $"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "a2.mdf")};Integrated Security=True";

@@ -4,11 +4,9 @@ using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,7 +21,7 @@ namespace ORM_1_21_
     {
         /// <summary>
         /// The IN operator allows you to specify multiple values in a WHERE clause.
-        ///The IN operator is a shorthand for multiple OR conditions.
+        /// The IN operator is a shorthand for multiple OR conditions.
         /// </summary>
         public static IQueryable<T> WhereIn<T,TS>(this IQueryable<T> query, Expression<Func<T, TS>> selector, params TS[] o)
         {
@@ -45,7 +43,7 @@ namespace ORM_1_21_
         /// <summary>
         /// Custom  Select clause
         /// </summary>
-        /// <param name="query"></param>
+        /// <param name="query">Current IQueryable</param>
         /// <param name="sql">Raw query string</param>
         /// <typeparam name="TR">Return Queryable type</typeparam>
         /// <returns></returns>
@@ -53,24 +51,76 @@ namespace ORM_1_21_
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(sql, nameof(sql));
-            var t = Expression.Parameter(query.GetType());
             var sqlE = Expression.Constant(sql);
-          
-
-           
-            var queryE = Expression.Constant(query);
             var mi = typeof(V).GetMethod("SelectSql");
             var miConstructed = mi.MakeGenericMethod(typeof(TR));
             Expression check = Expression.Call(null, miConstructed, sqlE);
             return query.Provider.CreateQuery<TR>(check);
         }
 
-       
+
+        /// <summary>
+        /// Custom  Update clause
+        /// </summary>
+        /// <param name="query">Current IQueryable</param>
+        /// <param name="sql">Raw query string</param>
+        /// <returns></returns>
+        public static int UpdateSql<T>(this IQueryable<T> query, string sql)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(sql, nameof(sql));
+            var sqlE = Expression.Constant(sql);
+            var mi = typeof(V).GetMethod("UpdateSql");
+            Expression check = Expression.Call(null, mi, query.Expression, sqlE);
+            var expressionNodeType = query.Expression.NodeType;
+            return query.Provider.Execute<int>(check);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="selector"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static int UpdateSqlE<T>(this IQueryable<T> query, Expression<Func<T, string>> selector)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(selector, nameof(selector));
+         
+            var mi = typeof(V).GetMethod("UpdateSqlE");
+            Expression check = Expression.Call(null, mi, query.Expression, selector);
+            var expressionNodeType = query.Expression.NodeType;
+            return query.Provider.Execute<int>(check);
+
+           
+        }
+
+        /// <summary>
+        /// Custom  Update clause
+        /// </summary>
+        /// <param name="query">Current IQueryable</param>
+        /// <param name="sql">Raw query string</param>
+        /// <param name="sqlParams">Params query string</param>
+        /// <returns></returns>
+        public static int UpdateSql(this IQueryable query, string sql,params SqlParam[] sqlParams)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(sql, nameof(sql));
+            Check.NotNull(sqlParams, nameof(sqlParams));
+            var sqlE = Expression.Constant(sql);
+            var sqlParamsE = Expression.Constant(sqlParams);
+            var mi = typeof(V).GetMethod("UpdateSqlP");
+            Expression check = Expression.Call(null, mi, sqlE,sqlParamsE);
+            return query.Provider.Execute<int>(check);
+        }
+
+
 
         /// <summary>
         /// Custom  Select clause
         /// </summary>
-        /// <param name="query"></param>
+        /// <param name="query">Current IQueryable</param>
         /// <param name="sql">Raw query string</param>
         /// <param name="sqlParams">Params query string</param>
         /// <typeparam name="TR">Return Queryable type</typeparam>
@@ -488,10 +538,14 @@ namespace ORM_1_21_
         public static int Update<TSource>(this IQueryable<TSource> source,
             Expression<Func<TSource, Dictionary<object, object>>> param) where TSource : class
         {
+            Check.NotNull(source, "source");
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
             { CustomExpression = param, TypeEvolution = Evolution.Update });
             return source.Provider.Execute<int>(source.Expression);
         }
+
+       
+
 
 
         /// <summary>
@@ -1723,5 +1777,34 @@ namespace ORM_1_21_
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+ 
+    public class PairUpdate
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        public object Left { get; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public object Richt { get; }
+
+       
+         /// <summary>
+         /// 
+         /// </summary>
+         /// <param name="left"></param>
+         /// <param name="richt"></param>
+         public PairUpdate(object left, object  richt)
+         {
+             Left = left;
+             Richt = richt;
+         }
+       
     }
 }

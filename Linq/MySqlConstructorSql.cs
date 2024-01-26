@@ -203,8 +203,11 @@ namespace ORM_1_21_.Linq
                                 {
                                     if (providerName == ProviderName.PostgreSql)
                                     {
-                                        sbb.Append(
-                                            $" ST_AsEWKT({AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}) as {i.GetColumnName(_providerName)}, ");
+                                        sbb.Append(UtilsCore.SqlConcat(
+                                            $"{AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}", _providerName));
+                                        sbb.Append($" as {i.GetColumnName(_providerName)}, ");
+                                        // sbb.Append(
+                                        //     $" ST_AsEWKT({AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}) as {i.GetColumnName(_providerName)}, ");
                                     }
                                     else if (providerName == ProviderName.MySql)
                                     {
@@ -216,8 +219,11 @@ namespace ORM_1_21_.Linq
                                     }
                                     else
                                     {
-                                        sbb.Append(
-                                            $" ST_AsText({AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}) as {i.GetColumnName(_providerName)}, ");
+                                        sbb.Append(UtilsCore.SqlConcat(
+                                            $"{AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}", _providerName));
+                                        sbb.Append($" as {i.GetColumnName(_providerName)}, ");
+                                        // sbb.Append(
+                                        //     $" ST_AsText({AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}) as {i.GetColumnName(_providerName)}, ");
                                     }
                                     
                                    

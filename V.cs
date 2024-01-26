@@ -49,6 +49,21 @@ namespace ORM_1_21_
         {
             return queryable;
         }
+
+        public static int UpdateSql(Object query, string sql)
+        {
+            return 0;
+        }
+
+        public static int UpdateSqlE(Object query, object sql)
+        {
+            return 0;
+        }
+
+        public static int UpdateSqlP(string sql, SqlParam[] sqlParams)
+        {
+            return 0;
+        }
         public static IQueryable<T> FromStringP<T>(string sql, SqlParam[] sqlParams, IQueryable<T> queryable)
         {
             return queryable;
@@ -61,69 +76,9 @@ namespace ORM_1_21_
 
 
 
-        public static bool GeoST_Contains(object s, object d,  bool f)
-        {
-            return true;
-        }
-
-        public static bool GeoST_Crosses(object s, object d, bool f)
-        {
-            return true;
-        }
-        public static bool GeoST_Equals(object s, object d, bool f)
-        {
-            return true;
-        }
-        public static bool GeoST_Overlaps(object s, object d, bool f)
-        {
-            return true;
-        }
-        public static bool GeoST_Touches(object s, object d, bool f)
-        {
-            return true;
-        }
         
 
 
-
-        public static bool GeoST_Intersects(object s, object d, bool f)
-        {
-            return true;
-        }
-
-        public static bool GeoST_Disjoint(object s, object d, bool f)
-        {
-            return true;
-        }
-
-        public static bool GeoST_DWithin( object d, object e,int f,bool h)
-        {
-            return true;
-        }
-
-        public static bool GeoST_GeometryType(object o,int t)
-        {
-            return true;
-        }
-        public static bool GeoST_Within(object s,object d, bool f)
-        {
-            return true;
-        }
-
-        public static bool GeoST_IsValid(object e, bool f)
-        {
-            return true;
-        }
-        public static bool GeoST_IsEmpty(object e, bool f)
-        {
-            return true;
-        }
-        
-
-        public static bool GeoST_Area(object o)
-        {
-            return true;
-        }
 
         public string TableCreate()
         {

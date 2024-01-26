@@ -126,7 +126,7 @@ namespace ORM_1_21_.Utils
                         {
                             IGeoShape shape = (IGeoShape)o;
 
-                            string data = $"ST_GeomFromText('{shape.StAsText()}', {map.Srid})";
+                            string data = $"ST_GeomFromText('{shape.StAsText()}', {shape.StSrid()})";
                           
                             row.Append(data).Append(',');
                         }
