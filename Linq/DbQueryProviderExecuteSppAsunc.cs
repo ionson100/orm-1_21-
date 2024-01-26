@@ -94,7 +94,7 @@ namespace ORM_1_21_.Linq
                         {
                             if (count == 1)
                             {
-                                resDis.Add((TS)Pizdaticus.MethodFreeIndex(_providerName,typeof(TS),dataReader,0));
+                                resDis.Add((TS)Pizdaticus.MethodFreeIndex<T>(_providerName,typeof(TS),dataReader,0));
                             }
                             else
                             {

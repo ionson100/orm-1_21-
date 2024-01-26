@@ -12,6 +12,8 @@ namespace ORM_1_21_
     public sealed partial class Configure
     {
 
+       
+
         internal static DbProviderFactory CurFactory;
         //internal static bool UsageCache;
 

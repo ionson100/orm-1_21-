@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -20,7 +21,7 @@ namespace ORM_1_21_.geo
         {
             if (string.IsNullOrWhiteSpace(obj)) throw new GeoException();
           
-            obj= obj.Trim().ToUpper().Replace(Environment.NewLine,string.Empty);
+            obj= obj.Trim().ToUpper().Replace(Environment.NewLine,string.Empty).Replace("  "," ").Replace("\t", string.Empty);
             if(obj.StartsWith("SRID=;")) throw new GeoException();
                
 
@@ -85,9 +86,17 @@ namespace ORM_1_21_.geo
                 _innerStringGeo = builderP.ToString().Trim('(', ' ', ',') + ")";
                 return;
             }
+            
 
 
             _multiGeoShapes = new List<IGeoShape>(geoShapes);
+            if (geoType == GeoType.MultiPoint)
+            {
+                foreach (IGeoShape geoShape in geoShapes)
+                {
+                    ListGeoPoints.Add(geoShape.ListGeoPoints.First());
+                }
+            }
             StringBuilder builder = new StringBuilder($"{type}(");
 
             if (geoType == GeoType.GeometryCollection)
@@ -100,6 +109,7 @@ namespace ORM_1_21_.geo
                 return;
 
             }
+           
             foreach (IGeoShape geoShape in geoShapes)
             {
                 Regex regex = new Regex(@"\((.*)\)");
@@ -131,13 +141,13 @@ namespace ORM_1_21_.geo
 
         public GeoObject(GeoPoint geoPoint)
         {
-            ListGeoPoints = new List<GeoPoint> { geoPoint };
+            //ListGeoPoints = new List<GeoPoint> { geoPoint };
             SetGeoTypePoints(GeoType.Point, new[] { geoPoint.X, geoPoint.Y });
         }
 
         public GeoObject(double latitude, double longitude)
         {
-            ListGeoPoints = new List<GeoPoint> { new GeoPoint { X = latitude, Y = longitude } };
+            //ListGeoPoints = new List<GeoPoint> { new GeoPoint { X = latitude, Y = longitude } };
             SetGeoTypePoints(GeoType.Point, new[] { latitude, longitude });
         }
 
@@ -169,9 +179,10 @@ namespace ORM_1_21_.geo
         public GeoObject(GeoType geoType, params GeoPoint[] points)
         {
             if (geoType == GeoType.PolygonWithHole) throw new Exception("It is forbidden to create a polygon with a hole");
-            ListGeoPoints = new List<GeoPoint>();
+            
             double[] l = new double[points.Length * 2];
             int i = 0;
+
             foreach (GeoPoint doubles in points)
             {
                 ListGeoPoints.Add(new GeoPoint { Y = doubles.Y, X = doubles.X });
@@ -189,7 +200,15 @@ namespace ORM_1_21_.geo
             return this;
         }
 
-        public int Srid { get; set; } = 4326;
+        public int Srid
+        {
+            get => _srid;
+            set
+            {
+                _srid = value;
+                _multiGeoShapes.ForEach(a=>a.SetSrid(value));
+            }
+        }
 
         public GeoType GeoType { get; set; }
 
@@ -261,6 +280,7 @@ namespace ORM_1_21_.geo
                 }
 
                 ListGeoPoints = UtilsGeo.GetListPoint(GeoType, str, _multiGeoShapes);
+               
             }
         }
 
@@ -284,6 +304,7 @@ namespace ORM_1_21_.geo
                     {
                         if (points.Length % 2 != 0)
                             throw new Exception("The number of points defining a line must be even");
+                        ListGeoPoints.Clear();
                         StringBuilder builder = new StringBuilder("LINESTRING(");
                         for (int i = 0; i < points.Length; i += 2)
                         {
@@ -300,6 +321,7 @@ namespace ORM_1_21_.geo
 
                         if (points.Length % 2 != 0)
                             throw new Exception("The number of points defining a line must be even");
+                        ListGeoPoints.Clear();
                         StringBuilder builder = new StringBuilder("POLYGON((");
                         for (int i = 0; i < points.Length; i += 2)
                         {
@@ -313,25 +335,20 @@ namespace ORM_1_21_.geo
                         break;
 
                     }
-
-
-                case GeoType.None:
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
-
                 case GeoType.MultiPoint:
                     {
                         if (points.Length % 2 != 0)
                             throw new Exception("Number of points to be even");
+                        ListGeoPoints.Clear();
                         StringBuilder builder = new StringBuilder("MULTIPOINT(");
                         for (int i = 0; i < points.Length; i += 2)
                         {
                             builder.Append(
                                 $"{points[i].ToString(CultureInfo.InvariantCulture)} {points[i + 1].ToString(CultureInfo.InvariantCulture)}, ");
+                            var gp = new GeoPoint(points[i], points[i + 1]);
+                            ListGeoPoints.Add(gp);
+                            _multiGeoShapes.Add(new GeoObject(GeoType.Point,gp ));
 
-                        }
-                        foreach (GeoPoint geoPoint in ListGeoPoints)
-                        {
-                            _multiGeoShapes.Add(new GeoObject(GeoType.Point, geoPoint));
                         }
                         _innerStringGeo = builder.ToString().Trim(' ', ',') + ")";
                         break;
@@ -352,7 +369,8 @@ namespace ORM_1_21_.geo
                         _innerStringGeo = builder.ToString().Trim(' ', ',') + ")";
                         break;
                     }
-
+                case GeoType.None:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, "Geo type empty");
                 case GeoType.MultiLineString:
                 case GeoType.MultiPolygon:
                 case GeoType.GeometryCollection:
@@ -371,6 +389,8 @@ namespace ORM_1_21_.geo
 
 
         private ISession _session;
+        private int _srid = -1;
+
         public IGeoShape SetSession(ISession session)
         {
             _session = session;
@@ -425,10 +445,10 @@ namespace ORM_1_21_.geo
 
                     case GeoType.MultiPoint:
                         {
-                            var s = new object[_multiGeoShapes.Count];
-                            for (int i = 0; i < _multiGeoShapes.Count; i++)
+                            var s = new object[ListGeoPoints.Count];
+                            for (int i = 0; i < ListGeoPoints.Count; i++)
                             {
-                                s[i] = ((GeoObject)_multiGeoShapes[i]).ArrayCoordinates;
+                                s[i] = ListGeoPoints[i].GeDoubles();
                             }
 
                             return s;
@@ -453,9 +473,7 @@ namespace ORM_1_21_.geo
                             {
                                 s[i] = ((GeoObject)_multiGeoShapes[i]).ArrayCoordinates;
                             }
-
                             return s;
-
                         }
 
 
@@ -494,7 +512,10 @@ namespace ORM_1_21_.geo
             set => throw new NotImplementedException();
         }
 
-
+        public override string ToString()
+        {
+            return $"SRID={Srid};{_innerStringGeo}";
+        }
     }
 
 

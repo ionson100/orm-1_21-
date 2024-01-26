@@ -14,15 +14,15 @@ namespace ORM_1_21_.geo
             switch (type)
             {
                 case GeoType.None:
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+                    throw new ArgumentOutOfRangeException(nameof(type), type, "Geo type empty");
                 case GeoType.Point:
                 {
                     str = str.Replace("POINT", "").Replace(")", "").Replace("(", "");
                     var s = str.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                     list.Add(new GeoPoint { X = double.Parse(s[0], CultureInfo.InvariantCulture), Y = double.Parse(s[1], CultureInfo.InvariantCulture) });
+                    
                     break;
                 }
-
                 case GeoType.LineString:
                 {
                     str = str.Replace("LINESTRING", "").Replace(")", "").Replace("(", "");
@@ -38,7 +38,6 @@ namespace ORM_1_21_.geo
                     }
                     break;
                 }
-
                 case GeoType.CircularString:
                 {
                     str = str.Replace("CIRCULARSTRING", "").Replace(")", "").Replace("(", "");
@@ -54,7 +53,6 @@ namespace ORM_1_21_.geo
                     }
                     break;
                 }
-                
                 case GeoType.MultiPoint:
                 {
                     Regex regex = new Regex(@"\(([^)]+)\)");
@@ -73,7 +71,7 @@ namespace ORM_1_21_.geo
                                 list.Add(sp);
                                 geoShapes.Add(new GeoObject(GeoType.Point,sp));
                             }
-                            //geoShapes.Add(new GeoObject($"POINT({rr})"));
+                            
 
                         }
 
@@ -85,7 +83,6 @@ namespace ORM_1_21_.geo
                     break;
                         
                 }
-                
                 case GeoType.Polygon:
                 {
                     str = str.Replace("POLYGON", "").Replace(")", "").Replace("(", "");
@@ -101,7 +98,6 @@ namespace ORM_1_21_.geo
                     }
                     break;
                 }
-                
                 case GeoType.MultiLineString:
                 {
                     //str = str.Trim("MULTILINESTRING ()".ToCharArray());
@@ -124,7 +120,6 @@ namespace ORM_1_21_.geo
                     }
                     break;
                 }
-                
                 case GeoType.MultiPolygon:
                 {
                     //str = str.Trim("MULTILINESTRING ()".ToCharArray());
@@ -147,7 +142,6 @@ namespace ORM_1_21_.geo
                     }
                     break;
                 }
-
                 case GeoType.PolygonWithHole:
                 {
                     //str = str.Trim("MULTILINESTRING ()".ToCharArray());
@@ -170,7 +164,6 @@ namespace ORM_1_21_.geo
                     }
                     break;
                 }
-
                 case GeoType.GeometryCollection:
                 {
                     

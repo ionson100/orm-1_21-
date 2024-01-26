@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using TestLibrary;
 
 //DESKTOP - GTR4O03
@@ -16,7 +17,7 @@ namespace TestPostgres
         {
             return "number";
         }
-        private static ProviderName ProviderNamee = ORM_1_21_.ProviderName.SqLite;
+        private static ProviderName ProviderNamee = ORM_1_21_.ProviderName.PostgreSql;
 
         static async Task Main(string[] args)
         {
@@ -43,21 +44,22 @@ namespace TestPostgres
             //  Execute.RunThread();
             //  //Console.ReadKey();
             //  Console.ReadKey();
-            //Execute.TotalTest();
-            //Execute.TestNativeInsert();
-            //Execute.TestAssignetInsert();
-            //Execute2.TestTimeStamp();
-            //await Execute3.TotalTestAsync();
+            Execute.TotalTest();
+            Execute.TestNativeInsert();
+            Execute.TestAssignetInsert();
+            Execute2.TestTimeStamp();
+            await Execute3.TotalTestAsync();
             //await ExecuteLinqAll.Run();
-            //ExecutePrimaryKey.Run();
-            //await ExecuteFree.Run();
-            //await ExecuteSp.Run();
-            //TestCapacity.Run();
-            //await TestSelector.Run();
-            //InsertUpdate.Run();
-            //await ExecAdd.Run();
-            
+           // ExecutePrimaryKey.Run();
+           // await ExecuteFree.Run();
+           // await ExecuteSp.Run();
+           // TestCapacity.Run();
+           // await TestSelector.Run();
+           // InsertUpdate.Run();
+           // await ExecAdd.Run();
+            //
             ExeGeo.Run();
+            await ExeGeo.RunAsync();
             Console.WriteLine("finish");
             Console.ReadKey();
 
@@ -68,124 +70,55 @@ namespace TestPostgres
 
             ISession session = Configure.Session;
             {
-                var tt = new { s = "number" };
-                var ee = session.Query<Order1>().SelectSql<int>("number").ToList();
-                var e2e = session.Query<Order1>().SelectSql<int>("number", new SqlParam("@1", "23")).ToList();
+                session.DropTableIfExists<JPosS>();
+                session.TableCreate<JPosS>();
+                JPosS o = new JPosS();
+                o.Name = "as";
+                o.Ion100 = JsonConvert.SerializeObject(new Ion100 { Age = 100, Name = "100" });
+                session.InsertBulk(new List<JPosS>(){o});
+               session.Query<JPosS>().Update(a => new Dictionary<object, object>
+               {
+                   { a.Ion100, new Ion100() }
+               });
+                List<JPosS> list = session.Query<JPosS>().ToList();
+                var ssas = list[0].Ion100;
+                if (ssas == null)
+                {
 
+                }
+                var res = session.Query<JPosS>().WhereSql("ion100 @> '{\"Age\":100}'").Select(a => a.Ion100).ToList();
+                var res2 = session.Query<JPosS>().WhereSql("ion100 @> '{\"Age\":100}'").ToList();
+                //var type = res2[0].Ion100.GetType();
+                //dynamic ss =((dynamic) res2[0].Ion100).Age;
+                //
+                //string sql = $"select {session.StarSql<JPosS>()} from {session.TableName<JPosS>()}";
+                //list = session.FreeSql<JPosS>(sql).ToList();
+                //var sas = ((Newtonsoft.Json.Linq.JObject) res2[0].Ion100).ToObject(typeof(dynamic));
+                using (var ses = Configure.GetSession<MyDbMySql>())
+                {
+                    ses.DropTableIfExists<JsonMysql>();
+                    ses.TableCreate<JsonMysql>();
+                    
 
-
-
+                }
             }
 
         }
 
-
-        [MapTable("Order")]
-        public class Order1
+        [MapTable("jsonTest")]
+        public class JsonMysql
         {
-            [MapPrimaryKey("id", Generator.Assigned)]public Guid Id { get; set; } = System.Guid.NewGuid();
-            
-            [MapColumn("number")] public int Number { get; set; }
-            // [MapColumn] public byte[] Bytes { get; set; } = { 1, 2 };
-           [MapColumn] public string Text { get; set; } = "рвыроврывор";
-           //[MapColumn] public int CustomerId { get; set; }
-           //
-           //[MapColumn] public int? IntNull { get; set; }
-           //
-           //
-           //
-           //[MapColumn] public long Long { get; set; } = 33;
-           //[MapColumn] public long? LongNull { get; set; }
-           //
-           //[MapColumn] public short Short { get; set; } = 33;
-           //[MapColumn] public short? ShortNull { get; set; }
-           //
-           //[MapColumn] public decimal Decimal { get; set; } = 33;
-           //[MapColumn] public decimal? DecimalNull { get; set; }
-           //
-           //[MapColumn] public float Float { get; set; } = 33;
-           //[MapColumn] public float? FloatNull { get; set; }
-           //
-           //[MapColumn] public char Char { get; set; } = '1';
-           //[MapColumn] public char? CharNull { get; set; }
-           ///
-           ///
-           //[MapColumn] public bool Bool { get; set; }
-           //[MapColumn] public bool? BoolNull { get; set; }
-           //
-           //[MapColumn] public byte Byte { get; set; } = 33;
-           //[MapColumn] public byte? ByteNull { get; set; }
+            [MapPrimaryKey("id", Generator.Assigned)]
+            public Guid Id { get; set; } = Guid.NewGuid();
+            //[MapIndex]
+            [MapColumn("ion100")]
+            [MapColumnTypeJson(TypeReturning.AsObject)]
+            public object Ion100 { get; set; }
 
-
-
-           // [MapColumn] public Guid Guid { get; set; } = System.Guid.NewGuid();
-           // [MapColumn] public Guid? GuidNull { get; set; }
-           //
-           [MapColumn] public DateTime? Date { get; set; } = DateTime.Now;
-           // [MapColumn] public DateTime? DateNull { get; set; }
-           //
-           //
-           //
-           //[MapColumn] public double? DoubleNull { get; set; }
-           //[MapColumn] public double Double { get; set; }
-
+            [MapColumn]
+            public string Name { get; set; } = "name";
         }
 
-        class OrderFree
-        {
-
-            public Guid id { get; set; }
-
-            public int number { get; set; }
-
-            public string Text { get; set; }
-
-            public int CustomerId { get; set; }
-
-            public int? IntNull { get; set; }
-
-            public long Long { get; set; }
-
-            public long? LongNull { get; set; }
-
-            public Int16 Short { get; set; }
-
-            public Int16? ShortNull { get; set; }
-
-            public decimal? Decimal { get; set; }
-
-            public decimal? DecimalNull { get; set; }
-
-            public Int16 Float { get; set; }
-
-            public Int16? FloatNull { get; set; }
-
-            public char Char { get; set; }
-
-            public char? CharNull { get; set; }
-
-            public bool? Bool { get; set; }
-
-            public bool? BoolNull { get; set; }
-
-            public bool Byte { get; set; }
-
-            public bool? ByteNull { get; set; }
-
-            public byte[] Bytes { get; set; }
-
-            public Guid Guid { get; set; }
-
-            public Guid? GuidNull { get; set; }
-
-            public DateTime Date { get; set; }
-
-            public DateTime? DateNull { get; set; }
-
-            public double Double { get; set; }
-
-            public double? DoubleNull { get; set; }
-        }
 
 
 

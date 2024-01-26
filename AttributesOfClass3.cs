@@ -1,14 +1,13 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using ORM_1_21_.geo;
+using ORM_1_21_.Utils;
+using System;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using ORM_1_21_.geo;
-using ORM_1_21_.Utils;
 
 namespace ORM_1_21_
 {
@@ -25,16 +24,18 @@ namespace ORM_1_21_
                 {
                     if (Provider == ORM_1_21_.ProviderName.MsSql)
                     {
-                        sb.Append($"{UtilsCore.SqlConcat(baseAttribute.GetColumnName(Provider),Provider)} as {baseAttribute.GetColumnName(Provider)}, ");
+                        sb.Append($"{UtilsCore.SqlConcat(baseAttribute.GetColumnName(Provider), Provider)} as {baseAttribute.GetColumnName(Provider)}, ");
                         //sb.Append($"{baseAttribute.GetColumnName(Provider)}.STAsText() as {baseAttribute.GetColumnName(Provider)}, ");
                     }
                     else if (Provider == ORM_1_21_.ProviderName.PostgreSql)
                     {
-                        sb.Append($"ST_AsEWKT({baseAttribute.GetColumnName(Provider)}) as {baseAttribute.GetColumnName(Provider)}, ");
+                        sb.Append(UtilsCore.SqlConcat(baseAttribute.GetColumnName(Provider), Provider));
+                        sb.Append($" as {baseAttribute.GetColumnName(Provider)}, ");
+                        //sb.Append($"ST_AsEWKT({baseAttribute.GetColumnName(Provider)}) as {baseAttribute.GetColumnName(Provider)}, ");
                     }
                     else if (Provider == ORM_1_21_.ProviderName.MySql)
                     {
-                        sb.Append(UtilsCore.SqlConcat(baseAttribute.GetColumnName(Provider),Provider));
+                        sb.Append(UtilsCore.SqlConcat(baseAttribute.GetColumnName(Provider), Provider));
                         sb.Append($" as {baseAttribute.GetColumnName(Provider)}, ");
                     }
                     else
@@ -42,13 +43,13 @@ namespace ORM_1_21_
                         sb.Append($"ST_AsText({baseAttribute.GetColumnName(Provider)}) as {baseAttribute.GetColumnName(Provider)}, ");
 
                     }
-                    
+
                 }
                 else
                 {
                     sb.Append($"{baseAttribute.GetColumnName(Provider)}, ");
                 }
-                
+
             }
 
             return sb.ToString().Trim(' ', ',');
@@ -65,40 +66,61 @@ namespace ORM_1_21_
 
             for (int i = 0; i < list.Count; i++)
             {
-                var valCore = Pizdaticus.MethodFreeIndex(name, list[i].PropertyType, reader, i);
+                var valCore = Pizdaticus.MethodFreeIndexSpotRider(name, list[i].PropertyType, reader, i);
+
                 if (list[i].IsJson)
                 {
                     if (valCore == null)
                     {
                         SetValueE(name, list[i].PropertyName, d, null);
-                    }else if ( valCore is string)
-                    {
-                        var dd = JsonConvert.DeserializeObject(valCore.ToString(), list[i].PropertyType);
-                        SetValueE(name, list[i].PropertyName, d, dd);
                     }
-                    else 
+                    else if (valCore is string)
+                    {
+                        if (list[i].TypeReturning == TypeReturning.AsString)
+                        {
+                            SetValueE(name, list[i].PropertyName, d, valCore);
+                        }
+                        else
+                        {
+                            var dd = JsonConvert.DeserializeObject(valCore.ToString(), list[i].PropertyType);
+                            SetValueE(name, list[i].PropertyName, d, dd);
+                        }
+
+                    }
+                    else
                     {
                         SetValueE(name, list[i].PropertyName, d, valCore);
                     }
-                    
+
 
                 }
                 else if (list[i].IsInheritIGeoShape)// todo geo
                 {
-                   
-                    if (valCore is string)
-                    { 
-                        SetValueE(name, list[i].PropertyName, d,FactoryGeo.CreateGeo(valCore.ToString()));
+                    if (valCore == null)
+                    {
+                        SetValueE(name, list[i].PropertyName, d, null);
+                    }
+                    else if (valCore is string)
+                    {
+                        try
+                        {
+                            SetValueE(name, list[i].PropertyName, d, FactoryGeo.CreateGeo(valCore.ToString()));
+                        }
+                        catch (GeoException)
+                        {
+                            SetValueE(name, list[i].PropertyName, d, null);
+                        }
+
                     }
                     else
                     {
-                        SetValueE(name, list[i].PropertyName, d,valCore);
+                        SetValueE(name, list[i].PropertyName, d, valCore);
                     }
-                   
+
                 }
                 else
                 {
-                    
+
                     SetValueE(name, list[i].PropertyName, d, valCore);
                 }
 
@@ -127,7 +149,7 @@ namespace ORM_1_21_
                 var n = reader.GetName(i);
                 var s = list.FirstOrDefault(a => a.ColumnNameAlias == n || a.GetColumnNameRaw() == n);
                 if (s == null) continue;
-                var resCore = Pizdaticus.MethodFreeIndex(name, s.PropertyType, reader, i);
+                var resCore = Pizdaticus.MethodFreeIndex<T>(name, s.PropertyType, reader, i);
                 SetValueE(name, s.PropertyName, d, resCore);
             }
 

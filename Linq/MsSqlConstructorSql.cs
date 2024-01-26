@@ -94,30 +94,10 @@ namespace ORM_1_21_.Linq
 
                 if (PingComposite(Evolution.Select))
                 {
-                    var geoList = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(a => a.Body.Trim());
-                    var enumerable = geoList as string[] ?? geoList.ToArray();
-                    var val = listOne.First(a => a.Operand == Evolution.Select).Body.Trim();
-                   
-                    if (enumerable.Any() )
-                    {
-                        HashSet<string> hashSet = new HashSet<string>();
-                        foreach (string s in enumerable)
-                        {
-                            if (hashSet.Contains(s) == false)
-                            {
-                                val = val.Replace(s, $" {UtilsCore.SqlConcat(s, providerName)} ");
-                                //val= val.Replace(s, $"{s}.STAsText()");
-                                hashSet.Add(s);
-                            }
-                        }
-                        sbb.Append(val);
-
-                    }
-                    else
-                    {
-                        sbb.Append(val);
-                    } 
                     
+                    var val = listOne.First(a => a.Operand == Evolution.Select).Body.Trim();
+                    sbb.Append(val);
+
                 }
                 else
                 {

@@ -1,4 +1,6 @@
-﻿using ORM_1_21_.geo;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using ORM_1_21_.geo;
 using ORM_1_21_.Utils;
 using System;
 using System.Collections;
@@ -9,12 +11,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace ORM_1_21_.Linq
 {
-    
+
     internal sealed partial class QueryTranslator<T> : ExpressionVisitor, ITranslate
     {
         //private bool isAddPost=false;
@@ -65,7 +65,147 @@ namespace ORM_1_21_.Linq
 
         public void Translate(Expression expression, Evolution ev, List<object> paramList)
         {
+
             CurrentEvolution = ev;
+            if (ev == Evolution.Update)
+            {
+
+
+                {
+                    StringB.Clear();
+                    if (expression is LambdaExpression l)
+                    {
+                        if (l.Body is ListInitExpression list)
+                        {
+                            //UnaryExpression
+                            //ST_GeomFromText(@p1,@srid1)
+                            var listNewExpression = list.Initializers;
+                            foreach (ElementInit elementInit in listNewExpression)
+                            {
+                                Visit(elementInit.Arguments[0]);
+                                StringB.Append(" = ");
+                                //object param = null;
+                                //var param = Osman(elementInit);
+
+
+                                var typeProperty = elementInit.Arguments[0].Type;
+                                string name = null;
+                                var v = elementInit.Arguments[0] as MemberExpression;
+                                if (v != null)
+                                {
+                                    name = v.Member.Name;
+
+                                }
+                                else
+                                {
+                                    if (elementInit.Arguments[0] is UnaryExpression ss)
+                                    {
+                                        var ee = ss.Operand as MemberExpression;
+                                        name = ee.Member.Name;
+                                    }
+                                }
+
+
+
+                                if (elementInit.Arguments[0] is UnaryExpression member)
+                                {
+                                    typeProperty = member.Operand.Type;
+                                }
+                                if (UtilsCore.IsGeo(typeProperty))
+                                {
+                                    var param = Osman(elementInit);
+                                    if (param == null)
+                                    {
+                                        StringB.Append(" null, ");
+                                    }
+                                    else
+                                    {
+                                        IGeoShape shape = (IGeoShape)param;
+                                        if (_providerName == ProviderName.MsSql)
+                                        {
+
+
+                                            StringB.Append("geometry::STGeomFromText(");
+                                            AddParameter(shape.StAsText());
+                                            StringB.Append(',');
+                                            AddParameter(shape.StSrid());
+                                            StringB.Append("), ");
+
+                                        }
+                                        else
+                                        {
+                                            StringB.Append("ST_GeomFromText(");
+                                            AddParameter(shape.StAsText());
+                                            StringB.Append(',');
+                                            AddParameter(shape.StSrid());
+                                            StringB.Append("), ");
+                                        }
+                                    }
+
+                                }
+                                else if (AttributesOfClass<T>.IsJsonName(name))
+                                {
+                                    var param = Osman(elementInit);
+                                    if (param == null)
+                                    {
+                                        StringB.Append(" null, ");
+                                    }
+                                    else
+                                    {
+                                        if (_providerName == ProviderName.MsSql || _providerName == ProviderName.SqLite)
+                                        {
+                                            AddParameter(JsonConvert.SerializeObject(param));
+                                        }
+                                        else
+                                        {
+                                            StringB.Append("CAST(");
+                                            if (param is string p)
+                                            {
+                                                AddParameter(p);
+                                            }
+                                            else
+                                            {
+                                                AddParameter(JsonConvert.SerializeObject(param));
+                                            }
+
+                                            StringB.Append(" as JSON), ");
+
+                                        }
+                                    }
+
+
+                                }
+                                else
+                                {
+                                    Visit(elementInit.Arguments[1]);
+                                    StringB.Append(", ");
+                                }
+
+
+
+                            }
+
+                            string aa = StringB.ToString();
+                            //;
+                        }
+
+
+
+                    }
+                    AddListOne(new OneComposite { Operand = Evolution.Update, Body = StringB.ToString().Trim(',', ' ') });
+                    StringB.Clear();
+                }
+
+
+
+                // Visit(expression);
+                // AddListOne(new OneComposite { Operand = Evolution.Update, Body = StringB.ToString() });
+                // StringB.Length = 0;
+                // CurrentEvolution = Evolution.None;
+                return;
+
+            }
+
             Visit(expression);
 
             if (ev == Evolution.Between)
@@ -74,7 +214,7 @@ namespace ORM_1_21_.Linq
                 Visit((Expression)paramList[0]);
                 StringB.Append(" AND ");
                 Visit((Expression)paramList[1]);
-               
+
                 AddListOne(new OneComposite { Operand = Evolution.Where, Body = StringB.ToString() });
             }
 
@@ -124,19 +264,39 @@ namespace ORM_1_21_.Linq
                             throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
                     }
 
-            if (ev == Evolution.Update)
-                AddListOne(new OneComposite { Operand = Evolution.Update, Body = StringB.ToString() });
 
-           
+
+
             StringB.Length = 0;
+        }
+
+        private static object Osman(ElementInit elementInit)
+        {
+
+            var type = elementInit.Arguments[1].NodeType;
+            if (type != ExpressionType.Constant)
+            {
+                return Expression.Lambda(elementInit.Arguments[1]).Compile().DynamicInvoke();
+            }
+            else
+            {
+                if (elementInit.Arguments[1] is ConstantExpression d)
+                {
+                    return d.Value;
+                }
+            }
+
+            throw new Exception("osman");
+
+
         }
 
         public void Translate(Expression expression)
         {
             Visit(expression);
-            
+
         }
-        
+
 
 
         public List<OneComposite> GetListOne()
@@ -184,17 +344,19 @@ namespace ORM_1_21_.Linq
 
         private string GetColumnName(string member)
         {
-            
-            var ss = AttributesOfClass<T>.GetNameFieldForQuery(member,  _providerName);
+
+            var ss = AttributesOfClass<T>.GetNameFieldForQuery(member, _providerName);
             return ss;
         }
 
-        public int GetSrid(string member)
+        private bool GetIsJson(string member)
         {
-            var ss = AttributesOfClass<T>.GetSrid(member,  _providerName);
+            var ss = AttributesOfClass<T>.GetIsJson(member, _providerName);
             return ss;
         }
-       
+
+
+
 
         private static Expression StripQuotes(Expression e)
         {
@@ -202,17 +364,30 @@ namespace ORM_1_21_.Linq
             return e;
         }
 
+        protected override Expression VisitMethodCallUpdate(MethodCallExpression methodCallExpression)
+        {
+            var obj = Visit(methodCallExpression.Object);
+            IEnumerable<Expression> args = VisitExpressionList(methodCallExpression.Arguments);
+            if (obj != methodCallExpression.Object || args != methodCallExpression.Arguments)
+            {
+                return Expression.Call(obj, methodCallExpression.Method, args);
+            }
+            return methodCallExpression;
+        }
+
 
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
 
-            if (GeoMethodCallExpression(m) == true) return m;
-           
-           
-          
-           
 
-           
+            if (GeoMethodCallExpression(m) == true) return m;
+
+
+
+
+
+
+
 
             if (m.Method.DeclaringType == typeof(V)
                 && m.Method.Name == "FreeSql")
@@ -418,7 +593,7 @@ namespace ORM_1_21_.Linq
                     return BindSelectMany(m, m.Arguments[0], GetLambda(m.Arguments[1]), GetLambda(m.Arguments[2]));
             }
 
-           
+
 
 
             if (m.Method.DeclaringType == typeof(DateTime))
@@ -1509,12 +1684,12 @@ namespace ORM_1_21_.Linq
             if (m.Method.Name == "FromString")
             {
                 var u = m.Arguments[0] as ConstantExpression;
-                var o = new OneComposite { Operand = Evolution.FromString,Body = u.Value.ToString()};
+                var o = new OneComposite { Operand = Evolution.FromString, Body = u.Value.ToString() };
                 AddListOne(o);
                 StringB.Length = 0;
                 return m;
             }
-           
+
             if (m.Method.Name == "FromStringP")
             {
                 var u = m.Arguments[0] as ConstantExpression;
@@ -1539,9 +1714,130 @@ namespace ORM_1_21_.Linq
                 return m;
             }
 
+            if (m.Method.Name == "UpdateSql")
+            {
+                Visit(m.Arguments[0]);
+                var sas = m.Arguments[1] as ConstantExpression;
+                var o = new OneComposite { Operand = Evolution.Update, Body = sas.Value.ToString() };
+                AddListOne(o);
+
+                return m;
+            }
+
+            if (m.Method.Name == "UpdateSqlE")
+            {
+                Visit(m.Arguments[0]);
+                var ass = StringB.Length = 0;
+                var sl = m.Arguments[1] as LambdaExpression;
+                var ss = sl.Body.NodeType;
+
+                switch (sl.Body.NodeType)
+                {
+                    case ExpressionType.Constant:
+                        {
+                            if (sl.Body is ConstantExpression bE)
+                            {
+
+                                var o = new OneComposite { Operand = Evolution.Update, Body = bE.Value.ToString() };
+                                AddListOne(o);
+
+                            }
+
+
+                            break;
+
+                        }
+                    case ExpressionType.Call:
+                        {
+                            if (sl.Body is MethodCallExpression mCall)
+                            {
+                                var name = mCall.Method.Name;
+                                if (name == "Format")
+                                {
+                                    var p = mCall.Arguments[0] as ConstantExpression;
+                                    List<string> list = new List<string>();
+                                    for (var i = 0; i < mCall.Arguments.Count; i++)
+                                    {
+                                        if (i == 0) continue;
+                                        VisitUpdateBinary(mCall.Arguments[i]);
+                                        list.Add(StringB.ToString().Trim());
+                                        StringB.Clear();
+
+                                    }
+
+
+                                    string sBody = string.Format((string)p.Value, list.ToArray());
+                                    var ao = new OneComposite { Operand = Evolution.Update, Body = sBody };
+                                    AddListOne(ao);
+                                    return m;
+                                }
+                                else
+                                {
+                                    object result = Expression.Lambda(mCall).Compile().DynamicInvoke();
+                                    var ao = new OneComposite { Operand = Evolution.Update, Body = result.ToString() };
+                                    AddListOne(ao);
+                                    return m;
+                                }
+                            }
+
+
+                            break;
+                        }
+                    case ExpressionType.Add:
+                        {
+                            if (sl.Body is BinaryExpression bE)
+                            {
+
+                                VisitUpdateBinary(bE.Left);
+                                VisitUpdateBinary(bE.Right);
+
+                            }
+
+                            var o = new OneComposite { Operand = Evolution.Update, Body = StringB.ToString().ToString() };
+                            AddListOne(o);
+                            break;
+                        }
+                    default:
+                        {
+
+                            throw new Exception(
+                            string.Format(CultureInfo.CurrentCulture, "Unhandled expression type: '{0}'", sl.Body.NodeType));
+
+                        }
+
+
+                }
+
+
+
+
+
+
+
+
+                StringB.Clear();
+
+                return m;
+            }
+
+            if (m.Method.Name == "UpdateSqlP")
+            {
+                Visit(m.Arguments[0]);
+                var sas = m.Arguments[1] as ConstantExpression;
+                var o = new OneComposite { Operand = Evolution.Update, Body = sas.Value.ToString() };
+                var p = m.Arguments[2] as ConstantExpression;
+                var pv = (SqlParam[])p.Value;
+                foreach (SqlParam param in pv)
+                {
+                    Param.Add(param.Name, param.Value);
+                }
+                AddListOne(o);
+                return m;
+            }
+
             if (m.Method.Name == "SelectSqlP")
             {
-                var sql =  m.Arguments[0] as ConstantExpression;
+                var sql = m.Arguments[0] as ConstantExpression;
                 var param = m.Arguments[1] as ConstantExpression;
                 var o = new OneComposite { Operand = Evolution.Select, Body = sql.Value.ToString() };
                 AddListOne(o);
@@ -1556,12 +1852,12 @@ namespace ORM_1_21_.Linq
             if (m.Method.Name == "WhereString")
             {
                 var t = m.Arguments[0] as ConstantExpression;
-                var v=t.Value;
+                var v = t.Value;
                 StringB.Append(v);
-              
+
                 return m;
             }
-           
+
             if (m.Method.Name == "WhereStringP")
             {
                 var t = m.Arguments[0] as ConstantExpression;
@@ -1574,11 +1870,11 @@ namespace ORM_1_21_.Linq
                 {
                     Param.Add(param.Name, param.Value);
                 }
-               
+
 
                 return m;
             }
-           
+
             if (m.Method.Name == "WhereIn")
             {
 
@@ -1617,11 +1913,11 @@ namespace ORM_1_21_.Linq
                     }
                 }
 
-                var str = StringB.ToString().TrimEnd(',',' ');
+                var str = StringB.ToString().TrimEnd(',', ' ');
                 StringB.Clear().Append(str).Append("))");
                 return m;
             }
-           
+
             if (m.Method.Name == "WhereNotIn")
             {
                 StringB.Append('(');
@@ -1647,7 +1943,7 @@ namespace ORM_1_21_.Linq
                         {
                             StringB.Append((int)o1).Append(", ");
                         }
-                        else if (typeCore==typeof(Guid)|| typeCore == typeof(Guid?))
+                        else if (typeCore == typeof(Guid) || typeCore == typeof(Guid?))
                         {
                             StringB.Append($"'{o1}'").Append(", ");
                         }
@@ -1662,13 +1958,13 @@ namespace ORM_1_21_.Linq
                 var str = StringB.ToString().TrimEnd(',', ' ');
                 StringB.Clear().Append(str).Append("))");
                 return m;
-                
+
             }
-           
-           
-          
-          
-            
+
+
+
+
+
             if (m.Method.DeclaringType == typeof(Queryable))
             {
                 switch (m.Method.Name)
@@ -1676,8 +1972,6 @@ namespace ORM_1_21_.Linq
                     case "Join":
                     case "GroupJoin":
                     case "Concat":
-                    //case "Cast":
-                    //case "Select":
                     case "SelectMany":
                     case "Aggregate":
                     case "GroupBy":
@@ -1759,17 +2053,20 @@ namespace ORM_1_21_.Linq
                 && m.Method.Name == "Select")
             {
                 var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-                _currentMethodSelect = "Select"; 
-                
+                _currentMethodSelect = "Select";
+
                 Visit(m.Arguments[0]);
-               
+
                 AddPostExpression(Evolution.Select, m);
-                
+
 
                 Visit(lambda.Body);
-               
-                var o = new OneComposite { Operand = Evolution.Select, 
-                    Body = StringB.ToString().Trim(' ', ',') };
+
+                var o = new OneComposite
+                {
+                    Operand = Evolution.Select,
+                    Body = StringB.ToString().Trim(' ', ',')
+                };
                 if (!string.IsNullOrEmpty(StringB.ToString())) AddListOne(o);
                 StringB.Length = 0;
                 _currentMethodSelect = null;
@@ -2127,20 +2424,13 @@ namespace ORM_1_21_.Linq
                         return m;
                     }
 
-                   
-
-
-
-
-
-
-
-
-
-
-
-
                     _currentMethodType = null;
+                    if (CurrentEvolution == Evolution.Update)
+                    {
+                        object result = Expression.Lambda(m).Compile().DynamicInvoke();
+                        AddParameter(result);
+                    }
+
                     return m;
                 }
 
@@ -2164,15 +2454,10 @@ namespace ORM_1_21_.Linq
                     return m;
                 }
 
-           
-
-               
-
-
                 var la = new List<object>();
                 foreach (var i in m.Arguments)
                     if (i.GetType().GetProperty("Value") ==
-                        null) //System.Linq.Expressions.InstanceMethodCallExpressionN
+                        null)
                     {
                         var value = Expression.Lambda<Func<object>>(i).Compile()();
                         la.Add(value);
@@ -2196,6 +2481,31 @@ namespace ORM_1_21_.Linq
             while (e.NodeType == ExpressionType.Quote) e = ((UnaryExpression)e).Operand;
             if (e.NodeType == ExpressionType.Constant) return ((ConstantExpression)e).Value as LambdaExpression;
             return e as LambdaExpression;
+        }
+
+        protected override Expression VisitUnaryUpdate(UnaryExpression u)
+        {
+            switch (u.NodeType)
+            {
+                case ExpressionType.Not:
+                    StringB.Append(" NOT ");
+                    VisitUpdateBinary(u.Operand);
+                    break;
+
+                case ExpressionType.Convert:
+                    VisitUpdateBinary(u.Operand);
+                    break;
+
+                case ExpressionType.Quote:
+                    VisitUpdateBinary(u.Operand);
+                    break;
+
+                default:
+                    throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture,
+                        "The unary operator '{0}' is not supported", u.NodeType));
+            }
+
+            return u;
         }
 
         protected override Expression VisitUnary(UnaryExpression u)
@@ -2222,6 +2532,7 @@ namespace ORM_1_21_.Linq
 
             return u;
         }
+
 
         protected override Expression VisitBinary(BinaryExpression b)
         {
@@ -2256,7 +2567,7 @@ namespace ORM_1_21_.Linq
                         StringB.Append(" is ");
                         break;
                     }
-                    
+
                     StringB.Append(" = ");
                     break;
                 case ExpressionType.NotEqual:
@@ -2321,6 +2632,12 @@ namespace ORM_1_21_.Linq
             return b;
         }
 
+        protected override Expression VisitConstantUpdate(ConstantExpression c)
+        {
+            StringB.Append(c.Value.ToString());
+            return c;
+        }
+
         protected override Expression VisitConstant(ConstantExpression c)
         {
             if (c.Value is IQueryable) return c;
@@ -2383,7 +2700,7 @@ namespace ORM_1_21_.Linq
                     case TypeCode.String:
 
                         AddParameter(c.Value);
-                       
+
                         break;
                     case TypeCode.Object:
                         {
@@ -2409,7 +2726,97 @@ namespace ORM_1_21_.Linq
             return c;
         }
 
-        
+        protected override Expression VisitMemberAccessUpdate(MemberExpression m)
+        {
+            if (m.Expression != null
+               && m.Expression.NodeType == ExpressionType.Parameter)
+            {
+                if (m.Expression.Type != typeof(T))
+                {
+                    if (UtilsCore.IsAnonymousType(m.Expression.Type))
+                        return m;
+                }
+                else
+                {
+                    string nameColumn = GetColumnName(m.Member.Name);
+
+
+                  
+                        StringB.Append(nameColumn);
+                   
+
+                }
+
+                return m;
+            }
+
+            if (m.Expression != null
+                && m.Expression.NodeType == ExpressionType.New)
+            {
+                StringB.Append(GetColumnName(m.Member.Name));
+                return m;
+            }
+
+            if (m.Expression != null && m.Expression.NodeType == ExpressionType.Constant)
+            {
+                VisitorMemberAccessUpdate(m);
+                return m;
+            }
+
+            if (m.Expression != null && m.Expression.NodeType == ExpressionType.MemberAccess)
+            {
+                VisitorMemberAccessUpdate(m);
+                return m;
+            }
+
+
+            if (m.Expression != null && m.NodeType == ExpressionType.MemberAccess)
+            {
+                VisitorMemberAccessUpdate(m);
+                return m;
+            }
+
+            if (m.Expression == null && m.NodeType == ExpressionType.MemberAccess)
+            {
+                if (m.Type == typeof(int))
+                {
+                    var value = Expression.Lambda<Func<int>>(m).Compile()();
+                    StringB.Append(value);
+                    return m;
+                }
+
+                if (m.Type == typeof(long))
+                {
+                    var value = Expression.Lambda<Func<long>>(m).Compile()();
+                    StringB.Append(value);
+                    return m;
+                }
+
+
+                if (m.Member.ReflectedType == typeof(DateTime))
+                {
+                    var value = Expression.Lambda<Func<DateTime>>(m).Compile()();
+                    StringB.Append($"'{value}'");
+                    return m;
+                }
+
+                if (m.Type == typeof(Guid))
+                {
+                    var value = Expression.Lambda<Func<Guid>>(m).Compile()();
+                    StringB.Append($"'{value}'");
+                    return m;
+                }
+
+                var str = Expression.Lambda<Func<object>>(m).Compile().Invoke();
+                StringB.Append($"{str}");
+                return m;
+            }
+
+            throw new NotSupportedException(
+                string.Format(CultureInfo.CurrentCulture, "The member '{0}' is not supported", m.Member.Name));
+        }
+
+
         protected override Expression VisitMemberAccess(MemberExpression m)
         {
             if (m.Expression != null
@@ -2417,17 +2824,17 @@ namespace ORM_1_21_.Linq
             {
                 if (m.Expression.Type != typeof(T))
                 {
-                    if (UtilsCore.IsAnonymousType(m.Expression.Type)) 
+                    if (UtilsCore.IsAnonymousType(m.Expression.Type))
                         return m;
                 }
                 else
                 {
                     string nameColumn = GetColumnName(m.Member.Name);
-                  
-                    
+
+
                     if (UtilsCore.IsGeo(m.Type))
                     {
-                        
+
                         if (_currentMethodWhere == null && _currentMethodSelect != null)
                         {
                             StringB.Append(UtilsCore.SqlConcat(nameColumn, _providerName));
@@ -2436,11 +2843,12 @@ namespace ORM_1_21_.Linq
                         {
                             StringB.Append(nameColumn);
                         }
-                        
 
-                        //var srid = GetSrid(m.Member.Name);
-                        //AddListOne(new OneComposite{Operand = Evolution.ListGeo,Body = nameColumn,Srid = srid});
-                    }else if (UtilsCore.IsJson(m.Type))
+
+
+                        AddListOne(new OneComposite { Operand = Evolution.ListGeo, Body = nameColumn, Srid = 0 });
+                    }
+                    else if (AttributesOfClass<T>.GetIsJson(m.Member.Name, _providerName))
                     {
                         StringB.Append(nameColumn);
                         AddListOne(new OneComposite { Operand = Evolution.ListJson, Body = nameColumn });
@@ -2449,6 +2857,7 @@ namespace ORM_1_21_.Linq
                     {
                         StringB.Append(nameColumn);
                     }
+
                 }
 
                 return m;
@@ -2519,6 +2928,417 @@ namespace ORM_1_21_.Linq
                 string.Format(CultureInfo.CurrentCulture, "The member '{0}' is not supported", m.Member.Name));
         }
 
+
+        private void VisitorMemberAccessUpdate(MemberExpression m)
+        {
+            object value;
+            if (m.Member.DeclaringType == typeof(string))
+                switch (m.Member.Name)
+                {
+                    case "Length":
+
+                        switch (_providerName)
+                        {
+                            case ProviderName.PostgreSql:
+                                {
+                                    StringB.Append("CHAR_LENGTH(");
+                                    break;
+                                }
+                            case ProviderName.SqLite:
+                                {
+                                    StringB.Append("LENGTH(");
+                                    break;
+                                }
+                            case ProviderName.MySql:
+                                {
+                                    StringB.Append("CHAR_LENGTH(");
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
+                                    StringB.Append("LEN(");
+                                    break;
+                                }
+                        }
+
+                        Visit(m.Expression);
+                        StringB.Append(')');
+                        return;
+                }
+
+            if (m.Member.MemberType == MemberTypes.Field)
+            {
+
+            }
+
+
+
+
+            if (m.Member.ReflectedType == typeof(DateTime))
+            {
+                if (m.Member.DeclaringType == typeof(DateTimeOffset))
+                    throw new Exception("m.Member.DeclaringType == typeof(DateTimeOffset)");
+
+                switch (m.Member.Name)
+                {
+                    case "Day":
+                        switch (_providerName)
+                        {
+                            case ProviderName.PostgreSql:
+                                {
+                                    StringB.Append("extract( day from ");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                            case ProviderName.SqLite:
+                                {
+                                    StringB.Append("CAST(strftime('%d', ");
+                                    Visit(m.Expression);
+                                    StringB.Append(") as INTEGER)");
+                                    break;
+                                }
+                            case ProviderName.MySql:
+                                {
+                                    StringB.Append("DAY(");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
+                                    StringB.Append("DATEPART(DAY,");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                        }
+
+                        return;
+                    case "Month":
+                        switch (_providerName)
+                        {
+                            case ProviderName.PostgreSql:
+                                {
+                                    StringB.Append("extract(MONTH from ");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                            case ProviderName.SqLite:
+                                {
+                                    StringB.Append("CAST(strftime('%m', ");
+                                    Visit(m.Expression);
+                                    StringB.Append(") as INTEGER)");
+                                    break;
+                                }
+                            case ProviderName.MySql:
+                                {
+                                    StringB.Append("MONTH(");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
+                                    StringB.Append("DATEPART(MONTH, ");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                        }
+
+                        return;
+                    case "Year":
+                        switch (_providerName)
+                        {
+                            case ProviderName.PostgreSql:
+                                {
+                                    StringB.Append("extract(YEAR from ");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                            case ProviderName.SqLite:
+                                {
+                                    StringB.Append("CAST(strftime('%Y', ");
+                                    Visit(m.Expression);
+                                    StringB.Append(") as INTEGER)");
+                                    break;
+                                }
+                            case ProviderName.MySql:
+                                {
+                                    StringB.Append("YEAR(");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
+                                    StringB.Append("DATEPART(YEAR,");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                        }
+
+                        return;
+                    case "Hour":
+                        switch (_providerName)
+                        {
+                            case ProviderName.PostgreSql:
+                                {
+                                    StringB.Append("extract(HOUR from ");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                            case ProviderName.SqLite:
+                                {
+                                    StringB.Append("CAST(strftime('%H', ");
+                                    Visit(m.Expression);
+                                    StringB.Append(") as INTEGER)");
+                                    break;
+                                }
+                            case ProviderName.MySql:
+                                {
+                                    StringB.Append("HOUR(");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
+                                    StringB.Append("DATEPART(HOUR,");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                        }
+
+                        return;
+                    case "Minute":
+                        switch (_providerName)
+                        {
+                            case ProviderName.PostgreSql:
+                                {
+                                    StringB.Append("extract(MINUTE from ");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                            case ProviderName.SqLite:
+                                {
+                                    StringB.Append("CAST(strftime('%M', ");
+                                    Visit(m.Expression);
+                                    StringB.Append(") as INTEGER)");
+                                    break;
+                                }
+                            case ProviderName.MySql:
+                                {
+                                    StringB.Append("MINUTE(");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
+                                    StringB.Append("DATEPART(MINUTE,");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                        }
+
+                        return;
+                    case "Second":
+                        switch (_providerName)
+                        {
+                            case ProviderName.PostgreSql:
+                                {
+                                    StringB.Append("extract(SECOND from ");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                            case ProviderName.SqLite:
+                                {
+                                    StringB.Append("CAST(strftime('%S', ");
+                                    Visit(m.Expression);
+                                    StringB.Append(") as INTEGER)");
+                                    break;
+                                }
+                            case ProviderName.MySql:
+                                {
+                                    StringB.Append("SECOND(");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
+                                    StringB.Append("DATEPART(SECOND,");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                        }
+
+                        return;
+                    case "Millisecond":
+                        switch (_providerName)
+                        {
+                            case ProviderName.PostgreSql:
+                                {
+                                    throw new Exception("not implemented");
+                                }
+                            case ProviderName.SqLite:
+                                {
+                                    throw new Exception("not implemented");
+                                }
+                            case ProviderName.MySql:
+                                {
+                                    throw new Exception("not implemented");
+                                }
+
+                            case ProviderName.MsSql:
+                                {
+                                    throw new Exception("not implemented");
+                                }
+                        }
+
+                        break;
+
+
+                    case "DayOfWeek":
+                        switch (_providerName)
+                        {
+                            case ProviderName.PostgreSql:
+                                {
+                                    StringB.Append("extract( isodow from ");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                            case ProviderName.SqLite:
+                                {
+                                    StringB.Append("CAST(strftime('%w', ");
+                                    Visit(m.Expression);
+                                    StringB.Append(") as INTEGER)");
+                                    break;
+                                }
+                            case ProviderName.MySql:
+                                {
+                                    StringB.Append("(DAYOFWEEK(");
+                                    Visit(m.Expression);
+                                    StringB.Append(") - 1)");
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
+                                    StringB.Append("DATEPART(WEEKDAY,");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                        }
+
+                        return;
+                    case "DayOfYear":
+                        switch (_providerName)
+                        {
+                            case ProviderName.PostgreSql:
+                                {
+                                    StringB.Append("extract(doy from ");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                            case ProviderName.SqLite:
+                                {
+                                    StringB.Append("CAST(strftime('%j', ");
+                                    Visit(m.Expression);
+                                    StringB.Append(") as INTEGER)");
+                                    break;
+                                }
+                            case ProviderName.MySql:
+                                {
+                                    StringB.Append("(DAYOFYEAR(");
+                                    Visit(m.Expression);
+                                    StringB.Append(") - 1)");
+                                    break;
+                                }
+
+                            case ProviderName.MsSql:
+                                {
+                                    StringB.Append("DATEPART(DAYOFYEAR,");
+                                    Visit(m.Expression);
+                                    StringB.Append(')');
+                                    break;
+                                }
+                        }
+
+                        return;
+                }
+
+                var str1 = Expression.Lambda<Func<DateTime>>(m.Expression).Compile()();
+                var ss = str1.GetType().GetProperty(m.Member.Name);
+                value = ss.GetValue(str1, null);
+                AddParameter(value);
+                return;
+            }
+
+            var strS = new JoinAlias().GetAlias(m.Expression);
+            if (strS != null && strS.IndexOf("TransparentIdentifier", StringComparison.Ordinal) != -1)
+            {
+                StringB.Append(GetColumnName(m.Member.Name));
+                return;
+            }
+
+            var str = Expression.Lambda<Func<object>>(m.Expression).Compile()();
+            value = null;
+            if (m.Member.MemberType == MemberTypes.Field)
+            {
+                var fieldInfo = str.GetType().GetField(m.Member.Name,
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
+                if (fieldInfo != null)
+                {
+
+                    value = fieldInfo.GetValue(str);
+                }
+            }
+
+            if (m.Member.MemberType == MemberTypes.Property)
+            {
+                var tt = str.GetType();
+                PropertyInfo[] asas = str.GetType().GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
+                List<string> eee= asas.Select(a => a.Name).ToList();
+                foreach (PropertyInfo info in asas)
+                {
+                    if (info.Name.EndsWith(m.Member.Name))
+                    {
+                        value = info.GetValue(str);
+
+                    }
+                }
+                
+                // var ass = str.GetType().GetProperty(m.Member.Name,
+                //     BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
+                // value = ass.GetValue(str, null);
+            }
+
+
+            StringB.Append(value);
+        }
+
         private void VisitorMemberAccess(MemberExpression m)
         {
             object value;
@@ -2556,22 +3376,13 @@ namespace ORM_1_21_.Linq
                         StringB.Append(')');
                         return;
                 }
-            //if(m.Member.==)
 
             if (m.Member.MemberType == MemberTypes.Field)
             {
-                // var st = UtilsCore.GetSerializeType(((FieldInfo)m.Member).FieldType);
-                //
-                // if (st == SerializeType.User)
-                // {
-                //     var o = Expression.Lambda<Func<object>>(m).Compile()();
-                //     var v = ((IMapSerializable)o).Serialize();
-                //     AddParameter(v);
-                //     return;
-                // }
+
             }
 
-           
+
 
 
             if (m.Member.ReflectedType == typeof(DateTime))
@@ -2921,7 +3732,7 @@ namespace ORM_1_21_.Linq
                     BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
                 value = ass.GetValue(str, null);
             }
-            
+
 
             AddParameter(value);
         }
@@ -2942,13 +3753,14 @@ namespace ORM_1_21_.Linq
                     var p1 = ParamName;
                     StringB.Append(p1);
                     Param.Add(p1, ((IGeoShape)value).StAsText());
+                    if (CurrentEvolution == Evolution.Update)
+                    {
+                        var srid = $"{p1}srid";
+                        Param.Add(srid, ((IGeoShape)value).StSrid());
+                    }
 
-                } else if (UtilsCore.IsJson(value.GetType()))
-                {
-                    var p1 = ParamName;
-                    StringB.Append(p1);
-                    Param.Add(p1, JsonConvert.SerializeObject(value));
                 }
+
                 else if (PingComposite(Evolution.ElementAt) || PingComposite(Evolution.ElementAtOrDefault))
                 {
                     StringB.Append(uint.Parse(value.ToString()));
@@ -2966,26 +3778,27 @@ namespace ORM_1_21_.Linq
                     Param.Add(p1, value);
                 }
             }
-            else if(UtilsCore.IsJson(value.GetType())) //todo geo
-            {
-                var p1 = ParamName;
-                
-                StringB.Append(p1);
-                Param.Add(p1, JsonConvert.SerializeObject(value));
-            }
-            
+
+
             else if (UtilsCore.IsGeo(value.GetType())) //todo geo
             {
                 var p1 = ParamName;
 
                 StringB.Append(p1);
                 Param.Add(p1, ((IGeoShape)value).StAsText());
+                if (CurrentEvolution == Evolution.Update)
+                {
+                    var srid = $"{p1}srid";
+                    Param.Add(srid, ((IGeoShape)value).StSrid());
+                }
+
             }
             else if (UtilsCore.IsAnonymousType(value.GetType()))
             {
                 var p1 = ParamName;
                 StringB.Append(p1);
                 Param.Add(p1, JsonConvert.SerializeObject(value));
+
             }
             else
             {
@@ -3060,7 +3873,7 @@ namespace ORM_1_21_.Linq
                 StringB.Append(" ,");
 
                 var p = Visit(original[i]);
-               
+
                 if (list != null)
                 {
                     list.Add(p);
@@ -3080,29 +3893,54 @@ namespace ORM_1_21_.Linq
 
         protected override NewExpression VisitNew(NewExpression nex)
         {
-            if (nex.Type == typeof(Guid))
+            // if (nex.Type == typeof(Guid))
+            // {
+            //     if (_providerName == ProviderName.PostgreSql || _providerName == ProviderName.MySql)
+            //     {
+            //         var str = Expression.Lambda<Func<Guid>>(nex).Compile()();
+            //
+            //         AddParameter(str);
+            //
+            //         return nex;
+            //     }
+            //
+            //     foreach (var nexArgument in nex.Arguments) Visit(nexArgument);
+            //     return nex;
+            // }
+            //
+            // if (nex.Type == typeof(DateTime))
+            // {
+            //     var str = Expression.Lambda<Func<DateTime>>(nex).Compile()();
+            //
+            //     AddParameter(str);
+            //
+            //     return nex;
+            // }
+            // if(UtilsCore.IsCompile(nex.Type))
+            // {
+            //     var str = Expression.Lambda<Func<decimal>>(nex).Compile()();
+            //
+            //     AddParameter(str);
+            //
+            //     return nex;
+            // }
+            var anonymousType = UtilsCore.IsAnonymousType(nex.Type);
+            if (anonymousType)
             {
-                if (_providerName == ProviderName.PostgreSql || _providerName == ProviderName.MySql)
+
+            }
+            else
+            {
+                if (UtilsCore.IsCompileExpression(nex, out var o))
                 {
-                    var str = Expression.Lambda<Func<Guid>>(nex).Compile()();
-                   
-                    AddParameter(str);
-                   
+                    AddParameter(o);
+
                     return nex;
                 }
-
-                foreach (var nexArgument in nex.Arguments) Visit(nexArgument);
-                return nex;
             }
 
-            if (nex.Type == typeof(DateTime))
-            {
-                var str = Expression.Lambda<Func<DateTime>>(nex).Compile()();
-                
-                AddParameter(str);
-              
-                return nex;
-            }
+
+
 
             // var st = UtilsCore.GetSerializeType(nex.Type);
             // switch (st)

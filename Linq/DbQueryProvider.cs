@@ -131,23 +131,25 @@ namespace ORM_1_21_.Linq
             return (TS)res;
         }
 
-        public TS ExecuteExtensionSqlParam<TS>(Expression expression, params SqlParam[] param)
-        {
-            if (param != null && param.Length > 0)
-            {
-                _paramFreeSqlParams.AddRange(param);
-            }
-            var res = Execute<TS>(expression);
-            return (TS)res;
-        }
 
         public override async Task<TS> ExecuteExtensionAsync<TS>(Expression expression, object[] param, CancellationToken cancellationToken)
         {
-
             if (param != null && param.Length > 0)
             {
-                _paramFree.AddRange(param);
+                foreach (object o in param)
+                {
+                    if (o is SqlParam t)
+                    {
+                        _paramFreeSqlParams.Add(t);
+                    }
+                    else
+                    {
+                        _paramFree.Add(o);
+                    }
+                }
+
             }
+            
             var r = await ExecuteAsync<TS>(expression, param, cancellationToken);
             return (TS)r;
 

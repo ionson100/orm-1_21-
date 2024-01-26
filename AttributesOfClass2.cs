@@ -73,9 +73,11 @@ namespace ORM_1_21_
                                 if (o == null)
                                 {
                                     dbCommand.AddParameter($"{parName}{par}{ip}", null);
+                                    dbCommand.AddParameter($"{parName}srid{ip}", 0);
                                 }
                                 else
                                 {
+                                    dbCommand.AddParameter($"{parName}srid{ip}", ((IGeoShape)o).StSrid());
                                     switch (Provider)
                                     {
                                         case ORM_1_21_.ProviderName.MsSql:
@@ -156,6 +158,7 @@ namespace ORM_1_21_
                            {
                                if (pra.IsInheritIGeoShape)
                                {
+                                   dbCommand.AddParameter(string.Format("{1}srid{0}", ip, parName), ((IGeoShape)r).StSrid());
                                    dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), ((IGeoShape)r).StAsText().Trim());
                                }
 
@@ -249,10 +252,12 @@ namespace ORM_1_21_
                               if (o == null)
                               {
                                   dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)), null);
+                                  dbCommand.AddParameter(string.Format("{1}srid{0}", ip, UtilsCore.PrefParam(Provider)), 0);
                               }
                               else
                               {
                                   dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),((IGeoShape)o).StAsText());
+                                  dbCommand.AddParameter(string.Format("{1}srid{0}", ip, UtilsCore.PrefParam(Provider)), ((IGeoShape)o).StSrid());
                               }
                           }
                           else

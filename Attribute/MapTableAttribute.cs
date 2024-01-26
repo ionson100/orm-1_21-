@@ -19,7 +19,8 @@ namespace ORM_1_21_
         /// <param name="tableName">Table name</param>
         public MapTableAttribute(string tableName)
         {
-            if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentException("table name zero");
+            if (string.IsNullOrWhiteSpace(tableName)) 
+                throw new ArgumentException("table name zero");
             _tableName = UtilsCore.ClearTrim(tableName);
         }
 

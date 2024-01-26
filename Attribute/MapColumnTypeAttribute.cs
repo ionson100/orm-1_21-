@@ -21,12 +21,4 @@ namespace ORM_1_21_
             TypeString = typeColumn;
         }
     }
-    /// <summary>
-    /// Field type. This type serialize in type Json
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
-    public sealed class MapColumnTypeJson : Attribute
-    {
-       
-    }
 }
