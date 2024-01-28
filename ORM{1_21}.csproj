@@ -151,20 +151,20 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>bitnic.orm</Title>
-    <Version>2.1.9</Version>
+    <Version>3.0.1-alpha</Version>
     <Authors>ion100</Authors>
-    <Description>micro orm postgres mysql mssql sqlite.</Description>
+    <Description>micro orm postgres mysql mssql sqlite json postgis geometry</Description>
     <PackageId>bitnic.orm</PackageId>
     <IncludeSymbols>True</IncludeSymbols>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
    
-    <PackageTags>orm postgres mysql mssql sqlite</PackageTags>
+    <PackageTags>micro;orm ;postgres; mysql; mssql; sqlite; json; postgis; geometry</PackageTags>
     <PackAsTool>False</PackAsTool>
     <ToolCommandName>bitnic.orm</ToolCommandName>
     <PackageOutputPath>bin\Release\</PackageOutputPath>
     <PackageProjectUrl>https://github.com/ionson100/ORM-1_21-</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>add persistent essence</PackageReleaseNotes>
+    <PackageReleaseNotes>add geometry and type json</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
    
   </PropertyGroup>

@@ -289,7 +289,7 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="shape">Array geo objects</param>
         /// <returns>Geo object GeometryCollection</returns>
-        public static IGeoShape CreateGeometryCollection(params IGeoShape[] shape)
+        public static IGeoShape GeometryCollection(params IGeoShape[] shape)
         {
             return new GeoObject(GeoType.GeometryCollection, shape).SetSrid(DefaultSrid);
         }
@@ -371,7 +371,7 @@ namespace ORM_1_21_.geo
                     list.Add(InnerPaceGeoJson(geoText, geo));
                 }
 
-                var res = CreateGeometryCollection(list.ToArray());
+                var res = GeometryCollection(list.ToArray());
                 return res;
 
             }
@@ -468,19 +468,19 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="geoCollection"> String GeometryCollection as String the OGC Well-Known Text (WKT) representation of the geometry</param>
         /// <returns>list String</returns>
-        public static List<string> ParseGeoCollection(string geoCollection)
+        internal static List<string> ParseGeoCollection(string geoCollection)
         {
            
             ValidateString(geoCollection);
 
-            int s = geoCollection.IndexOf('(') + 1;
-            int f = geoCollection.LastIndexOf(')');
-            int d = f - s;
+            var s = geoCollection.IndexOf('(') + 1;
+            var f = geoCollection.LastIndexOf(')');
+            var d = f - s;
             geoCollection = geoCollection.Substring(s, d);
-            List<string> list = new List<string>();
-            int count = 0;
-            StringBuilder sb = new StringBuilder();
-            foreach (char c in geoCollection)
+            var list = new List<string>();
+            var count = 0;
+            var sb = new StringBuilder();
+            foreach (var c in geoCollection)
             {
                 if (c == '\n') continue;
                 sb.Append(c);

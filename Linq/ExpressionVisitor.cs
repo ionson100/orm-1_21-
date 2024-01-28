@@ -331,6 +331,31 @@ namespace ORM_1_21_.Linq
             return list != null ? list.AsReadOnly() : original;
         }
 
+        protected virtual ReadOnlyCollection<Expression> VisitExpressionListUpdate(ReadOnlyCollection<Expression> original)
+
+        {
+            List<Expression> list = null;
+            for (int i = 0, n = original.Count; i < n; i++)
+            {
+
+                var p = Visit(original[i]);
+                if (list != null)
+                {
+                    list.Add(p);
+                }
+                else if (p != original[i])
+                {
+                    list = new List<Expression>(n);
+                    for (var j = 0; j < i; j++)
+                    {
+                        list.Add(original[j]);
+                    }
+                    list.Add(p);
+                }
+            }
+            return list != null ? list.AsReadOnly() : original;
+        }
+
         private MemberAssignment
           VisitMemberAssignment(MemberAssignment assignment)
         {

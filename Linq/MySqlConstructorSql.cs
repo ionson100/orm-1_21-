@@ -252,15 +252,16 @@ namespace ORM_1_21_.Linq
             var fromS = listOne.FirstOrDefault(a => a.Operand == Evolution.FromString);
             if (fromS != null)
             {
-                sbb.Append($" FROM ({fromS.Body})");
+                sbb.Append($" FROM {fromS.Body}");
             }
             else
             {
                 sbb.Append(" FROM ");
+                sbb.Append(AttributesOfClass<T>.TableName(providerName)).Append(' ');
             }
 
            
-            sbb.Append(AttributesOfClass<T>.TableName(providerName)).Append(' ');
+           
             //if (PingComposite(Evolution.Join))
             //{
             //    sbb.Append(_listOne.Single(a => a.Operand == Evolution.Join).Body).Append(" ");

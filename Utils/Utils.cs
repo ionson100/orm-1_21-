@@ -21,6 +21,13 @@ namespace ORM_1_21_.Utils
     {
         internal const string Bungalo = "____";
 
+        public static object Compile(Expression expression)
+        {
+            if (ConvertorUpdate.TryGetValue(expression.Type, out Func<Expression, object> value))
+                return value.Invoke(expression);
+            throw new Exception("I can't find the type to compile, call the developer");
+        }
+
 
         public static void ErrorAlert()
         {
@@ -203,6 +210,49 @@ namespace ORM_1_21_.Utils
 
          };
 
+
+        private static readonly Dictionary<Type, Func<Expression, object>> ConvertorUpdate =
+        new Dictionary<Type, Func<Expression, object>>
+        {
+                {typeof(uint),val=>Expression.Lambda<Func<uint>>(val).Compile()()},
+               {typeof(ulong),val=>Expression.Lambda<Func<ulong>>(val).Compile()()},
+               {typeof(ushort),val=>Expression.Lambda<Func<ushort>>(val).Compile()()},
+               {typeof(bool),val=>Expression.Lambda<Func<bool>>(val).Compile()()},
+               {typeof(byte),val=>Expression.Lambda<Func<byte>>(val).Compile()()},
+               {typeof(char),val=>Expression.Lambda<Func<char>>(val).Compile()()},
+               {typeof(DateTime),val=>Expression.Lambda<Func<DateTime>>(val).Compile()()},
+               {typeof(decimal),val=>Expression.Lambda<Func<decimal>>(val).Compile()()},
+               {typeof(double),val=>Expression.Lambda<Func<double>>(val).Compile()()},
+               {typeof(short),val=>Expression.Lambda<Func<short>>(val).Compile()()},
+               {typeof(int),val=>Expression.Lambda<Func<int>>(val).Compile()()},
+               {typeof(long),val=>Expression.Lambda<Func<long>>(val).Compile()()},
+               {typeof(sbyte),val=>Expression.Lambda<Func<sbyte>>(val).Compile()()},
+               {typeof(float),val=>Expression.Lambda<Func<float>>(val).Compile()()},
+               {typeof(string),val=>Expression.Lambda<Func<string>>(val).Compile()()},
+               {typeof(uint?),val=>Expression.Lambda<Func<uint?>>(val).Compile()()},
+              {typeof(ulong?),val=>Expression.Lambda<Func<ulong?>>(val).Compile()()},
+              {typeof(ushort?),val=>Expression.Lambda<Func<ushort ?>>(val).Compile()()},
+              {typeof(bool?),val=>Expression.Lambda<Func<bool?>>(val).Compile()()},
+              {typeof(byte?),val=>Expression.Lambda<Func<byte ?>>(val).Compile()()},
+              {typeof(char?),val=>Expression.Lambda<Func<char?>>(val).Compile()()},
+              {typeof(DateTime?),val=>Expression.Lambda<Func<DateTime?>>(val).Compile()()},
+              {typeof(decimal?),val=>Expression.Lambda<Func<decimal ?>>(val).Compile()()},
+              {typeof(double?),val=>Expression.Lambda<Func<double?>>(val).Compile()()},
+              {typeof(short?),val=>Expression.Lambda<Func<short ?>>(val).Compile()()},
+              {typeof(int?),val=>Expression.Lambda<Func<int?>>(val).Compile()()},
+              {typeof(long?),val=>Expression.Lambda<Func<long ?>>(val).Compile()()},
+              {typeof(sbyte?),val=>Expression.Lambda<Func<sbyte?>>(val).Compile()()},
+              {typeof(float?),val=>Expression.Lambda<Func<float ?>>(val).Compile()()},
+              {typeof(Guid?),val=>Expression.Lambda<Func<Guid ?>>(val).Compile()()},
+              {typeof(Guid),val=>Expression.Lambda<Func<Guid>>(val).Compile()()},
+              {typeof(Enum),val=>Expression.Lambda<Func<Enum>>(val).Compile()()},
+              {typeof(byte[]),val=>Expression.Lambda<Func<byte[]>>(val).Compile()()}
+
+
+
+
+        };
+
         public static object CompileNewExpression(NewExpression expression)
         {
             if (ConvertorPkDictionaryX.TryGetValue(expression.Type, out Func<NewExpression, object> value))
@@ -345,7 +395,18 @@ namespace ORM_1_21_.Utils
             {
                 stringBuilder.Append(" params: ");
                 foreach (DbParameter commandParameter in command.Parameters)
-                    stringBuilder.Append($" {commandParameter.ParameterName} - {commandParameter.Value} ");
+                {
+                    if (commandParameter.Value is string || commandParameter.Value is Guid)
+                    {
+                        stringBuilder.Append($" {commandParameter.ParameterName}='{commandParameter.Value}' ");
+                    }
+                    else
+                    {
+                        stringBuilder.Append($" {commandParameter.ParameterName}={commandParameter.Value} ");
+                    }
+                    
+                }
+                   
             }
 
 

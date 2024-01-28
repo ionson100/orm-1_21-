@@ -18,31 +18,31 @@ namespace TestLibrary
         public static void Run()
         {
 
-           //  TestJsonIon100<JPosO, MyDbPostgresGeo>(ProviderName.PostgreSql);
-           //  TestJsonIon100<JMyO, MyDbMySql>(ProviderName.MySql);
-           //  TestJsonIon100<JMsO, MyDbMsSql>(ProviderName.MsSql);
-           //  TestJsonIon100<JSqliteO, MyDbSqlite>(ProviderName.SqLite);
-           // 
-           // 
-           // TestJsonObjec<JPosS, MyDbPostgresGeo>(ProviderName.PostgreSql);
-           // TestJsonObjec<JMyS, MyDbMySql>(ProviderName.MySql);
-           // TestJsonObjec<JMsS, MyDbMsSql>(ProviderName.MsSql);
-           // TestJsonObjec<JSqliteS, MyDbSqlite>(ProviderName.SqLite);
+             TestJsonIon100<JPosO, MyDbPostgresGeo>(ProviderName.PostgreSql);
+             TestJsonIon100<JMyO, MyDbMySql>(ProviderName.MySql);
+             TestJsonIon100<JMsO, MyDbMsSql>(ProviderName.MsSql);
+             TestJsonIon100<JSqliteO, MyDbSqlite>(ProviderName.SqLite);
             
             
-           // TestGeoExtension<GeoPos, MyDbPostgresGeo>(ProviderName.PostgreSql);
-           // TestGeoExtension<GeoMs, MyDbMsSql>(ProviderName.MsSql);
-           // TestGeoExtension<GeoMy, MyDbMySql>(ProviderName.MySql);
-           // ////
-           // ////
-           // ////
-           // TestGeoObject<GeoPos, MyDbPostgresGeo>(ProviderName.PostgreSql);
-           // TestGeoObject<GeoMs, MyDbMsSql>(ProviderName.MsSql);
-           // TestGeoObject<GeoMy, MyDbMySql>(ProviderName.MySql);
-           // ////
-           // TestUpdate<UpPost, MyDbPostgresGeo>(ProviderName.PostgreSql);
-           // TestUpdate<UpMs, MyDbMsSql>(ProviderName.MsSql);
-           // TestUpdate<UpMys, MyDbMySql>(ProviderName.MySql);
+            TestJsonObjec<JPosS, MyDbPostgresGeo>(ProviderName.PostgreSql);
+            TestJsonObjec<JMyS, MyDbMySql>(ProviderName.MySql);
+            TestJsonObjec<JMsS, MyDbMsSql>(ProviderName.MsSql);
+            TestJsonObjec<JSqliteS, MyDbSqlite>(ProviderName.SqLite);
+           
+           
+            TestGeoExtension<GeoPos, MyDbPostgresGeo>(ProviderName.PostgreSql);
+            TestGeoExtension<GeoMs, MyDbMsSql>(ProviderName.MsSql);
+            TestGeoExtension<GeoMy, MyDbMySql>(ProviderName.MySql);
+            ////
+            ////
+            ////
+            TestGeoObject<GeoPos, MyDbPostgresGeo>(ProviderName.PostgreSql);
+            TestGeoObject<GeoMs, MyDbMsSql>(ProviderName.MsSql);
+            TestGeoObject<GeoMy, MyDbMySql>(ProviderName.MySql);
+            ////
+            TestUpdate<UpPost, MyDbPostgresGeo>(ProviderName.PostgreSql);
+            TestUpdate<UpMs, MyDbMsSql>(ProviderName.MsSql);
+            TestUpdate<UpMys, MyDbMySql>(ProviderName.MySql);
 
 
            
@@ -75,7 +75,7 @@ namespace TestLibrary
                     new T { Name = "3", Ion100 = new Ion100 { Name = "3", Age = 3 } },
                     new T { Name = "4", Ion100 = new Ion100 { Name = "4", Age = 4 } },
                 });
-                var er = ses.Query<T>().Where(s => s.Name == "1").UpdateSqlE(a =>$"{a.Name}={DateTime.Now:D}");
+                var er = ses.Query<T>().Where(s => s.Name == "1").UpdateSql(a =>$"{a.Name}='{DateTime.Now:D}'");
                 //var er = ses.Query<T>().Where(s=>s.Name=="1").UpdateSqlE(a => ""+a.Name+" = '122',"+a.Ion100+" = null");
 
                 List<T> list = ses.Query<T>().ToList();
@@ -84,7 +84,7 @@ namespace TestLibrary
                 //    { a.Name, "33" }
                 //});
                 //list = ses.Query<T>().ToList();
-                int res2 = ses.Query<T>().Where(s=>s.Name=="1").UpdateSql($" {ses.ColumnName<T>(a=>a.Name)} = '33'");
+                int res2 = ses.Query<T>().Where(s=>s.Name=="1").UpdateSql(a=>$" {a.Name} = '33'");
                 list = ses.Query<T>().ToList();
 
             }
@@ -608,11 +608,11 @@ namespace TestLibrary
                 list = ses.FreeSql<T>(sql).ToList();
                 if (providerName == ProviderName.MsSql)
                 {
-                    var o = ses.Query<T>().WhereSql("JSON_VALUE(ion100, '$.Age') = 100").Select(a => a.Ion100).ToList();
+                    var o = ses.Query<T>().WhereSql(a=>"JSON_VALUE(ion100, '$.Age') = 100").Select(a => a.Ion100).ToList();
                 }
                 if (providerName == ProviderName.PostgreSql)
                 {
-                    var o = ses.Query<T>().WhereSql("ion100 @> '{\"Age\":100}'").Select(a => a.Ion100).ToList();
+                    var o = ses.Query<T>().WhereSql(a=>"ion100 @> '{\"Age\":100}'").Select(a => a.Ion100).ToList();
                 }
             }
         }
@@ -644,7 +644,7 @@ namespace TestLibrary
                     var g7 = FactoryGeo.CreateGeo("MULTIPOLYGON (((1 5, 5 5, 5 1, 1 1, 1 5)), ((6 5, 9 1, 6 1, 6 5)))");
                     var g8 = col1;
 
-                    var col3 = FactoryGeo.CreateGeometryCollection(g1, g2, g3, g4, g5, g6, g7);
+                    var col3 = FactoryGeo.GeometryCollection(g1, g2, g3, g4, g5, g6, g7);
 
 
 
@@ -1033,16 +1033,7 @@ namespace TestLibrary
             using (var ses = Configure.GetSession<TD>())
             {
 
-               
-                ses.TruncateTable<T>();
-                {
-                    ses.Insert(new T { MyGeoObject = FactoryGeo.Point(1, 2) });
-                    ses.Query<T>().Update(a => new Dictionary<object, object>
-                    {
-                        { a.MyGeoObject, FactoryGeo.CreateGeo(a.MyGeoObject.StAsText()) }
-                    });
-                    var l = ses.Query<T>().ToList();
-                }
+
 
 
 
@@ -2038,11 +2029,21 @@ namespace TestLibrary
                     { a.Name, "name" },
                     { a.Ion100, JsonConvert.SerializeObject(t) }
                 });
+                string ssqlr = JsonConvert.SerializeObject(new { bb = 1 });
                 ses.Query<T>().Update(a => new Dictionary<object, object>
                 {
                     { a.Name, "name" },
-                    { a.Ion100, JsonConvert.SerializeObject(new{bb=1}) }
+                    { a.Ion100, ssqlr }
                 });
+                if (providerName == ProviderName.MsSql)
+                {
+                    var o = ses.Query<T>().WhereSql(a => $"JSON_VALUE({a.Ion100}, '$.bb') = 1").Select(a => a.Ion100).ToList();
+                }
+
+                if (providerName == ProviderName.PostgreSql)
+                {
+                    var o = ses.Query<T>().WhereSql(a => $" {a.Ion100} @>"+" '{\"bb\":1}'").Select(a => a.Ion100).ToList();
+                }
 
                 ses.Query<T>().Update(a => new Dictionary<object, object>
                 {
@@ -2060,13 +2061,14 @@ namespace TestLibrary
                 ses.Insert(new T() { Name = "2", Ion100 = new Ion100 { Age = 100, Name = "100" } });
                 ses.Insert(new T() { Name = "2", Ion100 = new Ion100 { Age = 200, Name = "200" } });
                 list = ses.FreeSql<T>(sql).ToList();
+              
                 if (providerName == ProviderName.MsSql)
                 {
-                    var o = ses.Query<T>().WhereSql("JSON_VALUE(ion100, '$.Age') = 100").Select(a => a.Ion100).ToList();
+                    var o = ses.Query<T>().WhereSql(a=>"JSON_VALUE(ion100, '$.Age') = 100").Select(a => a.Ion100).ToList();
                 }
                 if (providerName == ProviderName.PostgreSql)
                 {
-                    var o = ses.Query<T>().WhereSql("ion100 @> '{\"Age\":100}'").Select(a => a.Ion100).ToList();
+                    var o = ses.Query<T>().WhereSql(a=>"ion100 @> '{\"Age\":100}'").Select(a => a.Ion100).ToList();
                 }
             }
         }
@@ -2106,7 +2108,8 @@ namespace TestLibrary
         [MapColumn("my_geo")]
         //[MapDefaultValue(" NOT NULL ")]
         public IGeoShape MyGeoObject { get; set; } = FactoryGeo.Empty(GeoType.GeometryCollection);
-        [MapColumn("my_geo2")] public IGeoShape MyGeoObject2 { get; set; } = FactoryGeo.Empty(GeoType.GeometryCollection);
+        [MapColumn("my_geo2")] 
+        public IGeoShape MyGeoObject2 { get; set; } = FactoryGeo.Empty(GeoType.GeometryCollection);
     }
     [MapTable("myjson")] public class JPosO : JsonBaseO { }
     [MapTable("myjson")] public class JMyO : JsonBaseO { }

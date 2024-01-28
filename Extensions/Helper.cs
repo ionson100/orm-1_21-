@@ -58,63 +58,51 @@ namespace ORM_1_21_
             return query.Provider.CreateQuery<TR>(check);
         }
 
-
         /// <summary>
-        /// Custom  Update clause
+        /// The raw query Sql, allows you not to remember the names of the table fields, it returns an IQueryable&lt;object&gt;
         /// </summary>
         /// <param name="query">Current IQueryable</param>
-        /// <param name="sql">Raw query string</param>
-        /// <returns></returns>
-        public static int UpdateSql<T>(this IQueryable<T> query, string sql)
-        {
-            Check.NotNull(query, nameof(query));
-            Check.NotNull(sql, nameof(sql));
-            var sqlE = Expression.Constant(sql);
-            var mi = typeof(V).GetMethod("UpdateSql");
-            Expression check = Expression.Call(null, mi, query.Expression, sqlE);
-            var expressionNodeType = query.Expression.NodeType;
-            return query.Provider.Execute<int>(check);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="query"></param>
-        /// <param name="selector"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public static int UpdateSqlE<T>(this IQueryable<T> query, Expression<Func<T, string>> selector)
+        /// <param name="selector">Body string</param>
+        /// <param name="sqlParams">Array of request parameters</param>
+        public static IQueryable<object> SelectSqlE<TSource>(this IQueryable<TSource> query, Expression<Func<TSource, string>> selector, params SqlParam[] sqlParams)
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(selector, nameof(selector));
-         
+            var sqlParamsE = Expression.Constant(sqlParams);
+            var mi = typeof(V).GetMethod("SelectSqlE");
+            var miConstructed = mi.MakeGenericMethod(typeof(object));
+            Expression check = Expression.Call(null, miConstructed, query.Expression,selector, sqlParamsE);
+            return query.Provider.CreateQuery<object>(check);
+        }
+
+
+
+
+
+
+
+        /// <summary>
+        /// A raw request sql to update a table allows you not to remember the names of the table fields
+        /// </summary>
+        /// <param name="query">Current IQueryable</param>
+        /// <param name="rawSql">Body string</param>
+        /// <param name="sqlParams">Array of request parameters</param>
+        public static int UpdateSql<T>(this IQueryable<T> query, Expression<Func<T, string>> rawSql, params SqlParam[] sqlParams)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(rawSql, nameof(rawSql));
+            Check.NotNull(sqlParams, nameof(sqlParams));
+            var sqlParamsE = Expression.Constant(sqlParams);
+
             var mi = typeof(V).GetMethod("UpdateSqlE");
-            Expression check = Expression.Call(null, mi, query.Expression, selector);
+            Expression check = Expression.Call(null, mi, query.Expression, rawSql, sqlParamsE);
             var expressionNodeType = query.Expression.NodeType;
             return query.Provider.Execute<int>(check);
 
            
         }
 
-        /// <summary>
-        /// Custom  Update clause
-        /// </summary>
-        /// <param name="query">Current IQueryable</param>
-        /// <param name="sql">Raw query string</param>
-        /// <param name="sqlParams">Params query string</param>
-        /// <returns></returns>
-        public static int UpdateSql(this IQueryable query, string sql,params SqlParam[] sqlParams)
-        {
-            Check.NotNull(query, nameof(query));
-            Check.NotNull(sql, nameof(sql));
-            Check.NotNull(sqlParams, nameof(sqlParams));
-            var sqlE = Expression.Constant(sql);
-            var sqlParamsE = Expression.Constant(sqlParams);
-            var mi = typeof(V).GetMethod("UpdateSqlP");
-            Expression check = Expression.Call(null, mi, sqlE,sqlParamsE);
-            return query.Provider.Execute<int>(check);
-        }
-
+       
 
 
         /// <summary>
@@ -139,30 +127,45 @@ namespace ORM_1_21_
             return query.Provider.CreateQuery<TR>(check);
         }
 
-    
 
         /// <summary>
-        /// Custom  WHERE clause
+        /// A raw query sql for selecting by condition allows you not to remember the names of table fields
         /// </summary>
-        public static IQueryable<T> WhereSql<T>(this IQueryable<T> query,   string sql)
+        /// <param name="query">Current IQueryable</param>
+        /// <param name="rawSql">Body string</param>
+        /// <param name="sqlParams">Array of request parameters</param>
+        public static IQueryable<T> WhereSql<T>(this IQueryable<T> query, Expression<Func<T, string>> rawSql, params SqlParam[] sqlParams)
         {
             Check.NotNull(query, nameof(query));
-            Check.NotNull(sql, nameof(sql));
-            var t=Expression.Parameter(typeof(T));
-            var sqlE = Expression.Constant(sql);
-            Expression check = Expression.Call(null, typeof(V).GetMethod("WhereString"), sqlE);
+            Check.NotNull(rawSql, nameof(rawSql));
+            Check.NotNull(sqlParams, nameof(sqlParams));
+            var sqlParamsE = Expression.Constant(sqlParams);
+            var t = Expression.Parameter(typeof(T));
+            var mi = typeof(V).GetMethod("WhereSqlE");
+            Expression check = Expression.Call(null, mi, query.Expression, rawSql, sqlParamsE);
             var lambada = Expression.Lambda<Func<T, bool>>(check,t);
             return query.Where(lambada);
         }
 
+
+
+
+
         /// <summary>
-        /// Custom FROM  clause
+        /// Custom FROM  clause (Doesn't work with MsSql database)
         /// </summary>
         public static IQueryable<T> FromSql<T>(this IQueryable<T> query, string sql)
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(sql, nameof(sql));
-         
+            
+            var provider = (DbQueryProvider<T>)query.Provider; 
+            ProviderName providerName = provider.Sessione.ProviderName;
+            if (providerName == ProviderName.MsSql)
+            {
+                throw new Exception("Method:FromSql doesn't work with MsSql database");
+            }
+
             var sqlE = Expression.Constant(sql);
             var queryE = Expression.Constant(query);
             var mi = typeof(V).GetMethod("FromString");
@@ -196,21 +199,7 @@ namespace ORM_1_21_
 
 
 
-        /// <summary>
-        /// Custom  WHERE clause with parameters sql
-        /// </summary>
-        public static IQueryable<T> WhereSql<T>(this IQueryable<T> query, string sql,params SqlParam[] sqlParams)
-        {
-
-            Check.NotNull(sql, nameof(sql));
-            List<ParameterExpression> list = new List<ParameterExpression>();
-            var t = Expression.Parameter(typeof(T));
-            var sqlE = Expression.Constant(sql);
-            var sqlParamsE = Expression.Constant(sqlParams);
-            Expression check = Expression.Call(null, typeof(V).GetMethod("WhereStringP"), sqlE,sqlParamsE);
-            var lambada = Expression.Lambda<Func<T, bool>>(check, t);
-            return query.Where(lambada);
-        }
+       
 
 
         /// <summary>

@@ -154,7 +154,14 @@ namespace ORM_1_21_.Linq
                                     {
                                         if (_providerName == ProviderName.MsSql || _providerName == ProviderName.SqLite)
                                         {
-                                            AddParameter(JsonConvert.SerializeObject(param));
+                                            if (param is string p)
+                                            {
+                                                AddParameter(p);
+                                            }
+                                            else
+                                            {
+                                                AddParameter(JsonConvert.SerializeObject(param));
+                                            }
                                         }
                                         else
                                         {
@@ -364,15 +371,39 @@ namespace ORM_1_21_.Linq
             return e;
         }
 
-        protected override Expression VisitMethodCallUpdate(MethodCallExpression methodCallExpression)
+        protected override Expression VisitMethodCallUpdate(MethodCallExpression m)
         {
-            var obj = Visit(methodCallExpression.Object);
-            IEnumerable<Expression> args = VisitExpressionList(methodCallExpression.Arguments);
-            if (obj != methodCallExpression.Object || args != methodCallExpression.Arguments)
+            if (m.Method.Name == "Format")
             {
-                return Expression.Call(obj, methodCallExpression.Method, args);
+                string sql = StringB.ToString();
+                StringB.Clear();
+                var p = m.Arguments[0] as ConstantExpression;
+                List<string> list = new List<string>();
+                for (var i = 0; i < m.Arguments.Count; i++)
+                {
+                    if (i == 0) continue;
+                    VisitUpdateBinary(m.Arguments[i]);
+                    list.Add(StringB.ToString().Trim());
+                    StringB.Clear();
+
+                }
+                string sBody = string.Format((string)p.Value, list.ToArray());
+                StringB.Append(sql).Append(sBody);
+                return m;
             }
-            return methodCallExpression;
+            else
+            {
+                var value=UtilsCore.Compile(m);
+                StringB.Append(value);
+                //var obj = VisitUpdateBinary(m);
+                //IEnumerable<Expression> args = VisitExpressionListUpdate(m.Arguments);
+                //if (obj != m.Object || args != m.Arguments)
+                //{
+                //    return Expression.Call(obj, m.Method, args);
+                //}
+                return m;
+            }
+           
         }
 
 
@@ -1724,116 +1755,58 @@ namespace ORM_1_21_.Linq
                 return m;
             }
 
-            if (m.Method.Name == "UpdateSqlE")
+            if (m.Method.Name == "SelectSqlE")
             {
                 Visit(m.Arguments[0]);
-                var ass = StringB.Length = 0;
                 var sl = m.Arguments[1] as LambdaExpression;
-                var ss = sl.Body.NodeType;
-
-                switch (sl.Body.NodeType)
-                {
-                    case ExpressionType.Constant:
-                        {
-                            if (sl.Body is ConstantExpression bE)
-                            {
-
-                                var o = new OneComposite { Operand = Evolution.Update, Body = bE.Value.ToString() };
-                                AddListOne(o);
-
-                            }
-
-
-                            break;
-
-                        }
-                    case ExpressionType.Call:
-                        {
-                            if (sl.Body is MethodCallExpression mCall)
-                            {
-                                var name = mCall.Method.Name;
-                                if (name == "Format")
-                                {
-                                    var p = mCall.Arguments[0] as ConstantExpression;
-                                    List<string> list = new List<string>();
-                                    for (var i = 0; i < mCall.Arguments.Count; i++)
-                                    {
-                                        if (i == 0) continue;
-                                        VisitUpdateBinary(mCall.Arguments[i]);
-                                        list.Add(StringB.ToString().Trim());
-                                        StringB.Clear();
-
-                                    }
-
-
-                                    string sBody = string.Format((string)p.Value, list.ToArray());
-                                    var ao = new OneComposite { Operand = Evolution.Update, Body = sBody };
-                                    AddListOne(ao);
-                                    return m;
-                                }
-                                else
-                                {
-                                    object result = Expression.Lambda(mCall).Compile().DynamicInvoke();
-                                    var ao = new OneComposite { Operand = Evolution.Update, Body = result.ToString() };
-                                    AddListOne(ao);
-                                    return m;
-                                }
-                            }
-
-
-                            break;
-                        }
-                    case ExpressionType.Add:
-                        {
-                            if (sl.Body is BinaryExpression bE)
-                            {
-
-                                VisitUpdateBinary(bE.Left);
-                                VisitUpdateBinary(bE.Right);
-
-                            }
-
-                            var o = new OneComposite { Operand = Evolution.Update, Body = StringB.ToString().ToString() };
-                            AddListOne(o);
-                            break;
-                        }
-                    default:
-                        {
-
-                            throw new Exception(
-                            string.Format(CultureInfo.CurrentCulture, "Unhandled expression type: '{0}'", sl.Body.NodeType));
-
-                        }
-
-
-                }
-
-
-
-
-
-
-
-
-                StringB.Clear();
-
-                return m;
-            }
-
-            if (m.Method.Name == "UpdateSqlP")
-            {
-                Visit(m.Arguments[0]);
-                var sas = m.Arguments[1] as ConstantExpression;
-                var o = new OneComposite { Operand = Evolution.Update, Body = sas.Value.ToString() };
+                VisitUpdateBinary(sl.Body);
                 var p = m.Arguments[2] as ConstantExpression;
                 var pv = (SqlParam[])p.Value;
                 foreach (SqlParam param in pv)
                 {
                     Param.Add(param.Name, param.Value);
                 }
-                AddListOne(o);
+                var ao = new OneComposite { Operand = Evolution.Select, Body = StringB.ToString() };
+                AddListOne(ao);
+                StringB.Clear();
                 return m;
             }
+
+            if (m.Method.Name == "WhereSqlE")
+            {
+                Visit(m.Arguments[0]);
+                var sl = m.Arguments[1] as LambdaExpression;
+                VisitUpdateBinary(sl.Body);
+                var p = m.Arguments[2] as ConstantExpression;
+                var pv = (SqlParam[])p.Value;
+                foreach (SqlParam param in pv)
+                {
+                    Param.Add(param.Name, param.Value);
+                }
+                var ao = new OneComposite { Operand = Evolution.Where, Body = StringB.ToString() };
+                AddListOne(ao);
+                StringB.Clear();
+                return m;
+            }
+
+            if (m.Method.Name == "UpdateSqlE")
+            {
+                Visit(m.Arguments[0]);
+                var sl = m.Arguments[1] as LambdaExpression;
+                VisitUpdateBinary(sl.Body);
+                var p = m.Arguments[2] as ConstantExpression;
+                var pv = (SqlParam[])p.Value;
+                foreach (SqlParam param in pv)
+                {
+                    Param.Add(param.Name, param.Value);
+                }
+                var ao = new OneComposite { Operand = Evolution.Update, Body = StringB.ToString() };
+                AddListOne(ao);
+                StringB.Clear();
+                return m;
+            }
+
+           
 
             if (m.Method.Name == "SelectSqlP")
             {
@@ -1858,22 +1831,7 @@ namespace ORM_1_21_.Linq
                 return m;
             }
 
-            if (m.Method.Name == "WhereStringP")
-            {
-                var t = m.Arguments[0] as ConstantExpression;
-                var v = t.Value;
-                StringB.Append(v);
-
-                var p = m.Arguments[1] as ConstantExpression;
-                var pv = (SqlParam[])p.Value;
-                foreach (SqlParam param in pv)
-                {
-                    Param.Add(param.Name, param.Value);
-                }
-
-
-                return m;
-            }
+          
 
             if (m.Method.Name == "WhereIn")
             {
@@ -2634,7 +2592,7 @@ namespace ORM_1_21_.Linq
 
         protected override Expression VisitConstantUpdate(ConstantExpression c)
         {
-            StringB.Append(c.Value.ToString());
+            StringB.Append(c.Value);
             return c;
         }
 
@@ -2778,43 +2736,17 @@ namespace ORM_1_21_.Linq
 
             if (m.Expression == null && m.NodeType == ExpressionType.MemberAccess)
             {
-                if (m.Type == typeof(int))
-                {
-                    var value = Expression.Lambda<Func<int>>(m).Compile()();
-                    StringB.Append(value);
-                    return m;
-                }
 
-                if (m.Type == typeof(long))
-                {
-                    var value = Expression.Lambda<Func<long>>(m).Compile()();
-                    StringB.Append(value);
-                    return m;
-                }
-
-
-                if (m.Member.ReflectedType == typeof(DateTime))
-                {
-                    var value = Expression.Lambda<Func<DateTime>>(m).Compile()();
-                    StringB.Append($"'{value}'");
-                    return m;
-                }
-
-                if (m.Type == typeof(Guid))
-                {
-                    var value = Expression.Lambda<Func<Guid>>(m).Compile()();
-                    StringB.Append($"'{value}'");
-                    return m;
-                }
-
-                var str = Expression.Lambda<Func<object>>(m).Compile().Invoke();
-                StringB.Append($"{str}");
+                var value = UtilsCore.Compile(m);// = Expression.Lambda<Func<DateTime>>(m).Compile()();
+                StringB.Append(value);
                 return m;
+              
             }
 
             throw new NotSupportedException(
                 string.Format(CultureInfo.CurrentCulture, "The member '{0}' is not supported", m.Member.Name));
         }
+        
 
 
         protected override Expression VisitMemberAccess(MemberExpression m)
@@ -3314,25 +3246,53 @@ namespace ORM_1_21_.Linq
 
                     value = fieldInfo.GetValue(str);
                 }
+                else
+                {
+                    FieldInfo[] asax = str.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
+                    foreach (FieldInfo info in asax)
+                    {
+                        if (info.Name.EndsWith(m.Member.Name))
+                        {
+                            value = info.GetValue(str);
+
+                        }
+                    }
+
+                }
+
+                if (value == null)
+                {
+                    throw new Exception($"I can't determine the field:{m.Member.Name} to call");
+                }
             }
 
             if (m.Member.MemberType == MemberTypes.Property)
             {
-                var tt = str.GetType();
-                PropertyInfo[] asas = str.GetType().GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-                List<string> eee= asas.Select(a => a.Name).ToList();
-                foreach (PropertyInfo info in asas)
-                {
-                    if (info.Name.EndsWith(m.Member.Name))
-                    {
-                        value = info.GetValue(str);
+                 var ass = str.GetType().GetProperty(m.Member.Name,
+                     BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
+                 if (ass != null)
+                 {
+                     value = ass.GetValue(str, null);
+                 }
+                 else
+                 {
+                     PropertyInfo[] asax = str.GetType().GetProperties(BindingFlags.Instance | BindingFlags.NonPublic |
+                                                                       BindingFlags.Public | BindingFlags.Static);
+                     foreach (PropertyInfo info in asax)
+                     {
+                         if (info.Name.EndsWith(m.Member.Name))
+                         {
+                             value = info.GetValue(str);
+                         }
+                     }
+                 }
+                 if (value == null)
+                 {
+                     throw new Exception($"I can't determine the property:{m.Member.Name} to call");
+                 }
 
-                    }
-                }
-                
-                // var ass = str.GetType().GetProperty(m.Member.Name,
-                //     BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-                // value = ass.GetValue(str, null);
+
+
             }
 
 
@@ -3863,6 +3823,32 @@ namespace ORM_1_21_.Linq
                 case "Remainder": return "%";
                 default: return null;
             }
+        }
+
+        protected override ReadOnlyCollection<Expression> VisitExpressionListUpdate(ReadOnlyCollection<Expression> original)
+        {
+            List<Expression> list = null;
+            for (int i = 0, n = original.Count; i < n; i++)
+            {
+                StringB.Append(" ,");
+
+                var p = VisitUpdateBinary(original[i]);
+
+                if (list != null)
+                {
+                    list.Add(p);
+                }
+                else if (p != original[i])
+                {
+                    list = new List<Expression>(n);
+                    for (var j = 0; j < i; j++) list.Add(original[j]);
+                    list.Add(p);
+                }
+
+            }
+
+            if (list != null) return list.AsReadOnly();
+            return original;
         }
 
         protected override ReadOnlyCollection<Expression> VisitExpressionList(ReadOnlyCollection<Expression> original)

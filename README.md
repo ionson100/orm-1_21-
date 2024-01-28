@@ -7,6 +7,9 @@
 + [Interfaces](#interfaces)
 + [Accessing another database](#anotherdatabase)
 + [Work with subclasses](#subclass)
++ [Working with geometry 2d model](#geometry)
++ [Working with the Json type](#json)
++ [Method: WhereIn,WhereNotIn,SelectSql,SelectSqlE,WhereSql, FromSql](#wheresql)
 + [The concept of persistence](#persistence)
 + [License](./LICENSE.md)
 
@@ -357,6 +360,63 @@ var sql = $"select * from {session.TableName<MyClass>()} where {session.ColumnNa
 // for SqLite  : select * from "my_class5" where "age" > @1
 var res=session.FreeSql<MyClass>(sql, 10);
 ```
+<a name="wheresql"></a> 
+##### Method: WhereIn,WhereNotIn,SelectSql,SelectSqlE,WhereSql, FromSql.
+Table:
+```c#
+[MapTable("m_sql")]
+class MSql
+{
+    [MapPrimaryKey("id", Generator.Assigned)]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [MapColumn("name")]
+    public string Name { get; set; }
+
+    [MapColumn("age")]
+    public int Age { get; set; }
+}
+```
+WhereIn:
+```c#
+session.Query<MSql>().WhereIn(a => a.Age, 20, 30).ForEach(a=>Console.WriteLine($"{a.Name}-{a.Age}"));
+//SELECT "m_sql"."id", "m_sql"."name", "m_sql"."age" FROM "m_sql" WHERE ("m_sql"."age" IN (20, 30));
+session.Query<MSql>().WhereIn(a => a.Name, "Jon", "Ion").ForEach(a => Console.WriteLine($"{a.Name}-{a.Age}"));
+//SELECT "m_sql"."id", "m_sql"."name", "m_sql"."age" FROM "m_sql" WHERE("m_sql"."name" IN(@p1, @p2)); params:  @p1 - Jon  @p2 - Ion
+```
+WhereNotIn:
+```c#
+session.Query<MSql>().WhereNotIn(a => a.Age, 20, 30).ForEach(a=>Console.WriteLine($"{a.Name}-{a.Age}"));
+//SELECT "m_sql"."id", "m_sql"."name", "m_sql"."age" FROM "m_sql" WHERE ("m_sql"."age" NOT IN (20, 30));
+session.Query<MSql>().WhereNotIn(a => a.Name, "Jon", "Ion").ForEach(a => Console.WriteLine($"{a.Name}-{a.Age}"));
+//SELECT "m_sql"."id", "m_sql"."name", "m_sql"."age" FROM "m_sql" WHERE ("m_sql"."name" NOT IN (@p1, @p2)); params:  @p1 - Jon  @p2 - Ion 
+```
+WhereSql:
+```c#
+session.Query<MSql>().WhereSql(a => $"{a.Age}=20 and {a.Name} notnull").ForEach(a=>Console.WriteLine($"{a.Name}-{a.Age}"));
+//SELECT "m_sql"."id", "m_sql"."name", "m_sql"."age" FROM "m_sql" WHERE "m_sql"."age"=20 and "m_sql"."name" notnull
+session.Query<MSql>().WhereSql(a => $"{a.Age}=@v1 and {a.Name} notnull",new SqlParam("@v1",20)).ForEach(a => Console.WriteLine($"{a.Name}-{a.Age}"));
+//SELECT "m_sql"."id", "m_sql"."name", "m_sql"."age" FROM "m_sql" WHERE "m_sql"."age"=@v1 and "m_sql"."name" notnull; params:  @v1 - 20 
+```
+FromSql
+```c#
+session.Query<MSql>().FromSql("(select id, name, age from m_sql where age>30) as m_sql").ForEach(a=>Console.WriteLine($"{a.Name}-{a.Age}"));
+//SELECT "m_sql"."id", "m_sql"."name", "m_sql"."age" FROM (select id, name, age from m_sql where age>30) as m_sql;
+```
+SelectSql
+```c#
+session.Query<MSql>().SelectSql<int>(" age*2 ").ForEach(a=>Console.WriteLine(a));
+//SELECT age*2 FROM "m_sql";
+```
+SelectSqlE
+```c#
+List<object> res=session.Query<MSql>().SelectSqlE(a => $"Concat('Name:',{a.Name},' - Age:',{a.Age})").ToList();
+//SELECT Concat('Name:',"m_sql"."name",' - Age:',"m_sql"."age") FROM "m_sql";
+List<object> res=session.Query<MSql>().SelectSqlE(a => $"Concat(@v1,{a.Name},' - @v2',{a.Age})",
+new SqlParam("@v1","Name:"),
+new SqlParam("@v2","Age:")).ToList();
+//SELECT Concat(@v1,"m_sql"."name",' - @v2',"m_sql"."age") FROM "m_sql"; params:  @v1 - Name:  @v2 - Age: 
+```
 
 ###### Extensions:
 ```C#
@@ -563,7 +623,7 @@ the type must have a public constructor.
  }
 
 ```
-###### example MySql
+###### Example MySql.
 ```C#
  public  class MyDbMySql : IOtherDataBaseFactory
  {
@@ -584,7 +644,7 @@ the type must have a public constructor.
    }
  }
 ```
-###### example Postgres
+###### Example PostgreSQl.
 ```C#
 public class MyDbPostgres : IOtherDataBaseFactory
 {
@@ -605,7 +665,7 @@ public class MyDbPostgres : IOtherDataBaseFactory
   }
 }
 ```
-###### example MsSql
+###### Example MsSql.
 ```C#
 public class MyDbMsSql : IOtherDataBaseFactory
 {
@@ -626,7 +686,7 @@ public class MyDbMsSql : IOtherDataBaseFactory
     }
 }
 ```
-###### example SQLite
+###### Example SQLite.
 ```C#
 public class MyDbSqlite : IOtherDataBaseFactory
 {
@@ -746,6 +806,335 @@ var s4 = session.FreeSql<TSuperClass>($"select * from {tableName}");
 var s5 = session.FreeSql<TSubClass>($"select * from {tableName}");
 var s6 = session.FreeSql<TCoreClass>($"select * from {tableName}");
 ```
+
+<a name="geometry"></a> 
+##### Working with geometry 2d model.
+Implemented via the IGeoShape interface.\
+Attention only: PostgreSql,MySql, MsSql.\
+Type Geo object:
+```c#
+ public enum GeoType
+ {
+     None,
+     Point,
+     LineString,
+     Polygon,
+     MultiPoint,
+     MultiLineString,
+     MultiPolygon,
+     GeometryCollection,
+     CircularString,
+     PolygonWithHole,
+     Empty
+ }
+```
+Table creation example:
+```c#
+ [MapTable("m_geo")]
+  class MGeo
+  {
+      [MapPrimaryKey("id", Generator.Assigned)]
+      public Guid Id { get; set; } = Guid.NewGuid();
+  
+      [MapColumn("name")]
+      public string Name { get; set; }
+       
+      [MapIndex]
+      [MapColumn("my_geo")]
+      public IGeoShape MyGeo { get; set; } = FactoryGeo.Empty(GeoType.GeometryCollection);
+
+  }
+ // Postgres
+ //CREATE TABLE IF NOT EXISTS "m_geo" (
+ //"id" UUID  PRIMARY KEY,
+ //"name" VARCHAR(256) NULL ,
+ //"my_geo" geometry NULL );
+ //CREATE INDEX IF NOT EXISTS  "idx_m_geo_my_geo_geom" ON "m_geo" USING gist ("my_geo");
+```
+Example insert:
+```C#
+session.DropTableIfExists<MGeo>();
+session.TableCreate<MGeo>();
+
+session.Insert(new MGeo
+    { Name = "f1", MyGeo = FactoryGeo.Polygon("POLYGON((0 0, 0 5, 10 5, 10 0,0 0))") });
+session.Insert(new MGeo
+    { Name = "f1", MyGeo = FactoryGeo.Point(1,1) });
+session.Insert(new MGeo
+    { Name = "f1", MyGeo = FactoryGeo.Point(-1, -1) });
+
+//INSERT INTO "m_geo" ("id", "name", "my_geo") VALUES (@p1,@p2,ST_GeomFromText(@p3, @srid3)) ; params:  @p1 - cbc6bf29-a2fe-4387-8596-0e8d96183ec5  @p2 - f1  @srid3 - 4326  @p3 - POLYGON((0 0, 0 5, 10 5, 10 0,0 0)) 
+//INSERT INTO "m_geo" ("id", "name", "my_geo") VALUES (@p1,@p2,ST_GeomFromText(@p3, @srid3)) ; params:  @p1 - 30bbdc30-c3f8-4347-80a9-f368ad4a85fa  @p2 - f1  @srid3 - 4326  @p3 - POINT(1 1) 
+//INSERT INTO "m_geo" ("id", "name", "my_geo") VALUES (@p1,@p2,ST_GeomFromText(@p3, @srid3)) ; params:  @p1 - 409400dc-57b2-4dfd-b2b2-89b8730b514a  @p2 - f1  @srid3 - 4326  @p3 - POINT(-1 -1)
+```
+Default Srid appointed:```FactoryGeo.DefaultSrid=value```\
+Instance assignment:
+```C#
+var shape = FactoryGeo.Point(1, 1).StSetSRID(0); \\or
+var shape = FactoryGeo.Point(1, 1).SetSrid(0);
+```
+Select only points from the table.
+```C#
+var point = session.Query<MGeo>().Where(a => a.MyGeo.StGeometryType() == "ST_Point").ToList();
+// SELECT "m_geo"."id", "m_geo"."name", coalesce(CONCAT('SRID=',ST_SRID("m_geo"."my_geo"),';',ST_AsText("m_geo"."my_geo")),null) as "my_geo" FROM "m_geo" WHERE ( ST_GeometryType("m_geo"."my_geo") = @p1); params:  @p1 - ST_Point 
+```
+Find only points that lie inside a given polygon.
+```C#
+var res = session.Query<MGeo>()
+ .Where(a => a.MyGeo.StWithin(FactoryGeo.CreateGeo("POLYGON((0 0, 0 5, 20 5, 10 0,0 0))").SetSrid(4326)) == true).
+ Where(s=>s.MyGeo.StGeometryType()== "ST_Point").ToList();
+//SELECT "m_geo"."id", "m_geo"."name", coalesce(CONCAT('SRID=',ST_SRID("m_geo"."my_geo"),';',ST_AsText("m_geo"."my_geo")),null) as "my_geo" FROM "m_geo" 
+//WHERE ( ST_Within("m_geo"."my_geo",ST_GeomFromText(@p1, 4326)) = True) and ( ST_GeometryType("m_geo"."my_geo") = @p2); params:  @p1 - POLYGON((0 0, 0 5, 20 5, 10 0,0 0))  @p2 - ST_Point 
+```
+Combining geometries (Union).\
+Please note that for instances using methods of geographic functions,\
+it is required to initialize an instance of the current open ORM session ```SetSession()```
+```C#
+var geo1 = FactoryGeo.CreateGeo("POINT(1 2)").SetSrid(4326);
+var gei2 = FactoryGeo.CreateGeo("POINT(-2 3)").SetSrid(4326);
+var uGeo = geo1.SetSession(session).StUnion(gei2);
+string str = uGeo.StAsText();//MULTIPOINT(1 2,-2 3)
+```
+Create GeoJson:
+```C#
+var geo1 = FactoryGeo.CreateGeo("POINT(1 2)").SetSrid(4326);
+var gei2 = FactoryGeo.CreateGeo("POINT(-2 3)").SetSrid(4326);
+var gei3 = FactoryGeo.CreateGeo("POLYGON((0 0, 0 5, 20 5, 10 0,0 0))").SetSrid(4326);
+var col = FactoryGeo.GeometryCollection(geo1, gei2, gei3);
+var jObject = col.GetGeoJson(new { id = Guid.NewGuid(), name = "gc1" });
+string json = JsonConvert.SerializeObject(jObject, Formatting.Indented);
+```
+```json
+{
+  "type": "GeometryCollection",
+  "geometries": [
+    {
+      "type": "Point",
+      "coordinates": [
+        1.0,
+        2.0
+      ]
+    },
+    {
+      "type": "Point",
+      "coordinates": [
+        -2.0,
+        3.0
+      ]
+    },
+    {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            5.0
+          ],
+          [
+            20.0,
+            5.0
+          ],
+          [
+            10.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      ]
+    }
+  ],
+  "properties": {
+    "id": "83af8b9c-101f-44c2-99f0-22bd461f1781",
+    "name": "gc1"
+  }
+}
+```
+For geometric objects, the following methods are implemented.\
+Attention, not all methods work with all databases; this is most complete for PostgreSql.\
+Asynchronous methods cannot be used in expression trees, to build a ff query, only to work with an instance object.
+```C#
+IGeoShape SetSrid(int srid);
+GeoType GeoType { get; }
+List<GeoPoint> ListGeoPoints { get; }
+object GetGeoJson(object properties = null);
+List<IGeoShape> MultiGeoShapes { get; }
+string StAsText();
+string StGeometryType();
+Task<string> StGeometryTypeAsync(CancellationToken cancellationToken = default);
+double? StArea();
+Task<double?> StAreaAsync(CancellationToken cancellationToken = default);
+bool? StWithin(IGeoShape shape);
+Task<bool?> StWithinAsync(IGeoShape shape, CancellationToken cancellationToken = default);
+byte[] StAsBinary();
+Task<byte[]> StAsBinaryAsync(CancellationToken cancellationToken = default);
+IGeoShape StBoundary();
+Task<IGeoShape> StBoundaryAsync(CancellationToken cancellationToken = default);
+IGeoShape StBuffer(float distance);
+Task<IGeoShape> StBufferAsync(float distance, CancellationToken cancellationToken = default);
+IGeoShape StCentroid();
+Task<IGeoShape> StCentroidAsync(CancellationToken cancellationToken = default);
+IGeoShape StEndPoint();
+Task<IGeoShape> StEndPointAsync(CancellationToken cancellationToken = default);
+IGeoShape StEnvelope();
+Task<IGeoShape> StEnvelopeAsync(CancellationToken cancellationToken = default);
+IGeoShape StStartPoint();
+Task<IGeoShape> StStartPointAsync(CancellationToken cancellationToken = default);
+IGeoShape StSymDifference(IGeoShape shape);
+Task<IGeoShape> StSymDifferenceAsync(IGeoShape shape, CancellationToken cancellationToken = default);
+IGeoShape StUnion(IGeoShape shape);
+Task<IGeoShape> StUnionAsync(IGeoShape shape, CancellationToken cancellationToken = default);
+bool? StContains(IGeoShape shape);
+Task<bool?> StContainsAsync(IGeoShape shape, CancellationToken cancellationToken=default);
+bool? StCrosses(IGeoShape shape);
+Task<bool?> StCrossesAsync(IGeoShape shape, CancellationToken cancellationToken = default);
+IGeoShape StDifference(IGeoShape shape);
+Task<IGeoShape> StDifferenceAsync(IGeoShape shape, CancellationToken cancellationToken = default);
+int? StDimension();
+Task<int?> StDimensionAsync(CancellationToken cancellationToken = default);
+bool? StDisjoint(IGeoShape shape);
+Task<bool?> StDisjointAsync(IGeoShape shape, CancellationToken cancellationToken = default);
+double? StDistance(IGeoShape shape);
+Task<double?> StDistanceAsync(IGeoShape shape, CancellationToken cancellationToken = default);
+bool? StEquals(IGeoShape shape);
+Task<bool?> StEqualsAsync(IGeoShape shape, CancellationToken cancellationToken = default);
+bool? StIntersects(IGeoShape shape);
+Task<bool?> StIntersectsAsync(IGeoShape shape, CancellationToken cancellationToken = default);
+bool? StOverlaps(IGeoShape shape);
+Task<bool?> StOverlapsAsync(IGeoShape shape, CancellationToken cancellationToken = default);
+int? StSrid();
+bool? StTouches(IGeoShape shape);
+Task<bool?> StTouchesAsync(IGeoShape shape, CancellationToken cancellationToken = default);
+int? StNumGeometries();
+Task<int?> StNumGeometriesAsync(CancellationToken cancellationToken = default);
+int? StNumInteriorRing();
+Task<int?> StNumInteriorRingAsync(CancellationToken cancellationToken = default);
+bool? StIsSimple();
+Task<bool?> StIsSimpleAsync(CancellationToken cancellationToken = default);
+bool? StIsValid();
+Task<bool?> StIsValidAsync(CancellationToken cancellationToken = default);
+double? StLength();
+Task<double?> StLengthAsync(CancellationToken cancellationToken = default);
+bool? StIsClosed();
+Task<bool?> StIsClosedAsync(CancellationToken cancellationToken = default);
+int? StNumPoints();
+Task<int?> StNumPointsAsync(CancellationToken cancellationToken = default);
+double? StPerimeter();
+Task<double?> StPerimeterAsync(CancellationToken cancellationToken = default);
+IGeoShape StTranslate(float deltaX, float deltaY);
+Task<IGeoShape> StTranslateAsync(float deltaX, float deltaY, CancellationToken cancellationToken = default);
+IGeoShape SetSession(ISession session);
+IGeoShape StConvexHull();
+Task<IGeoShape> StConvexHullAsync(CancellationToken cancellationToken = default);
+IGeoShape StCollect(params IGeoShape[] shapes);
+IGeoShape StPointN(int n);
+Task<IGeoShape> StPointNAsync(int n, CancellationToken cancellationToken = default);
+IGeoShape StPointOnSurface();
+Task<IGeoShape> StPointOnSurfaceAsync(CancellationToken cancellationToken = default);
+IGeoShape StInteriorRingN(int n);
+Task<IGeoShape> StInteriorRingNAsync(int n, CancellationToken cancellationToken = default);
+double? StX();
+Task<double?> StXAsync(CancellationToken cancellationToken = default);
+double? StY();
+Task<double?> StYAsync(CancellationToken cancellationToken=default);
+IGeoShape StTransform(int srid);
+Task<IGeoShape> StTransformAsync(int srid, CancellationToken cancellationToken = default);
+IGeoShape StSetSRID(int srid);
+string StAsLatLonText(string format =null );
+Task<object> StAsLatLonTextAsync(string format, CancellationToken cancellationToken = default);
+IGeoShape StReverse();
+Task<IGeoShape> StReverseAsync(CancellationToken cancellationToken = default);
+string StIsValidReason();
+Task<string> StIsValidReasonAsync(CancellationToken cancellationToken = default);
+IGeoShape StMakeValid();
+Task<IGeoShape> StMakeValidAsync(CancellationToken cancellationToken = default);
+string StAsGeoJson();
+Task<string> StAsGeoJsonAsync(CancellationToken cancellationToken = default);
+```
+<a name="json"></a> 
+##### Working with the Json type.
+Table creation examples: (PostgreSql)
+```C#
+[MapTable("m_json")]
+class MJson
+{
+    [MapPrimaryKey("id", Generator.Assigned)]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [MapColumn("name")]
+    public string Name { get; set; }
+   
+    [MapColumn("json")]
+    [MapColumnTypeJson]
+    public JsonBody Body { get; set; } 
+}
+
+class JsonBody
+{
+    public string Name { get; set; }
+    public string Description { get; set;}
+}
+// CREATE TABLE IF NOT EXISTS "m_json" (
+// "id" UUID  PRIMARY KEY,
+// "name" VARCHAR(256) NULL ,
+// "json" jsonb NULL );
+```
+Insert:
+```c#
+session.Insert(new MJson { Name = "j1", Body = new JsonBody { Name = "n1", Description = "simple" } });
+
+```
+Update:
+```c#
+session.Query<MJson>().Update(a => new Dictionary<object, object>
+{
+    { a.Body, new JsonBody { Name = "u1" } }
+});
+session.Query<MJson>().Update(a => new Dictionary<object, object>
+{
+    { a.Body, JsonConvert.SerializeObject(new JsonBody { Name = "u2" }) }
+});
+session.Query<MJson>().UpdateSql(a => $"{a.Body}='{JsonConvert.SerializeObject(new JsonBody { Name = "u3" })}'");
+var json= session.Query<MJson>().First().Body.Name;//u3
+```
+Select:\
+Select all records where the Json field contains the property  "Name" equal to u3
+```c#
+var u3 = session.Query<MJson>().WhereSql(a => $"{a.Body} @> '"+"{\"Name\":\"u3\"}'").ToList();
+```
+Option with type Object.\
+Please note that the argument ```[MapColumnTypeJson(TypeReturning.AsString)]```\
+can be used with an object; in this case, all requests will be returned as a json string
+```C#
+[MapTable("m_json")]
+class MJson
+{
+    [MapPrimaryKey("id", Generator.Assigned)]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [MapColumn("name")]
+    public string Name { get; set; }
+   
+    [MapColumn("json")]
+    [MapColumnTypeJson(TypeReturning.AsString)]
+    public object Body { get; set; } 
+}
+```
+Insert:
+```c#
+session.Insert(new MJson { Name = "j1", Body = new { Name = "n0", Description = "simple" } });
+session.Insert(new MJson { Name = "j2", Body = new JsonBody { Name = "n1", Description = "simple" } });
+//or
+session.Insert(new MJson { Name = "j3", Body = JsonConvert.SerializeObject(new JsonBody { Name = "n1", Description = "simple" }) });
+
+```
+
 
 
 

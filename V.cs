@@ -31,7 +31,15 @@ namespace ORM_1_21_
         {
             return true;
         }
-       
+
+        public static IQueryable<T> SelectSqlE<T>(object e,object sql,  SqlParam[] sqlParams)
+        {
+            var o1 = Expression.Constant(e);
+            var o = Expression.Constant(sql);
+            var sqlParamsE = Expression.Constant(sqlParams);
+            return new EnumerableQuery<T>(Expression.ArrayIndex(o1,o, sqlParamsE));
+        }
+
 
         public static IQueryable<T> SelectSqlP<T>(string sql, params SqlParam[] sqlParams)
         {
@@ -55,24 +63,23 @@ namespace ORM_1_21_
             return 0;
         }
 
-        public static int UpdateSqlE(Object query, object sql)
+        public static int UpdateSqlE(Object query, object sql, SqlParam[] sqlParams)
         {
             return 0;
         }
 
-        public static int UpdateSqlP(string sql, SqlParam[] sqlParams)
-        {
-            return 0;
-        }
+       
         public static IQueryable<T> FromStringP<T>(string sql, SqlParam[] sqlParams, IQueryable<T> queryable)
         {
             return queryable;
         }
 
-        public static bool WhereStringP(string sql,params SqlParam[] sqlParams)
+        public static bool WhereSqlE(Object query, object sql, SqlParam[] sqlParams)
         {
             return true;
         }
+        
+      
 
 
 
