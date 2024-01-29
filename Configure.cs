@@ -12,10 +12,10 @@ namespace ORM_1_21_
     public sealed partial class Configure
     {
 
-       
+
 
         internal static DbProviderFactory CurFactory;
-        //internal static bool UsageCache;
+     
 
         internal static string ConnectionString;
 
@@ -153,7 +153,7 @@ namespace ORM_1_21_
                             CreateFactoryMysql();
                         }
 #elif NETSTANDARD2_0
-                          CreateFactoryMysql();
+                        CreateFactoryMysql();
 #endif
 
 
@@ -172,7 +172,7 @@ namespace ORM_1_21_
                             CreateFactorySqlite();
                         }
 #elif NETSTANDARD2_0
-                         CreateFactorySqlite();
+                        CreateFactorySqlite();
 #endif
 
 
@@ -276,13 +276,8 @@ namespace ORM_1_21_
             {
                 MySqlLogger.Info($" {Environment.NewLine}ISession GetInnerSession error _configure==null");
                 throw new Exception("ISession GetInnerSession error _configure==null");
-            }
-
-            //lock (_o)
-            //{
+            } 
             return _configure.GetInnerSession<TF>();
-
-            //}
         }
 
         /// <summary>

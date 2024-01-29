@@ -27,17 +27,17 @@ namespace ORM_1_21_
             return true;
         }
 
-        public static bool WhereString( string sql)
+        public static bool WhereString(string sql)
         {
             return true;
         }
 
-        public static IQueryable<T> SelectSqlE<T>(object e,object sql,  SqlParam[] sqlParams)
+        public static IQueryable<T> SelectSqlE<T>(object e, object sql, SqlParam[] sqlParams)
         {
             var o1 = Expression.Constant(e);
             var o = Expression.Constant(sql);
             var sqlParamsE = Expression.Constant(sqlParams);
-            return new EnumerableQuery<T>(Expression.ArrayIndex(o1,o, sqlParamsE));
+            return new EnumerableQuery<T>(Expression.ArrayIndex(o1, o, sqlParamsE));
         }
 
 
@@ -45,7 +45,7 @@ namespace ORM_1_21_
         {
             var sqlE = Expression.Constant(sql);
             var sqlParamsE = Expression.Constant(sqlParams);
-            return new EnumerableQuery<T>(Expression.ArrayIndex(sqlE,sqlParamsE));
+            return new EnumerableQuery<T>(Expression.ArrayIndex(sqlE, sqlParamsE));
         }
         public static IQueryable<T> SelectSql<T>(string sql)
         {
@@ -68,7 +68,7 @@ namespace ORM_1_21_
             return 0;
         }
 
-       
+
         public static IQueryable<T> FromStringP<T>(string sql, SqlParam[] sqlParams, IQueryable<T> queryable)
         {
             return queryable;
@@ -78,12 +78,12 @@ namespace ORM_1_21_
         {
             return true;
         }
-        
-      
 
 
 
-        
+
+
+
 
 
 
@@ -94,7 +94,7 @@ namespace ORM_1_21_
 
         public string DropTable()
         {
-           return _sql;
+            return _sql;
         }
 
         public string TableExists()
@@ -123,8 +123,8 @@ namespace ORM_1_21_
         }
     }
 
-     class VT<T> where T : new()
-     {
+    class VT<T> where T : new()
+    {
         /// <summary>
         /// 
         /// </summary>

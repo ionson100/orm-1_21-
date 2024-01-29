@@ -15,8 +15,8 @@ namespace ORM_1_21_.Linq
         public IList ListDistinct { get; set; }
         public string Body { get; set; }
         public List<Expression> ListJoinExpressions { get; set; }
-    
+
     }
 
-    
+
 }

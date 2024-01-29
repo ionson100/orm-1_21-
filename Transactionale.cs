@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ORM_1_21_
 {
-   
+
     internal class Transactionale : ITransaction
     {
         IDbConnection _connection;
@@ -25,9 +25,9 @@ namespace ORM_1_21_
 
         public Transactionale()
         {
-            
+
         }
-        
+
         public IsolationLevel? IsolationLevel { get; set; }
 
         public IDbTransaction Transaction { get; set; }
@@ -84,7 +84,7 @@ namespace ORM_1_21_
             MyStateTransaction = StateTransaction.Rollback;
             if (Transaction != null)
             {
-               await Transaction.RollbackAsync();
+                await Transaction.RollbackAsync();
             }
             await InnerTransactionAsync();
             //isError = false;
@@ -103,16 +103,16 @@ namespace ORM_1_21_
         }
         private async Task InnerTransactionAsync()
         {
-            if (_connection!=null&&_connection?.State == ConnectionState.Open)
+            if (_connection != null && _connection?.State == ConnectionState.Open)
             {
                 await _connection.CloseAsync();
             }
 
             foreach (IDisposable disposable in _listDispose)
             {
-                 await disposable.DisposeAsync();
+                await disposable.DisposeAsync();
             }
-            
+
             _listDispose.Clear();
         }
 
@@ -135,6 +135,6 @@ namespace ORM_1_21_
     }
     internal enum StateTransaction
     {
-        None,Begin,Commit,Rollback
+        None, Begin, Commit, Rollback
     }
 }

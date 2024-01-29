@@ -1,9 +1,9 @@
 ﻿using Newtonsoft.Json;
+using ORM_1_21_.geo;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using ORM_1_21_.geo;
 
 namespace ORM_1_21_.Utils
 {
@@ -74,7 +74,7 @@ namespace ORM_1_21_.Utils
                             var geoSrid = ((IGeoShape)ob).StSrid();
                             row.Append($"ST_GeomFromText('{geoJson}', {geoSrid})").Append(';');
                         }
-                        
+
                     }
                     else
                     {
@@ -83,7 +83,7 @@ namespace ORM_1_21_.Utils
                         var str = GetValue(o, type);
                         row.Append(str).Append(';');
                     }
-                    
+
                 }
 
                 var s = row.ToString().Substring(0, row.ToString().LastIndexOf(";", StringComparison.Ordinal)) + "\n";
@@ -121,7 +121,7 @@ namespace ORM_1_21_.Utils
                 }
 
                 foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
-                { 
+                {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     if (map.IsJson)
                     {
@@ -136,16 +136,17 @@ namespace ORM_1_21_.Utils
                                 var json = JsonConvert.SerializeObject(o);
                                 row.Append($"'{json}'").Append(',');
                             }
-                            
+
                         }
                         else
                         {
                             var json = JsonConvert.SerializeObject(o);
                             row.Append($"CAST('{json}' AS JSON)").Append(',');
                         }
-                       
 
-                    } else if (map.IsInheritIGeoShape)
+
+                    }
+                    else if (map.IsInheritIGeoShape)
                     {
                         if (o == null)
                         {
@@ -157,7 +158,7 @@ namespace ORM_1_21_.Utils
                             var geoSrid = ((IGeoShape)o).StSrid();
                             row.Append($"ST_GeomFromText('{geoJson}', {geoSrid})").Append(", ");
                         }
-                        
+
                     }
                     else
                     {
@@ -165,8 +166,8 @@ namespace ORM_1_21_.Utils
                         var str = GetValue(o, type, isBlob);
                         row.Append(str).Append(',');
                     }
-                   
-                    
+
+
                 }
 
                 builder.AppendLine(row.ToString().Substring(0, row.ToString().LastIndexOf(',')) + "),");
@@ -234,7 +235,7 @@ namespace ORM_1_21_.Utils
                     return $"'{(DateTime)o:yyyy-MM-dd HH:mm:ss.fff}'";
                 }
             }
-               
+
 
             if (type.IsEnum) return Convert.ToInt32(o).ToString();
 
@@ -244,7 +245,7 @@ namespace ORM_1_21_.Utils
                 var v = Convert.ToBoolean(o);
                 return v == false ? "0" : "1";
             }
-            if(_providerName==ProviderName.SqLite)
+            if (_providerName == ProviderName.SqLite)
                 if (type == typeof(char))
                 {
                     return $"{Convert.ToByte(o)}";
@@ -268,11 +269,11 @@ namespace ORM_1_21_.Utils
         public static string InsertFile<T>(string fileCsv, string fieldterminator, ProviderName providerName)
         {
             var sql = new StringBuilder($".import '{fileCsv}' {AttributesOfClass<T>.TableName(providerName)}");
-           //sql.AppendLine($"INTO TABLE ");
-           //sql.AppendLine($"FIELDS TERMINATED BY '{fieldterminator}'");
-           //sql.AppendLine("ENCLOSED BY '\"'");
-           //sql.AppendLine("LINES TERMINATED BY '\n'");
-           //sql.AppendLine("IGNORE 1 ROWS");
+            //sql.AppendLine($"INTO TABLE ");
+            //sql.AppendLine($"FIELDS TERMINATED BY '{fieldterminator}'");
+            //sql.AppendLine("ENCLOSED BY '\"'");
+            //sql.AppendLine("LINES TERMINATED BY '\n'");
+            //sql.AppendLine("IGNORE 1 ROWS");
             return sql.ToString();
         }
     }

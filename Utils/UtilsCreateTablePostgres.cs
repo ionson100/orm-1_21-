@@ -1,9 +1,7 @@
-﻿using System;
+﻿using ORM_1_21_.geo;
+using System;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Text;
-using ORM_1_21_.geo;
-using ORM_1_21_.Linq;
 
 namespace ORM_1_21_.Utils
 {
@@ -13,7 +11,7 @@ namespace ORM_1_21_.Utils
         {
             var builder = new StringBuilder();
             var tableName = AttributesOfClass<T>.TableName(providerName);
-            
+
             builder.AppendLine($"CREATE TABLE IF NOT EXISTS {tableName} (");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
 
@@ -31,7 +29,7 @@ namespace ORM_1_21_.Utils
             foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 builder.AppendLine(
-                    $" {map.GetColumnName(providerName)} {GetTypePg(map)} {FactoryCreatorTable.GetDefaultValue(map,providerName)} ,");
+                    $" {map.GetColumnName(providerName)} {GetTypePg(map)} {FactoryCreatorTable.GetDefaultValue(map, providerName)} ,");
             }
             var str2 = builder.ToString();
             str2 = str2.Substring(0, str2.LastIndexOf(','));
@@ -47,8 +45,9 @@ namespace ORM_1_21_.Utils
                     {
                         builder.AppendLine(
                             $"CREATE INDEX IF NOT EXISTS  \"idx_{tableNameRaw}_{colName}_geom\" ON \"{tableNameRaw}\" USING gist (\"{colName}\");");
-                        
-                    }else if (map.IsJson)
+
+                    }
+                    else if (map.IsJson)
                     {
                         builder.AppendLine(
                             $"CREATE INDEX IF NOT EXISTS \"idx_{tableNameRaw}_{colName}_json\" ON \"{tableNameRaw}\" USING GIN (\"{colName}\");");
@@ -58,8 +57,8 @@ namespace ORM_1_21_.Utils
                         builder.AppendLine(
                             $"CREATE INDEX IF NOT EXISTS  \"INDEX_{tableNameRaw}_{colName}\" ON {tableName} (\"{colName}\");");
                     }
-                    
-                    
+
+
                 }
 
             return builder.ToString();
@@ -81,7 +80,7 @@ namespace ORM_1_21_.Utils
 
             var type = UtilsCore.GetCoreType(map.PropertyType);
             if (type == null) return null;
-            if (type.GetInterfaces().Contains(typeof(IGeoShape)) )
+            if (type.GetInterfaces().Contains(typeof(IGeoShape)))
             {
                 return "geometry";
             }
@@ -136,7 +135,7 @@ namespace ORM_1_21_.Utils
             if (generator == Generator.Assigned)
             {
                 if (type == typeof(long)) return "BIGINT";
-                if (type == typeof(int) || type.BaseType == typeof(Enum) ) return "INTEGER";
+                if (type == typeof(int) || type.BaseType == typeof(Enum)) return "INTEGER";
                 if (type == typeof(Guid)) return "UUID";
             }
 

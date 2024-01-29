@@ -14,6 +14,6 @@ namespace ORM_1_21_.geo
         /// <summary>
         /// 
         /// </summary>
-        public List<GeoJson> features { get; set; }=new List<GeoJson>();
+        public List<GeoJson> features { get; set; } = new List<GeoJson>();
     }
 }

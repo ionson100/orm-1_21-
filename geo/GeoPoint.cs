@@ -10,7 +10,7 @@ namespace ORM_1_21_.geo
         /// <summary>
         /// ctor.
         /// </summary>
-        public GeoPoint(){}
+        public GeoPoint() { }
 
         /// <summary>
         /// ctor.
@@ -19,7 +19,7 @@ namespace ORM_1_21_.geo
         /// <param name="y">coordinate y</param>
         public GeoPoint(double x, double y)
         {
-            X=x;Y=y;
+            X = x; Y = y;
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace ORM_1_21_.geo
         /// <param name="d"></param>
         public GeoPoint(double[] d)
         {
-            Check.AsTwoValue(d,nameof(d));
+            Check.AsTwoValue(d, nameof(d));
             X = d[0]; Y = d[1];
         }
         /// <summary>

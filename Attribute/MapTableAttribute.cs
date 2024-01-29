@@ -19,7 +19,7 @@ namespace ORM_1_21_
         /// <param name="tableName">Table name</param>
         public MapTableAttribute(string tableName)
         {
-            if (string.IsNullOrWhiteSpace(tableName)) 
+            if (string.IsNullOrWhiteSpace(tableName))
                 throw new ArgumentException("table name zero");
             _tableName = UtilsCore.ClearTrim(tableName);
         }
@@ -37,7 +37,7 @@ namespace ORM_1_21_
         /// </summary>
         public MapTableAttribute()
         {
-          
+
         }
 
         internal void SetTableName(string name)
@@ -78,4 +78,3 @@ namespace ORM_1_21_
 
     }
 }
-  

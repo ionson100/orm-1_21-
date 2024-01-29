@@ -15,5 +15,5 @@
         void ActionCommand(T item, CommandMode mode);
     }
 
-  
+
 }

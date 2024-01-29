@@ -53,12 +53,10 @@ namespace ORM_1_21_.Utils
                     row.Append(str).Append($"{fieldterminator}");
 
                 }
-
                 var s = row.ToString().Substring(0, row.ToString().LastIndexOf(fieldterminator, StringComparison.Ordinal))
-                             + "\n";
+                        + "\n";
                 builder.Append(s);
             }
-
             File.WriteAllText(fileCsv, builder.ToString());
         }
         public string GetValueCopy(object o, Type type)
@@ -72,12 +70,7 @@ namespace ORM_1_21_.Utils
             {
                 if (o == null) return "";
             }
-            
-
             type = UtilsCore.GetCoreType(type);
-
-           
-
             if (type == typeof(Guid) && _isBlob)
             {
                 Guid guid = (Guid)o;
@@ -91,7 +84,6 @@ namespace ORM_1_21_.Utils
                     return "0x" + BitConverter.ToString(guid.ToByteArray()).Replace("-", "");
                 }
             }
-
             if (type == typeof(Guid))
             {
                 return $"{o}";
@@ -101,22 +93,18 @@ namespace ORM_1_21_.Utils
             {
                 return $"{o}";
             }
-
             if (type == typeof(byte))
             {
 
                 string result = ((byte)o).ToString();
                 return result;
             }
-
             if (type == typeof(byte[]))
             {
                 string result = Encoding.Default.GetString((byte[])o);
-                
+
                 return result;
             }
-
-
             if (type == typeof(int)
                 || type == typeof(uint)
                 || type == typeof(decimal)
@@ -130,8 +118,7 @@ namespace ORM_1_21_.Utils
                 return o.ToString().Replace(",", ".");
             if (_providerName == ProviderName.MsSql && type == typeof(DateTime))
             {
-                string ass= ((DateTime)o).ToString("G").Replace(".","/");
-                
+                string ass = ((DateTime)o).ToString("G").Replace(".", "/");
                 return ass;
             }
             if (type == typeof(DateTime))
@@ -150,7 +137,6 @@ namespace ORM_1_21_.Utils
                 {
                     return $"{Convert.ToByte(o)}";
                 }
-
             switch (_providerName)
             {
                 case ProviderName.MsSql:

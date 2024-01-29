@@ -2,14 +2,14 @@
 
 namespace ORM_1_21_
 {
-   
+
 
     /// <summary>
     /// Parameter Container for store procedure
     /// </summary>
     public sealed class ParameterStoredPr
     {
-       
+
         /// <summary>
         /// Parameter name
         /// </summary>

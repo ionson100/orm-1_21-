@@ -1,4 +1,5 @@
-﻿using ORM_1_21_.Linq;
+﻿using ORM_1_21_.geo;
+using ORM_1_21_.Linq;
 using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using ORM_1_21_.geo;
 
 namespace ORM_1_21_
 {
@@ -39,7 +39,7 @@ namespace ORM_1_21_
 
         public static bool IsJsonName(string name)
         {
-            var res=JsonTypeReturningName.ContainsKey(name);
+            var res = JsonTypeReturningName.ContainsKey(name);
             return res;
         }
 
@@ -64,27 +64,23 @@ namespace ORM_1_21_
             return false;
         }, LazyThreadSafetyMode.ExecutionAndPublication);
 
-       //public static Lazy<bool> IsGeoShape = new Lazy<bool>(() =>
-       //{
-       //    return typeof(T).GetInterfaces().Contains(typeof(IGeoShape));
-       //  
-       //}, LazyThreadSafetyMode.ExecutionAndPublication);
 
         private static readonly Lazy<Dictionary<string, string>> ColumnName = new Lazy<Dictionary<string, string>>(() =>
         {
             var list = new List<BaseAttribute>();
             AttributeDalList.Value.ToList().ForEach(a => list.Add(a));
             list.Add(PrimaryKeyAttribute.Value);
-            return list.Count>0
+            return list.Count > 0
                 ? list.Select(a => new { a.PropertyName, ColumnName = a.GetColumnName(Provider) })
                     .ToDictionary(s => s.PropertyName, d => d.ColumnName)
                 : null;
         }, LazyThreadSafetyMode.PublicationOnly);
 
         private static readonly Lazy<Dictionary<string, bool>> ColumnIsJson = new Lazy<Dictionary<string, bool>>(() =>
-        {  Dictionary<string,bool> resDictionary=new Dictionary<string,bool>();
+        {
+            Dictionary<string, bool> resDictionary = new Dictionary<string, bool>();
             AttributeDalList.Value.ToList().ForEach(a => { resDictionary.Add(a.PropertyName, a.IsJson); });
-             return resDictionary;
+            return resDictionary;
         }, LazyThreadSafetyMode.PublicationOnly);
 
 
@@ -142,7 +138,7 @@ namespace ORM_1_21_
                     var list = new Dictionary<string, Action<T, object>>();
 
                     var pr = typeof(T).GetProperties()
-                        .Where(a => a.GetCustomAttributes(typeof(BaseAttribute), true).Length>0);
+                        .Where(a => a.GetCustomAttributes(typeof(BaseAttribute), true).Length > 0);
 
 
                     foreach (var propertyInfo in pr)
@@ -191,7 +187,7 @@ namespace ORM_1_21_
 
 
         private static readonly Lazy<bool> IsReceiverFreeSql = new Lazy<bool>(
-            () => typeof(T).GetCustomAttributes(typeof(MapReceiverFreeSqlAttribute), true).Length>0,
+            () => typeof(T).GetCustomAttributes(typeof(MapReceiverFreeSqlAttribute), true).Length > 0,
             LazyThreadSafetyMode.PublicationOnly);
 
         static AttributesOfClass()
@@ -265,7 +261,7 @@ namespace ORM_1_21_
                 columnAttribute.IsBaseKey = false;
                 columnAttribute.IsForeignKey = false;
                 if (o2 != null) columnAttribute.IsIndex = true;
-                
+
 
                 columnAttribute.PropertyName = f.Name;
                 columnAttribute.PropertyType = f.PropertyType;
@@ -288,8 +284,8 @@ namespace ORM_1_21_
 
                 if (o6 != null)
                 {
-                    
-                    
+
+
                     columnAttribute.IsJson = true;
                     columnAttribute.TypeReturning = o6.Returning;
                     if (columnAttribute.PropertyType == typeof(string))
@@ -297,14 +293,14 @@ namespace ORM_1_21_
                         throw new Exception(
                             $"Propery: {columnAttribute.PropertyName} type: {typeof(T)} сannot be a string type, perhaps you wanted to use the Object type");
                     }
-                    if (columnAttribute.PropertyType != typeof(Object)&& columnAttribute.TypeReturning==TypeReturning.AsString)
+                    if (columnAttribute.PropertyType != typeof(Object) && columnAttribute.TypeReturning == TypeReturning.AsString)
                     {
                         throw new Exception(
                             $"I can't return an object of type {columnAttribute.PropertyType} as a string." +
                             $"for property: {columnAttribute.PropertyName}, type: {typeof(T)}");
                     }
                     JsonTypeReturning.Add(columnAttribute.PropertyType, columnAttribute.TypeReturning);
-                    JsonTypeReturningName.Add(columnAttribute.GetColumnNameRaw(),columnAttribute.TypeReturning);
+                    JsonTypeReturningName.Add(columnAttribute.GetColumnNameRaw(), columnAttribute.TypeReturning);
                     JsonTypeReturningName.Add(columnAttribute.PropertyName, columnAttribute.TypeReturning);
                     //UtilsCore.JsonTypeReturning.Add(columnAttribute.PropertyType,columnAttribute.TypeReturning);
                     //UtilsCore.HashSetJsonType.Add(columnAttribute.PropertyType);
@@ -388,27 +384,11 @@ namespace ORM_1_21_
         public static void SetValueFreeSqlE(ProviderName providerName, string name, T t, object o)
         {
             Provider = providerName;
-            //if (o == null)
-            //{
-            //    PropertyInfo prop = t.GetType().GetProperty(name);
-            //    prop.SetValue(t, null);
-            //}
-            //else
-            //{
-            //     SetValueFreeSql.Value[name](t, o);
-            //}
-            //if (SetValueFreeSql.Value.ContainsKey(name))
-            //{
-            //    SetValueFreeSql.Value[name](t, o);
-            //}
+           
             if (SetValueFreeSql.Value.TryGetValue(name, out Action<T, object> value))
             {
                 value(t, o);
             }
-
-
-
-
         }
 
         public static List<MapColumnAttribute> CurrentTableAttributeDal(ProviderName providerName)
@@ -505,15 +485,11 @@ namespace ORM_1_21_
                 {
                     if (a.IsInheritIGeoShape && Provider == ORM_1_21_.ProviderName.MsSql)
                     {
-                        string colName=$"{TableAttribute.Value.TableName(providerName)}.{a.GetColumnName(providerName)}";
+                        string colName = $"{TableAttribute.Value.TableName(providerName)}.{a.GetColumnName(providerName)}";
                         string asE = UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
                             a.GetColumnName(providerName));
-                        sb.Append($"{UtilsCore.SqlConcat(colName,providerName)} AS {asE},");
-                        // sb.AppendFormat(" {0}.{1}.STAsText() AS {2},",
-                        //     TableAttribute.Value.TableName(providerName),
-                        //     a.GetColumnName(providerName),
-                        //     UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
-                        //         a.GetColumnName(providerName)));
+                        sb.Append($"{UtilsCore.SqlConcat(colName, providerName)} AS {asE},");
+                       
                     }
                     else
                     {
@@ -523,9 +499,9 @@ namespace ORM_1_21_
                             UtilsCore.GetAsAlias(TableAttribute.Value.TableName(providerName),
                                 a.GetColumnName(providerName)));
                     }
-                   
+
                 }
-                   
+
             }
 
             sb = new StringBuilder(sb.ToString().Trim(','));
@@ -561,14 +537,14 @@ namespace ORM_1_21_
                         par.AppendFormat(" {0}.{1} = ST_GeomFromText({3}p{2},{4}),", TableAttribute.Value.TableName(Provider),
                             pra.GetColumnName(Provider), ++i, parName, $"{parName}srid{i}");
                     }
-                    
+
                 }
                 else
                 {
                     par.AppendFormat(" {0}.{1} = {3}p{2},", TableAttribute.Value.TableName(Provider),
                         pra.GetColumnName(Provider), ++i, parName);
                 }
-                
+
             }
 
             var pk = PrimaryKeyAttribute.Value;
@@ -641,16 +617,17 @@ namespace ORM_1_21_
                     {
                         par.AppendFormat(" {0} = CAST({2}p{1} AS JSON),", pra.GetColumnName(Provider), ++i, parName);
                     }
-                   
-                }else if (pra.IsInheritIGeoShape)
+
+                }
+                else if (pra.IsInheritIGeoShape)
                 {
-                    par.AppendFormat(" {0} = ST_GeomFromText({2}p{1},{3}),", pra.GetColumnName(Provider), ++i, parName,$"{parName}srid{i}");
+                    par.AppendFormat(" {0} = ST_GeomFromText({2}p{1},{3}),", pra.GetColumnName(Provider), ++i, parName, $"{parName}srid{i}");
                 }
                 else
                 {
                     par.AppendFormat(" {0} = {2}p{1},", pra.GetColumnName(Provider), ++i, parName);
                 }
-                
+
             }
 
             var pk = PrimaryKeyAttribute.Value;
@@ -661,52 +638,18 @@ namespace ORM_1_21_
             return allSql.Append(sb).ToString();
         }
 
-       // public static void CreateUpdateCommandPostgres(IDbCommand command, T item, ProviderName providerName,
-       //   params AppenderWhere[] whereObjects)
-       // {
-       //     Provider = providerName;
-       //     var sql = TemplateUpdatePostgres.Value;
-       //     var parName = UtilsCore.PrefParam(providerName);
-       //     var i = 0;
-       //
-       //     foreach (var pra in AttributeDalList.Value
-       //                  .Where(pra => !pra.IsBaseKey && !pra.IsForeignKey))
-       //     {
-       //         if (pra.IsNotUpdateInsert) continue;
-       //         command.AddParameter(string.Format("{1}p{0}", ++i, parName), GetValue.Value[pra.PropertyName](item));
-       //     }
-       //
-       //     var pk = PrimaryKeyAttribute.Value;
-       //     command.AddParameter(string.Format("{1}p{0}", ++i, parName), GetValue.Value[pk.PropertyName](item));
-       //
-       //     if (whereObjects != null && whereObjects.Length > 0)
-       //     {
-       //         StringBuilder builder = new StringBuilder(sql);
-       //         foreach (var o in whereObjects)
-       //         {
-       //             var nameParam = $"{parName}p{++i}";
-       //             builder.Append($" AND {o.ColumnName} = {nameParam}");
-       //             dynamic d = command.Parameters;
-       //             d.AddWithValue(nameParam, o.Value);
-       //         }
-       //         command.CommandText = builder.Append(';').ToString();
-       //     }
-       //     else
-       //     {
-       //         command.CommandText = sql + ";";
-       //     }
-       // }
+        
 
         public static string CreateCommandLimitForMySql(List<OneComposite> listOne, ProviderName providerName)
         {
             Provider = providerName;
-           
+
             var si = SimpleSqlSelect(providerName);
             var sb = new StringBuilder();
             foreach (var oneComposite in listOne.Where(a => a.Operand == Evolution.Update))
             {
                 sb.Append($" {oneComposite.Body} ");
-                
+
             }
 
             var where = new StringBuilder();
@@ -731,8 +674,8 @@ namespace ORM_1_21_
         {
             Provider = providerName;
             var si = SimpleSqlSelect(providerName);
-           
-            
+
+
             var r = new StringBuilder();
             foreach (var oneComposite in listOne.Where(a => a.Operand == Evolution.Update))
             {
@@ -831,9 +774,9 @@ namespace ORM_1_21_
             SetValue.Value[e.PropertyName](item, valCore);
         }
 
-       
 
-        public static string GetNameFieldForQuery(string member,  ProviderName providerName)
+
+        public static string GetNameFieldForQuery(string member, ProviderName providerName)
         {
             Provider = providerName;
             return TableAttribute.Value.TableName(providerName) + "." + ColumnName.Value[member];
@@ -848,7 +791,7 @@ namespace ORM_1_21_
         public static string GetNameSimpleColumnForQuery(string member, ProviderName providerName)
         {
             Provider = providerName;
-            return  ColumnName.Value[member];
+            return ColumnName.Value[member];
         }
 
         public static void Init()
@@ -897,7 +840,7 @@ namespace ORM_1_21_
                     sb.AppendFormat("{0}.{1},", TableAttribute.Value.TableName(Provider), rtp.GetColumnName(Provider));
                 if (rtp.IsJson)
                 {
-                    if (Provider == ORM_1_21_.ProviderName.SqLite|| Provider == ORM_1_21_.ProviderName.MsSql)
+                    if (Provider == ORM_1_21_.ProviderName.SqLite || Provider == ORM_1_21_.ProviderName.MsSql)
                     {
                         values.AppendFormat("{0}{1}{2},", parName, par, ++i);
                     }
@@ -905,7 +848,7 @@ namespace ORM_1_21_
                     {
                         values.AppendFormat("CAST({0}{1}{2} AS json),", parName, par, ++i);//todo geo
                     }
-                    
+
                 }
                 else if (rtp.IsInheritIGeoShape)
                 {
@@ -917,13 +860,13 @@ namespace ORM_1_21_
                     {
                         values.AppendFormat("ST_GeomFromText({0}{1}{2}, {3}),", parName, par, ++i, $"{parName}srid{i}");
                     }
-                    
+
                 }
                 else
                 {
                     values.AppendFormat("{0}{1}{2},", parName, par, ++i);
                 }
-                
+
 
             }
 

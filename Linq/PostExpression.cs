@@ -11,7 +11,7 @@ namespace ORM_1_21_.Linq
             Evolution = evolution;
             for (var i = 0; i < expression.Arguments.Count; i++)
             {
-                if(i==0) continue;
+                if (i == 0) continue;
                 ExpressionList.Add(expression.Arguments[i]);
             }
         }

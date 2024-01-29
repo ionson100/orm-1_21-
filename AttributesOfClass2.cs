@@ -1,15 +1,12 @@
-﻿using ORM_1_21_.Utils;
+﻿using Newtonsoft.Json;
+using ORM_1_21_.geo;
+using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
-using ORM_1_21_.geo;
-using System.Linq;
-using System.Linq.Expressions;
-using Newtonsoft.Json;
-using ORM_1_21_.Extensions;
 
 namespace ORM_1_21_
 {
@@ -34,7 +31,7 @@ namespace ORM_1_21_
                     {
                         void Command(T obj, int ip, IDbCommand dbCommand)
                         {
-                            dbCommand.AddParameter($"{parName}{par}{ip}",GetValue.Value[pk.PropertyName](obj));
+                            dbCommand.AddParameter($"{parName}{par}{ip}", GetValue.Value[pk.PropertyName](obj));
                         }
 
                         list.Add(Command);
@@ -43,7 +40,6 @@ namespace ORM_1_21_
                     foreach (var rtp in AttributeDalList.Value)
                     {
                         if (rtp.IsNotUpdateInsert) continue;
-
 
                         void Command(T obj, int ip, IDbCommand dbCommand)
                         {
@@ -64,9 +60,8 @@ namespace ORM_1_21_
                                     {
                                         dbCommand.AddParameter($"{parName}{par}{ip}", JsonConvert.SerializeObject(o));
                                     }
-                                    
+
                                 }
-                                
                             }
                             else if (rtp.IsInheritIGeoShape)
                             {
@@ -83,41 +78,35 @@ namespace ORM_1_21_
                                         case ORM_1_21_.ProviderName.MsSql:
                                             dbCommand.AddParameter($"{parName}{par}{ip}",
                                                 $"{((IGeoShape)o).StAsText()}");
-                                        break;
+                                            break;
                                         case ORM_1_21_.ProviderName.MySql:
-                                        {
-                                            dbCommand.AddParameter($"{parName}{par}{ip}",
-                                                $"{((IGeoShape)o).StAsText()}");
+                                            {
+                                                dbCommand.AddParameter($"{parName}{par}{ip}",
+                                                    $"{((IGeoShape)o).StAsText()}");
                                             }
                                             break;
                                         case ORM_1_21_.ProviderName.PostgreSql:
-                                        {
-                                            dbCommand.AddParameter($"{parName}{par}{ip}",
-                                                $"{((IGeoShape)o).StAsText()}");
-                                        }
+                                            {
+                                                dbCommand.AddParameter($"{parName}{par}{ip}",
+                                                    $"{((IGeoShape)o).StAsText()}");
+                                            }
                                             break;
                                         case ORM_1_21_.ProviderName.SqLite:
                                             dbCommand.AddParameter($"{parName}{par}{ip}",
                                                 $"{((IGeoShape)o).StAsText()}");
-                                        break;
+                                            break;
                                         default:
                                             throw new ArgumentOutOfRangeException($"Database type is not defined:{Provider}");
                                     }
-                                    
-                                    
                                 }
-                               
                             }
                             else
-                            { 
-                                dbCommand.AddParameter($"{parName}{par}{ip}",o);
+                            {
+                                dbCommand.AddParameter($"{parName}{par}{ip}", o);
                             }
-                           
                         }
                         list.Add(Command);
-
                     }
-
                     return list;
                 }, LazyThreadSafetyMode.PublicationOnly);
         public static void CreateInsetCommandNew(IDbCommand command, T obj, ProviderName providerName)
@@ -132,17 +121,14 @@ namespace ORM_1_21_
             command.CommandText = sql;
         }
 
-      
+
 
         private static readonly Lazy<List<Action<T, int, IDbCommand>>> UpdateMysqlActionParam =
            new Lazy<List<Action<T, int, IDbCommand>>>(
                () =>
                {
                    string parName = UtilsCore.PrefParam(Provider);
-
-
                    List<Action<T, int, IDbCommand>> list = new List<Action<T, int, IDbCommand>>();
-
                    foreach (var pra in AttributeDalList.Value)
                    {
                        if (pra.IsNotUpdateInsert) continue;
@@ -150,9 +136,9 @@ namespace ORM_1_21_
                        void Command(T obj, int ip, IDbCommand dbCommand)
                        {
                            var r = GetValue.Value[pra.PropertyName](obj);
-                           if (ProviderName == ORM_1_21_.ProviderName.MsSql && pra.PropertyType == typeof(byte[])&&r==null)
+                           if (ProviderName == ORM_1_21_.ProviderName.MsSql && pra.PropertyType == typeof(byte[]) && r == null)
                            {
-                               ((dynamic)dbCommand).Parameters.Add(string.Format("{1}p{0}", ip, parName), SqlDbType.VarBinary, -1).Value = DBNull.Value; 
+                               ((dynamic)dbCommand).Parameters.Add(string.Format("{1}p{0}", ip, parName), SqlDbType.VarBinary, -1).Value = DBNull.Value;
                            }
                            else
                            {
@@ -170,9 +156,7 @@ namespace ORM_1_21_
                                {
                                    dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), r);
                                }
-                               
                            }
-                           
                        }
                        list.Add(Command);
                    }
@@ -180,7 +164,7 @@ namespace ORM_1_21_
                    var pk = PrimaryKeyAttribute.Value;
                    void CommandPk(T obj, int ip, IDbCommand dbCommand)
                    {
-                       dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName),GetValue.Value[pk.PropertyName](obj));
+                       dbCommand.AddParameter(string.Format("{1}p{0}", ip, parName), GetValue.Value[pk.PropertyName](obj));
                    }
                    list.Add(CommandPk);
 
@@ -212,7 +196,6 @@ namespace ORM_1_21_
             {
                 command.CommandText = sql + ";";
             }
-
         }
 
         private static readonly Lazy<string> DeleteTemplate =
@@ -228,7 +211,7 @@ namespace ORM_1_21_
             Provider = providerName;
 
             command.CommandText = DeleteTemplate.Value;
-            command.AddParameter($"{UtilsCore.PrefParam(providerName)}p1",GetValue.Value[PrimaryKeyAttribute.Value.PropertyName](obj));
+            command.AddParameter($"{UtilsCore.PrefParam(providerName)}p1", GetValue.Value[PrimaryKeyAttribute.Value.PropertyName](obj));
         }
 
         private static readonly Lazy<List<Action<T, int, IDbCommand>>> UpdatePostgresActionParam =
@@ -239,14 +222,15 @@ namespace ORM_1_21_
                   foreach (var pra in AttributeDalList.Value)
                   {
                       if (pra.IsNotUpdateInsert) continue;
-                     
+
                       void Command(T obj, int ip, IDbCommand dbCommand)
                       {
                           if (pra.IsJson)//todo geo
                           {
                               dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),
                                   JsonConvert.SerializeObject(GetValue.Value[pra.PropertyName](obj)));
-                          }else if (pra.IsInheritIGeoShape)
+                          }
+                          else if (pra.IsInheritIGeoShape)
                           {
                               var o = GetValue.Value[pra.PropertyName](obj);
                               if (o == null)
@@ -256,7 +240,7 @@ namespace ORM_1_21_
                               }
                               else
                               {
-                                  dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),((IGeoShape)o).StAsText());
+                                  dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)), ((IGeoShape)o).StAsText());
                                   dbCommand.AddParameter(string.Format("{1}srid{0}", ip, UtilsCore.PrefParam(Provider)), ((IGeoShape)o).StSrid());
                               }
                           }
@@ -264,14 +248,13 @@ namespace ORM_1_21_
                           {
                               dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)), GetValue.Value[pra.PropertyName](obj));
                           }
-                          
                       }
                       list.Add(Command);
                   }
                   void Command2(T obj, int ip, IDbCommand dbCommand)
                   {
                       var pk = PrimaryKeyAttribute.Value;
-                      dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)),GetValue.Value[pk.PropertyName](obj));
+                      dbCommand.AddParameter(string.Format("{1}p{0}", ip, UtilsCore.PrefParam(Provider)), GetValue.Value[pk.PropertyName](obj));
                   }
                   list.Add(Command2);
                   return list;
@@ -285,8 +268,6 @@ namespace ORM_1_21_
             var parName = UtilsCore.PrefParam(providerName);
             var i = 0;
             UpdatePostgresActionParam.Value.ForEach(a => a.Invoke(item, ++i, command));
-
-
             if (whereObjects != null && whereObjects.Length > 0)
             {
                 StringBuilder builder = new StringBuilder(sql);
@@ -304,6 +285,5 @@ namespace ORM_1_21_
                 command.CommandText = sql + ";";
             }
         }
-
     }
 }

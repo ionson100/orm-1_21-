@@ -12,11 +12,11 @@ namespace ORM_1_21_
         {
 
             return Configure.CurFactory;
-           
+
         }
         public static IDbConnection GetConnect(IOtherDataBaseFactory factory)
         {
-            
+
             if (factory != null)
             {
                 return factory.GetDbProviderFactories().CreateConnection();
@@ -39,7 +39,7 @@ namespace ORM_1_21_
                 {
                     return factory.GetDbProviderFactories().CreateCommand();
                 }
-                
+
             }
             return GetFactory().CreateCommand();
         }

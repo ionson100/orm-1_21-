@@ -53,7 +53,7 @@ namespace ORM_1_21_.geo
                     throw new ArgumentOutOfRangeException($"Geometry type not used:{shape.GeoType}");
             }
 
-            coordinates =((GeoObject) shape).ArrayCoordinates;
+            coordinates = ((GeoObject)shape).ArrayCoordinates;
         }
         /// <summary>
         /// 

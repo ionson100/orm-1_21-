@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using ORM_1_21_.geo;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Newtonsoft.Json;
-using ORM_1_21_.geo;
 
 namespace ORM_1_21_.Utils
 {
@@ -91,7 +91,7 @@ namespace ORM_1_21_.Utils
             }
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
             {
-                if ( map.PropertyType == typeof(byte[]))
+                if (map.PropertyType == typeof(byte[]))
                 {
                     continue;
                 }
@@ -114,7 +114,7 @@ namespace ORM_1_21_.Utils
                 {
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     Type type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    if ( type == typeof(byte[]))
+                    if (type == typeof(byte[]))
                     {
                         continue;
                     }
@@ -134,7 +134,7 @@ namespace ORM_1_21_.Utils
             var pk = AttributesOfClass<T>.PkAttribute(_providerName);
             var listDal = AttributesOfClass<T>.CurrentTableAttributeDal(_providerName);
             bool isAddPk = pk.Generator == Generator.Assigned;
-            
+
             StringBuilder builder = new StringBuilder();
             builder.Append("INSERT INTO ").Append(AttributesOfClass<T>.TableName(_providerName)).AppendLine("");
 
@@ -153,7 +153,8 @@ namespace ORM_1_21_.Utils
 
             var rt = new UtilsBulkMySql(_providerName);
             foreach (T ob in list)
-            {  partBuilder.Clear();
+            {
+                partBuilder.Clear();
                 partBuilder.Append('(');
                 if (isAddPk)
                 {
@@ -176,8 +177,9 @@ namespace ORM_1_21_.Utils
                         {
                             partBuilder.Append($"geometry::STGeomFromText('{((IGeoShape)o).StAsText()}', {((IGeoShape)o).StSrid()}), ");
                         }
-                        
-                    } else if (column.IsJson)
+
+                    }
+                    else if (column.IsJson)
                     {
                         if (o is string)
                         {
@@ -187,25 +189,25 @@ namespace ORM_1_21_.Utils
                         {
                             partBuilder.Append($"'{JsonConvert.SerializeObject(o)}'").Append(", ");
                         }
-                        
+
                     }
                     else
                     {
-                       
+
                         Type type = AttributesOfClass<T>.PropertyInfoList.Value[column.PropertyName].PropertyType;
                         string str = rt.GetValue(o, type);
                         partBuilder.Append(str).Append(", ");
                     }
-                   
+
                 }
 
                 string b = partBuilder.ToString().Trim(' ', ',') + "),";
                 builder.AppendLine(b);
-              
+
             }
 
             string sql = builder.ToString();
-            return sql.Substring(0,sql.LastIndexOf(",",StringComparison.CurrentCulture));
+            return sql.Substring(0, sql.LastIndexOf(",", StringComparison.CurrentCulture));
         }
 
         public static string InsertFile<T>(string fileCsv, string fieldterminator, ProviderName providerName)
@@ -213,7 +215,7 @@ namespace ORM_1_21_.Utils
             StringBuilder sql = new StringBuilder("bulk insert " + AttributesOfClass<T>.TableName(providerName));
             sql.AppendLine($" from '{fileCsv}'");
             sql.AppendLine(" with( ");
-           
+
             sql.AppendLine("FIRSTROW = 2, CODEPAGE = '65001',");
             sql.AppendLine($"FIELDTERMINATOR = '{fieldterminator}', ");
             sql.AppendLine("ROWTERMINATOR = '\n'");//

@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using ORM_1_21_.Linq;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_.Linq;
 
 namespace ORM_1_21_.Extensions
 {
-    class Sweetmeat<TFirst,TSecond>
+    class Sweetmeat<TFirst, TSecond>
     {
         private readonly IQueryable<TFirst> _first;
         private readonly IQueryable<TSecond> _second;
@@ -16,7 +16,7 @@ namespace ORM_1_21_.Extensions
         private static object o = new object();
 
 
-        public Sweetmeat(IQueryable<TFirst> first, IQueryable<TSecond> second,CancellationToken cancellationToken=default)
+        public Sweetmeat(IQueryable<TFirst> first, IQueryable<TSecond> second, CancellationToken cancellationToken = default)
         {
             _first = first;
             _second = second;
@@ -26,24 +26,10 @@ namespace ORM_1_21_.Extensions
 
         public void Wait()
         {
-            //var pFirst = (QueryProvider)_first.Provider;
-            //var pSecond = new DbQueryProvider<TSecond>(((ICloneSession)_second.Provider).CloneSession());
-            //var t1 = pFirst.ExecuteExtensionAsync<IEnumerable<TFirst>>(_first.Expression, null, CancellationToken.None);
-            //var t2 = pSecond.ExecuteExtensionAsync<IEnumerable<TSecond>>(_second.Expression, null, CancellationToken.None);
-            //Task.WaitAll(t1, t2);
-            // First = _first.Provider.Execute<IEnumerable<TFirst>>(_first.Expression);
-            // Seconds = _second.Provider.Execute<IEnumerable<TSecond>>(_second.Expression);
-            //
-            // lock (o)
-            // {
-            //     First = _first.Provider.Execute<IEnumerable<TFirst>>(_first.Expression);
-            //     var ss = ((ICloneSession)_first.Provider).CloneSession();
-            //     Seconds = (IEnumerable<TSecond>)new DbQueryProvider<TSecond>(ss).Execute<TSecond>(_second.Expression);
-            //     ss.Dispose();
-            // }
+           
             lock (o)
             {
-                using (var session=((ICloneSession)_second.Provider).CloneSession())
+                using (var session = ((ICloneSession)_second.Provider).CloneSession())
                 {
                     var pFirst = (QueryProvider)_first.Provider;
                     var pSecond = new DbQueryProvider<TSecond>(session);
@@ -53,9 +39,9 @@ namespace ORM_1_21_.Extensions
                     First = t1.Result;
                     Seconds = t2.Result;
                 }
-                
+
             }
-           
+
         }
         public async Task WaitAsync()
         {
@@ -64,8 +50,8 @@ namespace ORM_1_21_.Extensions
             //var t1 = pFirst.ExecuteExtensionAsync<IEnumerable<TFirst>>(_first.Expression, null, _cancellationToken);
             //var t2 = pSecond.ExecuteExtensionAsync<IEnumerable<TSecond>>(_second.Expression, null, _cancellationToken);
             //await Task.WhenAll(t1, t2).ConfigureAwait(false);
-            First = await _first.Provider.ExecuteAsync<IEnumerable<TFirst>>(_first.Expression,_cancellationToken);
-            Seconds = await _second.Provider.ExecuteAsync<IEnumerable<TSecond>>(_second.Expression,_cancellationToken);
+            First = await _first.Provider.ExecuteAsync<IEnumerable<TFirst>>(_first.Expression, _cancellationToken);
+            Seconds = await _second.Provider.ExecuteAsync<IEnumerable<TSecond>>(_second.Expression, _cancellationToken);
         }
 
     }

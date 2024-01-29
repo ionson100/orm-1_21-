@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Diagnostics.SymbolStore;
 
 namespace ORM_1_21_
 {
@@ -10,19 +9,19 @@ namespace ORM_1_21_
         private static bool _isWrite;
         public static void Info(string message)
         {
-            if(_isWrite) { Trace.WriteLine(message, Orm);}
-            
+            if (_isWrite) { Trace.WriteLine(message, Orm); }
+
         }
 
         public static void Error(string sql, Exception ex)
         {
-            if (_isWrite) { Trace.WriteLine($"{Environment.NewLine}{sql}{Environment.NewLine}{ex}", Orm);}
-           
+            if (_isWrite) { Trace.WriteLine($"{Environment.NewLine}{sql}{Environment.NewLine}{ex}", Orm); }
+
         }
 
         public static void RunLogger(string file)
         {
-            _isWrite=true;
+            _isWrite = true;
             Trace.Listeners.Add(new TextWriterTraceListener(file));
             Trace.AutoFlush = true;
         }

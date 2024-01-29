@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using ORM_1_21_.geo;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Newtonsoft.Json;
-using ORM_1_21_.geo;
 
 namespace ORM_1_21_.Utils
 {
@@ -66,7 +66,7 @@ namespace ORM_1_21_.Utils
 
             return sql.ToString();
         }
-       
+
         private string SqlSimple<T>(IEnumerable<T> list)
         {
             var builder = new StringBuilder($"INSERT INTO {AttributesOfClass<T>.TableName(_providerName)}");
@@ -104,7 +104,7 @@ namespace ORM_1_21_.Utils
                         var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                         if (o is string)
                         {
-                            
+
                             row.Append($"CAST('{o}' AS JSON)").Append(',');
                         }
                         else
@@ -112,7 +112,7 @@ namespace ORM_1_21_.Utils
                             var json = JsonConvert.SerializeObject(o);
                             row.Append($"CAST('{json}' AS JSON)").Append(',');
                         }
-                        
+
 
                     }
                     else if (map.IsInheritIGeoShape)
@@ -127,10 +127,10 @@ namespace ORM_1_21_.Utils
                             IGeoShape shape = (IGeoShape)o;
 
                             string data = $"ST_GeomFromText('{shape.StAsText()}', {shape.StSrid()})";
-                          
+
                             row.Append(data).Append(',');
                         }
-                      
+
                     }
                     else
                     {
@@ -139,7 +139,7 @@ namespace ORM_1_21_.Utils
                         var str = new UtilsBulkMySql(_providerName).GetValue(o, type);
                         row.Append(str).Append(',');
                     }
-                    
+
                 }
 
                 builder.AppendLine(row.ToString().Substring(0, row.ToString().LastIndexOf(',')) + "),");
@@ -158,11 +158,11 @@ namespace ORM_1_21_.Utils
             if (type == typeof(int)
                 || type == typeof(uint)
                 || type == typeof(decimal)
-                || type == typeof(long) 
+                || type == typeof(long)
                 || type == typeof(ulong)
-                || type == typeof(double) 
+                || type == typeof(double)
                 || type == typeof(float)
-                || type==typeof(ushort)
+                || type == typeof(ushort)
                 || type == typeof(sbyte)
                 || type == typeof(short)
                )

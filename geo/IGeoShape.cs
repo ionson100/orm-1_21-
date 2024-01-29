@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,7 +8,7 @@ namespace ORM_1_21_.geo
     /// <summary>
     /// Geo Object
     /// </summary>
-    public interface IGeoShape
+    public interface IGeoShape:ICloneable
     {
 
         /// <summary>
@@ -258,7 +259,7 @@ namespace ORM_1_21_.geo
         /// </summary>
         /// <param name="shape">Geometry B</param>
         /// <param name="cancellationToken">Operation cancellation token</param>
-        Task<bool?> StContainsAsync(IGeoShape shape, CancellationToken cancellationToken=default);
+        Task<bool?> StContainsAsync(IGeoShape shape, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Compares two geometry objects and returns true if their intersection "spatially crosses"; that is, the geometries have some, but not all interior points in common.
@@ -687,7 +688,7 @@ namespace ORM_1_21_.geo
         /// Cannot be used in expression trees. Only on object instances.
         /// </summary>
         /// <param name="cancellationToken">Operation cancellation token</param>
-        Task<double?> StYAsync(CancellationToken cancellationToken=default);
+        Task<double?> StYAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns a new geometry with its coordinates transformed to a different spatial reference system.
@@ -717,7 +718,7 @@ namespace ORM_1_21_.geo
         /// <param name="format">The text parameter is a format string containing the format for the resulting text, similar to a date format string
         /// as 'D°M''S.SSS"C'</param>
         /// <returns></returns>
-        string StAsLatLonText(string format =null );
+        string StAsLatLonText(string format = null);
 
         /// <summary>
         /// Returns the Degrees, Minutes, Seconds representation of the point.

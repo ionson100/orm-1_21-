@@ -369,7 +369,7 @@ namespace ORM_1_21_.Linq
                         }
                     }
 
-                  
+
                     foreach (var par in com.Parameters)
                         if (((IDataParameter)par).Direction == ParameterDirection.InputOutput ||
                             ((IDataParameter)par).Direction == ParameterDirection.Output ||
@@ -505,7 +505,7 @@ namespace ORM_1_21_.Linq
                         var ttType = typeof(TS).GenericTypeArguments[0];
                         if (UtilsCore.IsAnonymousType(ttType))
                         {
-                            var lRes = Pizdaticus.GetListAnonymousObj<object,T>(dataReader, ss, _providerName);
+                            var lRes = Pizdaticus.GetListAnonymousObj<object, T>(dataReader, ss, _providerName);
                             var listNativeInvoke = DbHelp.CastList(lRes);
 
                             var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
@@ -523,7 +523,7 @@ namespace ORM_1_21_.Linq
                     {
                         if (UtilsCore.IsAnonymousType(typeof(TS)))
                         {
-                            var lRes = Pizdaticus.GetListAnonymousObj<TS,T>(dataReader, ss, _providerName);
+                            var lRes = Pizdaticus.GetListAnonymousObj<TS, T>(dataReader, ss, _providerName);
                             var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
 
                             var res = !isaActive1 ? (object)lRes : dataSing1;
@@ -569,7 +569,7 @@ namespace ORM_1_21_.Linq
                     await dataReader.DisposeAsync();
                 }
                 await _session.ComDisposableAsync(com);
-               
+
             }
 
         }

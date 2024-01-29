@@ -32,28 +32,28 @@ namespace ORM_1_21_.Linq
         {
             object res = null;
             int i = 0;
-            RecursionAction(o,postExpressionList,i,ref res,o.First());
+            RecursionAction(o, postExpressionList, i, ref res, o.First());
             return null;
 
         }
 
-        private static void RecursionAction<T>(IEnumerable o, List<PostExpression> postExpressionList,int i, ref object res,T t)
+        private static void RecursionAction<T>(IEnumerable o, List<PostExpression> postExpressionList, int i, ref object res, T t)
         {
-            
-          //  if (i+1>postExpressionList.Count) return;
-          //  var p = postExpressionList[i];
-          //  if (p.Evolution == Evolution.GroupBy)
-          //  {
-          //      var type = typeof(T);
-          //      var ress = LambdaFactory.GetResult<T>(o, p.ExpressionList[0]);
-          //      
-          //      RecursionAction((IEnumerable) ress,postExpressionList, ++i,ref res,First((IEnumerable)ress));
-          //  }
+
+            //  if (i+1>postExpressionList.Count) return;
+            //  var p = postExpressionList[i];
+            //  if (p.Evolution == Evolution.GroupBy)
+            //  {
+            //      var type = typeof(T);
+            //      var ress = LambdaFactory.GetResult<T>(o, p.ExpressionList[0]);
+            //      
+            //      RecursionAction((IEnumerable) ress,postExpressionList, ++i,ref res,First((IEnumerable)ress));
+            //  }
 
 
         }
 
-        public static object First (IEnumerable items)
+        public static object First(IEnumerable items)
         {
             IEnumerator iter = items.GetEnumerator();
             iter.MoveNext();
@@ -61,32 +61,21 @@ namespace ORM_1_21_.Linq
         }
 
 
-        private static IEnumerable<object> GroupBy<TIn>(IEnumerable<TIn> source, List<Expression> expressionList,out Object res)
+        private static IEnumerable<object> GroupBy<TIn>(IEnumerable<TIn> source, List<Expression> expressionList, out Object res)
         {
-       
+
             if (expressionList.Count == 1)
             {
-                res= LambdaFactory.GetResult<TIn>(source, expressionList[0]);
-                
-               
+                res = LambdaFactory.GetResult<TIn>(source, expressionList[0]);
+
+
                 return (IEnumerable<object>)res;
             }
             var lambdaSelect = (LambdaExpression)StripQuotes(expressionList[0]);
-            Func<TIn, object> elementSelector = (Func<TIn, object>)lambdaSelect.Compile();
+            _ = (Func<TIn, object>)lambdaSelect.Compile();
 
-          //  if (expressionList.Count == 2)
-          //  {
-          //
-          //      var res = new GroupedEnumerable<TIn, object, object>(
-          //          source,
-          //          keySelector: keySelector,
-          //          elementSelector: elementSelector,
-          //          null).ToList();
-          //      return null;
-          //  }
-          //
-          res = null;
-          return (IEnumerable<IGrouping<object, TIn>>)res;
+            res = null;
+            return (IEnumerable<IGrouping<object, TIn>>)res;
 
 
 

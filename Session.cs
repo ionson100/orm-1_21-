@@ -83,7 +83,7 @@ namespace ORM_1_21_
             }
         }
 
-        async Task<int> ISession.DeleteAsync<TSource>(TSource source,CancellationToken cancellationToken)
+        async Task<int> ISession.DeleteAsync<TSource>(TSource source, CancellationToken cancellationToken)
         {
             Check.NotNull(source, "source", () => Transactionale.isError = true);
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
@@ -579,7 +579,7 @@ namespace ORM_1_21_
                 OpenConnectAndTransaction(com);
                 SetTimeOut(com, timeOut);
                 var res = com.ExecuteNonQuery();
-                if (AttributesOfClass<TSource>.IsUsagePersistent.Value&&res==enumerable.Length)
+                if (AttributesOfClass<TSource>.IsUsagePersistent.Value && res == enumerable.Length)
                 {
                     foreach (var iSource in enumerable) UtilsCore.SetPersistent(iSource);
                 }
@@ -601,7 +601,7 @@ namespace ORM_1_21_
         public async Task<int> InsertBulkAsync<TSource>(IEnumerable<TSource> list, int timeOut, CancellationToken cancellationToken = default) where TSource : class
         {
             CancellationTokenRegistration? registration = null;
-            
+
             Check.NotNull(list, "list", () => Transactionale.isError = true);
             if (list.Any() == false) return 0;
             var enumerable = list as TSource[] ?? list.ToArray();
@@ -706,13 +706,13 @@ namespace ORM_1_21_
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("ExecuteScalar"));
             var provider = new DbQueryProvider<object>(this);
-           
+
             return provider.ExecuteExtension<object>(callExpr, param);
 
 
         }
 
-       
+
 
         Task<object> ISession.ExecuteScalarAsync(string sql, object[] param, CancellationToken cancellationToken)
         {
@@ -1049,16 +1049,17 @@ namespace ORM_1_21_
         public void CreateCsvFile<T>(List<T> list, string file, string p2)
         {
             try
-            {new CreatorCopy(MyProviderName, IsBlobGuid).CreateCsvFile(list,file,p2);
+            {
+                new CreatorCopy(MyProviderName, IsBlobGuid).CreateCsvFile(list, file, p2);
 
             }
             catch (Exception)
             {
                 Transactionale.isError = true;
                 throw;
-                
+
             }
-            
+
         }
 
 

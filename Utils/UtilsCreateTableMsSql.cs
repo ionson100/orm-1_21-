@@ -1,6 +1,5 @@
 ﻿
 using System;
-using System.Reflection;
 using System.Text;
 
 namespace ORM_1_21_.Utils
@@ -13,13 +12,13 @@ namespace ORM_1_21_.Utils
             StringBuilder builder = new StringBuilder($"IF not exists (select 1 from information_schema.tables where table_name = '{tableName}')");
             builder.AppendLine($"CREATE TABLE [dbo].[{tableName}](");
             var pk = AttributesOfClass<T>.PkAttribute(providerName);
-            if (pk.Generator == Generator.Native|| pk.Generator == Generator.NativeNotReturningId)
+            if (pk.Generator == Generator.Native || pk.Generator == Generator.NativeNotReturningId)
             {
                 var typePk = $" {GetTypeMsSQl(pk)}IDENTITY(1,1) NOT NULL";
                 if (pk.TypeString != null)
                     typePk = pk.TypeString;
                 var defValue = "PRIMARY KEY";
-                if (pk.DefaultValue!=null)
+                if (pk.DefaultValue != null)
                 {
                     defValue = pk.DefaultValue;
                 }
@@ -39,12 +38,12 @@ namespace ORM_1_21_.Utils
                 builder.AppendLine($"{pk.GetColumnName(providerName)} {typePk} {defValue},");
             }
 
-           
+
             foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
-             
-                builder.AppendLine($"{map.GetColumnName(providerName)} {GetTypeMsSQl(map)} {FactoryCreatorTable.GetDefaultValue(map,providerName)},");
-               
+
+                builder.AppendLine($"{map.GetColumnName(providerName)} {GetTypeMsSQl(map)} {FactoryCreatorTable.GetDefaultValue(map, providerName)},");
+
             }
 
             string res = builder.ToString().Trim(' ', ',') + ");";
@@ -101,7 +100,7 @@ namespace ORM_1_21_.Utils
                 return "[bigint]";
             }
 
-            if (type == typeof(Byte)|| type == typeof(SByte) )
+            if (type == typeof(Byte) || type == typeof(SByte))
             {
                 return "[TINYINT]";
             }
@@ -138,7 +137,7 @@ namespace ORM_1_21_.Utils
                 return "[uniqueidentifier]";
             }
 
-            if ( type == typeof(byte[]))
+            if (type == typeof(byte[]))
             {
                 return "varbinary(MAX)";
             }

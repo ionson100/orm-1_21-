@@ -17,32 +17,22 @@ namespace ORM_1_21_.Linq
     {
         public override object Execute<TS>(Expression expression)
         {
-           
+
             var services = (IServiceSessions)Sessione;
             var re = TranslateE(expression);
             string sql = re.Sql;
             List<PostExpression> postExpressions = re.ListPostExpression;
-            if (postExpressions.Count > 0)
-            {
-
-            }
+           
             var paramJon = re.Param;
-
-
             List<OneComposite> listCore = re.Composites;
             listCore.AddRange(ListOuterOneComposites);
-
-          
-
             var com = services.CommandForLinq;
-
             var to = GetTimeout();
+
             if (to >= 0)
             {
                 com.CommandTimeout = to;
             }
-
-
             if (_isStoredPr)
                 com.CommandType = CommandType.StoredProcedure;
 
@@ -78,7 +68,7 @@ namespace ORM_1_21_.Linq
                 UtilsCore.AddParamsSqlParam(com, _paramFreeSqlParams);
             }
 
-            if (_paramFree.Count>0)
+            if (_paramFree.Count > 0)
             {
                 UtilsCore.AddParam(com, _providerName, _paramFree.ToArray());
             }
@@ -102,21 +92,21 @@ namespace ORM_1_21_.Linq
                 if (PingCompositeE(Evolution.All, listCore))
                 {
                     dataReader = com.ExecuteReader();
-                   
-                        while (dataReader.Read())
-                        {
-                            var v1 = dataReader.GetInt32(0);
-                            var v2 = dataReader.GetInt32(1);
-                            var res = v1 == v2;
-                            return res;
-                        }
+
+                    while (dataReader.Read())
+                    {
+                        var v1 = dataReader.GetInt32(0);
+                        var v2 = dataReader.GetInt32(1);
+                        var res = v1 == v2;
+                        return res;
+                    }
                 }
 
                 if (PingCompositeE(Evolution.LongCount, listCore))
                 {
                     var ee = com.ExecuteScalar();
                     var res = Convert.ToInt64(ee, CultureInfo.CurrentCulture);
-                   
+
                     return res;
                 }
 
@@ -124,7 +114,7 @@ namespace ORM_1_21_.Linq
                 {
                     var ee = com.ExecuteScalar();
                     var res = Convert.ToInt32(ee, CultureInfo.CurrentCulture);
-                
+
                     return res;
                 }
 
@@ -285,9 +275,8 @@ namespace ORM_1_21_.Linq
                         {
                             var par = new List<object>();
                             for (var i = 0; i < count; i++)
-                            {
-                                var ss = dataReader.GetName(i);
-                                var sss = dataReader.GetValue(i).GetType();
+                            { 
+                                dataReader.GetName(i);
                                 var val = Pizdaticus.MethodFreeIndex<T>(_providerName, ci.GetParameters()[i].ParameterType,
                                     dataReader, i);
                                 par.Add(val);
@@ -407,7 +396,7 @@ namespace ORM_1_21_.Linq
                     dataReader = com.ExecuteReader();
                     var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                     var enumerable = r as T[] ?? r.ToArray();
-                    if (enumerable.Length>0)
+                    if (enumerable.Length > 0)
                     {
                         var res = enumerable.First();
                         return res;
@@ -420,11 +409,6 @@ namespace ORM_1_21_.Linq
                     dataReader = com.ExecuteReader();
                     var r = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName);
                     var enumerable = r as T[] ?? r.ToArray();
-
-                   // if (enumerable.Length>0)
-                   // {
-                   //     return enumerable.First();
-                   // }
                     return enumerable.FirstOrDefault();
                 }
 
@@ -465,7 +449,7 @@ namespace ORM_1_21_.Linq
                         if (UtilsCore.IsAnonymousType(ttType))
                         {
 
-                            var lRes = Pizdaticus.GetListAnonymousObj<object,T>(dataReader, ss, _providerName);
+                            var lRes = Pizdaticus.GetListAnonymousObj<object, T>(dataReader, ss, _providerName);
                             var listNativeInvoke = DbHelp.CastList(lRes);
 
                             var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
@@ -476,15 +460,13 @@ namespace ORM_1_21_.Linq
                         else
                         {
                             throw new Exception($"Method Select for IQueryable is not implemented, use method SelectCore or ...toList().Select()");
-
                         }
                     }
                     else
                     {
                         if (UtilsCore.IsAnonymousType(typeof(TS)))
                         {
-                           var ttt= typeof(T);
-                            var lRes = Pizdaticus.GetListAnonymousObj<TS,T>(dataReader, ss, _providerName);
+                            var lRes = Pizdaticus.GetListAnonymousObj<TS, T>(dataReader, ss, _providerName);
                             var dataSing1 = Pizdaticus.SingleData(listCore, lRes, out var isaActive1);
 
                             var res = !isaActive1 ? (object)lRes : dataSing1;
@@ -493,7 +475,6 @@ namespace ORM_1_21_.Linq
                         else
                         {
                             throw new Exception($"Method Select for IQueryable is not implemented, use method SelectCore or ...toList().Select()");
-
                         }
                     }
 
@@ -502,9 +483,7 @@ namespace ORM_1_21_.Linq
                 #endregion
 
                 dataReader = com.ExecuteReader();
-               
                 IEnumerable<T> res1 = AttributesOfClass<T>.GetEnumerableObjects(dataReader, _providerName, listCore.Any(a => a.Operand == Evolution.FreeSql));
-               
                 var dataSingle = Pizdaticus.SingleData(listCore, res1, out var isActive);
                 var res2 = !isActive ? (object)res1 : dataSingle;
                 return res2;
@@ -512,7 +491,7 @@ namespace ORM_1_21_.Linq
             catch (Exception ex)
             {
                 _session.Transactionale.isError = true;
-                MySqlLogger.Error(UtilsCore.GetStringSql(com),ex);
+                MySqlLogger.Error(UtilsCore.GetStringSql(com), ex);
                 throw new Exception(ex.Message + Environment.NewLine + com.CommandText, ex);
             }
 
@@ -523,7 +502,6 @@ namespace ORM_1_21_.Linq
                     dataReader.Dispose();
                 }
                 _session.ComDisposable(com);
-
             }
         }
     }

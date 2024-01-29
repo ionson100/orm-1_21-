@@ -25,9 +25,9 @@ namespace ORM_1_21_.Linq
                 action(item);
             }
         }
-        
-      
-      
+
+
+
         /// <summary>
         /// Provider
         /// </summary>
@@ -45,7 +45,7 @@ namespace ORM_1_21_.Linq
             _expression = Expression.Constant(this);
         }
 
-        
+
         internal Query(QueryProvider provider, Expression expression)
         {
             if (expression == null)
@@ -53,18 +53,12 @@ namespace ORM_1_21_.Linq
                 throw new ArgumentNullException(nameof(expression));
             }
 
-           // var sdds = typeof(IQueryable<T>);
-           // if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
-           // {
-           //     throw new ArgumentOutOfRangeException(nameof(expression));
-           // }
-
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
 
             _expression = expression;
         }
 
-        
+
 
         Expression IQueryable.Expression => _expression;
 
@@ -82,7 +76,7 @@ namespace ORM_1_21_.Linq
 
         }
 
-       
+
 
         IEnumerator IEnumerable.GetEnumerator()
         {
@@ -103,6 +97,6 @@ namespace ORM_1_21_.Linq
         }
 
 
-       
+
     }
 }

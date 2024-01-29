@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ORM_1_21_.Linq;
+using ORM_1_21_.Utils;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -6,8 +8,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_.Linq;
-using ORM_1_21_.Utils;
 
 namespace ORM_1_21_
 {
@@ -487,7 +487,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _min_Selector.MakeGenericMethod(typeof(TSource), typeof(TResult)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -507,7 +507,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _max_Selector.MakeGenericMethod(typeof(TSource), typeof(TResult)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -543,7 +543,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _sum_IntNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -560,7 +560,7 @@ namespace ORM_1_21_
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            var ex = Expression.Call(null, _sum_Long_Selector.MakeGenericMethod(typeof(TSource)), new []
+            var ex = Expression.Call(null, _sum_Long_Selector.MakeGenericMethod(typeof(TSource)), new[]
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -578,7 +578,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _sum_LongNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -594,7 +594,7 @@ namespace ORM_1_21_
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            var ex = Expression.Call(null, _sum_Decimal_Selector.MakeGenericMethod(typeof(TSource)), new []
+            var ex = Expression.Call(null, _sum_Decimal_Selector.MakeGenericMethod(typeof(TSource)), new[]
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -611,7 +611,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _sum_DecimalNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -645,7 +645,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _sum_FloatNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -679,7 +679,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _sum_DoubleNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -696,7 +696,7 @@ namespace ORM_1_21_
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            var ex = Expression.Call(null, _average_Int_Selector.MakeGenericMethod(typeof(TSource)), new []
+            var ex = Expression.Call(null, _average_Int_Selector.MakeGenericMethod(typeof(TSource)), new[]
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -713,7 +713,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _average_IntNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -730,7 +730,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _average_Double_Selector.MakeGenericMethod(typeof(TSource)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -747,7 +747,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _average_DoubleNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -764,7 +764,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _average_Decimal_Selector.MakeGenericMethod(typeof(TSource)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -780,9 +780,9 @@ namespace ORM_1_21_
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-          
+
             var ex = Expression.Call(null, _average_DecimalNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -798,8 +798,8 @@ namespace ORM_1_21_
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-        
-            var ex = Expression.Call(null, _average_Float_Selector.MakeGenericMethod(typeof(TSource)), new []
+
+            var ex = Expression.Call(null, _average_Float_Selector.MakeGenericMethod(typeof(TSource)), new[]
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -816,7 +816,7 @@ namespace ORM_1_21_
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
             var ex = Expression.Call(null, _average_FloatNullable_Selector.MakeGenericMethod(typeof(TSource)),
-                new []
+                new[]
                 {
                     source.Expression,
                     Expression.Quote(selector)
@@ -832,7 +832,7 @@ namespace ORM_1_21_
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            var ex = Expression.Call(null, _average_Long_Selector.MakeGenericMethod(typeof(TSource)), new []
+            var ex = Expression.Call(null, _average_Long_Selector.MakeGenericMethod(typeof(TSource)), new[]
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -848,7 +848,7 @@ namespace ORM_1_21_
         {
             Check.NotNull(source, "source");
             Check.NotNull(selector, "selector");
-            var ex = Expression.Call(null, _average_LongNullable_Selector.MakeGenericMethod(typeof(TSource)), new []
+            var ex = Expression.Call(null, _average_LongNullable_Selector.MakeGenericMethod(typeof(TSource)), new[]
             {
                 source.Expression,
                 Expression.Quote(selector)
@@ -1138,7 +1138,7 @@ namespace ORM_1_21_
                 typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(T, typeof(bool)))
             });
 
-       
+
 
         private static readonly MethodInfo _any = GetMethod("Any",
             (Type T) => new Type[] { typeof(IQueryable<>).MakeGenericType(T) });
@@ -1371,7 +1371,7 @@ namespace ORM_1_21_
         private static bool Matches(MethodInfo methodInfo, Type[] parameterTypes)
         {
             return (from p in methodInfo.GetParameters()
-                select p.ParameterType).SequenceEqual(parameterTypes);
+                    select p.ParameterType).SequenceEqual(parameterTypes);
         }
 
         #endregion

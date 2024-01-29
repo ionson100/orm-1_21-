@@ -19,7 +19,7 @@ namespace ORM_1_21_
         {
             Returning = returning;
         }
-       
+
     }
     /// <summary>
     /// Applicable for property type Object or custom types for an instance, only if the instance type is Object, for custom types, an object is returned.

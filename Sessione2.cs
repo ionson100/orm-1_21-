@@ -172,7 +172,7 @@ namespace ORM_1_21_
             return tk.Task;
         }
 
-         
+
 
         public string ParseTableToClass(string tableName)
         {

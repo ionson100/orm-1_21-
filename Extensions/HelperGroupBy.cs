@@ -1,12 +1,12 @@
-﻿using System;
+﻿using ORM_1_21_.Extensions;
+using ORM_1_21_.Linq;
+using ORM_1_21_.Utils;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_.Extensions;
-using ORM_1_21_.Linq;
-using ORM_1_21_.Utils;
 
 namespace ORM_1_21_
 {
@@ -24,7 +24,7 @@ namespace ORM_1_21_
         /// <typeparam name="TSource">The type of the elements of source.</typeparam>
         /// <typeparam name="TKey">The type of the key returned by keySelector.</typeparam>
         /// <typeparam name="TElement">The type of the elements in each IGrouping&lt;TKey,TElement&gt;.</typeparam>
-        public  static  IEnumerable<IGrouping<TKey, TElement>> GroupByCore<TSource, TKey, TElement>(
+        public static IEnumerable<IGrouping<TKey, TElement>> GroupByCore<TSource, TKey, TElement>(
             this IQueryable<TSource> source,
             Func<TSource, TKey> keySelector,
             Func<TSource, TElement> elementSelector)

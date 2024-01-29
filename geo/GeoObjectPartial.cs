@@ -1,7 +1,8 @@
-﻿using ORM_1_21_.Utils;
+﻿using ORM_1_21_.Linq;
+using ORM_1_21_.Utils;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
-using ORM_1_21_.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,7 +18,7 @@ namespace ORM_1_21_.geo
 
         public Task<string> StGeometryTypeAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<string>("StGeometryType",cancellationToken);
+            return ExecuteNoneGeoAsync<string>("StGeometryType", cancellationToken);
         }
 
         public double? StArea()
@@ -27,7 +28,7 @@ namespace ORM_1_21_.geo
 
         public Task<double?> StAreaAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<double?>("StArea",cancellationToken);
+            return ExecuteNoneGeoAsync<double?>("StArea", cancellationToken);
         }
 
         public bool? StWithin(IGeoShape shape)
@@ -35,9 +36,9 @@ namespace ORM_1_21_.geo
             return ExecuteTwoGeo<bool?>("StWithin", shape);
         }
 
-        public Task<bool?> StWithinAsync(IGeoShape shape,CancellationToken cancellationToken=default)
+        public Task<bool?> StWithinAsync(IGeoShape shape, CancellationToken cancellationToken = default)
         {
-            return ExecuteTwoGeoAsync<bool?>("StWithin", shape,cancellationToken);
+            return ExecuteTwoGeoAsync<bool?>("StWithin", shape, cancellationToken);
         }
 
         public byte[] StAsBinary()
@@ -47,7 +48,7 @@ namespace ORM_1_21_.geo
 
         public Task<byte[]> StAsBinaryAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<byte[]>("StAsBinary",cancellationToken);
+            return ExecuteNoneGeoAsync<byte[]>("StAsBinary", cancellationToken);
         }
 
         public IGeoShape StBoundary()
@@ -57,32 +58,32 @@ namespace ORM_1_21_.geo
 
         public Task<IGeoShape> StBoundaryAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StBoundary",cancellationToken);
+            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StBoundary", cancellationToken);
 
         }
 
         public IGeoShape StBuffer(float distance)
         {
             ISession session = _session;
-            return ExecuteGetGeoObjectBufferE<IGeoShape>("StBuffer",  session,distance);
+            return ExecuteGetGeoObjectBufferE<IGeoShape>("StBuffer", session, distance);
         }
 
 
         public Task<IGeoShape> StBufferAsync(float distance, CancellationToken cancellationToken = default)
         {
             ISession session = _session;
-            return ExecuteGetGeoObjectBufferEAsync<IGeoShape>("StBuffer", session, new object[]{distance},cancellationToken);
+            return ExecuteGetGeoObjectBufferEAsync<IGeoShape>("StBuffer", session, new object[] { distance }, cancellationToken);
         }
 
         public IGeoShape StCentroid()
-        { 
+        {
             return ExecuteGetGeoObjectNoParam<IGeoShape>("StCentroid");
         }
 
 
         public Task<IGeoShape> StCentroidAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StCentroid",cancellationToken);
+            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StCentroid", cancellationToken);
         }
 
         public bool? StContains(IGeoShape shape)
@@ -93,7 +94,7 @@ namespace ORM_1_21_.geo
 
         public Task<bool?> StContainsAsync(IGeoShape shape, CancellationToken cancellationToken)
         {
-            return ExecuteTwoGeoAsync<bool?>("StContains", shape,cancellationToken);
+            return ExecuteTwoGeoAsync<bool?>("StContains", shape, cancellationToken);
         }
 
         public bool? StCrosses(IGeoShape shape)
@@ -102,9 +103,9 @@ namespace ORM_1_21_.geo
         }
 
 
-        public Task<bool?> StCrossesAsync(IGeoShape shape,CancellationToken cancellationToken=default)
+        public Task<bool?> StCrossesAsync(IGeoShape shape, CancellationToken cancellationToken = default)
         {
-            return ExecuteTwoGeoAsync<bool?>("StCrosses", shape,cancellationToken);
+            return ExecuteTwoGeoAsync<bool?>("StCrosses", shape, cancellationToken);
         }
 
         public IGeoShape StDifference(IGeoShape shape)
@@ -112,9 +113,9 @@ namespace ORM_1_21_.geo
             return ExecuteGetGeoObjectParamGeo<IGeoShape>("StDifference", shape);
         }
 
-        public Task<IGeoShape> StDifferenceAsync(IGeoShape shape, CancellationToken cancellationToken=default)
+        public Task<IGeoShape> StDifferenceAsync(IGeoShape shape, CancellationToken cancellationToken = default)
         {
-            return ExecuteGetGeoObjectParamGeoAsync<IGeoShape>("StDifference", shape,cancellationToken);
+            return ExecuteGetGeoObjectParamGeoAsync<IGeoShape>("StDifference", shape, cancellationToken);
 
         }
 
@@ -123,9 +124,9 @@ namespace ORM_1_21_.geo
             return ExecuteNoneGeo<int?>("StDimension");
         }
 
-        public Task<int?> StDimensionAsync(CancellationToken cancellationToken=default)
+        public Task<int?> StDimensionAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<int?>("StDimension",cancellationToken);
+            return ExecuteNoneGeoAsync<int?>("StDimension", cancellationToken);
         }
 
         public bool? StDisjoint(IGeoShape shape)
@@ -133,9 +134,9 @@ namespace ORM_1_21_.geo
             return ExecuteTwoGeo<bool?>("StDisjoint", shape);
         }
 
-        public Task<bool?> StDisjointAsync(IGeoShape shape,CancellationToken cancellationToken=default)
+        public Task<bool?> StDisjointAsync(IGeoShape shape, CancellationToken cancellationToken = default)
         {
-            return ExecuteTwoGeoAsync<bool?>("StDisjoint", shape,cancellationToken);
+            return ExecuteTwoGeoAsync<bool?>("StDisjoint", shape, cancellationToken);
         }
 
         public double? StDistance(IGeoShape shape)
@@ -143,9 +144,9 @@ namespace ORM_1_21_.geo
             return ExecuteTwoGeo<double?>("StDistance", shape);
         }
 
-        public Task<double?> StDistanceAsync(IGeoShape shape, CancellationToken cancellationToken=default)
+        public Task<double?> StDistanceAsync(IGeoShape shape, CancellationToken cancellationToken = default)
         {
-            return ExecuteTwoGeoAsync<double?>("StDistance", shape,cancellationToken);
+            return ExecuteTwoGeoAsync<double?>("StDistance", shape, cancellationToken);
         }
 
         public IGeoShape StEndPoint()
@@ -155,7 +156,7 @@ namespace ORM_1_21_.geo
 
         public Task<IGeoShape> StEndPointAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StEndPoint",cancellationToken);
+            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StEndPoint", cancellationToken);
         }
 
         public IGeoShape StEnvelope()
@@ -165,8 +166,8 @@ namespace ORM_1_21_.geo
 
         public Task<IGeoShape> StEnvelopeAsync(CancellationToken cancellationToken = default)
         {
-         
-            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StEnvelope",cancellationToken);
+
+            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StEnvelope", cancellationToken);
         }
 
 
@@ -175,9 +176,9 @@ namespace ORM_1_21_.geo
             return ExecuteTwoGeo<bool?>("StEquals", shape);
         }
 
-        public Task<bool?> StEqualsAsync(IGeoShape shape,CancellationToken cancellationToken=default)
+        public Task<bool?> StEqualsAsync(IGeoShape shape, CancellationToken cancellationToken = default)
         {
-            return ExecuteTwoGeoAsync<bool?>("StEquals", shape,cancellationToken);
+            return ExecuteTwoGeoAsync<bool?>("StEquals", shape, cancellationToken);
         }
 
         public bool? StIntersects(IGeoShape shape)
@@ -185,9 +186,9 @@ namespace ORM_1_21_.geo
             return ExecuteTwoGeo<bool?>("StIntersects", shape);
         }
 
-        public Task<bool?> StIntersectsAsync(IGeoShape shape,CancellationToken cancellationToken=default)
+        public Task<bool?> StIntersectsAsync(IGeoShape shape, CancellationToken cancellationToken = default)
         {
-            return ExecuteTwoGeoAsync<bool?>("StIntersects", shape,cancellationToken);
+            return ExecuteTwoGeoAsync<bool?>("StIntersects", shape, cancellationToken);
         }
 
         public bool? StOverlaps(IGeoShape shape)
@@ -196,9 +197,9 @@ namespace ORM_1_21_.geo
         }
 
 
-        public Task<bool?> StOverlapsAsync(IGeoShape shape,CancellationToken cancellationToken=default)
+        public Task<bool?> StOverlapsAsync(IGeoShape shape, CancellationToken cancellationToken = default)
         {
-            return ExecuteTwoGeoAsync<bool?>("StOverlaps", shape,cancellationToken);
+            return ExecuteTwoGeoAsync<bool?>("StOverlaps", shape, cancellationToken);
         }
 
         public int? StSrid()
@@ -213,7 +214,7 @@ namespace ORM_1_21_.geo
 
         public Task<IGeoShape> StStartPointAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StStartPoint",cancellationToken);
+            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StStartPoint", cancellationToken);
         }
 
         public IGeoShape StSymDifference(IGeoShape shape)
@@ -223,7 +224,7 @@ namespace ORM_1_21_.geo
 
         public Task<IGeoShape> StSymDifferenceAsync(IGeoShape shape, CancellationToken cancellationToken = default)
         {
-            return ExecuteGetGeoObjectParamGeoAsync<IGeoShape>("StSymDifference", shape,cancellationToken);
+            return ExecuteGetGeoObjectParamGeoAsync<IGeoShape>("StSymDifference", shape, cancellationToken);
         }
 
         public bool? StTouches(IGeoShape shape)
@@ -232,7 +233,7 @@ namespace ORM_1_21_.geo
         }
 
 
-        public Task<bool?> StTouchesAsync(IGeoShape shape,CancellationToken cancellationToken=default)
+        public Task<bool?> StTouchesAsync(IGeoShape shape, CancellationToken cancellationToken = default)
         {
             return ExecuteTwoGeoAsync<bool?>("StTouches", shape, cancellationToken);
         }
@@ -247,9 +248,9 @@ namespace ORM_1_21_.geo
             return ExecuteNoneGeo<int>("StNumGeometries");
         }
 
-        public Task<int?> StNumGeometriesAsync(CancellationToken cancellationToken=default)
+        public Task<int?> StNumGeometriesAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<int?>("StNumGeometries",cancellationToken);
+            return ExecuteNoneGeoAsync<int?>("StNumGeometries", cancellationToken);
         }
 
         public int? StNumInteriorRing()
@@ -257,9 +258,9 @@ namespace ORM_1_21_.geo
             return ExecuteNoneGeo<int>("StNumInteriorRing");
         }
 
-        public Task<int?> StNumInteriorRingAsync(CancellationToken cancellationToken=default)
+        public Task<int?> StNumInteriorRingAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<int?>("StNumInteriorRing",cancellationToken);
+            return ExecuteNoneGeoAsync<int?>("StNumInteriorRing", cancellationToken);
         }
 
         public bool? StIsSimple()
@@ -267,9 +268,9 @@ namespace ORM_1_21_.geo
             return ExecuteNoneGeo<bool?>("StIsSimple");
         }
 
-        public Task<bool?> StIsSimpleAsync(CancellationToken cancellationToken=default)
+        public Task<bool?> StIsSimpleAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<bool?>("StIsSimple",cancellationToken);
+            return ExecuteNoneGeoAsync<bool?>("StIsSimple", cancellationToken);
         }
 
         public bool? StIsValid()
@@ -277,9 +278,9 @@ namespace ORM_1_21_.geo
             return ExecuteNoneGeo<bool?>("StIsValid");
         }
 
-        public Task<bool?> StIsValidAsync(CancellationToken cancellationToken=default)
+        public Task<bool?> StIsValidAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<bool?>("StIsValid",cancellationToken);
+            return ExecuteNoneGeoAsync<bool?>("StIsValid", cancellationToken);
         }
 
         public double? StLength()
@@ -287,9 +288,9 @@ namespace ORM_1_21_.geo
             return ExecuteNoneGeo<double?>("StLength");
         }
 
-        public Task<double?> StLengthAsync(CancellationToken cancellationToken=default)
+        public Task<double?> StLengthAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<double?>("StLength",cancellationToken);
+            return ExecuteNoneGeoAsync<double?>("StLength", cancellationToken);
         }
 
         public bool? StIsClosed()
@@ -297,9 +298,9 @@ namespace ORM_1_21_.geo
             return ExecuteNoneGeo<bool?>("StIsClosed");
         }
 
-        public Task<bool?> StIsClosedAsync(CancellationToken cancellationToken=default)
+        public Task<bool?> StIsClosedAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<bool?>("StIsClosed",cancellationToken);
+            return ExecuteNoneGeoAsync<bool?>("StIsClosed", cancellationToken);
         }
 
         public int? StNumPoints()
@@ -307,9 +308,9 @@ namespace ORM_1_21_.geo
             return ExecuteNoneGeo<int?>("StNumPoints");
         }
 
-        public Task<int?> StNumPointsAsync(CancellationToken cancellationToken=default)
+        public Task<int?> StNumPointsAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<int?>("StNumPoints",cancellationToken);
+            return ExecuteNoneGeoAsync<int?>("StNumPoints", cancellationToken);
         }
 
         public double? StPerimeter()
@@ -317,9 +318,9 @@ namespace ORM_1_21_.geo
             return ExecuteNoneGeo<double?>("StPerimeter");
         }
 
-        public Task<double?> StPerimeterAsync(CancellationToken cancellationToken=default)
+        public Task<double?> StPerimeterAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<double?>("StPerimeter",cancellationToken);
+            return ExecuteNoneGeoAsync<double?>("StPerimeter", cancellationToken);
         }
 
         public IGeoShape StTranslate(float deltaX, float deltaY)
@@ -328,42 +329,45 @@ namespace ORM_1_21_.geo
             return ExecuteGetGeoObjectBufferE<IGeoShape>("StTranslate", session, deltaX, deltaY);
         }
 
-        public Task<IGeoShape> StTranslateAsync(float deltaX, float deltaY,CancellationToken cancellationToken=default)
+        public Task<IGeoShape> StTranslateAsync(float deltaX, float deltaY, CancellationToken cancellationToken = default)
         {
             ISession session = _session;
-            return ExecuteGetGeoObjectBufferEAsync<IGeoShape>("StTranslate", session, new object[]{deltaX, deltaY},cancellationToken );
+            return ExecuteGetGeoObjectBufferEAsync<IGeoShape>("StTranslate", session, new object[] { deltaX, deltaY }, cancellationToken);
         }
 
         public IGeoShape StConvexHull()
         {
-            return ExecuteGetGeoObjectNoParam<IGeoShape>("StConvexHull" );
+            return ExecuteGetGeoObjectNoParam<IGeoShape>("StConvexHull");
         }
 
-        public Task<IGeoShape> StConvexHullAsync(CancellationToken cancellationToken=default)
+        public Task<IGeoShape> StConvexHullAsync(CancellationToken cancellationToken = default)
         {
             return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StConvexHull", cancellationToken);
         }
 
         public IGeoShape StCollect(params IGeoShape[] shapes)
         {
-            throw new NotImplementedException();
+            if (shapes.Length == 0) throw new Exception("shapes empty");
+            List<IGeoShape> list=new List<IGeoShape>(shapes);
+            list.Insert(0,this);
+            return FactoryGeo.GeometryCollection(list.ToArray());
         }
 
-      
+
 
 
         public IGeoShape StPointN(int n)
         {
             ISession session = _session;
-           
+
             return ExecuteGetGeoObjectBufferE<IGeoShape>("StPointN", session, n);
         }
 
-        public Task<IGeoShape> StPointNAsync(int n,CancellationToken cancellationToken=default)
+        public Task<IGeoShape> StPointNAsync(int n, CancellationToken cancellationToken = default)
         {
             ISession session = _session;
 
-            return ExecuteGetGeoObjectBufferEAsync<IGeoShape>("StPointN", session, new object[]{n},cancellationToken);
+            return ExecuteGetGeoObjectBufferEAsync<IGeoShape>("StPointN", session, new object[] { n }, cancellationToken);
         }
 
         public IGeoShape StPointOnSurface()
@@ -371,9 +375,9 @@ namespace ORM_1_21_.geo
             return ExecuteGetGeoObjectNoParam<IGeoShape>("StPointOnSurface");
         }
 
-        public Task<IGeoShape> StPointOnSurfaceAsync(CancellationToken cancellationToken=default)
+        public Task<IGeoShape> StPointOnSurfaceAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StPointOnSurface",cancellationToken);
+            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StPointOnSurface", cancellationToken);
         }
 
         public IGeoShape StInteriorRingN(int n)
@@ -383,11 +387,11 @@ namespace ORM_1_21_.geo
             return ExecuteGetGeoObjectBufferE<IGeoShape>("StInteriorRingN", session, n);
         }
 
-        public Task<IGeoShape> StInteriorRingNAsync(int n,CancellationToken cancellationToken=default)
+        public Task<IGeoShape> StInteriorRingNAsync(int n, CancellationToken cancellationToken = default)
         {
             ISession session = _session;
 
-            return ExecuteGetGeoObjectBufferEAsync<IGeoShape>("StInteriorRingN", session, new object[]{n},cancellationToken);
+            return ExecuteGetGeoObjectBufferEAsync<IGeoShape>("StInteriorRingN", session, new object[] { n }, cancellationToken);
         }
 
         public double? StX()
@@ -400,13 +404,13 @@ namespace ORM_1_21_.geo
             return ExecuteNoneGeo<double?>("StX");
         }
 
-        public Task<double?> StXAsync(CancellationToken cancellationToken=default)
+        public Task<double?> StXAsync(CancellationToken cancellationToken = default)
         {
             if (GeoType != GeoType.Point)
             {
                 throw new Exception("Input must be a point.");
             }
-            return ExecuteNoneGeoAsync<double?>("StX",cancellationToken);
+            return ExecuteNoneGeoAsync<double?>("StX", cancellationToken);
         }
 
         public double? StY()
@@ -425,7 +429,7 @@ namespace ORM_1_21_.geo
             {
                 throw new Exception("Input must be a point.");
             }
-            return ExecuteNoneGeoAsync<double?>("StY",cancellationToken);
+            return ExecuteNoneGeoAsync<double?>("StY", cancellationToken);
         }
 
         public IGeoShape StTransform(int srid)
@@ -435,32 +439,30 @@ namespace ORM_1_21_.geo
             return ExecuteGetGeoObjectBufferE<IGeoShape>("StTransform", session, srid);
         }
 
-        public Task<IGeoShape> StTransformAsync(int srid,CancellationToken cancellationToken=default)
+        public Task<IGeoShape> StTransformAsync(int srid, CancellationToken cancellationToken = default)
         {
             ISession session = _session;
 
-            return ExecuteGetGeoObjectBufferEAsync<IGeoShape>("StTransform", session,new object[] {srid},cancellationToken);
+            return ExecuteGetGeoObjectBufferEAsync<IGeoShape>("StTransform", session, new object[] { srid }, cancellationToken);
         }
 
         public IGeoShape StSetSRID(int srid)
         {
             SetSrid(srid);
             return this;
-            // ISession session = _session;
-            // return ExecuteGetGeoObjectBufferE<IGeoShape>("StSetSRID", session, srid);
-
+          
         }
 
-        public string StAsLatLonText(string format =null)
+        public string StAsLatLonText(string format = null)
         {
-            
+
             CheckSession(_session, "StAsLatLonText");
 
             if (string.IsNullOrWhiteSpace(format))
             {
                 format = "D°M''S.SSS\"C";
             }
-            
+
             if (_session.ProviderName != ProviderName.PostgreSql)
             {
                 throw new Exception("Only for Postgres");
@@ -484,7 +486,7 @@ namespace ORM_1_21_.geo
                     _session = null;
                 }
             }
-          
+
 
         }
 
@@ -527,9 +529,9 @@ namespace ORM_1_21_.geo
             return ExecuteGetGeoObjectNoParam<IGeoShape>("StReverse");
         }
 
-        public Task<IGeoShape> StReverseAsync(CancellationToken cancellationToken=default)
+        public Task<IGeoShape> StReverseAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StReverse",cancellationToken);
+            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StReverse", cancellationToken);
         }
 
         public string StIsValidReason()
@@ -537,18 +539,18 @@ namespace ORM_1_21_.geo
             return ExecuteNoneGeo<string>("StIsValidReason");
         }
 
-        public Task<string> StIsValidReasonAsync(CancellationToken cancellationToken=default)
+        public Task<string> StIsValidReasonAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteNoneGeoAsync<string>("StIsValidReason",cancellationToken);
+            return ExecuteNoneGeoAsync<string>("StIsValidReason", cancellationToken);
         }
 
         public IGeoShape StMakeValid()
         {
             return ExecuteGetGeoObjectNoParam<IGeoShape>("StMakeValid");
         }
-        public Task<IGeoShape> StMakeValidAsync(CancellationToken cancellationToken=default)
+        public Task<IGeoShape> StMakeValidAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StMakeValid",cancellationToken);
+            return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StMakeValid", cancellationToken);
         }
 
         public string StAsGeoJson()
@@ -556,10 +558,10 @@ namespace ORM_1_21_.geo
             return ExecuteNoneGeo<string>("StAsGeoJSON");
         }
 
-        public Task<string> StAsGeoJsonAsync(CancellationToken cancellationToken=default)
+        public Task<string> StAsGeoJsonAsync(CancellationToken cancellationToken = default)
         {
-          
-            return ExecuteNoneGeoAsync<string>("StAsGeoJSON",cancellationToken);
+
+            return ExecuteNoneGeoAsync<string>("StAsGeoJSON", cancellationToken);
         }
 
 
@@ -568,9 +570,9 @@ namespace ORM_1_21_.geo
             return ExecuteGetGeoObjectParamGeo<IGeoShape>("StUnion", shape);
         }
 
-        public Task<IGeoShape> StUnionAsync(IGeoShape shape,CancellationToken cancellationToken=default)
+        public Task<IGeoShape> StUnionAsync(IGeoShape shape, CancellationToken cancellationToken = default)
         {
-            return ExecuteGetGeoObjectParamGeoAsync<IGeoShape>("StUnion", shape,cancellationToken);
+            return ExecuteGetGeoObjectParamGeoAsync<IGeoShape>("StUnion", shape, cancellationToken);
         }
 
 
@@ -578,41 +580,41 @@ namespace ORM_1_21_.geo
 
 
 
-        T ExecuteTwoGeo<T>(string methodName,IGeoShape shape)
+        T ExecuteTwoGeo<T>(string methodName, IGeoShape shape)
         {
             ISession session = _session;
             Check.NotEmpty(methodName, nameof(methodName));
-            CheckSession(session,methodName);
+            CheckSession(session, methodName);
             Check.NotNull(session, nameof(session));
             Check.NotNull(shape, nameof(shape));
             ProviderName providerName = session.ProviderName;
             string sql = null;
-            methodName=QueryTranslator<object>.GetNameMethod(methodName, providerName);
+            methodName = QueryTranslator<object>.GetNameMethod(methodName, providerName);
             string p = session.SymbolParam;
             switch (providerName)
             {
                 case ProviderName.MsSql:
-                {
-                    var cur = $"geometry::STGeomFromText({p}1, {p}2)";
-                    var par = $"geometry::STGeomFromText({p}3, {p}4)";
-                    sql = $" select ({cur}).{methodName}({par})";
-                    break;
-                }
+                    {
+                        var cur = $"geometry::STGeomFromText({p}1, {p}2)";
+                        var par = $"geometry::STGeomFromText({p}3, {p}4)";
+                        sql = $" select ({cur}).{methodName}({par})";
+                        break;
+                    }
 
                 case ProviderName.MySql:
-                {
-                    var cur = $"ST_GeomFromText({p}1,  {p}2)";
-                    var par = $"ST_GeomFromText({p}3,  {p}4)";
-                    sql = $" select {methodName}({cur}, {par})";
-                    break;
-                }
+                    {
+                        var cur = $"ST_GeomFromText({p}1,  {p}2)";
+                        var par = $"ST_GeomFromText({p}3,  {p}4)";
+                        sql = $" select {methodName}({cur}, {par})";
+                        break;
+                    }
                 case ProviderName.PostgreSql:
-                {
-                    var cur = $"ST_GeomFromText({p}1,  {p}2)";
-                    var par = $"ST_GeomFromText({p}3,  {p}4)";
-                    sql = $" select {methodName}({cur}, {par})";
-                    break;
-                }
+                    {
+                        var cur = $"ST_GeomFromText({p}1,  {p}2)";
+                        var par = $"ST_GeomFromText({p}3,  {p}4)";
+                        sql = $" select {methodName}({cur}, {par})";
+                        break;
+                    }
                 case ProviderName.SqLite:
                     UtilsCore.ErrorAlert();
                     break;
@@ -634,11 +636,11 @@ namespace ORM_1_21_.geo
             {
                 _session = null;
             }
-            
+
 
         }
 
-        async Task<T> ExecuteTwoGeoAsync<T>(string methodName, IGeoShape shape,  CancellationToken cancellationToken)
+        async Task<T> ExecuteTwoGeoAsync<T>(string methodName, IGeoShape shape, CancellationToken cancellationToken)
         {
             ISession session = _session;
             Check.NotEmpty(methodName, nameof(methodName));
@@ -652,27 +654,27 @@ namespace ORM_1_21_.geo
             switch (providerName)
             {
                 case ProviderName.MsSql:
-                {
-                    var cur = $"geometry::STGeomFromText({p}1, {p}2)";
-                    var par = $"geometry::STGeomFromText({p}3, {p}4)";
-                    sql = $" select ({cur}).{methodName}({par})";
-                    break;
-                }
+                    {
+                        var cur = $"geometry::STGeomFromText({p}1, {p}2)";
+                        var par = $"geometry::STGeomFromText({p}3, {p}4)";
+                        sql = $" select ({cur}).{methodName}({par})";
+                        break;
+                    }
 
                 case ProviderName.MySql:
-                {
-                    var cur = $"ST_GeomFromText({p}1,  {p}2)";
-                    var par = $"ST_GeomFromText({p}3,  {p}4)";
-                    sql = $" select {methodName}({cur}, {par})";
-                    break;
-                }
+                    {
+                        var cur = $"ST_GeomFromText({p}1,  {p}2)";
+                        var par = $"ST_GeomFromText({p}3,  {p}4)";
+                        sql = $" select {methodName}({cur}, {par})";
+                        break;
+                    }
                 case ProviderName.PostgreSql:
-                {
-                    var cur = $"ST_GeomFromText({p}1,  {p}2)";
-                    var par = $"ST_GeomFromText({p}3,  {p}4)";
-                    sql = $" select {methodName}({cur}, {par})";
-                    break;
-                }
+                    {
+                        var cur = $"ST_GeomFromText({p}1,  {p}2)";
+                        var par = $"ST_GeomFromText({p}3,  {p}4)";
+                        sql = $" select {methodName}({cur}, {par})";
+                        break;
+                    }
                 case ProviderName.SqLite:
                     UtilsCore.ErrorAlert();
                     break;
@@ -692,18 +694,20 @@ namespace ORM_1_21_.geo
 
                 return (T)UtilsCore.Convertor(res, typeof(T));
             }
-            finally{
+            finally
             {
-                _session = null;
-            }}
+                {
+                    _session = null;
+                }
+            }
 
-           
+
 
         }
 
         T ExecuteNoneGeo<T>(string methodName)
         {
-            ISession session=_session;
+            ISession session = _session;
             Check.NotEmpty(methodName, nameof(methodName));
             CheckSession(session, methodName);
 
@@ -726,7 +730,7 @@ namespace ORM_1_21_.geo
                     {
                         sql = $" select (geometry::STGeomFromText({p}1, {p}2)).{methodName}()";
                     }
-                       
+
                     break;
                 case ProviderName.MySql:
                     sql = $" select {methodName}(ST_GeomFromText({p}1, {p}2))";
@@ -752,13 +756,13 @@ namespace ORM_1_21_.geo
             {
                 _session = null;
             }
-           
+
 
         }
 
-        async Task<T> ExecuteNoneGeoAsync<T>(string methodName,  CancellationToken cancellationToken)
+        async Task<T> ExecuteNoneGeoAsync<T>(string methodName, CancellationToken cancellationToken)
         {
-            ISession session=_session;
+            ISession session = _session;
             Check.NotEmpty(methodName, nameof(methodName));
             CheckSession(session, methodName);
 
@@ -814,13 +818,13 @@ namespace ORM_1_21_.geo
             {
                 _session = null;
             }
-           
+
 
         }
 
-        T ExecuteGetGeoObjectNoParam<T>(string methodName) where T:IGeoShape
+        T ExecuteGetGeoObjectNoParam<T>(string methodName) where T : IGeoShape
         {
-            ISession session=_session;
+            ISession session = _session;
             Check.NotNull(methodName, nameof(methodName));
             CheckSession(session, methodName);
             ProviderName providerName = session.ProviderName;
@@ -871,11 +875,11 @@ namespace ORM_1_21_.geo
             {
                 this._session = null;
             }
-           
-            
+
+
         }
 
-        async Task<T> ExecuteGetGeoObjectNoParamAsync<T>(string methodName,  CancellationToken cancellationToken) where T : IGeoShape
+        async Task<T> ExecuteGetGeoObjectNoParamAsync<T>(string methodName, CancellationToken cancellationToken) where T : IGeoShape
         {
             ISession session = _session;
             Check.NotNull(methodName, nameof(methodName));
@@ -927,14 +931,14 @@ namespace ORM_1_21_.geo
             {
                 _session = null;
             }
-          
+
 
         }
 
-        T ExecuteGetGeoObjectParamGeo<T>(string methodName,IGeoShape shape) where T : IGeoShape
+        T ExecuteGetGeoObjectParamGeo<T>(string methodName, IGeoShape shape) where T : IGeoShape
         {
-           
-            ISession session=_session;
+
+            ISession session = _session;
             Check.NotEmpty(methodName, nameof(methodName));
             CheckSession(session, methodName);
             ProviderName providerName = session.ProviderName;
@@ -995,14 +999,14 @@ namespace ORM_1_21_.geo
                 _session = null;
             }
 
-           
-           
+
+
 
         }
 
         async Task<T> ExecuteGetGeoObjectParamGeoAsync<T>(string methodName, IGeoShape shape, CancellationToken cancellationToken) where T : IGeoShape
         {
-            ISession session=_session;
+            ISession session = _session;
             Check.NotEmpty(methodName, nameof(methodName));
             CheckSession(session, methodName);
             ProviderName providerName = session.ProviderName;
@@ -1066,12 +1070,12 @@ namespace ORM_1_21_.geo
                 _session = null;
             }
 
-            
+
 
 
         }
 
-        T ExecuteGetGeoObjectBufferE<T>(string methodName, ISession session,params object[] par ) where T : IGeoShape
+        T ExecuteGetGeoObjectBufferE<T>(string methodName, ISession session, params object[] par) where T : IGeoShape
         {
 
             Check.NotEmpty(methodName, nameof(methodName));
@@ -1097,8 +1101,8 @@ namespace ORM_1_21_.geo
                     par[i] = par[i].ToString();
                 }
             }
-            string paramCore=String.Join(",",par);
-           
+            string paramCore = String.Join(",", par);
+
             Check.NotNull(session, nameof(session));
             Check.NotEmpty(methodName, nameof(methodName));
             ProviderName providerName = session.ProviderName;
@@ -1261,5 +1265,9 @@ namespace ORM_1_21_.geo
         }
 
 
+        public object Clone()
+        {
+           return FactoryGeo.CreateGeo(this.StAsText()).SetSrid(this.Srid);
+        }
     }
 }

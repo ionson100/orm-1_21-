@@ -143,14 +143,14 @@ namespace ORM_1_21_.Extensions
 
     internal class MySet<TElement>
     {
-        private readonly HashSet<object> _hashSet=new HashSet<object>();
+        private readonly HashSet<object> _hashSet = new HashSet<object>();
 
         public bool Add(TElement value)
         {
-           var v= AttributesOfClass<TElement>.GetValuePrimaryKey(value);
-           if (_hashSet.Contains(v)) return false;
-           _hashSet.Add(v);
-           return true;
+            var v = AttributesOfClass<TElement>.GetValuePrimaryKey(value);
+            if (_hashSet.Contains(v)) return false;
+            _hashSet.Add(v);
+            return true;
         }
 
     }

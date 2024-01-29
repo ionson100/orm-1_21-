@@ -1,11 +1,11 @@
-﻿using System;
+﻿using ORM_1_21_.Extensions;
+using ORM_1_21_.Utils;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_.Extensions;
-using ORM_1_21_.Utils;
 
 namespace ORM_1_21_
 {
@@ -107,7 +107,7 @@ namespace ORM_1_21_
             IQueryable<TInner> inner,
             Func<TOuter, TKey> outerKeySelector,
             Func<TInner, TKey> innerKeySelector,
-            Func<TOuter, TInner, TResult> resultSelector,CancellationToken cancellationToken=default)
+            Func<TOuter, TInner, TResult> resultSelector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(outer, nameof(outer));
             Check.NotNull(inner, nameof(inner));
@@ -145,7 +145,7 @@ namespace ORM_1_21_
             Func<TOuter, TKey> outerKeySelector,
             Func<TInner, TKey> innerKeySelector,
             Func<TOuter, TInner, TResult> resultSelector,
-            IEqualityComparer<TKey> comparer,CancellationToken cancellationToken=default)
+            IEqualityComparer<TKey> comparer, CancellationToken cancellationToken = default)
         {
             Check.NotNull(outer, nameof(outer));
             Check.NotNull(inner, nameof(inner));
@@ -316,21 +316,21 @@ namespace ORM_1_21_
             var lookupOuter = outer.ToLookup(outerKeySelector, IdentityFunction<TOuter>.Instance, comparer);
             var lookup = inner.ToLookup(innerKeySelector, IdentityFunction<TInner>.Instance, comparer);
             foreach (var go in lookupOuter)
-            foreach (var outer1 in go)
-            foreach (var grouping in lookup)
-                if (go.Key.Equals(grouping.Key))
-                    foreach (var inner1 in grouping)
-                    {
-                        var rrh = resultSelector(outer1, inner1);
-                        yield return rrh;
-                    }
+                foreach (var outer1 in go)
+                    foreach (var grouping in lookup)
+                        if (go.Key.Equals(grouping.Key))
+                            foreach (var inner1 in grouping)
+                            {
+                                var rrh = resultSelector(outer1, inner1);
+                                yield return rrh;
+                            }
         }
     }
 
     public static partial class Helper
     {
-    
 
-      
+
+
     }
 }

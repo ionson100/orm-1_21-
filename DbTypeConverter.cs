@@ -31,14 +31,14 @@ namespace ORM_1_21_
             {typeof(Guid),DbType.Guid},
             {typeof(byte[]),DbType.Binary},
             {typeof(DateTimeOffset),DbType.DateTimeOffset},
-           
+
         };
-       public static DbType ConvertFrom(Type type)
+        public static DbType ConvertFrom(Type type)
         {
-            if (type == null)throw new ArgumentNullException(nameof(type));
+            if (type == null) throw new ArgumentNullException(nameof(type));
             type = UtilsCore.GetCoreType(type);
-            if(DbTypes.ContainsKey(type)) return DbTypes[type];
-            if (type.BaseType == typeof(Enum))return DbType.Int32;
+            if (DbTypes.ContainsKey(type)) return DbTypes[type];
+            if (type.BaseType == typeof(Enum)) return DbType.Int32;
             throw new NotSupportedException(string.Format("Unable to convert {0} to a DbType enum value.", type.FullName));
         }
     }

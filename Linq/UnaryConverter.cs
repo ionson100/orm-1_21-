@@ -1,5 +1,4 @@
-﻿using ORM_1_21_.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -19,12 +18,12 @@ namespace ORM_1_21_.Linq
             return Guid.Parse(o.ToString());
         }
 
-        
+
         public static float? ToFloatNullable(object o)
         {
             if (o != null)
             {
-                float?  res =  Convert.ToSingle(o) ; ;
+                float? res = Convert.ToSingle(o); ;
 
                 return res;
             }
@@ -44,7 +43,7 @@ namespace ORM_1_21_.Linq
         {
             if (o != null)
             {
-                int? res = Convert.ToInt32(o); 
+                int? res = Convert.ToInt32(o);
                 return res;
             }
             return null;
@@ -182,7 +181,7 @@ namespace ORM_1_21_.Linq
         {
             if (o != null)
             {
-                return (byte[])o; 
+                return (byte[])o;
             }
             return null;
         }
@@ -192,7 +191,7 @@ namespace ORM_1_21_.Linq
         private static readonly Dictionary<Type, MethodInfo> MethodInfoDictionary =
             new Dictionary<Type, MethodInfo>
             {
-               
+
                 {typeof(Guid),typeof(UnaryConverter).GetRuntimeMethod("ToGuidByte", new[] { typeof(object) })},
                 {typeof(int),typeof(Convert).GetRuntimeMethod("ToInt32", new[] { typeof(object) })},
                 {typeof(decimal),typeof(Convert).GetRuntimeMethod("ToDecimal", new[] { typeof(object) })},
@@ -223,18 +222,18 @@ namespace ORM_1_21_.Linq
                 {typeof(double ?),typeof(UnaryConverter).GetRuntimeMethod("ToDoubleNullable", new[] { typeof(object) })},
                 {typeof(short ?),typeof(UnaryConverter).GetRuntimeMethod("ToInt16Nullable", new[] { typeof(object) })},
                 {typeof(sbyte ?),typeof(UnaryConverter).GetRuntimeMethod("ToSByteNullable", new[] { typeof(object) })},
-                
+
 
 
 
             };
         public static MethodInfo GetMethodInfo(ProviderName provider, Type type)
         {
-           //if (type == typeof(float?))
-           //    return typeof(UnaryConverter).GetRuntimeMethod("ToFloatNullable", new[] { typeof(object) });
-           //
-           //
-           //type = UtilsCore.GetCoreType(type);
+            //if (type == typeof(float?))
+            //    return typeof(UnaryConverter).GetRuntimeMethod("ToFloatNullable", new[] { typeof(object) });
+            //
+            //
+            //type = UtilsCore.GetCoreType(type);
             if (MethodInfoDictionary.ContainsKey(type))
                 return MethodInfoDictionary[type];
             if (type.BaseType == typeof(Enum))

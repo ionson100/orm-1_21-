@@ -2,6 +2,8 @@
 using ORM_1_21_.Utils;
 using System;
 using System.Text;
+using Newtonsoft.Json;
+using ORM_1_21_.geo;
 
 namespace ORM_1_21_
 {
@@ -44,12 +46,44 @@ namespace ORM_1_21_
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
             {
                 var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, t);
-                var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                if ( type == typeof(byte[])) continue;
-                var str = GetValue(o, type);
-                builder.Append(str).Append(',');
+                if (map.IsJson && (_providerName == ProviderName.PostgreSql || _providerName == ProviderName.MySql))
+                {
+                    builder.Append("CAST('");
+                   
+                    if (o is string)
+                    {
+                        builder.Append(o);
+                    }
+                    else
+                    {
+                        builder.Append(JsonConvert.SerializeObject(o));
+                    }
+                    builder.Append("' as JSON),");
+
+                }
+
+                if (map.IsInheritIGeoShape)
+                {
+                    IGeoShape shape = (IGeoShape)o;
+                    if (_providerName == ProviderName.MsSql)
+                    {
+                        builder.Append("geometry::STGeomFromText('").Append(shape.StAsText()).Append("', ").Append(shape.StSrid()).Append(')');
+                    }
+                    else
+                    {
+                        builder.Append("ST_GeomFromText('").Append(shape.StAsText()).Append("', ").Append(shape.StSrid()).Append("), ");
+                    }
+                }
+                else
+                {
+                    var type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
+                    if (type == typeof(byte[])) continue;
+                    var str = GetValue(o, type);
+                    builder.Append(str).Append(',');
+                }
+                
             }
-            return builder.ToString().Trim(',') + ");";
+            return builder.ToString().Trim(',',' ') + ");";
 
 
         }
@@ -99,5 +133,5 @@ namespace ORM_1_21_
         }
     }
 
-    
+
 }

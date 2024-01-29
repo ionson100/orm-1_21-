@@ -20,10 +20,10 @@ namespace ORM_1_21_.geo
         public GeoObject(string obj)
         {
             if (string.IsNullOrWhiteSpace(obj)) throw new GeoException();
-          
-            obj= obj.Trim().ToUpper().Replace(Environment.NewLine,string.Empty).Replace("  "," ").Replace("\t", string.Empty);
-            if(obj.StartsWith("SRID=;")) throw new GeoException();
-               
+
+            obj = obj.Trim().ToUpper().Replace(Environment.NewLine, string.Empty).Replace("  ", " ").Replace("\t", string.Empty);
+            if (obj.StartsWith("SRID=;")) throw new GeoException();
+
 
 
             var t = obj.IndexOf(';');
@@ -35,7 +35,7 @@ namespace ORM_1_21_.geo
             }
             if (string.IsNullOrWhiteSpace(obj)) throw new GeoException();
 
-             GeoText = obj;
+            GeoText = obj;
 
         }
         public GeoObject(GeoType geoType, double[] points)
@@ -86,7 +86,7 @@ namespace ORM_1_21_.geo
                 _innerStringGeo = builderP.ToString().Trim('(', ' ', ',') + ")";
                 return;
             }
-            
+
 
 
             _multiGeoShapes = new List<IGeoShape>(geoShapes);
@@ -109,7 +109,7 @@ namespace ORM_1_21_.geo
                 return;
 
             }
-           
+
             foreach (IGeoShape geoShape in geoShapes)
             {
                 Regex regex = new Regex(@"\((.*)\)");
@@ -179,7 +179,7 @@ namespace ORM_1_21_.geo
         public GeoObject(GeoType geoType, params GeoPoint[] points)
         {
             if (geoType == GeoType.PolygonWithHole) throw new Exception("It is forbidden to create a polygon with a hole");
-            
+
             double[] l = new double[points.Length * 2];
             int i = 0;
 
@@ -206,7 +206,7 @@ namespace ORM_1_21_.geo
             set
             {
                 _srid = value;
-                _multiGeoShapes.ForEach(a=>a.SetSrid(value));
+                _multiGeoShapes.ForEach(a => a.SetSrid(value));
             }
         }
 
@@ -280,7 +280,7 @@ namespace ORM_1_21_.geo
                 }
 
                 ListGeoPoints = UtilsGeo.GetListPoint(GeoType, str, _multiGeoShapes);
-               
+
             }
         }
 
@@ -347,7 +347,7 @@ namespace ORM_1_21_.geo
                                 $"{points[i].ToString(CultureInfo.InvariantCulture)} {points[i + 1].ToString(CultureInfo.InvariantCulture)}, ");
                             var gp = new GeoPoint(points[i], points[i + 1]);
                             ListGeoPoints.Add(gp);
-                            _multiGeoShapes.Add(new GeoObject(GeoType.Point,gp ));
+                            _multiGeoShapes.Add(new GeoObject(GeoType.Point, gp));
 
                         }
                         _innerStringGeo = builder.ToString().Trim(' ', ',') + ")";

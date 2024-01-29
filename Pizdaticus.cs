@@ -1,4 +1,5 @@
-﻿using ORM_1_21_.geo;
+﻿using Newtonsoft.Json;
+using ORM_1_21_.geo;
 using ORM_1_21_.Linq;
 using ORM_1_21_.Utils;
 using System;
@@ -8,7 +9,6 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.Serialization;
-using Newtonsoft.Json;
 
 namespace ORM_1_21_
 {
@@ -82,7 +82,7 @@ namespace ORM_1_21_
         }
 
 
-        public static List<T> GetListAnonymousObj<T,TCore>(IDataReader reader, object ss, ProviderName providerName)
+        public static List<T> GetListAnonymousObj<T, TCore>(IDataReader reader, object ss, ProviderName providerName)
         {
             try
             {
@@ -94,7 +94,7 @@ namespace ORM_1_21_
                     for (var i = 0; i < reader.FieldCount; i++)
                     {
                         var t = ((NewExpression)ss).Arguments[i].Type;
-                        var val = MethodFreeIndexAnonymous<T,TCore>(providerName, t, reader, i);
+                        MethodFreeIndexAnonymous<T, TCore>(providerName, t, reader, i);
                         //if (UtilsCore.IsGeo(t))
                         //{
                         //    if (val == null)
@@ -117,7 +117,6 @@ namespace ORM_1_21_
                         //{
                         //    d[i] = val;
                         //}
-
                     }
 
                     var ee = ctor.Invoke(d);
@@ -230,7 +229,7 @@ namespace ORM_1_21_
             type = UtilsCore.GetCoreType(type);
             var res = reader.GetValue(index);
 
-            
+
             if (TypeStorage.ContainsKey(type))
             {
                 return TypeStorage[type].Invoke(reader, providerName, index);
@@ -245,7 +244,7 @@ namespace ORM_1_21_
             }
             string name = reader.GetName(index);
             if (AttributesOfClass<T>.IsJsonName(name))
-            { 
+            {
                 var t = AttributesOfClass<T>.IsJsonTypeName(name);
                 switch (t)
                 {
@@ -269,12 +268,12 @@ namespace ORM_1_21_
                 {
                     return null;
                 }
-               
+
             }
             return res;
         }
 
-        public static object MethodFreeIndexAnonymous<T,TC>(ProviderName providerName, Type type, IDataReader reader, int index)
+        public static object MethodFreeIndexAnonymous<T, TC>(ProviderName providerName, Type type, IDataReader reader, int index)
         {
             if (reader.IsDBNull(index)) return null;
             type = UtilsCore.GetCoreType(type);
@@ -345,7 +344,7 @@ namespace ORM_1_21_
             }
 
 
-            
+
 
 
 
@@ -353,6 +352,6 @@ namespace ORM_1_21_
             return res;
         }
 
-      
+
     }
 }

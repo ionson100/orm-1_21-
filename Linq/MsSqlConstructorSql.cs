@@ -18,7 +18,7 @@ namespace ORM_1_21_.Linq
 
         public string GetStringSql<T>(List<OneComposite> listOne, ProviderName providerName) //, JoinCapital joinCapital
         {
-            
+
             _listOne = listOne;
             var sqlBody = UtilsCore.CheckAny(listOne);
             if (sqlBody != null)
@@ -35,7 +35,7 @@ namespace ORM_1_21_.Linq
             if (PingComposite(Evolution.Update))
                 return AttributesOfClass<T>.CreateCommandUpdateFreeForMsSql(_listOne, providerName);
 
-           
+
             if (PingComposite(Evolution.All))
             {
                 StringBuilder builder = new StringBuilder("SELECT COUNT(*),(SELECT COUNT(*) FROM ");
@@ -94,7 +94,7 @@ namespace ORM_1_21_.Linq
 
                 if (PingComposite(Evolution.Select))
                 {
-                    
+
                     var val = listOne.First(a => a.Operand == Evolution.Select).Body.Trim();
                     sbb.Append(val);
 
@@ -215,42 +215,7 @@ namespace ORM_1_21_.Linq
 
             if (PingComposite(Evolution.Limit))
                 sbb = new StringBuilder(AttributesOfClass<T>.CreateCommandLimitForMsSql(listOne, sbb.ToString(), providerName));
-            //if (PingComposite(Evolution.Join))
-            //{
-            //    var whereSb = new StringBuilder();
-            //    foreach (var str in _listOne.Where(a => a.Operand == Evolution.Where).Select(a => a.Body))
-            //    {
-            //        var str1 = str.Replace("`", "").Replace("[", "").Replace("]", "");
-            //        var eew = str1;
-            //        var matsup = new Regex(@"[aA-zZаА-яЯ\d[_]*]*\.[aA-zZаА-яЯ\d[_]*]*").Matches(str1);
-            //        foreach (var s in matsup)
-            //            eew = str1.Replace(s.ToString(),
-            //                UtilsCore.TanslycatorFieldParam1(s.ToString(), UtilsCore.Table1AliasForJoin));
-            //        whereSb.Append(eew + " AND ");
-            //    }
-            //
-            //    if (!string.IsNullOrEmpty(whereSb.ToString()))
-            //        whereSb.Insert(0, " WHERE ");
-            //
-            //    var orderBy = new StringBuilder();
-            //    foreach (var str in _listOne.Where(a => a.Operand == Evolution.OrderBy).Select(a => a.Body))
-            //    {
-            //        if (str == _listOne.First(a => a.Operand == Evolution.OrderBy).Body)
-            //        {
-            //            orderBy.AppendFormat(" ORDER BY {0},",
-            //                UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
-            //            continue;
-            //        }
-            //
-            //        orderBy.AppendFormat(" {0},", UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
-            //    }
-            //
-            //
-            //    var sing = _listOne.Single(a => a.Operand == Evolution.Join);
-            //    sbb = new StringBuilder(sing.Body + whereSb.ToString().Trim("AND ".ToArray()) +
-            //                            orderBy.ToString().Trim(','));
-            //}
-
+          
             return sbb.ToString().Replace("  ", " ").Trim(' ', ',').Replace("Average", "AVG")
                 .Replace("LongCount", "Count") + "; ";
         }

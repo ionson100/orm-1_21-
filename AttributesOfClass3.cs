@@ -25,13 +25,11 @@ namespace ORM_1_21_
                     if (Provider == ORM_1_21_.ProviderName.MsSql)
                     {
                         sb.Append($"{UtilsCore.SqlConcat(baseAttribute.GetColumnName(Provider), Provider)} as {baseAttribute.GetColumnName(Provider)}, ");
-                        //sb.Append($"{baseAttribute.GetColumnName(Provider)}.STAsText() as {baseAttribute.GetColumnName(Provider)}, ");
                     }
                     else if (Provider == ORM_1_21_.ProviderName.PostgreSql)
                     {
                         sb.Append(UtilsCore.SqlConcat(baseAttribute.GetColumnName(Provider), Provider));
                         sb.Append($" as {baseAttribute.GetColumnName(Provider)}, ");
-                        //sb.Append($"ST_AsEWKT({baseAttribute.GetColumnName(Provider)}) as {baseAttribute.GetColumnName(Provider)}, ");
                     }
                     else if (Provider == ORM_1_21_.ProviderName.MySql)
                     {
@@ -41,17 +39,13 @@ namespace ORM_1_21_
                     else
                     {
                         sb.Append($"ST_AsText({baseAttribute.GetColumnName(Provider)}) as {baseAttribute.GetColumnName(Provider)}, ");
-
                     }
-
                 }
                 else
                 {
                     sb.Append($"{baseAttribute.GetColumnName(Provider)}, ");
                 }
-
             }
-
             return sb.ToString().Trim(' ', ',');
         });
         public static string GetListFieldFreeSqlStar(ProviderName name)
@@ -85,14 +79,11 @@ namespace ORM_1_21_
                             var dd = JsonConvert.DeserializeObject(valCore.ToString(), list[i].PropertyType);
                             SetValueE(name, list[i].PropertyName, d, dd);
                         }
-
                     }
                     else
                     {
                         SetValueE(name, list[i].PropertyName, d, valCore);
                     }
-
-
                 }
                 else if (list[i].IsInheritIGeoShape)// todo geo
                 {
@@ -116,16 +107,13 @@ namespace ORM_1_21_
                     {
                         SetValueE(name, list[i].PropertyName, d, valCore);
                     }
-
                 }
                 else
                 {
 
                     SetValueE(name, list[i].PropertyName, d, valCore);
                 }
-
             }
-
         }
 
         public static Lazy<Action<IDataReader, ProviderName, T>> SpotRiderLazy = new Lazy<Action<IDataReader, ProviderName, T>>(
@@ -140,7 +128,6 @@ namespace ORM_1_21_
                 return ss.Compile();
             }, LazyThreadSafetyMode.PublicationOnly);
 
-
         public static void SpotRiderFree(IDataReader reader, ProviderName name, T d)
         {
             var list = ListBaseAttrE(name);
@@ -152,11 +139,6 @@ namespace ORM_1_21_
                 var resCore = Pizdaticus.MethodFreeIndex<T>(name, s.PropertyType, reader, i);
                 SetValueE(name, s.PropertyName, d, resCore);
             }
-
         }
-
-
-
-
     }
 }

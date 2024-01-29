@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using ORM_1_21_.geo;
 using ORM_1_21_.Utils;
 using System;
@@ -192,7 +191,6 @@ namespace ORM_1_21_.Linq
 
                             }
 
-                            string aa = StringB.ToString();
                             //;
                         }
 
@@ -202,15 +200,7 @@ namespace ORM_1_21_.Linq
                     AddListOne(new OneComposite { Operand = Evolution.Update, Body = StringB.ToString().Trim(',', ' ') });
                     StringB.Clear();
                 }
-
-
-
-                // Visit(expression);
-                // AddListOne(new OneComposite { Operand = Evolution.Update, Body = StringB.ToString() });
-                // StringB.Length = 0;
-                // CurrentEvolution = Evolution.None;
                 return;
-
             }
 
             Visit(expression);
@@ -393,7 +383,7 @@ namespace ORM_1_21_.Linq
             }
             else
             {
-                var value=UtilsCore.Compile(m);
+                var value = UtilsCore.Compile(m);
                 StringB.Append(value);
                 //var obj = VisitUpdateBinary(m);
                 //IEnumerable<Expression> args = VisitExpressionListUpdate(m.Arguments);
@@ -403,7 +393,7 @@ namespace ORM_1_21_.Linq
                 //}
                 return m;
             }
-           
+
         }
 
 
@@ -1806,7 +1796,7 @@ namespace ORM_1_21_.Linq
                 return m;
             }
 
-           
+
 
             if (m.Method.Name == "SelectSqlP")
             {
@@ -1831,7 +1821,7 @@ namespace ORM_1_21_.Linq
                 return m;
             }
 
-          
+
 
             if (m.Method.Name == "WhereIn")
             {
@@ -2334,14 +2324,13 @@ namespace ORM_1_21_.Linq
                 {
                     switch (mcs.Method.Name)
                     {
-                        //case "Count":
-                        //case "LongCount":
+                    
                         case "Sum":
                         case "Min":
                         case "Max":
                         case "Average":
                             {
-                                // var e = mcs.Arguments;
+                              
                                 Visit(mcs.Arguments[0]);
                                 var lambda = (LambdaExpression)StripQuotes(mcs.Arguments[1]);
                                 StringB.Length = 0;
@@ -2699,9 +2688,9 @@ namespace ORM_1_21_.Linq
                     string nameColumn = GetColumnName(m.Member.Name);
 
 
-                  
-                        StringB.Append(nameColumn);
-                   
+
+                    StringB.Append(nameColumn);
+
 
                 }
 
@@ -2740,13 +2729,13 @@ namespace ORM_1_21_.Linq
                 var value = UtilsCore.Compile(m);// = Expression.Lambda<Func<DateTime>>(m).Compile()();
                 StringB.Append(value);
                 return m;
-              
+
             }
 
             throw new NotSupportedException(
                 string.Format(CultureInfo.CurrentCulture, "The member '{0}' is not supported", m.Member.Name));
         }
-        
+
 
 
         protected override Expression VisitMemberAccess(MemberExpression m)
@@ -3268,28 +3257,28 @@ namespace ORM_1_21_.Linq
 
             if (m.Member.MemberType == MemberTypes.Property)
             {
-                 var ass = str.GetType().GetProperty(m.Member.Name,
-                     BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-                 if (ass != null)
-                 {
-                     value = ass.GetValue(str, null);
-                 }
-                 else
-                 {
-                     PropertyInfo[] asax = str.GetType().GetProperties(BindingFlags.Instance | BindingFlags.NonPublic |
-                                                                       BindingFlags.Public | BindingFlags.Static);
-                     foreach (PropertyInfo info in asax)
-                     {
-                         if (info.Name.EndsWith(m.Member.Name))
-                         {
-                             value = info.GetValue(str);
-                         }
-                     }
-                 }
-                 if (value == null)
-                 {
-                     throw new Exception($"I can't determine the property:{m.Member.Name} to call");
-                 }
+                var ass = str.GetType().GetProperty(m.Member.Name,
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
+                if (ass != null)
+                {
+                    value = ass.GetValue(str, null);
+                }
+                else
+                {
+                    PropertyInfo[] asax = str.GetType().GetProperties(BindingFlags.Instance | BindingFlags.NonPublic |
+                                                                      BindingFlags.Public | BindingFlags.Static);
+                    foreach (PropertyInfo info in asax)
+                    {
+                        if (info.Name.EndsWith(m.Member.Name))
+                        {
+                            value = info.GetValue(str);
+                        }
+                    }
+                }
+                if (value == null)
+                {
+                    throw new Exception($"I can't determine the property:{m.Member.Name} to call");
+                }
 
 
 
@@ -3879,37 +3868,7 @@ namespace ORM_1_21_.Linq
 
         protected override NewExpression VisitNew(NewExpression nex)
         {
-            // if (nex.Type == typeof(Guid))
-            // {
-            //     if (_providerName == ProviderName.PostgreSql || _providerName == ProviderName.MySql)
-            //     {
-            //         var str = Expression.Lambda<Func<Guid>>(nex).Compile()();
-            //
-            //         AddParameter(str);
-            //
-            //         return nex;
-            //     }
-            //
-            //     foreach (var nexArgument in nex.Arguments) Visit(nexArgument);
-            //     return nex;
-            // }
-            //
-            // if (nex.Type == typeof(DateTime))
-            // {
-            //     var str = Expression.Lambda<Func<DateTime>>(nex).Compile()();
-            //
-            //     AddParameter(str);
-            //
-            //     return nex;
-            // }
-            // if(UtilsCore.IsCompile(nex.Type))
-            // {
-            //     var str = Expression.Lambda<Func<decimal>>(nex).Compile()();
-            //
-            //     AddParameter(str);
-            //
-            //     return nex;
-            // }
+           
             var anonymousType = UtilsCore.IsAnonymousType(nex.Type);
             if (anonymousType)
             {
@@ -3924,24 +3883,6 @@ namespace ORM_1_21_.Linq
                     return nex;
                 }
             }
-
-
-
-
-            // var st = UtilsCore.GetSerializeType(nex.Type);
-            // switch (st)
-            // {
-            //     case SerializeType.User:
-            //     {
-            //         var str = Expression.Lambda<Func<object>>(nex).Compile()();
-            //         var p = ParamName;
-            //         StringB.Append(p);
-            //         var value = ((IMapSerializable)str).Serialize();
-            //         Param.Add(p, value);
-            //         return nex;
-            //     }
-            // }
-
 
             IEnumerable<Expression> args = VisitExpressionList(nex.Arguments);
             if (args != nex.Arguments)

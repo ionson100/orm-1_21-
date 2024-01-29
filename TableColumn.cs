@@ -17,7 +17,7 @@ namespace ORM_1_21_
         /// Type field
         /// </summary>
         [MapColumn("type")]
-        
+
         public string ColumnType { get; set; }
         /// <summary>
         /// Is primary key

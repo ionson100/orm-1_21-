@@ -1,15 +1,9 @@
-﻿using ORM_1_21_.Utils;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Dynamic;
-using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -70,7 +64,7 @@ namespace ORM_1_21_.Linq
             return TranslateString(expression);
         }
 
-       
+
 
         private async Task<List<TResult>> ActionCoreGroupBy<TResult>(Expression expression, CancellationToken cancellationToken)
         {
@@ -87,7 +81,7 @@ namespace ORM_1_21_.Linq
         {
             return null;
         }
-       
+
 
 
         private int GetTimeout()
@@ -149,7 +143,7 @@ namespace ORM_1_21_.Linq
                 }
 
             }
-            
+
             var r = await ExecuteAsync<TS>(expression, param, cancellationToken);
             return (TS)r;
 
@@ -180,7 +174,7 @@ namespace ORM_1_21_.Linq
             _param = sq.Param;
             var sdd = sq.GetListOne();
             Thread.MemoryBarrier();
-            var ss = sq.GetListPostExpression();
+            sq.GetListPostExpression();
             return new MyTuple { Sql = res, Composites = sdd, Param = sq.Param, ListPostExpression = sq.GetListPostExpression() };
         }
 
@@ -198,11 +192,11 @@ namespace ORM_1_21_.Linq
             _isStoredPr = true;
             return Execute<TS>(callExpr);
         }
-        public async Task<object> ExecuteCallAsync<TS>(Expression callExpr,CancellationToken cancellationToken)
+        public async Task<object> ExecuteCallAsync<TS>(Expression callExpr, CancellationToken cancellationToken)
         {
             _isStoredPr = true;
 
-            return await  ExecuteAsync<TS> (callExpr,null,cancellationToken);
+            return await ExecuteAsync<TS>(callExpr, null, cancellationToken);
         }
 
         public object ExecuteCallParam<TS>(Expression callExpr, params ParameterStoredPr[] par)
@@ -219,11 +213,11 @@ namespace ORM_1_21_.Linq
             }
             return res;
         }
-        public async Task<object> ExecuteCallParamAsync<TS>(Expression callExpr,  ParameterStoredPr[] par,CancellationToken cancellationToken)
+        public async Task<object> ExecuteCallParamAsync<TS>(Expression callExpr, ParameterStoredPr[] par, CancellationToken cancellationToken)
         {
             _isStoredPr = true;
             if (par != null) _paramFreeStoredPr.AddRange(par);
-            var res = await ExecuteSppAsync<TS>(callExpr,cancellationToken);
+            var res = await ExecuteSppAsync<TS>(callExpr, cancellationToken);
 
             foreach (var re in _parOut)
             {

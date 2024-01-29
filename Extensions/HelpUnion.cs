@@ -1,11 +1,11 @@
-﻿using System;
+﻿using ORM_1_21_.Extensions;
+using ORM_1_21_.Utils;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ORM_1_21_.Extensions;
-using ORM_1_21_.Utils;
 
 namespace ORM_1_21_
 {
@@ -51,7 +51,7 @@ namespace ORM_1_21_
         {
             Check.NotNull(first, nameof(first));
             Check.NotNull(second, nameof(second));
-            var w = new Sweetmeat<TSource, TSource>(first, second,cancellationToken);
+            var w = new Sweetmeat<TSource, TSource>(first, second, cancellationToken);
             await w.WaitAsync();
             return UnionIterator(w.First, w.Seconds, null);
         }
@@ -134,7 +134,7 @@ namespace ORM_1_21_
             Check.NotNull(first, nameof(first));
             Check.NotNull(second, nameof(second));
             Check.NotNull(comparer, nameof(comparer));
-            var w = new Sweetmeat<TSource, TSource>(first, second,cancellationToken);
+            var w = new Sweetmeat<TSource, TSource>(first, second, cancellationToken);
             await w.WaitAsync();
             return UnionIterator(w.First, w.Seconds, comparer);
         }
@@ -216,9 +216,9 @@ namespace ORM_1_21_
         /// <typeparam name="TSecond">The type of the elements of the second input sequence.</typeparam>
         /// <typeparam name="TResult">The type of the elements of the third input sequence.</typeparam>
         /// <returns>An IEnumerable&lt;T&gt; that contains merged elements of two input sequences.</returns>
-        public static IEnumerable<TResult> ZipCore<TFirst, TSecond, TResult>(this IQueryable<TFirst> first, 
+        public static IEnumerable<TResult> ZipCore<TFirst, TSecond, TResult>(this IQueryable<TFirst> first,
             IQueryable<TSecond> second,
-            Func<TFirst, TSecond, 
+            Func<TFirst, TSecond,
                 TResult> resultSelector)
         {
             Check.NotNull(first, nameof(first));
@@ -264,12 +264,12 @@ namespace ORM_1_21_
         public static async Task<IEnumerable<TResult>> ZipCoreAsync<TFirst, TSecond, TResult>(this IQueryable<TFirst> first,
             IQueryable<TSecond> second,
             Func<TFirst, TSecond,
-                TResult> resultSelector,CancellationToken cancellationToken=default)
+                TResult> resultSelector, CancellationToken cancellationToken = default)
         {
             Check.NotNull(first, nameof(first));
             Check.NotNull(second, nameof(second));
             Check.NotNull(resultSelector, nameof(resultSelector));
-            var w = new Sweetmeat<TFirst,TSecond>(first, second, cancellationToken);
+            var w = new Sweetmeat<TFirst, TSecond>(first, second, cancellationToken);
             await w.WaitAsync();
             return ZipIterator(w.First, w.Seconds, resultSelector);
         }
@@ -299,13 +299,13 @@ namespace ORM_1_21_
 
         private static IEnumerable<TResult> ZipIterator<TFirst, TSecond, TResult>(IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> resultSelector)
         {
-            var  e1 = first.GetEnumerator();
+            var e1 = first.GetEnumerator();
             var e2 = second.GetEnumerator();
             while (e1.MoveNext() && e2.MoveNext())
             {
                 yield return resultSelector(e1.Current, e2.Current);
             }
-            
+
         }
 
 

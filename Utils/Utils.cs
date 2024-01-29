@@ -34,10 +34,6 @@ namespace ORM_1_21_.Utils
             throw new Exception("in Sqlite database, spatial operations are not implemented");
         }
 
-       
-
-        //public static HashSet<Type> HashSetJsonType = new HashSet<Type>();
-
         public static string SqlConcat(string column, ProviderName provider)
         {
             switch (provider)
@@ -55,7 +51,6 @@ namespace ORM_1_21_.Utils
             }
         }
 
-       
         public static bool IsGeo(Type type)
         {
             if (type == typeof(IGeoShape) || type == typeof(GeoObject))
@@ -88,9 +83,6 @@ namespace ORM_1_21_.Utils
         {
             AttributesOfClass<T>.SpotRider(reader, providerName, d);
         }
-
-
-
 
         public static void SpotRiderFree<T>(this IDataReader reader, ProviderName providerName, T d)
         {
@@ -205,9 +197,6 @@ namespace ORM_1_21_.Utils
               {typeof(Enum),val=>Expression.Lambda<Func<Enum>>(val).Compile()()},
               {typeof(byte[]),val=>Expression.Lambda<Func<byte[]>>(val).Compile()()}
 
-
-
-
          };
 
 
@@ -248,9 +237,6 @@ namespace ORM_1_21_.Utils
               {typeof(Enum),val=>Expression.Lambda<Func<Enum>>(val).Compile()()},
               {typeof(byte[]),val=>Expression.Lambda<Func<byte[]>>(val).Compile()()}
 
-
-
-
         };
 
         public static object CompileNewExpression(NewExpression expression)
@@ -284,7 +270,6 @@ namespace ORM_1_21_.Utils
             {
                 return s;
             }
-
             return t;
         }
 
@@ -376,12 +361,8 @@ namespace ORM_1_21_.Utils
             //   return convertorPkDictionary[type].Invoke(o);
             if (ConvertorPkDictionary.TryGetValue(type, out Func<object, object> value))
                 return value.Invoke(o);
-
             throw new Exception($"Can't find type to convert primary key {type} {o}");
         }
-
-
-
 
         public static string ClearTrim(string tableName)
         {
@@ -404,15 +385,11 @@ namespace ORM_1_21_.Utils
                     {
                         stringBuilder.Append($" {commandParameter.ParameterName}={commandParameter.Value} ");
                     }
-                    
+
                 }
-                   
             }
-
-
             return stringBuilder.ToString();
         }
-
 
         public static string[] MySplit(string str)
         {
@@ -506,7 +483,6 @@ namespace ORM_1_21_.Utils
             };
         }
 
-
         public static string CheckAny(List<OneComposite> listOne)
         {
             foreach (var evolution in EvolutionsList)
@@ -515,7 +491,6 @@ namespace ORM_1_21_.Utils
                 if (ss != null)
                     return ss.Body;
             }
-
             return null;
         }
 
@@ -585,9 +560,7 @@ namespace ORM_1_21_.Utils
                         return bytes.Length == 16 ? new Guid(bytes) : new Guid(Encoding.ASCII.GetString(bytes));
 
                     return ob is string ? new Guid(ob.ToString()) : guid;
-
                 } },
-
             };
         internal static object Convertor(object ob, Type type)
         {
@@ -625,13 +598,9 @@ namespace ORM_1_21_.Utils
             return TypeDescriptor.GetAttributes(obj).Contains(new PersistentAttribute());
         }
 
-
         internal static void SetPersistent(object obj)
         {
             TypeDescriptor.AddAttributes(obj, new PersistentAttribute());
         }
-
-
     }
-
 }

@@ -51,12 +51,12 @@ namespace ORM_1_21_.Utils
                 builder.AppendLine($"{pk.GetColumnName(providerName)} {typePk} {defValue},");
             }
 
-          
+
             foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
 
                 builder.AppendLine(
-                    $" {map.GetColumnName(providerName)} {GetTypeColumn(map, isBlob)} {FactoryCreatorTable.GetDefaultValue(map,providerName,isBlob)},");
+                    $" {map.GetColumnName(providerName)} {GetTypeColumn(map, isBlob)} {FactoryCreatorTable.GetDefaultValue(map, providerName, isBlob)},");
             }
 
             var str2 = builder.ToString();
@@ -122,8 +122,8 @@ namespace ORM_1_21_.Utils
                 return "REAL";
             }
 
-            if (type == typeof(DateTime) 
-                || type == typeof(string) 
+            if (type == typeof(DateTime)
+                || type == typeof(string)
                 )
             {
                 return "TEXT";

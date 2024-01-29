@@ -1,30 +1,29 @@
 ﻿using ORM_1_21_.Utils;
 using System;
-using ORM_1_21_;
 
 namespace ORM_1_21_
 {
-   
+
     internal class FactoryCreatorTable
     {
-        public string SqlCreate<T>(ProviderName providerName,bool isBlob)
+        public string SqlCreate<T>(ProviderName providerName, bool isBlob)
         {
             switch (providerName)
             {
                 case ProviderName.MySql:
-                    return UtilsCreateTableMySql.Create<T>(providerName,isBlob);
+                    return UtilsCreateTableMySql.Create<T>(providerName, isBlob);
                 case ProviderName.MsSql:
                     return UtilsCreateTableMsSql.Create<T>(providerName);
                 case ProviderName.PostgreSql:
                     return UtilsCreateTablePostgres.Create<T>(providerName);
                 case ProviderName.SqLite:
-                    return UtilsCreateTableSqLite.Create<T>(providerName,isBlob);
+                    return UtilsCreateTableSqLite.Create<T>(providerName, isBlob);
                 default:
                     return null;
             }
         }
 
-        public static string GetDefaultValue(MapColumnAttribute map, ProviderName providerName, bool isBlob=false)
+        public static string GetDefaultValue(MapColumnAttribute map, ProviderName providerName, bool isBlob = false)
         {
             if (map.DefaultValue != null)
             {
@@ -43,7 +42,7 @@ namespace ORM_1_21_
                 return "NOT NULL DEFAULT '0'";
             }
 
-           
+
             if (type == typeof(int)
                 || type.BaseType == typeof(Enum)
                 || type == typeof(long)
@@ -74,13 +73,13 @@ namespace ORM_1_21_
 
             if (type == typeof(Guid))
             {
-               
+
 
                 if (isBlob)
                 {
                     if (providerName == ProviderName.SqLite)
                     {
-                        var s= "x'" + BitConverter.ToString(Guid.Empty.ToByteArray()).Replace("-", "") + "'";
+                        var s = "x'" + BitConverter.ToString(Guid.Empty.ToByteArray()).Replace("-", "") + "'";
                         return $"NOT NULL DEFAULT {s}";
                     }
 

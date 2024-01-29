@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ORM_1_21_.Utils;
 
 
 namespace ORM_1_21_.geo
@@ -50,7 +50,9 @@ namespace ORM_1_21_.geo
         public static IGeoShape Point(string str)
         {
             ValidateString(str);
-            return new GeoObject(str).SetSrid(DefaultSrid);
+            var s = new GeoObject(str);
+            if (s.Srid == -1) s.SetSrid(DefaultSrid);
+            return s;
         }
 
 
@@ -79,7 +81,9 @@ namespace ORM_1_21_.geo
         public static IGeoShape MultiPoint(string str)
         {
             ValidateString(str);
-            return new GeoObject(str).SetSrid(DefaultSrid);
+            var s = new GeoObject(str);
+            if (s.Srid == -1) s.SetSrid(DefaultSrid);
+            return s;
         }
 
         /// <summary>
@@ -98,8 +102,10 @@ namespace ORM_1_21_.geo
         /// <returns>Geo Object MultiPoint</returns>
         public static IGeoShape MultiPoint(params IGeoShape[] shapes)
         {
-            ValidateArrayIGeoShape(shapes, nameof(shapes),GeoType.Point);
-            return new GeoObject(GeoType.MultiPoint, shapes).SetSrid(DefaultSrid);
+            if (shapes.Length == 0) throw new Exception("shapes empty");
+            var srid = ValidateCollection(shapes);
+            ValidateArrayIGeoShape(shapes, nameof(shapes), GeoType.Point);
+            return new GeoObject(GeoType.MultiPoint, shapes).SetSrid(srid);
         }
 
         #endregion
@@ -123,7 +129,9 @@ namespace ORM_1_21_.geo
         public static IGeoShape Polygon(string str)
         {
             ValidateString(str);
-            return new GeoObject(str).SetSrid(DefaultSrid);
+            var s = new GeoObject(str);
+            if (s.Srid == -1) s.SetSrid(DefaultSrid);
+            return s;
         }
 
         /// <summary>
@@ -149,7 +157,9 @@ namespace ORM_1_21_.geo
         public static IGeoShape MultiPolygon(string str)
         {
             ValidateString(str);
-            return new GeoObject(str).SetSrid(DefaultSrid);
+            var s = new GeoObject(str);
+            if (s.Srid == -1) s.SetSrid(DefaultSrid);
+            return s;
         }
 
         /// <summary>
@@ -159,8 +169,10 @@ namespace ORM_1_21_.geo
         /// <returns>Geo object MultiPolygon</returns>
         public static IGeoShape MultiPolygon(params IGeoShape[] shapes)
         {
+            if (shapes.Length == 0) throw new Exception("shapes empty");
             ValidateArrayIGeoShape(shapes, nameof(shapes), GeoType.Polygon);
-            return new GeoObject(GeoType.MultiPolygon, shapes).SetSrid(DefaultSrid);
+            var srid = ValidateCollection(shapes);
+            return new GeoObject(GeoType.MultiPolygon, shapes).SetSrid(srid);
         }
 
         #endregion
@@ -185,7 +197,9 @@ namespace ORM_1_21_.geo
         public static IGeoShape LineString(string str)
         {
             ValidateString(str);
-            return new GeoObject(str).SetSrid(DefaultSrid);
+            var s = new GeoObject(str);
+            if (s.Srid == -1) s.SetSrid(DefaultSrid);
+            return s;
         }
 
         /// <summary>
@@ -195,7 +209,7 @@ namespace ORM_1_21_.geo
         /// <returns>Geo object LineString</returns>
         public static IGeoShape LineString(params GeoPoint[] p)
         {
-            return new GeoObject(GeoType.LineString,p).SetSrid(DefaultSrid);
+            return new GeoObject(GeoType.LineString, p).SetSrid(DefaultSrid);
         }
 
         #endregion
@@ -210,7 +224,9 @@ namespace ORM_1_21_.geo
         public static IGeoShape MultiLineString(string str)
         {
             ValidateString(str);
-            return new GeoObject(str).SetSrid(DefaultSrid);
+            var s = new GeoObject(str);
+            if (s.Srid == -1) s.SetSrid(DefaultSrid);
+            return s;
         }
 
         /// <summary>
@@ -220,8 +236,10 @@ namespace ORM_1_21_.geo
         /// <returns>Geo object MultiLineString</returns>
         public static IGeoShape MultiLineString(params IGeoShape[] shapes)
         {
+            if (shapes.Length == 0) throw new Exception("shapes empty");
             ValidateArrayIGeoShape(shapes, nameof(shapes), GeoType.LineString);
-            return new GeoObject(GeoType.MultiLineString,shapes).SetSrid(DefaultSrid);
+            var srid = ValidateCollection(shapes);
+            return new GeoObject(GeoType.MultiLineString, shapes).SetSrid(srid);
         }
 
         #endregion
@@ -236,9 +254,11 @@ namespace ORM_1_21_.geo
         public static IGeoShape PolygonWithHole(string str)
         {
             ValidateString(str);
-            return new GeoObject(str).SetSrid(DefaultSrid);
+            var s = new GeoObject(str);
+            if (s.Srid == -1) s.SetSrid(DefaultSrid);
+            return s;
         }
-       
+
 
 
         /// <summary>
@@ -251,7 +271,8 @@ namespace ORM_1_21_.geo
         {
             if (p.GeoType != GeoType.Polygon) throw new ArgumentException("Params p is not type Polygon");
             ValidateArrayIGeoShape(holes, nameof(holes), GeoType.Polygon);
-            return GeoObject.CreateGeoPolygonWithHole(p, holes).SetSrid(DefaultSrid);
+            var srid = ValidateCollection(holes);
+            return GeoObject.CreateGeoPolygonWithHole(p, holes).SetSrid(srid);
         }
 
 
@@ -263,13 +284,13 @@ namespace ORM_1_21_.geo
         /// <returns></returns>
         public static IGeoShape PolygonWithHole(double[] p, params double[][] holes)
         {
-            List<double[]> list = new List<double[]>(p.Length+1) { p };
+            List<double[]> list = new List<double[]>(p.Length + 1) { p };
             list.AddRange(holes);
 
             return GeoObject.CreateGeoPolygonWithHole(list.ToArray()).SetSrid(FactoryGeo.DefaultSrid);
         }
 
-        private static void ValidateArrayIGeoShape(IGeoShape[] par,string paramName, GeoType type)
+        private static void ValidateArrayIGeoShape(IGeoShape[] par, string paramName, GeoType type)
         {
             foreach (IGeoShape geoShape in par)
             {
@@ -282,16 +303,39 @@ namespace ORM_1_21_.geo
 
         #endregion
 
+         static int ValidateCollection(params IGeoShape[] shapes)
+        {
+            int srid = -1;
+            for (var i = 0; i < shapes.Length; i++)
+            {
+                if (i == 0)
+                {
+                    srid = (int)shapes[i].StSrid();
+                    continue;
+                }
+
+                if (srid != shapes[i].StSrid())
+                {
+                    throw new Exception("Geometries must have the same srid");
+                }
+                
+            }
+            return srid;
+        }
+
         #region GeometryCollection
 
         /// <summary>
         /// Create geo object GeometryCollection
         /// </summary>
-        /// <param name="shape">Array geo objects</param>
+        /// <param name="shapes">Array geo objects</param>
         /// <returns>Geo object GeometryCollection</returns>
-        public static IGeoShape GeometryCollection(params IGeoShape[] shape)
+        public static IGeoShape GeometryCollection(params IGeoShape[] shapes)
         {
-            return new GeoObject(GeoType.GeometryCollection, shape).SetSrid(DefaultSrid);
+            if (shapes.Length == 0) throw new Exception("shapes empty");
+            var srid = ValidateCollection(shapes);
+            var s = new GeoObject(GeoType.GeometryCollection, shapes).SetSrid(srid);
+            return s;
         }
 
         /// <summary>
@@ -302,7 +346,9 @@ namespace ORM_1_21_.geo
         public static IGeoShape GeometryCollection(string str)
         {
             ValidateString(str);
-            return new GeoObject(str).SetSrid(DefaultSrid);
+            var s = new GeoObject(str);
+            if (s.Srid == -1) s.SetSrid(DefaultSrid);
+            return s;
         }
 
         /// <summary>
@@ -326,9 +372,11 @@ namespace ORM_1_21_.geo
         /// <returns>Пeo object</returns>
         public static IGeoShape CreateGeo(string str)
         {
-           
+
             ValidateString(str);
-            return new GeoObject(str).SetSrid(DefaultSrid);
+            var s = new GeoObject(str);
+            if (s.Srid == -1) s.SetSrid(DefaultSrid);
+            return s;
         }
 
         /// <summary>
@@ -376,7 +424,7 @@ namespace ORM_1_21_.geo
 
             }
 
-            
+
 
         }
 
@@ -396,7 +444,7 @@ namespace ORM_1_21_.geo
                     {
                         List<double[]> t = geo.Value<JArray>()?.ToObject<List<double[]>>();
                         {
-                           
+
                             return CreateGeo(GeoType.MultiPoint, t);
                         }
                     }
@@ -470,7 +518,7 @@ namespace ORM_1_21_.geo
         /// <returns>list String</returns>
         internal static List<string> ParseGeoCollection(string geoCollection)
         {
-           
+
             ValidateString(geoCollection);
 
             var s = geoCollection.IndexOf('(') + 1;
@@ -515,7 +563,7 @@ namespace ORM_1_21_.geo
             if (col != 0) throw new Exception($"String not correct: {str}");
         }
 
-        
+
 
     }
 }

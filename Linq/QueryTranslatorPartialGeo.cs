@@ -3,7 +3,6 @@ using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
 
 
 namespace ORM_1_21_.Linq
@@ -620,7 +619,7 @@ namespace ORM_1_21_.Linq
                     Visit(m.Arguments[0]);
                     StringB.Append(")");
                 }
-               
+
             }
 
             if (m.Method.Name == "StReverse")

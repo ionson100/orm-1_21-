@@ -59,7 +59,7 @@ namespace ORM_1_21_.Extensions
             _comparer = comparer;
         }
 
-       
+
 
         public IEnumerator<IGrouping<TKey, TElement>> GetEnumerator()
         {

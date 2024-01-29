@@ -94,7 +94,7 @@ namespace ORM_1_21_.geo
         /// <param name="properties"></param>
         public GeoJsonCollection(IGeoShape shape, Object properties = null)
         {
-            GetGeoJsonCollection(shape,  properties);
+            GetGeoJsonCollection(shape, properties);
         }
         /// <summary>
         /// 
@@ -103,7 +103,7 @@ namespace ORM_1_21_.geo
         /// <summary>
         /// 
         /// </summary>
-        public List<Geometry> geometries { get; set; }=new List<Geometry>();
+        public List<Geometry> geometries { get; set; } = new List<Geometry>();
 
         /// <summary>
         /// 

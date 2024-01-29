@@ -23,7 +23,7 @@ namespace ORM_1_21_
         /// The IN operator allows you to specify multiple values in a WHERE clause.
         /// The IN operator is a shorthand for multiple OR conditions.
         /// </summary>
-        public static IQueryable<T> WhereIn<T,TS>(this IQueryable<T> query, Expression<Func<T, TS>> selector, params TS[] o)
+        public static IQueryable<T> WhereIn<T, TS>(this IQueryable<T> query, Expression<Func<T, TS>> selector, params TS[] o)
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(selector, nameof(selector));
@@ -71,7 +71,7 @@ namespace ORM_1_21_
             var sqlParamsE = Expression.Constant(sqlParams);
             var mi = typeof(V).GetMethod("SelectSqlE");
             var miConstructed = mi.MakeGenericMethod(typeof(object));
-            Expression check = Expression.Call(null, miConstructed, query.Expression,selector, sqlParamsE);
+            Expression check = Expression.Call(null, miConstructed, query.Expression, selector, sqlParamsE);
             return query.Provider.CreateQuery<object>(check);
         }
 
@@ -96,13 +96,12 @@ namespace ORM_1_21_
 
             var mi = typeof(V).GetMethod("UpdateSqlE");
             Expression check = Expression.Call(null, mi, query.Expression, rawSql, sqlParamsE);
-            var expressionNodeType = query.Expression.NodeType;
             return query.Provider.Execute<int>(check);
 
-           
+
         }
 
-       
+
 
 
         /// <summary>
@@ -118,7 +117,7 @@ namespace ORM_1_21_
             Check.NotNull(query, nameof(query));
             Check.NotNull(sql, nameof(sql));
             Check.NotNull(sqlParams, nameof(sqlParams));
-            var t = Expression.Parameter(query.GetType());
+            Expression.Parameter(query.GetType());
             var sqlE = Expression.Constant(sql);
             var sqlParamsE = Expression.Constant(sqlParams);
             var mi = typeof(V).GetMethod("SelectSqlP");
@@ -143,7 +142,7 @@ namespace ORM_1_21_
             var t = Expression.Parameter(typeof(T));
             var mi = typeof(V).GetMethod("WhereSqlE");
             Expression check = Expression.Call(null, mi, query.Expression, rawSql, sqlParamsE);
-            var lambada = Expression.Lambda<Func<T, bool>>(check,t);
+            var lambada = Expression.Lambda<Func<T, bool>>(check, t);
             return query.Where(lambada);
         }
 
@@ -158,8 +157,8 @@ namespace ORM_1_21_
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(sql, nameof(sql));
-            
-            var provider = (DbQueryProvider<T>)query.Provider; 
+
+            var provider = (DbQueryProvider<T>)query.Provider;
             ProviderName providerName = provider.Sessione.ProviderName;
             if (providerName == ProviderName.MsSql)
             {
@@ -170,7 +169,7 @@ namespace ORM_1_21_
             var queryE = Expression.Constant(query);
             var mi = typeof(V).GetMethod("FromString");
             var miConstructed = mi.MakeGenericMethod(typeof(T));
-            Expression check = Expression.Call(null, miConstructed, sqlE,queryE);
+            Expression check = Expression.Call(null, miConstructed, sqlE, queryE);
             return query.Provider.CreateQuery<T>(check);
         }
 
@@ -182,7 +181,7 @@ namespace ORM_1_21_
         /// <param name="sqlParams"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static IQueryable<T> FromSql<T>(this IQueryable<T> query, string sql,params SqlParam[] sqlParams)
+        public static IQueryable<T> FromSql<T>(this IQueryable<T> query, string sql, params SqlParam[] sqlParams)
         {
             Check.NotNull(query, nameof(query));
             Check.NotNull(sql, nameof(sql));
@@ -193,13 +192,13 @@ namespace ORM_1_21_
             var queryE = Expression.Constant(query);
             var mi = typeof(V).GetMethod("FromStringP");
             var miConstructed = mi.MakeGenericMethod(typeof(T));
-            Expression check = Expression.Call(null, miConstructed, sqlE,sqlParamsE ,queryE);
+            Expression check = Expression.Call(null, miConstructed, sqlE, sqlParamsE, queryE);
             return query.Provider.CreateQuery<T>(check);
         }
 
 
 
-       
+
 
 
         /// <summary>
@@ -222,7 +221,7 @@ namespace ORM_1_21_
         }
 
 
-       
+
 
 
 
@@ -376,7 +375,7 @@ namespace ORM_1_21_
         /// <param name="ob">Modification object.</param>
         /// <typeparam name="T">Type modification object.</typeparam>
         /// <returns>Number of rows modified in the database.</returns>
-        public static int Save<T>(this ISession session,T ob) where T : class
+        public static int Save<T>(this ISession session, T ob) where T : class
         {
             Check.NotNull(ob, nameof(ob));
             if (UtilsCore.IsPersistent(ob))
@@ -397,12 +396,12 @@ namespace ORM_1_21_
         /// <param name="cancellationToken">Cancel token.</param>
         /// <typeparam name="T">Type modification object.</typeparam>
         /// <returns>Number of rows modified in the database.</returns>
-        public static async Task<int> SaveAsync<T>(this ISession session, T ob,CancellationToken cancellationToken= default) where T : class
+        public static async Task<int> SaveAsync<T>(this ISession session, T ob, CancellationToken cancellationToken = default) where T : class
         {
             Check.NotNull(ob, nameof(ob));
             if (UtilsCore.IsPersistent(ob))
             {
-                return await session.UpdateAsync(ob,cancellationToken);
+                return await session.UpdateAsync(ob, cancellationToken);
             }
 
             return await session.InsertAsync(ob, cancellationToken);
@@ -415,7 +414,7 @@ namespace ORM_1_21_
         /// <param name="session">Current session</param>
         /// <param name="obj">The object type must have an attribute: MapUsagePersistentAttribute</param>
         /// <typeparam name="T">Object type</typeparam>
-        public static void ToPersistent<T>(this ISession session,T obj) where T : class
+        public static void ToPersistent<T>(this ISession session, T obj) where T : class
         {
             Check.NotNull(session, nameof(session));
             Check.NotNull(obj, nameof(obj));
@@ -438,13 +437,13 @@ namespace ORM_1_21_
 
 
         /// <summary>
-            ///     LIMIT is always placed at the end of the sentence
-            ///     (the beginning of the position, taking into account zero, the number in the sample)
-            /// </summary>
-            /// <param name="source"></param>
-            /// <param name="start">Position start</param>
-            /// <param name="length">Record length</param>
-            public static IQueryable<TSource> Limit<TSource>(this IQueryable<TSource> source, int start, int length)
+        ///     LIMIT is always placed at the end of the sentence
+        ///     (the beginning of the position, taking into account zero, the number in the sample)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="start">Position start</param>
+        /// <param name="length">Record length</param>
+        public static IQueryable<TSource> Limit<TSource>(this IQueryable<TSource> source, int start, int length)
         {
             ((ISqlComposite)source.Provider).ListCastExpression.Add(new ContainerCastExpression
             { TypeEvolution = Evolution.Limit, ParamList = new List<object> { start, length } });
@@ -503,7 +502,7 @@ namespace ORM_1_21_
             return res.Split(chunkSize);
         }
 
-        
+
 
 
         /// <summary>
@@ -533,7 +532,7 @@ namespace ORM_1_21_
             return source.Provider.Execute<int>(source.Expression);
         }
 
-       
+
 
 
 
@@ -560,7 +559,7 @@ namespace ORM_1_21_
         /// <returns>IEnumerableTResult</returns>
         public static IEnumerable<TResult> FreeSql<TResult>(this ISession ses, string sql, params object[] param)
         {
-            if(string.IsNullOrWhiteSpace(sql))  throw new ArgumentNullException(nameof(sql));
+            if (string.IsNullOrWhiteSpace(sql)) throw new ArgumentNullException(nameof(sql));
             var p = new V(sql);
             Expression callExpr = Expression.Call(
                 Expression.Constant(p), p.GetType().GetMethod("FreeSql"));
@@ -779,36 +778,6 @@ namespace ORM_1_21_
             });
             return source;
         }
-
-
-        //   /// <summary>
-        //   /// 
-        //   /// </summary>
-        //   public static IQueryable<TResult> Join<TOuter, TInner, TKey, TResult>(
-        //       this IQueryable<TOuter> outer,
-        //       IQueryable<TInner> inner,
-        //       Expression<Func<TOuter, TKey>> outerKeySelector,
-        //       Expression<Func<TInner, TKey>> innerKeySelector,
-        //       Expression<Func<TOuter, TInner, TResult>> resultSelector)
-        //   {
-        //
-        //       AttributesOfClass<TInner>.Init();
-        //       return outer.Provider.CreateQuery<TResult>(Expression.Call(null,
-        //           GetMethodInfo<IQueryable<TOuter>,
-        //                   IQueryable<TInner>,
-        //                   Expression<Func<TOuter, TKey>>,
-        //                   Expression<Func<TInner, TKey>>,
-        //                   Expression<Func<TOuter, TInner, TResult>>, IQueryable<TResult>>
-        //               (Queryable.Join), outer.Expression, inner.Expression,
-        //           Expression.Quote(outerKeySelector), Expression.Quote(innerKeySelector),
-        //           Expression.Quote(resultSelector)));
-        //   }
-        //
-        //   private static Expression GetSourceExpression<TSource>(IEnumerable<TSource> source) =>
-        //       source is IQueryable<TSource> queryable
-        //           ? queryable.Expression
-        //           : (Expression)Expression.Constant((object)source, typeof(IEnumerable<TSource>));
-        //
 
 
         /// <summary>
@@ -1161,7 +1130,7 @@ namespace ORM_1_21_
         {
             Check.NotNull(source, nameof(source));
             var provider = (QueryProvider)source.Provider;
-            IEnumerable<object> t1 = await provider.ExecuteAsync<IEnumerable<object>>(source.Expression,cancellationToken);
+            IEnumerable<object> t1 = await provider.ExecuteAsync<IEnumerable<object>>(source.Expression, cancellationToken);
             return t1.Cast<TResult>();
         }
 
@@ -1771,7 +1740,7 @@ namespace ORM_1_21_
     /// <summary>
     /// 
     /// </summary>
- 
+
     public class PairUpdate
     {
         /// <summary>
@@ -1783,17 +1752,17 @@ namespace ORM_1_21_
         /// </summary>
         public object Richt { get; }
 
-       
-         /// <summary>
-         /// 
-         /// </summary>
-         /// <param name="left"></param>
-         /// <param name="richt"></param>
-         public PairUpdate(object left, object  richt)
-         {
-             Left = left;
-             Richt = richt;
-         }
-       
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="richt"></param>
+        public PairUpdate(object left, object richt)
+        {
+            Left = left;
+            Richt = richt;
+        }
+
     }
 }

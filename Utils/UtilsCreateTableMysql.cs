@@ -6,16 +6,16 @@ namespace ORM_1_21_.Utils
 {
     internal class UtilsCreateTableMySql
     {
-        public static string Create<T>(ProviderName providerName,bool isBlob)
+        public static string Create<T>(ProviderName providerName, bool isBlob)
         {
             StringBuilder builder = new StringBuilder();
 
             var tableName = AttributesOfClass<T>.TableName(providerName);
             builder.AppendLine($"CREATE TABLE IF NOT EXISTS {tableName} (");
             MapPrimaryKeyAttribute pk = AttributesOfClass<T>.PkAttribute(providerName);
-            if (pk.Generator == Generator.Native|| pk.Generator == Generator.NativeNotReturningId)
+            if (pk.Generator == Generator.Native || pk.Generator == Generator.NativeNotReturningId)
             {
-                var typePk = $" {GetTypeMySql(pk,false)}  PRIMARY KEY AUTO_INCREMENT";
+                var typePk = $" {GetTypeMySql(pk, false)}  PRIMARY KEY AUTO_INCREMENT";
                 if (pk.TypeString != null)
                     typePk = pk.TypeString;
                 var defValue = "";
@@ -27,7 +27,7 @@ namespace ORM_1_21_.Utils
             }
             else
             {
-                var typePk = $" {GetTypeMySql(pk,isBlob)}  PRIMARY KEY";
+                var typePk = $" {GetTypeMySql(pk, isBlob)}  PRIMARY KEY";
                 if (pk.TypeString != null)
                     typePk = pk.TypeString;
                 var defValue = "";
@@ -41,7 +41,7 @@ namespace ORM_1_21_.Utils
 
             foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
-                builder.AppendLine($" {map.GetColumnName(providerName)} {GetTypeMySql(map,isBlob)} {FactoryCreatorTable.GetDefaultValue(map,providerName,isBlob)} ,");
+                builder.AppendLine($" {map.GetColumnName(providerName)} {GetTypeMySql(map, isBlob)} {FactoryCreatorTable.GetDefaultValue(map, providerName, isBlob)} ,");
             }
 
             string str2 = builder.ToString();
@@ -50,7 +50,7 @@ namespace ORM_1_21_.Utils
             builder.Append(str2);
             builder.AppendLine(");").Append(AttributesOfClass<T>.GetTypeTable(providerName));
 
-            var tableNameRaw= AttributesOfClass<T>.TableNameRaw(providerName);
+            var tableNameRaw = AttributesOfClass<T>.TableNameRaw(providerName);
             foreach (MapColumnAttribute map in AttributesOfClass<T>.CurrentTableAttributeDal(providerName))
             {
                 if (map.IsIndex)
@@ -64,7 +64,7 @@ namespace ORM_1_21_.Utils
             return res;
         }
 
-        private static string GetTypeMySql(BaseAttribute map,bool isBlob)
+        private static string GetTypeMySql(BaseAttribute map, bool isBlob)
         {
             if (map.TypeString != null) return map.TypeString;
             if (map.IsJson)
@@ -98,7 +98,7 @@ namespace ORM_1_21_.Utils
             {
                 return "INT";
             }
-          
+
             if (type == typeof(uint))
             {
                 return "MEDIUMINT UNSIGNED";
@@ -117,11 +117,11 @@ namespace ORM_1_21_.Utils
                 return "TINYINT(1)";
             }
 
-            if (type==typeof(Byte)|| type == typeof(SByte))
+            if (type == typeof(Byte) || type == typeof(SByte))
             {
                 return "TINYINT(1)";
             }
-          
+
             if (type == typeof(decimal))
             {
                 return "DECIMAL(10,2)";
@@ -156,7 +156,7 @@ namespace ORM_1_21_.Utils
                 return "VARCHAR(256)";
             }
 
-            if ( type == typeof(byte[]))
+            if (type == typeof(byte[]))
             {
                 return "BLOB";
             }

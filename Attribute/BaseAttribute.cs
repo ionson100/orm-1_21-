@@ -16,24 +16,24 @@ namespace ORM_1_21_
         /// </summary>
         public string GetColumnName(ProviderName providerName)
         {
-         
-                switch (providerName)
-                {
-                    case ProviderName.MsSql:
-                        return $"[{_columnName}]";
 
-                    case ProviderName.MySql:
-                        return $"`{_columnName}`";
-                    case ProviderName.PostgreSql:
-                        return $"\"{_columnName}\"";
+            switch (providerName)
+            {
+                case ProviderName.MsSql:
+                    return $"[{_columnName}]";
 
-                    case ProviderName.SqLite:
-                        return $"\"{_columnName}\"";
-                    default:
-                        throw new ArgumentOutOfRangeException($"Database type is not defined:{providerName}");
-                }
-          
-           
+                case ProviderName.MySql:
+                    return $"`{_columnName}`";
+                case ProviderName.PostgreSql:
+                    return $"\"{_columnName}\"";
+
+                case ProviderName.SqLite:
+                    return $"\"{_columnName}\"";
+                default:
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{providerName}");
+            }
+
+
         }
 
         /// <summary>

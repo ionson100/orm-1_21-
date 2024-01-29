@@ -4,7 +4,7 @@ namespace ORM_1_21_.Utils
 {
     internal class Check
     {
-        public static T NotNull<T>(T value, string parameterName,Action action=null) where T : class
+        public static T NotNull<T>(T value, string parameterName, Action action = null) where T : class
         {
             if (value == null)
             {
@@ -18,7 +18,7 @@ namespace ORM_1_21_.Utils
             return value;
         }
 
-        public static void AsTwoValue(double[] values,string name=null)
+        public static void AsTwoValue(double[] values, string name = null)
         {
             if (values.Length != 2)
             {

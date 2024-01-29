@@ -1,5 +1,4 @@
 ﻿using ORM_1_21_.Utils;
-using System;
 using System.Data;
 
 namespace ORM_1_21_
@@ -10,10 +9,10 @@ namespace ORM_1_21_
 
     public sealed class MapColumnAttribute : BaseAttribute
     {
-       
+
         internal bool IsIndex { get; set; }
 
-        
+
 
         /// <summary>
         /// This property is involved in creating the table,
@@ -32,11 +31,11 @@ namespace ORM_1_21_
         {
         }
 
-       
+
 
         internal string ColumnNameForReader(ProviderName providerName)
         {
-            
+
             return UtilsCore.ClearTrim(GetColumnName(providerName));
         }
 
@@ -45,5 +44,5 @@ namespace ORM_1_21_
             return DbTypeConverter.ConvertFrom(PropertyType);
         }
     }
-    
+
 }

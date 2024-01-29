@@ -45,7 +45,7 @@ namespace ORM_1_21_.Linq
 
             //if (PingComposite(Evolution.FreeSql)) return _listOne.Single(a => a.Operand == Evolution.FreeSql).Body;
 
-            if (PingComposite(Evolution.Update)) 
+            if (PingComposite(Evolution.Update))
                 return AttributesOfClass<T>.CreateCommandLimitForMySql(_listOne, providerName);
 
             if (PingComposite(Evolution.All))
@@ -136,29 +136,7 @@ namespace ORM_1_21_.Linq
                 if (PingComposite(Evolution.Select))
                 {
                     string value = listOne.First(a => a.Operand == Evolution.Select).Body;
-                    var d = listOne.Where(a => a.Operand == Evolution.ListGeo).Select(s => s.Body);
-                    
-                    //if (d.Any())
-                    //{
-                    //    HashSet<string> hashSet=new HashSet<string>();
-                    //    foreach (string s in d)
-                    //    {
-                    //        if (hashSet.Contains(s) == false)
-                    //        {
-                    //            if (providerName == ProviderName.PostgreSql)
-                    //            {
-                    //                value = value.Replace(s, $"ST_AsEWKT({s})");
-                    //                hashSet.Add(s);
-                    //            }else if (providerName == ProviderName.MySql)
-                    //            {
-                    //                value = value.Replace(s, UtilsCore.MysqlConcatSrid(s));
-                    //                hashSet.Add(s);
-                    //            }
-                    //
-                    //
-                    //        }
-                    //    }
-                    //}
+
                     sbb.Append(value);
                 }
                 else
@@ -206,15 +184,14 @@ namespace ORM_1_21_.Linq
                                         sbb.Append(UtilsCore.SqlConcat(
                                             $"{AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}", _providerName));
                                         sbb.Append($" as {i.GetColumnName(_providerName)}, ");
-                                        // sbb.Append(
-                                        //     $" ST_AsEWKT({AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}) as {i.GetColumnName(_providerName)}, ");
+                                     
                                     }
                                     else if (providerName == ProviderName.MySql)
                                     {
                                         sbb.Append(UtilsCore.SqlConcat(
-                                            $"{AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}",_providerName));
+                                            $"{AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}", _providerName));
                                         sbb.Append($" as {i.GetColumnName(_providerName)}, ");
-                                       
+
 
                                     }
                                     else
@@ -222,11 +199,10 @@ namespace ORM_1_21_.Linq
                                         sbb.Append(UtilsCore.SqlConcat(
                                             $"{AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}", _providerName));
                                         sbb.Append($" as {i.GetColumnName(_providerName)}, ");
-                                        // sbb.Append(
-                                        //     $" ST_AsText({AttributesOfClass<T>.TableName(providerName)}.{i.GetColumnName(_providerName)}) as {i.GetColumnName(_providerName)}, ");
+                                      
                                     }
-                                    
-                                   
+
+
                                 }
                                 else
                                 {
@@ -236,7 +212,7 @@ namespace ORM_1_21_.Linq
                                             ? " Distinct "
                                             : ""));
                                 }
-                               
+
                             }
                         }
 
@@ -260,14 +236,6 @@ namespace ORM_1_21_.Linq
                 sbb.Append(AttributesOfClass<T>.TableName(providerName)).Append(' ');
             }
 
-           
-           
-            //if (PingComposite(Evolution.Join))
-            //{
-            //    sbb.Append(_listOne.Single(a => a.Operand == Evolution.Join).Body).Append(" ");
-            //}
-
-
             var ss = listOne.Where(a => a.Operand == Evolution.Where);
             foreach (var i in ss)
             {
@@ -275,12 +243,7 @@ namespace ORM_1_21_.Linq
                 sbb.Append(sbb.ToString().IndexOf("WHERE", StringComparison.Ordinal) == -1 ? " WHERE " : " and ");
                 sbb.Append(i.Body);
             }
-
-
             int ii = 0;
-
-
-
             foreach (var i in listOne.Where(a => a.Operand == Evolution.OrderBy))
             {
                 if (ii == 0)
@@ -361,49 +324,10 @@ namespace ORM_1_21_.Linq
                 }
             }
 
-
-
             if (PingComposite(Evolution.Limit)) sbb.Append(listOne.First(a => a.Operand == Evolution.Limit).Body);
 
             if (PingComposite(Evolution.Any)) sbb.Append(" ) ");
 
-
-
-            // if (PingComposite(Evolution.Join))
-            // {
-            //     var whereSb = new StringBuilder();
-            //     foreach (var str in _listOne.Where(a => a.Operand == Evolution.Where).Select(a => a.Body))
-            //     {
-            //         var str1 = str.Replace("`", "").Replace("[", "").Replace("]", "");
-            //         var eew = str1;
-            //         var matsup = new Regex(@"[aA-zZаА-яЯ\d[_]*]*\.[aA-zZаА-яЯ\d[_]*]*").Matches(str1);
-            //         foreach (var s in matsup)
-            //             eew = str1.Replace(s.ToString(),
-            //                 UtilsCore.TanslycatorFieldParam1(s.ToString(), UtilsCore.Table1AliasForJoin));
-            //         whereSb.Append(eew + " AND ");
-            //     }
-            //
-            //     if (!string.IsNullOrEmpty(whereSb.ToString()))
-            //         whereSb.Insert(0, " WHERE ");
-            //
-            //     var orderby = new StringBuilder();
-            //     foreach (var str in _listOne.Where(a => a.Operand == Evolution.OrderBy).Select(a => a.Body))
-            //     {
-            //         if (str == _listOne.First(a => a.Operand == Evolution.OrderBy).Body)
-            //         {
-            //             orderby.AppendFormat(" ORDER BY {0},",
-            //                 UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
-            //             continue;
-            //         }
-            //
-            //         orderby.AppendFormat(" {0},", UtilsCore.TanslycatorFieldParam1(str, UtilsCore.Table1AliasForJoin));
-            //     }
-            //
-            //
-            //     var dfggf = _listOne.Single(a => a.Operand == Evolution.Join);
-            //     sbb = new StringBuilder(dfggf.Body + whereSb.ToString().Trim("AND ".ToArray()) +
-            //                             orderby.ToString().Trim(','));
-            // }
             // todo ion100 Replace("''", "'")
             var res = sbb.ToString().Replace("  ", " ").Replace("Average", "AVG")
                 .Replace("LongCount", "Count") + ";";
