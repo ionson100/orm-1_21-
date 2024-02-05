@@ -3,6 +3,7 @@ using ORM_1_21_.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -1076,6 +1077,7 @@ namespace ORM_1_21_
 
         private int InsertNew<TSource>(TSource source) where TSource : class
         {
+           
             var res = 0;
             var com = ProviderFactories.GetCommand(_factoryOtherBase, ((ISession)this).IsDispose);
             com.Connection = _connect;
@@ -1084,6 +1086,7 @@ namespace ORM_1_21_
             {
                 NotificBefore(source, ActionMode.Insert);
                 AttributesOfClass<TSource>.CreateInsetCommandNew(com, source, MyProviderName);
+              
                 OpenConnectAndTransaction(com);
                 if (AttributesOfClass<TSource>.PkAttribute(MyProviderName).Generator == Generator.Assigned)
                 {
@@ -1096,6 +1099,7 @@ namespace ORM_1_21_
                 }
                 else
                 {
+                   
                     var val = com.ExecuteScalar();
                     if (val != null)
                     {
@@ -1120,7 +1124,7 @@ namespace ORM_1_21_
             {
                 UtilsCore.SetPersistent(source);
             }
-
+          
             return res;
         }
 
@@ -1175,7 +1179,7 @@ namespace ORM_1_21_
                         cancellationToken.Register(UtilsCore.CancelRegistr(com, cancellationToken, Transactionale, MyProviderName));
                 }
                 NotificBefore(source, ActionMode.Insert);
-                AttributesOfClass<TSource>.CreateInsetCommand(com, source, MyProviderName);
+                AttributesOfClass<TSource>.CreateInsetCommandNew(com, source, MyProviderName);
                 if (AttributesOfClass<TSource>.PkAttribute(MyProviderName).Generator == Generator.Assigned)
                 {
                     var val = com.ExecuteNonQuery();

@@ -125,23 +125,32 @@ namespace ORM_1_21_.Utils
                     var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
                     if (map.IsJson)
                     {
-                        if (_providerName == ProviderName.SqLite)
+                        if (_providerName == ProviderName.MySql)
                         {
-                            if (o is string)
+                            if (o is string d)
                             {
-                                row.Append($"'{o}'").Append(',');
+                                d = UtilsCore.JsonStringReplace(d, _providerName);
+                                row.Append($"'{d}'").Append(',');
                             }
                             else
                             {
-                                var json = JsonConvert.SerializeObject(o);
+                                var json = UtilsCore.JsonStringReplace(JsonConvert.SerializeObject(o),_providerName);
                                 row.Append($"'{json}'").Append(',');
                             }
 
                         }
                         else
                         {
-                            var json = JsonConvert.SerializeObject(o);
-                            row.Append($"CAST('{json}' AS JSON)").Append(',');
+                            if (o is string d)
+                            {
+                                d = UtilsCore.JsonStringReplace(d, _providerName);
+                                row.Append($"'{d}'").Append(',');
+                            }
+                            else
+                            {
+                                var json = UtilsCore.JsonStringReplace(JsonConvert.SerializeObject(o), _providerName);
+                                row.Append($"'{json}'").Append(',');
+                            }
                         }
 
 
@@ -256,7 +265,8 @@ namespace ORM_1_21_.Utils
                 case ProviderName.MsSql:
                     return $"'{o.ToString().Replace("'", "''")}'";
                 case ProviderName.MySql:
-                    return $"\"{o.ToString().Replace("\"", "\\\"")}\"";
+                    //Replace("'", "''").Replace("\\","\\\\")
+                    return $"\"{o.ToString().Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
                 case ProviderName.PostgreSql:
                     return $"'{o.ToString().Replace("'", "''")}'";
                 case ProviderName.SqLite:

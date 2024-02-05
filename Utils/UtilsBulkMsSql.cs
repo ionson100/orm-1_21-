@@ -78,57 +78,6 @@ namespace ORM_1_21_.Utils
         }
 
 
-        private string GetSimpleSql2<T>(IEnumerable<T> list)
-        {
-            bool isAddPk = AttributesOfClass<T>.PkAttribute(_providerName).Generator == Generator.Assigned;
-            StringBuilder builder = new StringBuilder("INSERT INTO");
-            builder.Append(AttributesOfClass<T>.TableName(_providerName));
-            builder.Append('(');
-            StringBuilder headBuilder = new StringBuilder();
-            if (isAddPk)
-            {
-                headBuilder.Append(AttributesOfClass<T>.PkAttribute(_providerName).GetColumnName(_providerName)).Append(',');
-            }
-            foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
-            {
-                if (map.PropertyType == typeof(byte[]))
-                {
-                    continue;
-                }
-                headBuilder.Append(map.GetColumnName(_providerName)).Append(',');
-            }
-
-            builder.Append(headBuilder.ToString().Substring(0, headBuilder.ToString().LastIndexOf(',')));
-            builder.Append(") ");
-
-            foreach (var ob in list)
-            {
-                StringBuilder row = new StringBuilder("SELECT ");
-                if (isAddPk)
-                {
-                    var o = AttributesOfClass<T>.GetValueE(_providerName, AttributesOfClass<T>.PkAttribute(_providerName).PropertyName, ob);
-                    Type type = AttributesOfClass<T>.PropertyInfoList.Value[AttributesOfClass<T>.PkAttribute(_providerName).PropertyName].PropertyType;
-                    row.Append(new UtilsBulkMySql(_providerName).GetValue(o, type)).Append(',');
-                }
-                foreach (var map in AttributesOfClass<T>.CurrentTableAttributeDal(_providerName))
-                {
-                    var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
-                    Type type = AttributesOfClass<T>.PropertyInfoList.Value[map.PropertyName].PropertyType;
-                    if (type == typeof(byte[]))
-                    {
-                        continue;
-                    }
-                    string str = new UtilsBulkMySql(_providerName).GetValue(o, type);
-                    row.Append(str).Append(',');
-                }
-                builder.AppendLine(row.ToString().Substring(0, row.ToString().LastIndexOf(',')));
-                builder.AppendLine("UNION ALL");
-            }
-            var res = builder.ToString().Substring(0, builder.ToString().LastIndexOf("UNION ALL", StringComparison.Ordinal));
-            return "SET DATEFORMAT YMD;" + res;
-        }
-
-
         private string GetSimpleSql2New<T>(IEnumerable<T> list)
         {
             var pk = AttributesOfClass<T>.PkAttribute(_providerName);
@@ -181,13 +130,14 @@ namespace ORM_1_21_.Utils
                     }
                     else if (column.IsJson)
                     {
-                        if (o is string)
+                        if (o is string d)
                         {
-                            partBuilder.Append($"'{o}'").Append(", ");
+                            d = UtilsCore.JsonStringReplace(d,_providerName);
+                            partBuilder.Append($"'{d}'").Append(", ");
                         }
                         else
                         {
-                            partBuilder.Append($"'{JsonConvert.SerializeObject(o)}'").Append(", ");
+                            partBuilder.Append($"'{UtilsCore.JsonStringReplace(JsonConvert.SerializeObject(o),_providerName)}'").Append(", ");
                         }
 
                     }

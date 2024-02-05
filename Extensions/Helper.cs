@@ -101,6 +101,28 @@ namespace ORM_1_21_
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="rawSql"></param>
+        /// <param name="sqlParams"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static Task<int> UpdateSqlAsync<T>(this IQueryable<T> query, Expression<Func<T, string>> rawSql, params SqlParam[] sqlParams)
+        {
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(rawSql, nameof(rawSql));
+            Check.NotNull(sqlParams, nameof(sqlParams));
+            var sqlParamsE = Expression.Constant(sqlParams);
+
+            var mi = typeof(V).GetMethod("UpdateSqlE");
+            Expression check = Expression.Call(null, mi, query.Expression, rawSql, sqlParamsE);
+            return query.Provider.ExecuteAsync<int>(check);
+
+
+        }
+
 
 
 

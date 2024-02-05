@@ -154,19 +154,19 @@ namespace ORM_1_21_
         int CreateBase(string baseName);
 
         /// <summary>
-        ///     Insert bulk from list
+        ///     Insert bulk from list (Attention: sql parameters are not used, Beware of sql injection)
         /// </summary>
         int InsertBulk<TSource>(IEnumerable<TSource> list, int timeOut = 30) where TSource : class;
 
         /// <summary>
-        ///     Insert bulk from list
+        ///     Insert bulk from list (Attention: sql parameters are not used, Beware of sql injection)
         /// </summary>
         Task<int> InsertBulkAsync<TSource>(IEnumerable<TSource> list, int timeOut,
             CancellationToken cancellationToken = default) where TSource : class;
 
 
         /// <summary>
-        ///     Insert bulk to database from file
+        ///     Insert bulk to database from file (Attention: sql parameters are not used)
         /// </summary>
         /// <param name="fileCsv">path to file</param>
         /// <param name="FIELDTERMINATOR">terminator, default - ;</param>

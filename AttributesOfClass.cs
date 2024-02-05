@@ -803,6 +803,7 @@ namespace ORM_1_21_
 
         private static string CreateInsertTemplate()
         {
+          
             string parName = UtilsCore.PrefParam(Provider);
 
             var sb = new StringBuilder();
@@ -833,11 +834,11 @@ namespace ORM_1_21_
             {
                 if (rtp.IsNotUpdateInsert) continue;
 
-                if (Provider == ORM_1_21_.ProviderName.PostgreSql ||
-                    Provider == ORM_1_21_.ProviderName.SqLite)
+                if (Provider == ORM_1_21_.ProviderName.PostgreSql || Provider == ORM_1_21_.ProviderName.SqLite)
                     sb.AppendFormat($"{rtp.GetColumnName(Provider)}, ");
                 else
                     sb.AppendFormat("{0}.{1},", TableAttribute.Value.TableName(Provider), rtp.GetColumnName(Provider));
+
                 if (rtp.IsJson)
                 {
                     if (Provider == ORM_1_21_.ProviderName.SqLite || Provider == ORM_1_21_.ProviderName.MsSql)
@@ -866,6 +867,7 @@ namespace ORM_1_21_
                 {
                     values.AppendFormat("{0}{1}{2},", parName, par, ++i);
                 }
+               
 
 
             }
@@ -903,14 +905,18 @@ namespace ORM_1_21_
                 }
 
             sb.Append(';');
-
+        
             return sb.ToString();
         }
 
         public static void CreateInsetCommand(IDbCommand command, T obj, ProviderName providerName)
         {
+       
+
             Provider = providerName;
             var ssq = InsertTemplate.Value;
+
+          
 
             string parName = UtilsCore.PrefParam(providerName);
             const string par = "p";
@@ -930,6 +936,7 @@ namespace ORM_1_21_
                 command.AddParameter($"{parName}{par}{++i}", GetValue.Value[rtp.PropertyName](obj));
             }
             command.CommandText = ssq;
+            
         }
     }
 }

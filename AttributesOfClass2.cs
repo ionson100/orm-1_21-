@@ -10,13 +10,14 @@ using System.Threading;
 
 namespace ORM_1_21_
 {
-    [SuppressMessage("ReSharper", "StaticMemberInGenericType")]
+
     internal static partial class AttributesOfClass<T>
     {
         private static readonly Lazy<List<Action<T, int, IDbCommand>>> InsertActionParam =
             new Lazy<List<Action<T, int, IDbCommand>>>(
                 () =>
                 {
+                   
                     string parName = UtilsCore.PrefParam(Provider);
                     const string par = "p";
 
@@ -52,9 +53,9 @@ namespace ORM_1_21_
                                 }
                                 else
                                 {
-                                    if (o is string)
+                                    if (o is string d)
                                     {
-                                        dbCommand.AddParameter($"{parName}{par}{ip}", o);
+                                        dbCommand.AddParameter($"{parName}{par}{ip}", d);
                                     }
                                     else
                                     {
@@ -107,12 +108,14 @@ namespace ORM_1_21_
                         }
                         list.Add(Command);
                     }
+              
                     return list;
                 }, LazyThreadSafetyMode.PublicationOnly);
         public static void CreateInsetCommandNew(IDbCommand command, T obj, ProviderName providerName)
         {
             Provider = providerName;
             var sql = InsertTemplate.Value;
+           
             int i = 0;
             InsertActionParam.Value.ForEach(s =>
             {

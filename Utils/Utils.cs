@@ -602,5 +602,20 @@ namespace ORM_1_21_.Utils
         {
             TypeDescriptor.AddAttributes(obj, new PersistentAttribute());
         }
+        //{"name":"1\"'1\\","age":23}
+
+        public static string JsonStringReplace(string s, ProviderName providerName)
+        {
+            if (providerName == ProviderName.MySql)
+            {
+                return s.Replace("'", "''").Replace("\\","\\\\").Replace('"'.ToString(), String.Concat('\\','"'));
+            }
+            else
+            {
+                return s.Replace("'", "''").Replace("\\", "\\");
+
+            }
+
+        }
     }
 }

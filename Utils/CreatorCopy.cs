@@ -142,7 +142,7 @@ namespace ORM_1_21_.Utils
                 case ProviderName.MsSql:
                     return $"'{o.ToString().Replace("'", "''")}'";
                 case ProviderName.MySql:
-                    return $"\"{o.ToString().Replace("\"", "\\\"")}\"";
+                    return $"\"{o.ToString().Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
                 case ProviderName.PostgreSql:
                     return $"'{o.ToString().Replace("'", "''")}'";
                 case ProviderName.SqLite:

@@ -102,14 +102,16 @@ namespace ORM_1_21_.Utils
                     if (map.IsJson)
                     {
                         var o = AttributesOfClass<T>.GetValueE(_providerName, map.PropertyName, ob);
-                        if (o is string)
+                        if (o is string d)
                         {
+                            d = UtilsCore.JsonStringReplace(d, _providerName);
 
-                            row.Append($"CAST('{o}' AS JSON)").Append(',');
+                            row.Append($"CAST('{d}' AS JSON)").Append(',');
                         }
                         else
                         {
                             var json = JsonConvert.SerializeObject(o);
+                            json=UtilsCore.JsonStringReplace(json,_providerName);
                             row.Append($"CAST('{json}' AS JSON)").Append(',');
                         }
 
