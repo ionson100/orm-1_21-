@@ -94,29 +94,29 @@ namespace ORM_1_21_
                     for (var i = 0; i < reader.FieldCount; i++)
                     {
                         var t = ((NewExpression)ss).Arguments[i].Type;
-                        MethodFreeIndexAnonymous<T, TCore>(providerName, t, reader, i);
-                        //if (UtilsCore.IsGeo(t))
-                        //{
-                        //    if (val == null)
-                        //    {
-                        //        d[i] = null;
-                        //    }else if (val is string)
-                        //    {
-                        //        var o = new GeoObject(val.ToString());
-                        //        //((IGeoShape)o).GeoText = ;
-                        //        d[i] = o;
-                        //    }
-                        //    else
-                        //    {
-                        //        d[i] = val;
-                        //    }
-                        //
-                        //    
-                        //}
-                        //else
-                        //{
-                        //    d[i] = val;
-                        //}
+                       var val= MethodFreeIndexAnonymous<T, TCore>(providerName, t, reader, i);
+                        if (UtilsCore.IsGeo(t))
+                        {
+                            if (val == null)
+                            {
+                                d[i] = null;
+                            }else if (val is string)
+                            {
+                                var o = new GeoObject(val.ToString());
+                                //((IGeoShape)o).GeoText = ;
+                                d[i] = o;
+                            }
+                            else
+                            {
+                                d[i] = val;
+                            }
+                        
+                            
+                        }
+                        else
+                        {
+                            d[i] = val;
+                        }
                     }
 
                     var ee = ctor.Invoke(d);

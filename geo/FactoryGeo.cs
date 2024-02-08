@@ -390,6 +390,19 @@ namespace ORM_1_21_.geo
             return new GeoObject(geoType, ds).SetSrid(DefaultSrid);
         }
 
+        internal static HashSet<string> simpleSetGeoJson = new HashSet<string>
+        {
+
+            "LineString".ToUpper(),
+            "Point".ToUpper(),
+            "Polygon".ToUpper(),
+            "MultiPolygon".ToUpper(),
+            "PolygonWithHole".ToUpper(),
+            "MultiPoint".ToUpper(),
+            "MultiLineString".ToUpper(),
+            "CircularString".ToUpper()
+        };
+
         /// <summary>
         /// Return List geo objects from string GeoJson
         /// </summary>
@@ -400,8 +413,14 @@ namespace ORM_1_21_.geo
             if (string.IsNullOrWhiteSpace(geoJson)) throw new ArgumentException("param geoJson is empty");
             if (!geoJson.ToUpper().Contains("GeometryCollection".ToUpper()))
             {
+               
                 GeoJson json = JsonConvert.DeserializeObject<GeoJson>(geoJson);
                 if (json == null) throw new ArgumentException("geoJson parse error");
+                if (simpleSetGeoJson.Contains(json.type.ToUpper()))
+                {
+                    return SimpleGeoJson.GetParse(geoJson);
+                }
+                
                 JArray geo = (JArray)json.geometry.coordinates;
                 string geoText = json.geometry.type.ToUpper();
                 return InnerPaceGeoJson(geoText, geo);
@@ -428,7 +447,7 @@ namespace ORM_1_21_.geo
 
         }
 
-        private static IGeoShape InnerPaceGeoJson(string geoText, JArray geo)
+        internal static IGeoShape InnerPaceGeoJson(string geoText, JArray geo)
         {
 
             switch (geoText)
@@ -442,11 +461,21 @@ namespace ORM_1_21_.geo
                     }
                 case "MULTIPOINT":
                     {
-                        List<double[]> t = geo.Value<JArray>()?.ToObject<List<double[]>>();
+                        try
                         {
-
-                            return CreateGeo(GeoType.MultiPoint, t);
+                            List<double[]> t = geo.Value<JArray>()?.ToObject<List<double[]>>();
+                            {
+                                return CreateGeo(GeoType.MultiPoint, t);
+                            }
                         }
+                        catch 
+                        {
+                            double[] t = geo.Value<JArray>()?.ToObject<double[]>();
+                            {
+                                return MultiPoint(Point(t[0], t[1]));
+                            }
+                        }
+                       
                     }
                 case "LINESTRING":
                     {
@@ -458,17 +487,29 @@ namespace ORM_1_21_.geo
 
                 case "MULTILINESTRING":
                     {
-                        var t = geo.Value<JArray>()?.ToObject<List<List<double[]>>>();
-                        List<IGeoShape> list = new List<IGeoShape>();
-                        foreach (List<double[]> d in t)
+                        
+                        try
                         {
-                            list.Add(CreateGeo(GeoType.LineString, d));
-                        }
+                            var t = geo.Value<JArray>()?.ToObject<List<List<double[]>>>();
+                            List<IGeoShape> list = new List<IGeoShape>();
+                            foreach (List<double[]> d in t)
+                            {
+                                list.Add(CreateGeo(GeoType.LineString, d));
+                            }
 
+                            {
+                                return MultiLineString(list.ToArray());
+
+                            }
+                        }
+                        catch
                         {
-                            return MultiLineString(list.ToArray());
-
+                            var t = geo.Value<JArray>()?.ToObject<List<double[]>>();
+                            {
+                                return FactoryGeo.MultiLineString(CreateGeo(GeoType.LineString, t));
+                            }
                         }
+                       
                     }
 
                 case "POLYGON":
@@ -493,18 +534,40 @@ namespace ORM_1_21_.geo
 
                 case "MULTIPOLYGON":
                     {
-                        var t = geo.Value<JArray>()?.ToObject<List<List<List<double[]>>>>();
-                        List<IGeoShape> list = new List<IGeoShape>();
-                        foreach (List<List<double[]>> list1 in t)
+                        try
                         {
-                            foreach (List<double[]> d in t.First())
+                            var t = geo.Value<JArray>()?.ToObject<List<List<List<double[]>>>>();
+                            List<IGeoShape> list = new List<IGeoShape>();
+                            foreach (List<List<double[]>> list1 in t)
                             {
-                                list.Add(CreateGeo(GeoType.Polygon, d));
+                                foreach (List<double[]> d in t.First())
+                                {
+                                    list.Add(CreateGeo(GeoType.Polygon, d));
+                                }
+                            }
+                            {
+                                return MultiPolygon(list.ToArray());
                             }
                         }
+                        catch
                         {
-                            return MultiPolygon(list.ToArray());
+                            List<List<double[]>> t = geo.Value<JArray>()?.ToObject<List<List<double[]>>>();
+                            {
+                                if (t.Count == 1)
+                                {
+                                    return MultiPolygon(CreateGeo(GeoType.Polygon, t.First()));
+                                }
+
+                                List<IGeoShape> listE = new List<IGeoShape>();
+                                foreach (var t1 in t)
+                                {
+                                    listE.Add(CreateGeo(GeoType.Polygon, t1));
+                                }
+
+                                return MultiPolygon(listE.ToArray());
+                            }
                         }
+                      
                     }
             }
 
@@ -564,6 +627,25 @@ namespace ORM_1_21_.geo
         }
 
 
+        /// <summary>
+        /// Generate a FeatureCollection
+        /// </summary>
+        /// <param name="geoShapeAsJsonObjects">List of objects obtained as a result of a method call:  mGeoShape.GetGeoJson(params)</param>
+        public static FeatureCollection GetFeatureCollection(List<object> geoShapeAsJsonObjects)
+        {
+            var fc= new FeatureCollection
+            {
+                features = geoShapeAsJsonObjects
+            };
+
+            return fc;
+        }
+        
+
+
 
     }
+
+   
+    
 }

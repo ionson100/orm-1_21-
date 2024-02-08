@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ORM_1_21_.geo
 {
@@ -109,5 +111,25 @@ namespace ORM_1_21_.geo
         /// 
         /// </summary>
         public object properties { get; set; }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    internal class SimpleGeoJson
+    {
+        public string type { get; set; }
+        public object coordinates { get; set; }
+
+        public static IGeoShape GetParse(string str)
+        {
+            var json=JsonConvert.DeserializeObject<SimpleGeoJson>(str);
+            if(json==null) throw new ArgumentException("geoJson parse error");
+            JArray  sd=json.coordinates as JArray;
+
+           return FactoryGeo.InnerPaceGeoJson(json.type.ToUpper(),sd);
+            
+        }
+
     }
 }
