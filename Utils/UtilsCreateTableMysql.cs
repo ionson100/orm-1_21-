@@ -114,7 +114,7 @@ namespace ORM_1_21_.Utils
             }
             if (type == typeof(bool))
             {
-                return "TINYINT(1)";
+                return "BOOL";//"TINYINT(1)";
             }
 
             if (type == typeof(Byte) || type == typeof(SByte))

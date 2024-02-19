@@ -151,7 +151,7 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>bitnic.orm</Title>
-    <Version>3.0.4</Version>
+    <Version>3.0.2.1-alpha</Version>
     <Authors>ion100</Authors>
     <Description>micro orm postgres mysql mssql sqlite json postgis geometry</Description>
     <PackageId>bitnic.orm</PackageId>
@@ -164,8 +164,9 @@
     <PackageOutputPath>bin\Release\</PackageOutputPath>
     <PackageProjectUrl>https://github.com/ionson100/ORM-1_21-</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>add geometry and type json</PackageReleaseNotes>
+    <PackageReleaseNotes>update select</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/ionson100/ORM-1_21-</RepositoryUrl>
    
   </PropertyGroup>
 </Project>

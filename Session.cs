@@ -164,7 +164,7 @@ namespace ORM_1_21_
 
         Task<int> ISession.DropTableAsync<TSource>(CancellationToken cancellationToken)
         {
-            var sql = $"DROP TABLE {AttributesOfClass<TSource>.TableName(MyProviderName)};";
+            var sql = $"DROP TABLE  {AttributesOfClass<TSource>.TableName(MyProviderName)};";
             var p = new V(sql);
             Expression callExpr = Expression.Call(Expression.Constant(p), p.GetType().GetMethod("DropTable"));
             DbQueryProvider<TSource> provider = new DbQueryProvider<TSource>(this);

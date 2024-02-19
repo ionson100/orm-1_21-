@@ -246,8 +246,9 @@ namespace ORM_1_21_.Linq
                             tk.SetResult(true);
                             return await tk.Task;
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
+                            Console.WriteLine(ex.Message);
                             tk.SetResult(false);
                             return await tk.Task;
                         }

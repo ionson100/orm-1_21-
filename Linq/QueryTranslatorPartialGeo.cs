@@ -29,6 +29,8 @@ namespace ORM_1_21_.Linq
 
             }
 
+           
+
 
             if (m.Method.Name == "StGeometryType")
             {
