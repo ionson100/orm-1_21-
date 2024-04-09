@@ -1056,6 +1056,10 @@ IGeoShape StMakeValid();
 Task<IGeoShape> StMakeValidAsync(CancellationToken cancellationToken = default);
 string StAsGeoJson();
 Task<string> StAsGeoJsonAsync(CancellationToken cancellationToken = default);
+IGeoShape StLineSubstring(float startfraction, float endfraction);
+IGeoShape StLineInterpolatePoint(float f);
+ double StLineLocatePoint(IGeoShape point);
+ IGeoShape StIntersection( IGeoShape b);
 ```
 <a name="json"></a> 
 ##### Working with the Json type.

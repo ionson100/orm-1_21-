@@ -10,6 +10,10 @@ namespace ORM_1_21_.geo
 {
     partial class GeoObject : IGeoShape
     {
+        object IGeoShape.ArrayCoordinates()
+        {
+            return ArrayCoordinates;
+        }
 
         public string StGeometryType()
         {
@@ -548,6 +552,8 @@ namespace ORM_1_21_.geo
         {
             return ExecuteGetGeoObjectNoParam<IGeoShape>("StMakeValid");
         }
+
+
         public Task<IGeoShape> StMakeValidAsync(CancellationToken cancellationToken = default)
         {
             return ExecuteGetGeoObjectNoParamAsync<IGeoShape>("StMakeValid", cancellationToken);
@@ -575,9 +581,46 @@ namespace ORM_1_21_.geo
             return ExecuteGetGeoObjectParamGeoAsync<IGeoShape>("StUnion", shape, cancellationToken);
         }
 
+        public IGeoShape StIntersection( IGeoShape b)
+        {
+            return ExecuteGetGeoObjectParamGeo<IGeoShape>("StIntersection", b);
+        }
 
+        public async Task<IGeoShape> StIntersectionAsync(IGeoShape b, CancellationToken cancellationToken = default)
+        {
+            return await ExecuteGetGeoObjectParamGeoAsync<IGeoShape>("StIntersection", b,cancellationToken);
+        }
 
+        public double StLineLocatePoint(IGeoShape point)
+        {
+            return ExecuteGetGeoObjectParamGeoDouble<double>("StLineLocatePoint", point);
+        }
 
+        public async Task<double> StLineLocatePointAsync(IGeoShape point, CancellationToken cancellationToken = default)
+        {
+            return await ExecuteGetGeoObjectParamGeoDoubleAsync<double>("StLineLocatePoint", point,cancellationToken);
+        }
+
+        public IGeoShape StLineInterpolatePoint(float f)
+        {
+            return ExecuteGetGeoObjectBufferE<IGeoShape>("StLineInterpolatePoint", _session, f);
+        }
+
+        public async Task<IGeoShape> StLineInterpolatePointAsync(float f, CancellationToken cancellationToken = default)
+        {
+            return await ExecuteGetGeoObjectBufferEAsync<IGeoShape>("StLineInterpolatePoint", _session, new object[]{f},cancellationToken);
+        }
+
+        public IGeoShape StLineSubstring(float startfraction, float endfraction)
+        {
+           
+            return ExecuteGetGeoObjectBufferE<IGeoShape>("StLineSubstring", _session, startfraction, endfraction);
+        }
+
+        public Task<IGeoShape> StLineSubstringAsync(float startfraction, float endfraction, CancellationToken cancellationToken = default)
+        {
+            return ExecuteGetGeoObjectBufferEAsync<IGeoShape>("StLineSubstring", _session,new object[]{startfraction,endfraction}  ,cancellationToken);
+        }
 
 
         T ExecuteTwoGeo<T>(string methodName, IGeoShape shape)
@@ -1003,6 +1046,99 @@ namespace ORM_1_21_.geo
 
 
         }
+        T ExecuteGetGeoObjectParamGeoDouble<T>(string methodName, IGeoShape shape) 
+        {
+
+            ISession session = _session;
+            Check.NotEmpty(methodName, nameof(methodName));
+            CheckSession(session, methodName);
+            ProviderName providerName = session.ProviderName;
+            string sql = null;
+            string p = session.SymbolParam;
+            methodName = QueryTranslator<object>.GetNameMethod(methodName, providerName);
+            var srid = this.StSrid();
+            switch (providerName)
+            {
+                case ProviderName.MsSql:
+                    sql = $" select geometry::STGeomFromText({p}1, {srid}).{methodName}(geometry::STGeomFromText({p}2, {srid}))";
+                    break;
+                case ProviderName.MySql:
+                    sql = $" select {methodName}(ST_GeomFromText({p}1, {srid}),ST_GeomFromText({p}2, {srid}))";
+                    break;
+                case ProviderName.PostgreSql:
+                    sql = $"select {methodName}(ST_GeomFromText({p}1, {srid}),ST_GeomFromText({p}2, {srid}))";
+                    break;
+                case ProviderName.SqLite:
+                    UtilsCore.ErrorAlert();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{providerName}");
+            }
+
+            try
+            {
+                var res = session.ExecuteScalar(sql, new SqlParam($"{p}1", this.StAsText()),
+                    new SqlParam($"{p}2", shape.StAsText()));
+
+
+                return (T)res;
+            }
+            finally
+            {
+                _session = null;
+            }
+
+
+
+
+        }
+
+        async Task<T> ExecuteGetGeoObjectParamGeoDoubleAsync<T>(string methodName, IGeoShape shape, CancellationToken cancellationToken)
+        {
+
+            ISession session = _session;
+            Check.NotEmpty(methodName, nameof(methodName));
+            CheckSession(session, methodName);
+            ProviderName providerName = session.ProviderName;
+            string sql = null;
+            string p = session.SymbolParam;
+            methodName = QueryTranslator<object>.GetNameMethod(methodName, providerName);
+            var srid = this.StSrid();
+            switch (providerName)
+            {
+                case ProviderName.MsSql:
+                    sql = $" select geometry::STGeomFromText({p}1, {srid}).{methodName}(geometry::STGeomFromText({p}2, {srid}))";
+                    break;
+                case ProviderName.MySql:
+                    sql = $" select {methodName}(ST_GeomFromText({p}1, {srid}),ST_GeomFromText({p}2, {srid}))";
+                    break;
+                case ProviderName.PostgreSql:
+                    sql = $"select {methodName}(ST_GeomFromText({p}1, {srid}),ST_GeomFromText({p}2, {srid}))";
+                    break;
+                case ProviderName.SqLite:
+                    UtilsCore.ErrorAlert();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Database type is not defined:{providerName}");
+            }
+
+            try
+            {
+                var o = new object[] {new SqlParam($"{p}1", this.StAsText()),new SqlParam($"{p}2", shape.StAsText()) };
+                var res = await session.ExecuteScalarAsync(sql, o,cancellationToken);
+
+
+                return (T)res;
+            }
+            finally
+            {
+                _session = null;
+            }
+
+
+
+
+        }
 
         async Task<T> ExecuteGetGeoObjectParamGeoAsync<T>(string methodName, IGeoShape shape, CancellationToken cancellationToken) where T : IGeoShape
         {
@@ -1263,6 +1399,8 @@ namespace ORM_1_21_.geo
                                     $" As shape.SetSession(session).{methodName}()");
             }
         }
+
+
 
 
         public object Clone()

@@ -417,98 +417,97 @@ namespace ORM_1_21_.geo
             set => _multiGeoShapes = value;
         }
 
+        private object array = null;
+        private object InitGeo()
+        {
+            switch (GeoType)
+            {
+                case GeoType.None:
+                    throw new Exception("GeoType is None");
+                case GeoType.Empty:
+                    return Array.Empty<double>();
+                case GeoType.Point:
+                    return new[] { ListGeoPoints[0].X, ListGeoPoints[0].Y };
+                case GeoType.LineString:
+                    {
+                        var s = new object[ListGeoPoints.Count];
+                        for (int i = 0; i < ListGeoPoints.Count; i++)
+                        {
+                            s[i] = new[] { ListGeoPoints[i].X, ListGeoPoints[i].Y };
+                        }
+                        return s;
+                    }
 
 
+                case GeoType.MultiPoint:
+                    {
+                        var s = new object[ListGeoPoints.Count];
+                        for (int i = 0; i < ListGeoPoints.Count; i++)
+                        {
+                            s[i] = ListGeoPoints[i].GeDoubles();
+                        }
+
+                        return s;
+                    }
+
+                case GeoType.MultiLineString:
+                    {
+                        var s = new object[_multiGeoShapes.Count];
+                        for (int i = 0; i < _multiGeoShapes.Count; i++)
+                        {
+                            s[i] = ((GeoObject)_multiGeoShapes[i]).ArrayCoordinates;
+                        }
+
+                        return s;
+
+                    }
+
+                case GeoType.MultiPolygon:
+                    {
+                        var s = new object[_multiGeoShapes.Count];
+                        for (int i = 0; i < _multiGeoShapes.Count; i++)
+                        {
+                            s[i] = ((GeoObject)_multiGeoShapes[i]).ArrayCoordinates;
+                        }
+                        return s;
+                    }
+
+
+                case GeoType.Polygon:
+                    {
+                        var sp = new object[1];
+                        var s = new object[ListGeoPoints.Count];
+                        for (int i = 0; i < ListGeoPoints.Count; i++)
+                        {
+                            s[i] = new[] { ListGeoPoints[i].X, ListGeoPoints[i].Y };
+                        }
+
+                        sp[0] = s;
+                        return sp;
+                    }
+                case GeoType.PolygonWithHole:
+                    {
+                        var sp = new object[_multiGeoShapes.Count];
+                        for (var i = 0; i < _multiGeoShapes.Count; i++)
+                        {
+                            sp[i] = ((object[])((GeoObject)_multiGeoShapes[i]).ArrayCoordinates)[0];
+                        }
+
+                        return sp;
+                    }
+                case GeoType.GeometryCollection:
+                    {
+                        throw new Exception("geometry GeometryCollection not supported");
+                    }
+
+                default:
+                    throw new Exception($"geometry {GeoType} not supported");
+            }
+
+        }
         public object ArrayCoordinates
         {
-            get
-            {
-
-                switch (GeoType)
-                {
-                    case GeoType.None:
-                        throw new Exception("GeoType is None");
-                    case GeoType.Empty:
-                        return Array.Empty<double>();
-                    case GeoType.Point:
-                        return new[] { ListGeoPoints[0].X, ListGeoPoints[0].Y };
-                    case GeoType.LineString:
-                        {
-                            var s = new object[ListGeoPoints.Count];
-                            for (int i = 0; i < ListGeoPoints.Count; i++)
-                            {
-                                s[i] = new[] { ListGeoPoints[i].X, ListGeoPoints[i].Y };
-                            }
-                            return s;
-                        }
-
-
-                    case GeoType.MultiPoint:
-                        {
-                            var s = new object[ListGeoPoints.Count];
-                            for (int i = 0; i < ListGeoPoints.Count; i++)
-                            {
-                                s[i] = ListGeoPoints[i].GeDoubles();
-                            }
-
-                            return s;
-                        }
-
-                    case GeoType.MultiLineString:
-                        {
-                            var s = new object[_multiGeoShapes.Count];
-                            for (int i = 0; i < _multiGeoShapes.Count; i++)
-                            {
-                                s[i] = ((GeoObject)_multiGeoShapes[i]).ArrayCoordinates;
-                            }
-
-                            return s;
-
-                        }
-
-                    case GeoType.MultiPolygon:
-                        {
-                            var s = new object[_multiGeoShapes.Count];
-                            for (int i = 0; i < _multiGeoShapes.Count; i++)
-                            {
-                                s[i] = ((GeoObject)_multiGeoShapes[i]).ArrayCoordinates;
-                            }
-                            return s;
-                        }
-
-
-                    case GeoType.Polygon:
-                        {
-                            var sp = new object[1];
-                            var s = new object[ListGeoPoints.Count];
-                            for (int i = 0; i < ListGeoPoints.Count; i++)
-                            {
-                                s[i] = new[] { ListGeoPoints[i].X, ListGeoPoints[i].Y };
-                            }
-
-                            sp[0] = s;
-                            return sp;
-                        }
-                    case GeoType.PolygonWithHole:
-                        {
-                            var sp = new object[_multiGeoShapes.Count];
-                            for (var i = 0; i < _multiGeoShapes.Count; i++)
-                            {
-                                sp[i] = ((object[])((GeoObject)_multiGeoShapes[i]).ArrayCoordinates)[0];
-                            }
-
-                            return sp;
-                        }
-                    case GeoType.GeometryCollection:
-                        {
-                            throw new Exception("geometry GeometryCollection not supported");
-                        }
-
-                    default:
-                        throw new Exception($"geometry {GeoType} not supported");
-                }
-
-            }
+            get => array ?? (array = InitGeo());
             set => throw new NotImplementedException();
         }
 

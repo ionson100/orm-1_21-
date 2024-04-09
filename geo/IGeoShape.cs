@@ -12,6 +12,13 @@ namespace ORM_1_21_.geo
     {
 
         /// <summary>
+        /// Returns various arrays of geographic object coordinates.
+        /// Not used when building SQL queries in the linq expression .
+        /// </summary>
+        /// <returns></returns>
+        object ArrayCoordinates();
+        
+            /// <summary>
         /// Quickly set value Spatial Reference System Identifier
         /// </summary>
         IGeoShape SetSrid(int srid);
@@ -55,6 +62,7 @@ namespace ORM_1_21_.geo
         /// EG postgres: 'ST_LineString', 'ST_Polygon','ST_MultiPolygon'
         /// EG mysql ms sql: 'LineString', 'Polygon','MultiPolygon'
         /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="cancellationToken">Operation cancellation token</param>
         /// <returns></returns>
@@ -69,6 +77,7 @@ namespace ORM_1_21_.geo
         /// <summary>
         /// Returns the area of a polygonal geometry. For geometry types a 2D Cartesian (planar) area is computed, with units specified by the SRID
         /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="cancellationToken">Operation cancellation token</param>
         Task<double?> StAreaAsync(CancellationToken cancellationToken = default);
@@ -86,6 +95,7 @@ namespace ORM_1_21_.geo
         /// Returns TRUE if current geometry  is within geometry B. current geometry is within B if and only if all points of current geometry lie inside (i.e. in the interior or boundary of) B
         /// (or equivalently, no points of current geometry lie in the exterior of B), and the interiors of current geometry and B have at least one point in common.
         /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="shape">Geometry B</param>
         /// <param name="cancellationToken">Operation cancellation token</param>
@@ -101,6 +111,7 @@ namespace ORM_1_21_.geo
         /// <summary>
         /// Returns the OGC/ISO Well-Known Binary (WKB) representation of the geometry.
         /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="cancellationToken">Operation cancellation token</param>
         Task<byte[]> StAsBinaryAsync(CancellationToken cancellationToken = default);
@@ -122,6 +133,7 @@ namespace ORM_1_21_.geo
         /// Because the result of this function is a closure, and hence topologically closed, the resulting boundary
         /// can be represented using representational geometry primitives as discussed in the OGC SPEC, section 3.12.2.
         /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="cancellationToken">Operation cancellation token</param>
         /// <returns></returns>
@@ -143,6 +155,7 @@ namespace ORM_1_21_.geo
         /// in which case POLYGON EMPTY is returned. For points and lines negative distances always return empty results.
         /// For geometry, the distance is specified in the units of the Spatial Reference System of the geometry.For geography, the distance is specified in meters.
         /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="distance"></param>
         /// <param name="cancellationToken">Operation cancellation token</param>
@@ -167,7 +180,8 @@ namespace ORM_1_21_.geo
         /// For [MULTI]POLYGONs, the centroid is computed in terms of area.
         /// If an empty geometry is supplied, an empty GEOMETRYCOLLECTION is returned. If NULL is supplied, NULL is returned.
         /// If CIRCULARSTRING or COMPOUNDCURVE are supplied, they are converted to linestring with CurveToLine first, then same than for LINESTRING.
-        ///  Cannot be used in expression trees. Only on object instances.
+        /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="cancellationToken">Operation cancellation token</param>
         Task<IGeoShape> StCentroidAsync(CancellationToken cancellationToken = default);
@@ -181,6 +195,7 @@ namespace ORM_1_21_.geo
         /// <summary>
         /// Returns the last point of a LINESTRING or CIRCULARLINESTRING geometry as a POINT. Returns NULL if the input is not a LINESTRING or CIRCULARLINESTRING.
         /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="cancellationToken">Operation cancellation token</param>
 
@@ -195,6 +210,7 @@ namespace ORM_1_21_.geo
         /// <summary>
         /// Returns the minimum axis-aligned bounding rectangle of the instance.
         /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="cancellationToken">Operation cancellation token</param>
         Task<IGeoShape> StEnvelopeAsync(CancellationToken cancellationToken = default);
@@ -210,6 +226,7 @@ namespace ORM_1_21_.geo
         /// Returns the first point of a LINESTRING or CIRCULARLINESTRING geometry as a POINT.
         /// Returns NULL if the input is not a LINESTRING or CIRCULARLINESTRING.
         /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="cancellationToken">Operation cancellation token</param>
         Task<IGeoShape> StStartPointAsync(CancellationToken cancellationToken = default);
@@ -226,6 +243,7 @@ namespace ORM_1_21_.geo
         /// Returns an object that represents all points that are either in one geometry instance or another geometry instance,
         /// but not those points that lie in both instances.
         /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="shape">Other geo object</param>
         /// <param name="cancellationToken">Operation cancellation token</param>
@@ -241,6 +259,7 @@ namespace ORM_1_21_.geo
         /// <summary>
         /// Returns an object that represents the union of a geometry instance with another geometry instance.
         /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="shape">Other geo object</param>
         /// <param name="cancellationToken">Operation cancellation token</param>
@@ -256,6 +275,7 @@ namespace ORM_1_21_.geo
         /// <summary>
         /// Returns TRUE if current geometry  contains geometry B.
         /// Cannot be used in expression trees. Only on object instances.
+        /// Not used when building SQL queries in the linq expression .
         /// </summary>
         /// <param name="shape">Geometry B</param>
         /// <param name="cancellationToken">Operation cancellation token</param>
@@ -398,7 +418,6 @@ namespace ORM_1_21_.geo
         /// <param name="shape">Other geo object</param>
         bool? StOverlaps(IGeoShape shape);
 
-
         /// <summary>
         /// Returns TRUE if geometry A and B "spatially overlap".
         /// Two geometries overlap if they have the same dimension, their interiors intersect in that dimension.
@@ -411,15 +430,11 @@ namespace ORM_1_21_.geo
         /// <param name="cancellationToken">Operation cancellation token</param>
         Task<bool?> StOverlapsAsync(IGeoShape shape, CancellationToken cancellationToken = default);
 
-
-
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
         int? StSrid();
-
-
 
         /// <summary>
         /// Returns TRUE if A and B intersect, but their interiors do not intersect.
@@ -768,7 +783,6 @@ namespace ORM_1_21_.geo
         /// <returns></returns>
         IGeoShape StMakeValid();
 
-
         /// <summary>
         /// The function attempts to create a valid representation of a given invalid geometry without losing any of the input vertices.
         /// Valid geometries are returned unchanged.
@@ -792,6 +806,79 @@ namespace ORM_1_21_.geo
         /// <param name="cancellationToken">Operation cancellation token</param>
         /// <returns></returns>
         Task<string> StAsGeoJsonAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns a geometry representing the point-set intersection of two geometries.
+        /// In other words, that portion of geometry A and geometry B that is shared between the two geometries.
+        /// </summary>
+        /// <param name="b">Geometry b</param>
+        /// <returns>IGeoShape</returns>
+        IGeoShape StIntersection( IGeoShape b);
+
+        ///  <summary>
+        /// Async returns a geometry representing the point-set intersection of two geometries.
+        /// In other words, that portion of geometry A and geometry B that is shared between the two geometries.
+        /// Cannot be used in expression trees. Only on object instances.
+        ///  </summary>
+        ///  <param name="b">Geometry b</param>
+        ///  <param name="cancellationToken">Operation cancellation token</param>
+        ///  <returns>IGeoShape</returns>
+        Task<IGeoShape> StIntersectionAsync(IGeoShape b, CancellationToken cancellationToken = default);
+
+
+        /// <summary>
+        /// Returns a float between 0 and 1 representing the location of the closest point on a LineString to the given Point, as a fraction of 2d line length.
+        /// </summary>
+        /// <param name="point">Geometry point</param>
+        double StLineLocatePoint(IGeoShape point);
+
+        /// <summary>
+        /// Returns a float between 0 and 1 representing the location of the closest point on a LineString to the given Point, as a fraction of 2d line length.
+        /// Cannot be used in expression trees. Only on object instances.
+        /// </summary>
+        /// <param name="point">Geometry point</param>
+        /// <param name="cancellationToken">Operation cancellation token</param>
+        /// <returns></returns>
+        Task<double> StLineLocatePointAsync(IGeoShape point, CancellationToken cancellationToken = default);
+
+
+        /// <summary>
+        /// Returns a point interpolated along a line at a fractional location. First argument must be a LINESTRING.
+        /// Second argument is a float between 0 and 1 representing the fraction of line length where the point is to be located.
+        /// </summary>
+        /// <param name="f">Fractional value</param>
+        /// <returns></returns>
+        IGeoShape StLineInterpolatePoint(float f);
+
+        /// <summary>
+        /// Returns a point interpolated along a line at a fractional location. First argument must be a LINESTRING.
+        /// Second argument is a float between 0 and 1 representing the fraction of line length where the point is to be located.
+        /// Cannot be used in expression trees. Only on object instances.
+        /// </summary>
+        /// <param name="f">Fractional value</param>
+        /// <param name="cancellationToken">Operation cancellation token</param>
+        /// <returns></returns>
+        Task<IGeoShape> StLineInterpolatePointAsync(float f, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Computes the line which is the section of the input line starting and ending at the given fractional locations. The first argument must be a LINESTRING.
+        /// The second and third arguments are values in the range [0, 1] representing the start and end locations as fractions of line length.
+        /// </summary>
+        /// <param name="startfraction">Start fraction value</param>
+        /// <param name="endfraction">End fraction value</param>
+        /// <returns>SubString</returns>
+        IGeoShape StLineSubstring(float startfraction, float endfraction);
+
+        /// <summary>
+        /// Computes the line which is the section of the input line starting and ending at the given fractional locations. The first argument must be a LINESTRING.
+        /// The second and third arguments are values in the range [0, 1] representing the start and end locations as fractions of line length.
+        /// Cannot be used in expression trees. Only on object instances.
+        /// </summary>
+        /// <param name="startfraction">Start fraction value</param>
+        /// <param name="endfraction">End fraction value</param>
+        /// <param name="cancellationToken">Operation cancellation token</param>
+        /// <returns>SubString</returns>
+        Task<IGeoShape> StLineSubstringAsync(float startfraction, float endfraction, CancellationToken cancellationToken = default);
 
 
 

@@ -115,6 +115,21 @@ namespace ORM_1_21_.Linq
 
                 string nameColumn = GetColumnName(mem.Member.Name);
                 ExecuteMethodIGeoShapeParam(nameColumn, "StBuffer", m.Arguments[0]);
+                return true;
+            }
+
+            if (m.Method.Name == "StLineInterpolatePoint")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteMethodIGeoShapeParam(nameColumn, "StLineInterpolatePoint", m.Arguments[0]);
+
+                return true;
+            }
+
+            if (m.Method.Name == "StLineSubstring")
+            {
+                string nameColumn = GetColumnName(mem.Member.Name);
+                ExecuteMethodIGeoShapeParam(nameColumn, "StLineSubstring", m.Arguments[0], m.Arguments[1]);
 
                 return true;
             }
@@ -538,6 +553,26 @@ namespace ORM_1_21_.Linq
                 return true;
             }
 
+            if (m.Method.Name == "StIntersection")
+            {
+                CheckArgument(m);
+                string nameColumn = GetColumnName(mem.Member.Name);
+                var geoShape = (IGeoShape)Expression.Lambda<Func<object>>(m.Arguments[0]).Compile()();
+                ExecuteMethodIGeoShapeParamGeo(nameColumn, "StIntersection", geoShape);
+
+                return true;
+            }
+
+            if (m.Method.Name == "StLineLocatePoint")
+            {
+                CheckArgument(m);
+                string nameColumn = GetColumnName(mem.Member.Name);
+                var geoShape = (IGeoShape)Expression.Lambda<Func<object>>(m.Arguments[0]).Compile()();
+                ExecuteMethodIGeoShapeParamGeoDouble(nameColumn, "StLineLocatePoint", geoShape);
+
+                return true;
+            }
+
             if (m.Method.Name == "StConvexHull")
             {
                 string nameColumn = GetColumnName(mem.Member.Name);
@@ -859,6 +894,111 @@ namespace ORM_1_21_.Linq
                     }
                 }
             }
+        }
+
+        void ExecuteMethodIGeoShapeParamGeoDouble(string nameColumn, string methodName, IGeoShape geoShape)
+        {
+            var s = _currentMethodSelect;
+            var w = _currentMethodWhere;
+            methodName = GetNameMethod(methodName, _providerName);
+
+
+
+            if (s != null)
+            {
+                if (_currentMethodType != null && _currentMethodType != typeof(IGeoShape))
+                {
+                    switch (_providerName)
+                    {
+                        case ProviderName.MsSql:
+
+                            StringB.Append($"{nameColumn}.{methodName}(geometry::STGeomFromText(");
+                            AddParameter(geoShape.StAsText());
+                            StringB.Append($",{geoShape.StSrid()}))");
+                            break;
+                        case ProviderName.MySql:
+                            StringB.Append($"{methodName}({nameColumn},ST_GeomFromText(");
+                            AddParameter(geoShape.StAsText());
+                            StringB.Append($", {geoShape.StSrid()}))");
+                            break;
+                        case ProviderName.PostgreSql:
+                            StringB.Append($"{methodName}({nameColumn},ST_GeomFromText(");
+                            AddParameter(geoShape.StAsText());
+                            StringB.Append($", {geoShape.StSrid()}))");
+                            break;
+                        case ProviderName.SqLite:
+                            UtilsCore.ErrorAlert();
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+                    }
+
+                }
+                else
+                {
+                    switch (_providerName)
+                    {
+                        case ProviderName.MsSql:
+                            StringB.Append($" {nameColumn}.{methodName}(geometry::STGeomFromText(");
+                            AddParameter(geoShape.StAsText());
+                            StringB.Append($",{geoShape.StSrid()}))");
+                            break;
+                        case ProviderName.MySql:
+                            StringB.Append($"  {methodName}({nameColumn},ST_GeomFromText(");
+                            AddParameter(geoShape.StAsText());
+                            StringB.Append($", {geoShape.StSrid()}))");
+                            break;
+                        case ProviderName.PostgreSql:
+
+                            StringB.Append($" {methodName}({nameColumn},ST_GeomFromText(");
+                            AddParameter(geoShape.StAsText());
+                            StringB.Append($", {geoShape.StSrid()}))");
+
+                            break;
+                        case ProviderName.SqLite:
+                            UtilsCore.ErrorAlert();
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+
+                    }
+                }
+
+            }
+            else if (w != null)
+            {
+                switch (_providerName)
+                {
+                    case ProviderName.MsSql:
+
+                        StringB.Append($"{nameColumn}.{methodName}(geometry::STGeomFromText(");
+                        AddParameter(geoShape.StAsText());
+                        StringB.Append($",{geoShape.StSrid()}))");
+                        break;
+                    case ProviderName.MySql:
+                        StringB.Append($"{methodName}({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.StAsText());
+                        StringB.Append($", {geoShape.StSrid()}))");
+                        break;
+                    case ProviderName.PostgreSql:
+                        StringB.Append($"{methodName}({nameColumn},ST_GeomFromText(");
+                        AddParameter(geoShape.StAsText());
+                        StringB.Append($", {geoShape.StSrid()}))");
+                        break;
+                    case ProviderName.SqLite:
+                        UtilsCore.ErrorAlert();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException($"Database type is not defined:{_providerName}");
+                }
+            }
+            else
+            {
+                throw new Exception("Смотри сюда");
+            }
+
+
+
         }
 
         void ExecuteMethodIGeoShapeParamGeo(string nameColumn, string methodName, IGeoShape geoShape)
