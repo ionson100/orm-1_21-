@@ -13,6 +13,7 @@
 + [The concept of persistence](#persistence)
 + [License](./LICENSE.md)
 
+[Examples help](https://ionson100.github.io/wwwroot/index.html#page=orm).
 
 Simple micro ОРМ ( MySql, PostgreSQL, MSSQL, Sqlite).\
 Allows access to different databases (MSSQL, Postgresql, MySQL, Sqlite) from one application context.\
@@ -242,28 +243,7 @@ class TestMySqlUUid
     public string Name { get; set; }
 }
 ```
-###### Serialization to JSON
 
-
-
-```C#
-class Foo
-{
-  [MapColumn("my_test")]
-  public F MyTest { get; set; }
-}
-
-public class F: IMapSerializable
-{ 
-  public string Serialize()
-  {    
-  }
-  public void Deserialize(string str)
-  {          
-  }
-}
-User Serialization. Using the Interface IMapSerializable.
-```
 
 <span style="color:red">Important</span>.
  
@@ -470,10 +450,10 @@ var list = session.FreeSql<MyClass>($"select * from {session.TableName<MyClass>(
 [MapReceiverFreeSql]
  lass MyFreeSql
  {
-     public Guid IdGuid { get; }
-     public string Name { get; }
-     public int Age { get; }
-     public MyEnum MyEnum { get; }
+     public Guid IdGuid { get;set; }
+     public string Name { get;set; }
+     public int Age { get;set; }
+     public MyEnum MyEnum { get;set; }
      public MyFreeSql(Guid idGuid, string name, int age, MyEnum @enum)
      {
          IdGuid = idGuid;
@@ -495,8 +475,8 @@ var tempFree = session.FreeSql<MyFreeSql>($"select id,name,age,enum from {sessio
 
  сlass MySimpleFreeSql
  {
-     public Guid id { get; }
-     public string name { get; }
+     public Guid id { get;set }
+     public string name { get;set }
    
  }
 .....
