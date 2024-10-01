@@ -299,7 +299,7 @@ namespace ORM_1_21_
                             $"I can't return an object of type {columnAttribute.PropertyType} as a string." +
                             $"for property: {columnAttribute.PropertyName}, type: {typeof(T)}");
                     }
-                    // todo 3.0.5
+                    // todo 3.0.5 -alpha
                     if (JsonTypeReturning.ContainsKey(columnAttribute.PropertyType) == false)
                     {
                         JsonTypeReturning.Add(columnAttribute.PropertyType, columnAttribute.TypeReturning);
