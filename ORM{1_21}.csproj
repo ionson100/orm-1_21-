@@ -151,7 +151,7 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>bitnic.orm</Title>
-    <Version>3.0.4</Version>
+    <Version>3.0.5</Version>
     <Authors>ion100</Authors>
     <Description>micro orm postgres mysql mssql sqlite json postgis geometry</Description>
     <PackageId>bitnic.orm</PackageId>
