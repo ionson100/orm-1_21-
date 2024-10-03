@@ -19,6 +19,65 @@ namespace ORM_1_21_
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
     public static partial class Helper
     {
+
+        /// <summary>
+        /// Search expression tree with Initial verification condition
+        /// </summary>
+        /// <param name="query">Queryable object</param>
+        /// <param name="predicateIf">Initial verification condition</param>
+        /// <param name="predicate">Search expression tree</param>
+        /// <typeparam name="TSource">Queryable type</typeparam>
+        /// <returns></returns>
+        public static IQueryable<TSource> WhereIf<TSource>(this IQueryable<TSource> query, bool predicateIf, Expression<Func<TSource, bool>> predicate)
+        {
+            return predicateIf ? query.Where(predicate) : query;
+
+        }
+
+
+        /// <summary>
+        /// The IN operator allows you to specify multiple values in a WHERE clause with Initial verification condition
+        /// The IN operator is a shorthand for multiple OR conditions.
+        /// </summary>
+        public static IQueryable<T> WhereIfIn<T, TS>(this IQueryable<T> query, bool predicateIf, Expression<Func<T, TS>> selector, params TS[] o)
+        {
+            if (predicateIf == false) return query;
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(selector, nameof(selector));
+            Check.NotNull(o, nameof(o));
+            var selectE = selector.Body;
+            var mi = typeof(V).GetMethod("WhereIn");
+            var miConstructed = mi.MakeGenericMethod(typeof(TS));
+
+            ReadOnlyCollection<ParameterExpression> selectorParameters = selector.Parameters;
+            var paramsE = Expression.Constant(o);
+            Expression check = Expression.Call(null, miConstructed, selectE, paramsE);
+            var lambada = Expression.Lambda<Func<T, bool>>(check, selectorParameters);
+            return query.Where(lambada);
+        }
+
+        /// <summary>
+        /// A raw query sql for selecting by condition allows you not to remember the names of table fields (Initial verification condition)
+        /// </summary>
+        /// <param name="query">Current IQueryable</param>
+        /// <param name="predicateIf">Initial verification condition</param>
+        /// <param name="rawSql">Body string</param>
+        /// <param name="sqlParams">Array of request parameters</param>
+        public static IQueryable<T> WhereIfSql<T>(this IQueryable<T> query, bool predicateIf, Expression<Func<T, string>> rawSql, params SqlParam[] sqlParams)
+        {
+            if (predicateIf == false) return query;
+            Check.NotNull(query, nameof(query));
+            Check.NotNull(rawSql, nameof(rawSql));
+            Check.NotNull(sqlParams, nameof(sqlParams));
+            var sqlParamsE = Expression.Constant(sqlParams);
+            var t = Expression.Parameter(typeof(T));
+            var mi = typeof(V).GetMethod("WhereSqlE");
+            Expression check = Expression.Call(null, mi, query.Expression, rawSql, sqlParamsE);
+            var lambada = Expression.Lambda<Func<T, bool>>(check, t);
+            return query.Where(lambada);
+        }
+
+
         /// <summary>
         /// The IN operator allows you to specify multiple values in a WHERE clause.
         /// The IN operator is a shorthand for multiple OR conditions.
