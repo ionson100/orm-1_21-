@@ -34,6 +34,29 @@ namespace ORM_1_21_
 
         }
 
+        /// <summary>
+        /// NOT IN operator replaces a set of arguments with the &lt; &gt; or != operator that is combined with the AND operator.
+        /// With pre-execution operator predicateIf
+        /// </summary>
+
+        public static IQueryable<T> WhereIfNotIn<T, TS>(this IQueryable<T> query, bool predicateIf, Expression<Func<T, TS>> selector, params TS[] param)
+        {
+
+            Check.NotNull(selector, nameof(selector));
+            Check.NotNull(param, nameof(param));
+            if (predicateIf == false) return query;
+            var selectE = selector.Body;
+            var mi = typeof(V).GetMethod("WhereNotIn");
+            var miConstructed = mi.MakeGenericMethod(typeof(TS));
+
+            var selectorParameters = selector.Parameters;
+            var paramsE = Expression.Constant(param);
+            Expression check = Expression.Call(null, miConstructed, selectE, paramsE);
+            var lambada = Expression.Lambda<Func<T, bool>>(check, selectorParameters);
+            return query.Where(lambada);
+        }
+
+
 
         /// <summary>
         /// The IN operator allows you to specify multiple values in a WHERE clause with Initial verification condition
